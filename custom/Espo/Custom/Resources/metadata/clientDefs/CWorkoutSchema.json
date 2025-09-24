@@ -1,0 +1,18 @@
+{
+    "controller": "controllers/record",
+    "boolFilterList": [
+        "onlyMy"
+    ],
+    "color": "#6687ff",
+    "iconClass": "fas fa-calendar-plus",
+    "relationshipPanels": {
+        "contact": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "workoutSessies": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    }
+}

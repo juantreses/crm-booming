@@ -1,0 +1,10 @@
+{
+  "lib": {
+    "chart": "client/custom/lib/chart.js",
+    "chartjs-adapter-date-fns": "client/custom/lib/chartjs-adapter-date-fns.js",
+    "chartjs-plugin-datalabels": "client/custom/lib/chartjs-plugin-datalabels.js"
+  },
+  "quickCreateDisabled": {
+    "Contact": true
+  }
+}

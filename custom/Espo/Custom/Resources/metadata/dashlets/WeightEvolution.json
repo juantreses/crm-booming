@@ -1,0 +1,39 @@
+{
+    "view": "custom:views/dashlets/weight-evolution",
+    "aclScope": "Contact",
+    "entityType": "Contact",
+    "options": {
+        "fields": {
+            "title": {
+                "type": "varchar",
+                "required": true,
+                "default": "Gewicht Evolutie"
+            },
+            "contactId": {
+                "type": "link",
+                "entity": "Contact",
+                "required": true
+            },
+            "timeRange": {
+                "type": "enum",
+                "options": ["3months", "6months", "1year", "all"],
+                "default": "6months",
+                "translation": "Global.options.timeRange"
+            },
+            "showTrend": {
+                "type": "bool",
+                "default": true
+            },
+            "showMultipleMetrics": {
+                "type": "bool",
+                "default": false
+            }
+        },
+        "defaults": {
+            "title": "Gewicht Evolutie",
+            "timeRange": "6months",
+            "showTrend": true,
+            "showMultipleMetrics": false
+        }
+    }
+}

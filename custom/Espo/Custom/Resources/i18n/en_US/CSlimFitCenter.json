@@ -1,0 +1,27 @@
+{
+    "fields": {
+        "members": "Members",
+        "leads": "Leads",
+        "adres": "Adres",
+        "adresStreet": "Adres Straat",
+        "adresCity": "Adres Plaats",
+        "adresState": "Adres Staat",
+        "adresCountry": "Adres Land",
+        "adresPostalCode": "Adres Postcode",
+        "adresMap": "Adres Kaart",
+        "team": "Team",
+        "campagneRoundRobins": "Campagne Round Robins"
+    },
+    "links": {
+        "meetings": "Meetings",
+        "calls": "Calls",
+        "tasks": "Tasks",
+        "members": "Members",
+        "leads": "Leads",
+        "team": "Team",
+        "campagneRoundRobins": "Campagne Round Robins"
+    },
+    "labels": {
+        "Create CSlimFitCenter": "Create SlimFit-Center"
+    }
+}

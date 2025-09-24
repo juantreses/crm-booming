@@ -1,0 +1,10 @@
+/data/cache/
+/data/logs/
+/data/tmp/
+/data/upload/
+/data/config.php
+/data/config-internal.php
+/install/
+.env
+
+/custom/Espo/Modules/*/vendor

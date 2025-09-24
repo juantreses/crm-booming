@@ -1,0 +1,30 @@
+{
+    "fields": {
+        "type": "Type",
+        "gewicht": "Gewicht",
+        "vetPercentage": "Vet (%)",
+        "vochtpercentage": "Vocht (%)",
+        "spiermassa": "Spieren (kg)",
+        "lichaamstype": "Conditie",
+        "bmr": "BMR",
+        "metabolischeleeftijd": "Metabolische Leeftijd",
+        "botmassa": "Botmassa",
+        "contact": "Contact",
+        "vetmassa": "Vet (kg)",
+        "spierpercentage": "Spier (%)",
+        "visceraalvet": "Visceraal Vet",
+        "datum": "Datum"
+    },
+    "links": {
+        "contact": "Contact"
+    },
+    "labels": {
+        "Create CBodyscan": "Create Bodyscan"
+    },
+    "options": {
+        "type": {
+            "Normaal": "Normaal",
+            "Sport": "Sport"
+        }
+    }
+}

@@ -1,0 +1,22 @@
+[
+    {
+        "rows": [
+            [
+                {
+                    "name": "lead"
+                }
+            ],
+            [
+                {
+                    "name": "eventDate"
+                },
+                {
+                    "name": "eventType"
+                }
+            ]
+        ],
+        "style": "default",
+        "noteStyle": "info",
+        "label": ""
+    }
+]

@@ -1,0 +1,14 @@
+[
+    {
+        "name": "lead",
+        "width": 16
+    },
+    {
+        "name": "eventDate",
+        "width": 16
+    },
+    {
+        "name": "eventType",
+        "width": 16
+    }
+]

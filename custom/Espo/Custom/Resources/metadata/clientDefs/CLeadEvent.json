@@ -1,0 +1,14 @@
+{
+    "controller": "controllers/record",
+    "boolFilterList": [
+        "onlyMy"
+    ],
+    "color": "#ff0000",
+    "iconClass": "fas fa-bars-progress",
+    "relationshipPanels": {
+        "lead": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    }
+}

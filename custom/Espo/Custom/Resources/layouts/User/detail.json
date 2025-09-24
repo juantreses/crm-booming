@@ -1,0 +1,40 @@
+[
+    {
+        "rows": [
+            [
+                {
+                    "name": "cVankoCRM"
+                },
+                {
+                    "name": "userName"
+                }
+            ],
+            [
+                {
+                    "name": "cHerbalifeID"
+                },
+                {
+                    "name": "cMember"
+                }
+            ],
+            [
+                {
+                    "name": "name"
+                }
+            ],
+            [
+                {
+                    "name": "emailAddress"
+                }
+            ],
+            [
+                {
+                    "name": "phoneNumber"
+                },
+                false
+            ]
+        ],
+        "style": "default",
+        "label": ""
+    }
+]

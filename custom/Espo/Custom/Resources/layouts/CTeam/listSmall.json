@@ -1,0 +1,14 @@
+[
+    {
+        "name": "name",
+        "width": 70,
+        "link": true,
+        "align": "left"
+    },
+    {
+        "name": "assignedUsers",
+        "width": 30,
+        "notSortable": true,
+        "align": "left"
+    }
+]

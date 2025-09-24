@@ -1,0 +1,17 @@
+[
+    {
+        "name": "status",
+        "width": 15,
+        "align": "left"
+    },
+    {
+        "name": "name",
+        "link": true,
+        "align": "left"
+    },
+    {
+        "name": "cCampagneRoundRobins",
+        "notSortable": true,
+        "align": "left"
+    }
+]

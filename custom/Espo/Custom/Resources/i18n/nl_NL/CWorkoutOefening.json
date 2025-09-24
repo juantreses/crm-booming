@@ -1,0 +1,41 @@
+{
+    "labels": {
+        "Create CWorkoutOefening": "Creëer Workout Oefening"
+    },
+    "fields": {
+        "name": "Naam",
+        "gewicht": "Gewicht",
+        "aantal": "Aantal",
+        "reeksen": "Reeksen",
+        "type": "Type",
+        "subType": "SubType",
+        "minHartslag": "Min Hartslag",
+        "maxHartslag": "Max Hartslag",
+        "description": "Opmerking",
+        "workoutSessie": "Workout Sessie"
+    },
+    "links": {
+        "workoutSessie": "Workout Sessie"
+    },
+    "options": {
+        "type": {
+            "Cardio": "cardio",
+            "Core": "core",
+            "Kracht": "kracht"
+        },
+        "subType": {
+            "Opwarming": "opwarming",
+            "Basis Uithouding": "basis_uithouding",
+            "Interval": "interval",
+            "Cooldown": "cooldown",
+            "Armen": "armen",
+            "Borst": "borst",
+            "Schouders": "schouders",
+            "Rug": "rug",
+            "Statisch": "statisch",
+            "Dynamisch": "dynamisch",
+            "Rotatie / Anti-rotatie": "rotatie_anti_rotatie",
+            "Stability / Balance": "stability_balance"
+        }
+    }
+}

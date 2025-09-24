@@ -1,0 +1,62 @@
+[
+    {
+        "name": "datum",
+        "width": 16
+    },
+    {
+        "name": "contact",
+        "width": 16
+    },
+    {
+        "name": "type",
+        "width": 16
+    },
+    {
+        "name": "gewicht",
+        "width": 16
+    },
+    {
+        "name": "vetPercentage",
+        "width": 16
+    },
+    {
+        "name": "botmassa",
+        "width": 16
+    },
+    {
+        "name": "vochtpercentage",
+        "width": 16
+    },
+    {
+        "name": "spiermassa",
+        "width": 16
+    },
+    {
+        "name": "lichaamstype",
+        "width": 16
+    },
+    {
+        "name": "bmr",
+        "width": 16
+    },
+    {
+        "name": "metabolischeleeftijd",
+        "width": 16
+    },
+    {
+        "name": "visceraalvet",
+        "width": 16
+    },
+    {
+        "name": "spierpercentage",
+        "width": 16,
+        "align": "left",
+        "hidden": true
+    },
+    {
+        "name": "vetmassa",
+        "width": 16,
+        "align": "left",
+        "hidden": true
+    }
+]

@@ -1,0 +1,106 @@
+{
+    "kanbanViewMode": true,
+    "color": "#ff0000",
+    "iconClass": "fas fa-address-card",
+    "relationshipPanels": {
+        "statistic": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "slimFitCenter": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "team": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "bodyScans": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "funnelProgressStatistic": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "leadEvent": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "leadEvents": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "campagneRoundRobin": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    },
+    "additionalLayouts": {
+        "teamleadlist": {
+            "type": "list",
+            "isCustom": true
+        }
+    },
+    "menu": {
+        "detail": {
+            "buttons": [
+                "__APPEND__",
+                {
+                    "label": "Telefoongesprek",
+                    "name": "logCall",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/log-call-handler",
+                    "actionFunction": "logCall",
+                    "checkVisibilityFunction": "isLogCallVisible"
+                },
+		        {
+                    "label": "Kickstart",
+                    "name": "logKickstart",
+                    "action": "logKickstart", 
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/kickstart-action-handler",
+                    "actionFunction": "logKickstart",
+                    "checkVisibilityFunction": "isLogKickstartVisible"
+                },
+                {
+                    "label": "Bericht Gestuurd",
+                    "name": "logMessageSent",
+                    "action": "logMessageSent",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/log-message-sent-handler",
+                    "actionFunction": "logMessageSent",
+                    "checkVisibilityFunction": "isLogMessageSentVisible"
+                },
+                {
+                    "label": "Bericht Opvolging",
+                    "name": "logMessageOutcome",
+                    "action": "logMessageOutcome",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/log-message-outcome-handler",
+                    "actionFunction": "logMessageOutcome",
+                    "checkVisibilityFunction": "isLogMessageOutcomeVisible"
+                },
+                {
+                    "label": "KS - Opvolging",
+                    "name": "logKickstartFollowUp",
+                    "action": "logKickstartFollowUp",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/log-kickstart-follow-up-handler",
+                    "actionFunction": "logKickstartFollowUp",
+                    "checkVisibilityFunction": "isLogKickstartFollowUpVisible"
+                }
+            ]
+        }
+    }
+}

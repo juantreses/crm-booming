@@ -1,0 +1,15 @@
+{
+    "labels": {
+        "Create CBodyscan": "Creëer Bodyscan"
+    },
+    "fields": {
+        "type": "Type",
+        "datum": "Datum"
+    },
+    "options": {
+        "type": {
+            "Normaal": "Normaal",
+            "Sport": "Sport"
+        }
+    }
+}

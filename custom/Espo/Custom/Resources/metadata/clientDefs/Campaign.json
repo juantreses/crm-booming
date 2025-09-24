@@ -1,0 +1,27 @@
+{
+    "kanbanViewMode": false,
+    "color": null,
+    "iconClass": "fas fa-chart-line",
+    "relationshipPanels": {
+        "roundRobinMembers": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "roundRobbinMembers": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "slimFitCenter": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "rounRobinMembers": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "campagneRoundRobins": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    }
+}

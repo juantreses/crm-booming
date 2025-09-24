@@ -1,0 +1,134 @@
+{
+    "collection": {
+        "orderBy": "createdAt",
+        "order": "desc",
+        "textFilterFields": [
+            "name",
+            "emailAddress"
+        ],
+        "fullTextSearch": false,
+        "countDisabled": false
+    },
+    "optimisticConcurrencyControl": false,
+    "fields": {
+        "cSlimFitCenter": {
+            "type": "link"
+        },
+        "cTeam": {
+            "type": "link"
+        },
+        "cUser": {
+            "type": "linkOne"
+        },
+        "cMaximaleHartslag": {
+            "type": "attachmentMultiple",
+            "previewSize": "large",
+            "audited": true,
+            "sourceList": [],
+            "accept": [
+                ".pdf"
+            ],
+            "isPersonalData": true,
+            "isCustom": true
+        },
+        "cTypeKlant": {
+            "type": "enum",
+            "required": true,
+            "options": [
+                "sample_pack",
+                "sport_only",
+                "21_day_bootcamp",
+                "retail",
+                "pcx_15",
+                "pcx_25",
+                "pcx_35",
+                "distributor"
+            ],
+            "default": "sample_pack",
+            "style": {
+                "sample_pack": null,
+                "sport_only": null,
+                "21_day_bootcamp": null,
+                "retail": null,
+                "pcx_15": null,
+                "pcx_25": null,
+                "pcx_35": null,
+                "distributor": null
+            },
+            "maxLength": 100,
+            "isCustom": true
+        },
+        "salutationName": {
+            "options": [
+                "",
+                "Mr.",
+                "Mrs."
+            ],
+            "style": {
+                "": null,
+                "Mr.": null,
+                "Mrs.": null
+            }
+        },
+        "cDateOfBirth": {
+            "notNull": false,
+            "type": "date",
+            "isPersonalData": true,
+            "isCustom": true
+        },
+        "cVankoCRM": {
+            "type": "varchar",
+            "maxLength": 50,
+            "audited": true,
+            "options": [],
+            "isCustom": true
+        },
+        "cWorkoutSchemas": {
+            "type": "linkMultiple"
+        }
+    },
+    "links": {
+        "cSlimFitCenter": {
+            "type": "belongsTo",
+            "foreign": "members",
+            "entity": "CSlimFitCenter",
+            "audited": true,
+            "isCustom": true
+        },
+        "cTeam": {
+            "type": "belongsTo",
+            "foreign": "members",
+            "entity": "CTeam",
+            "audited": false,
+            "isCustom": true
+        },
+        "cBodyscans": {
+            "type": "hasMany",
+            "foreign": "contact",
+            "entity": "CBodyscan",
+            "audited": false,
+            "isCustom": true
+        },
+        "cUser": {
+            "type": "hasOne",
+            "foreign": "cMember",
+            "entity": "User",
+            "isCustom": true
+        },
+        "cMaximaleHartslag": {
+            "type": "hasChildren",
+            "entity": "Attachment",
+            "foreign": "parent",
+            "layoutRelationshipsDisabled": true,
+            "relationName": "attachments",
+            "utility": true
+        },
+        "cWorkoutSchemas": {
+            "type": "hasMany",
+            "foreign": "contact",
+            "entity": "CWorkoutSchema",
+            "audited": false,
+            "isCustom": true
+        }
+    }
+}

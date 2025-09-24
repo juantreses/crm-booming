@@ -1,0 +1,39 @@
+{
+    "labels": {
+        "Create Contact": "Creëer Klant"
+    },
+    "fields": {
+        "cSlimFitCenter": "SlimFit-Center",
+        "cTeam": "Team",
+        "cUser": "Account",
+        "cMaximaleHartslag": "Maximale Hartslag",
+        "cTypeKlant": "Type Klant",
+        "cDateOfBirth": "Verjaardag",
+        "cVankoCRM": "VankoCRM",
+        "cWorkoutSchemas": "Workout Schemas"
+    },
+    "links": {
+        "cSlimFitCenter": "SlimFit-Center",
+        "cTeam": "Team",
+        "cUser": "Account",
+        "cWorkoutSchemas": "Workout Schemas"
+    },
+    "options": {
+        "cTypeKlant": {
+            "sample_pack": "Proefpakket",
+            "sport_only": "Enkel sport",
+            "retail": "Retail",
+            "pcx_15": "PCX 15",
+            "pcx_25": "PCX 25",
+            "pcx_35": "PCX 35",
+            "21_day_bootcamp": "21 dagen SlimFit Bootcamp",
+            "distributeur": "Distributeur",
+            "distributor": "Distributeur"
+        },
+        "salutationName": {
+            "": "",
+            "Mr.": "Dhr.",
+            "Mrs.": "Mevr."
+        }
+    }
+}

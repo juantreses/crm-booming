@@ -1,0 +1,53 @@
+{
+    "fields": {
+        "cVankoCRM": "VankoCRM",
+        "cSlimFitCenter": "SlimFit-Center",
+        "cTeam": "Team",
+        "cDateOfBirth": "Verjaardag",
+        "cLeadEvents": "Lead Events",
+        "cCallCount": "Aantal keer gebeld",
+        "cNotes": "Notities",
+        "cCampagneRoundRobin": "Campagne Round Robin",
+        "cExternalCreatedAt": "Vanko Aanmaakdatum",
+        "cFollowUpAction": "Opvolgactie"
+    },
+    "links": {
+        "cSlimFitCenter": "SlimFit-Center",
+        "cTeam": "Team",
+        "cLeadEvents": "Lead Events",
+        "cCampagneRoundRobin": "Campagne Round Robin"
+    },
+    "layouts": {
+        "teamleadlist": "Team Lead List"
+    },
+    "options": {
+        "status": {
+            "New": "New",
+            "Assigned": "Toegewezen",
+            "In Process": "In Process",
+            "Contact": "Contact gehad",
+            "Later Terug Bellen": "Later Terug Bellen",
+            "KickStart Ingeplanned": "KickStart Ingeplanned",
+            "Converted": "Geconverteerd",
+            "Verkeerd Nummer": "Verkeerd Nummer",
+            "Geen Interesse": "Geen Interesse",
+            "Dead": "Dead",
+            "Contacted": "Succesvol Gecontacteerd",
+            "no_answer": "Geen antwoord",
+            "wrong_number": "Verkeerd nummer",
+            "not_interested": "Geen interesse (Telefoon)",
+            "invited": "Uitgenodigd KS",
+            "attended": "Aanwezig KS",
+            "no_show": "Niet opgedaagd KS",
+            "appointment_cancelled": "Geannuleerd KS",
+            "converted": "Klant geworden",
+            "not_converted": "Geen klant geworden",
+            "became_coach": "Coach geworden",
+            "new": "Nieuw",
+            "assigned": "Toegewezen",
+            "contacted": "Succesvol gecontacteerd",
+            "appointment_booked": "Ingepland KS",
+            "call_again": "Opnieuw bellen"
+        }
+    }
+}

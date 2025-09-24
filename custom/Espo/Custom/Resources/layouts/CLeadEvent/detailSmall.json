@@ -1,0 +1,16 @@
+[
+    {
+        "rows": [
+            [
+                {
+                    "name": "eventType"
+                },
+                {
+                    "name": "eventDate"
+                }
+            ]
+        ],
+        "style": "default",
+        "label": ""
+    }
+]

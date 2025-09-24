@@ -1,0 +1,12 @@
+{
+    "scopeNames": {
+        "Contact": "Klant",
+        "CTeam": "HB Team",
+        "CCampagneRoundRobin": "Round Robin"
+    },
+    "scopeNamesPlural": {
+        "Contact": "Klanten",
+        "CTeam": "HB Teams",
+        "CCampagneRoundRobin": "Round Robins"
+    }
+}

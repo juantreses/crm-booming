@@ -1,0 +1,63 @@
+{
+    "fields": {
+        "gewicht": {
+            "visible": {
+                "conditionGroup": [
+                    {
+                        "type": "or",
+                        "value": [
+                            {
+                                "type": "equals",
+                                "attribute": "type",
+                                "value": "Kracht"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "aantal": {
+            "visible": {
+                "conditionGroup": [
+                    {
+                        "type": "or",
+                        "value": [
+                            {
+                                "type": "equals",
+                                "attribute": "type",
+                                "value": "Core"
+                            },
+                            {
+                                "type": "equals",
+                                "attribute": "type",
+                                "value": "Kracht"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "minHartslag": {
+            "visible": {
+                "conditionGroup": [
+                    {
+                        "type": "equals",
+                        "attribute": "type",
+                        "value": "Cardio"
+                    }
+                ]
+            }
+        },
+        "maxHartslag": {
+            "visible": {
+                "conditionGroup": [
+                    {
+                        "type": "equals",
+                        "attribute": "type",
+                        "value": "Cardio"
+                    }
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,53 @@
+{
+    "kanbanViewMode": false,
+    "color": "#00c81c",
+    "iconClass": "fas fa-people-line",
+    "relationshipPanels": {
+        "slimFitCenter": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "team": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "bodyScans": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "bodyscans": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "cBodyscans": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "funnelProgressStatistic": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "user": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "cTeam": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "workoutSchemas": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    },
+    "bottomPanels": {
+        "detail": [
+            "__APPEND__",
+            {
+                "name": "weightProgression",
+                "label": "Gewicht evolutie",
+                "view": "custom:views/contact/panels/weight-progression"
+            }
+        ]
+    }
+}

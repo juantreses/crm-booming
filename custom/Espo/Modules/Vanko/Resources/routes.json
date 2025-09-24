@@ -1,0 +1,26 @@
+[
+   {
+        "route": "/vanko/lead",
+        "method": "post",
+        "params": {
+            "controller": "VankoApi",
+            "action": "lead"
+        }
+    },
+    {
+	"route": "/vanko/kickstart",
+	"method": "post",
+	"params": {
+	    "controller": "VankoApi",
+	    "action": "kickstart"
+	}
+    },
+    {
+        "route": "/vanko/kickstart/cancel",
+        "method": "post",
+        "params": {
+            "controller": "VankoApi",
+            "action": "cancelKickstart"
+        }
+    }
+]

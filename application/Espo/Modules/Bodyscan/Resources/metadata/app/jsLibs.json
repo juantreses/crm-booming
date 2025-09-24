@@ -1,0 +1,18 @@
+{
+    "chart": {
+        "path": "client/custom/lib/chart.js",
+        "exportsTo": "window",
+        "exportsAs": "Chart"
+    },
+    "chartjs-adapter-date-fns": {
+        "path": "client/custom/lib/chartjs-adapter-date-fns.js",
+        "exportsTo": "window",
+        "exportsAs": "ChartDateFns"
+    },
+    "chartjs-plugin-datalabels": {
+        "path": "client/custom/lib/chartjs-plugin-datalabels.js",
+        "exportsTo": "window",
+        "exportsAs": "ChartDataLabels"
+    }
+}
+

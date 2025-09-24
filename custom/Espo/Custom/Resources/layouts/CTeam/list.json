@@ -1,0 +1,23 @@
+[
+    {
+        "name": "actief",
+        "width": 16
+    },
+    {
+        "name": "name",
+        "link": true
+    },
+    {
+        "name": "herbalifeID",
+        "width": 16
+    },
+    {
+        "name": "herbalifePin",
+        "width": 16
+    },
+    {
+        "name": "assignedUsers",
+        "width": 16,
+        "notSortable": true
+    }
+]

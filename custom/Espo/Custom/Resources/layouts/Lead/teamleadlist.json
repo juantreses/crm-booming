@@ -1,0 +1,14 @@
+[
+    {
+        "name": "cSlimFitCenter",
+        "width": 16
+    },
+    {
+        "name": "name",
+        "link": true
+    },
+    {
+        "name": "status",
+        "width": 16
+    }
+]

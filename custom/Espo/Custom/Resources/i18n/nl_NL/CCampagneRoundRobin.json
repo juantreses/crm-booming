@@ -1,0 +1,19 @@
+{
+    "labels": {
+        "Create CCampagneRoundRobin": "Creëer Round Robin"
+    },
+    "fields": {
+        "roundRobinActief": "Round Robin Actief",
+        "roundRobinStart": "Round Robin Start",
+        "activeMembers": "Active Members",
+        "slimFitCenter": "SlimFit-Center",
+        "campaign": "Campaign",
+        "leads": "Leads"
+    },
+    "links": {
+        "activeMembers": "Active Members",
+        "slimFitCenter": "SlimFit-Center",
+        "campaign": "Campaign",
+        "leads": "Leads"
+    }
+}

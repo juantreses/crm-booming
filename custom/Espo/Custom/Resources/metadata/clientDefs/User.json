@@ -1,0 +1,12 @@
+{
+    "relationshipPanels": {
+        "team": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "member": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    }
+}

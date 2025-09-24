@@ -1,0 +1,23 @@
+[
+    {
+        "name": "cSlimFitCenter",
+        "width": 20
+    },
+    {
+        "name": "status",
+        "width": 17
+    },
+    {
+        "name": "name",
+        "link": true
+    },
+    {
+        "name": "emailAddress",
+        "width": 27,
+        "notSortable": true
+    },
+    {
+        "name": "phoneNumber",
+        "width": 20
+    }
+]

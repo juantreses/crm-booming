@@ -1,0 +1,26 @@
+{
+    "fields": {
+        "parent": {
+            "entityList": [
+                "Account",
+                "Lead",
+                "Contact",
+                "Opportunity",
+                "Case",
+                "CSlimFitCenter"
+            ]
+        }
+    },
+    "collection": {
+        "orderBy": "dateSent",
+        "order": "desc",
+        "textFilterFields": [
+            "name",
+            "bodyPlain",
+            "body"
+        ],
+        "fullTextSearch": true,
+        "countDisabled": true
+    },
+    "optimisticConcurrencyControl": false
+}

@@ -1,0 +1,12 @@
+{
+    "fields": {
+        "cTeam": "Team",
+        "cHerbalifeID": "Herbalife ID",
+        "cMember": "Member",
+        "cVankoCRM": "VankoCRM"
+    },
+    "links": {
+        "cTeam": "Team",
+        "cMember": "Member"
+    }
+}

@@ -1,0 +1,65 @@
+[
+    {
+        "rows": [
+            [
+                {
+                    "name": "status"
+                }
+            ],
+            [
+                {
+                    "name": "name"
+                }
+            ],
+            [
+                {
+                    "name": "emailAddress"
+                },
+                {
+                    "name": "phoneNumber"
+                }
+            ],
+            [
+                {
+                    "name": "cSlimFitCenter"
+                },
+                {
+                    "name": "cTeam"
+                }
+            ],
+            [
+                {
+                    "name": "cCallCount"
+                },
+                {
+                    "name": "cNotes"
+                }
+            ]
+        ],
+        "style": "default",
+        "label": "Overview"
+    },
+    {
+        "rows": [
+            [
+                {
+                    "name": "cExternalCreatedAt"
+                },
+                {
+                    "name": "campaign"
+                },
+                {
+                    "name": "cCampagneRoundRobin"
+                }
+            ]
+        ],
+        "dynamicLogicVisible": null,
+        "style": "default",
+        "tabBreak": true,
+        "tabLabel": "Campagne Info",
+        "hidden": false,
+        "noteText": null,
+        "noteStyle": "info",
+        "customLabel": "Tool Info"
+    }
+]

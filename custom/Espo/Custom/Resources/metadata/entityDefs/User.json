@@ -1,0 +1,36 @@
+{
+    "fields": {
+        "cTeam": {
+            "type": "linkOne"
+        },
+        "cHerbalifeID": {
+            "type": "varchar",
+            "maxLength": 100,
+            "options": [],
+            "isCustom": true
+        },
+        "cMember": {
+            "type": "link"
+        },
+        "cVankoCRM": {
+            "type": "varchar",
+            "maxLength": 50,
+            "options": [],
+            "isCustom": true
+        }
+    },
+    "links": {
+        "cTeam": {
+            "type": "hasOne",
+            "foreign": "user",
+            "entity": "CTeam",
+            "isCustom": true
+        },
+        "cMember": {
+            "type": "belongsTo",
+            "foreign": "cUser",
+            "entity": "Contact",
+            "isCustom": true
+        }
+    }
+}

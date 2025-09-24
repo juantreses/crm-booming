@@ -1,0 +1,10 @@
+[
+   {
+        "route": "/downlines",
+        "method": "get",
+        "params": {
+            "controller": "DownlinesApi",
+            "action": "downlines"
+        }
+    }
+]

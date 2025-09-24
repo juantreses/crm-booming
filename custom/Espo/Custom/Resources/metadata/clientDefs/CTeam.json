@@ -1,0 +1,54 @@
+{
+    "controller": "controllers/record",
+    "boolFilterList": [
+        "onlyMy"
+    ],
+    "color": "#008740",
+    "iconClass": "fas fa-people-group",
+    "relationshipPanels": {
+        "user": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "sponser": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "downlines": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "leads": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "members": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "slimFitCenter": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "activeCampaigns": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    },
+    "kanbanViewMode": false,
+    "bottomPanels": {
+        "detail": [
+            "__APPEND__",
+            {
+                "name": "cDownlines",
+                "label": "Downlines",
+                "view": "custom:views/cteam/record/panels/downlines"
+            },
+            {
+                "name": "statistics",
+                "label": "Statistieken",
+                "view": "custom:views/cteam/record/panels/statistics"
+            }
+        ]
+    }
+}

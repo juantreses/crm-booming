@@ -1,0 +1,34 @@
+{
+    "labels": {
+        "Create CLeadEvent": "Create Lead Event"
+    },
+    "fields": {
+        "eventType": "Event Type",
+        "eventDate": "Event Date",
+        "lead": "Lead"
+    },
+    "options": {
+        "eventType": {
+            "contacted": "Succesvol gecontacteerd",
+            "wrong_number": "Verkeerd nummer",
+            "not_interested": "Niet geïnteresseerd (telefoon)",
+            "invited": "Uitgenodigd KS",
+            "attended": "Aanwezig KS",
+            "no_show": "Niet gekomen KS",
+            "converted": "Opgestart",
+            "became_coach": "Coach geworden",
+            "called": "Gebeld",
+            "appointment_cancelled": "Afgezegd KS",
+            "not_converted": "Niet opgestart",
+            "call_again": "Opnieuw bellen",
+            "appointment_booked": "Ingepland KS",
+            "no_answer": "Geen antwoord",
+            "message_to_be_sent": "Bericht Sturen",
+            "message_sent": "Bericht Verstuurd",
+            "still_thinking": "Twijfel KS"
+        }
+    },
+    "links": {
+        "lead": "Lead"
+    }
+}

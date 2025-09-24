@@ -1,0 +1,26 @@
+{
+    "collection": {
+        "orderBy": "createdAt",
+        "order": "desc",
+        "textFilterFields": [
+            "name"
+        ],
+        "fullTextSearch": false,
+        "countDisabled": false
+    },
+    "optimisticConcurrencyControl": false,
+    "fields": {
+        "cCampagneRoundRobins": {
+            "type": "linkMultiple"
+        }
+    },
+    "links": {
+        "cCampagneRoundRobins": {
+            "type": "hasMany",
+            "foreign": "campaign",
+            "entity": "CCampagneRoundRobin",
+            "audited": false,
+            "isCustom": true
+        }
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "controller": "controllers/record",
+    "boolFilterList": [
+        "onlyMy"
+    ],
+    "color": "#6687ff",
+    "iconClass": "fas fa-calendar-xmark",
+    "relationshipPanels": {
+        "workoutSessie": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    }
+}

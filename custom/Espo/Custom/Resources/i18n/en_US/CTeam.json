@@ -1,0 +1,59 @@
+{
+    "fields": {
+        "user": "User",
+        "sponser": "Sponsor",
+        "downlines": "Downlines",
+        "leads": "Leads",
+        "members": "Leden",
+        "herbalifePin": "Herbalife Pin",
+        "herbalifeID": "Herbalife ID",
+        "accessGroup": "Access Group",
+        "slimFitCenter": "SlimFit-Center",
+        "enquete": "Link Enquete",
+        "cadeaubon": "Link Cadeaubon",
+        "berichten": "Link Berichten",
+        "bissKaartSlimFitCenter": "Link Biss Kaart SlimFit-Center",
+        "bissKaartCoachingCenter": "Link Biss Kaart Coaching-Center",
+        "betaalLinkProefPakket": "Betaal Link ProefPakket",
+        "betaalLinkSportweek": "Betaal Link Sportweek",
+        "activeCampaigns": "Active Campaigns",
+        "actief": "Actief",
+        "maxCallAttempts": "Aantal keer bellen vóór bericht"
+    },
+    "links": {
+        "user": "User",
+        "sponser": "Sponsor",
+        "downlines": "Downlines",
+        "leads": "Leads",
+        "members": "Leden",
+        "slimFitCenter": "SlimFit-Center",
+        "activeCampaigns": "Active Campaigns"
+    },
+    "labels": {
+        "Create CTeam": "Creëer HB Team"
+    },
+    "options": {
+        "herbalifePin": {
+            "Member": "Member",
+            "Senior Consultant": "Senior Consultant",
+            "Succes Builder": "Succes Builder",
+            "Qualified Producer": "Qualified Producer",
+            "Supervisor": "Supervisor",
+            "World Team": "World Team",
+            "GET": "GET",
+            "GET 2.5": "GET 2.5",
+            "Millionair Team": "Millionair Team",
+            "Millionair Team 7.5": "Millionair Team 7.5",
+            "President's Team": "President's Team",
+            "President's Team 15K": "President's Team 15K",
+            "President's Team 20K": "President's Team 20K",
+            "President's Team 30K": "President's Team 30K",
+            "President's Team 50K": "President's Team 50K",
+            "Chairman's Club": "Chairman's Club",
+            "Founder's Circle": "Founder's Circle"
+        }
+    },
+    "tooltips": {
+        "maxCallAttempts": "Na dit aantal mislukte belpogingen wordt de status automatisch omgezet naar Bericht sturen."
+    }
+}

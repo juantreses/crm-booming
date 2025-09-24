@@ -1,0 +1,167 @@
+{
+    "fields": {
+        "cVankoCRM": {
+            "type": "varchar",
+            "maxLength": 50,
+            "options": [],
+            "isCustom": true,
+            "required": false,
+            "audited": true
+        },
+        "cSlimFitCenter": {
+            "type": "link"
+        },
+        "status": {
+            "options": [
+                "new",
+                "assigned",
+                "call_again",
+                "wrong_number",
+                "not_interested",
+                "message_to_be_sent",
+                "message_sent",
+                "invited",
+                "appointment_booked",
+                "attended",
+                "no_show",
+                "still_thinking",
+                "appointment_cancelled",
+                "converted",
+                "not_converted",
+                "became_coach"
+            ],
+            "style": {
+                "new": null,
+                "assigned": null,
+                "call_again": null,
+                "wrong_number": null,
+                "not_interested": null,
+                "message_to_be_sent": null,
+                "message_sent": null,
+                "invited": null,
+                "appointment_booked": null,
+                "attended": null,
+                "no_show": null,
+                "still_thinking": null,
+                "appointment_cancelled": null,
+                "converted": null,
+                "not_converted": null,
+                "became_coach": null
+            },
+            "required": true,
+            "labelType": null,
+            "default": "new",
+            "notActualOptions": [
+                "Recycled",
+                "Dead",
+                "call_again",
+                "wrong_number",
+                "not_interested",
+                "invited",
+                "appointment_booked",
+                "Converted",
+                "attended",
+                "no_show",
+                "still_thinking",
+                "appointment_cancelled",
+                "became_coach",
+                "not_converted",
+                "message_to_be_sent",
+                "message_sent"
+            ]
+        },
+        "cTeam": {
+            "type": "link"
+        },
+        "cDateOfBirth": {
+            "notNull": false,
+            "type": "date",
+            "isPersonalData": true,
+            "isCustom": true
+        },
+        "cCallCount": {
+            "type": "int",
+            "default": 0,
+            "min": 0,
+            "readOnly": true,
+            "inlineEditDisabled": true,
+            "isCustom": true
+        },
+        "cNotes": {
+            "type": "text",
+            "rowsMin": 2,
+            "cutHeight": 200,
+            "isCustom": true
+        },
+        "cCampagneRoundRobin": {
+            "type": "link"
+        },
+        "salutationName": {
+            "options": [
+                "",
+                "Mr.",
+                "Mrs."
+            ],
+            "style": {
+                "": null,
+                "Mr.": null,
+                "Mrs.": null
+            }
+        },
+        "cExternalCreatedAt": {
+            "notNull": false,
+            "type": "datetime",
+            "default": "javascript: return this.dateTime.getNow(1);",
+            "minuteStep": 30,
+            "isCustom": true
+        },
+        "cFollowUpAction": {
+            "type": "varchar",
+            "maxLength": 100,
+            "options": [],
+            "isCustom": true
+        }
+    },
+    "collection": {
+        "orderBy": "createdAt",
+        "order": "desc",
+        "textFilterFields": [
+            "name",
+            "accountName",
+            "emailAddress"
+        ],
+        "fullTextSearch": false,
+        "countDisabled": false
+    },
+    "optimisticConcurrencyControl": false,
+    "links": {
+        "cSlimFitCenter": {
+            "type": "belongsTo",
+            "foreign": "leads",
+            "entity": "CSlimFitCenter",
+            "audited": true,
+            "isCustom": true
+        },
+        "cTeam": {
+            "type": "belongsTo",
+            "foreign": "leads",
+            "entity": "CTeam",
+            "audited": false,
+            "isCustom": true
+        },
+        "cLeadEvents": {
+            "type": "hasMany",
+            "foreign": "lead",
+            "entity": "CLeadEvent",
+            "audited": false,
+            "isCustom": true
+        },
+        "cCampagneRoundRobin": {
+            "type": "belongsTo",
+            "foreign": "leads",
+            "entity": "CCampagneRoundRobin",
+            "audited": false,
+            "isCustom": true
+        }
+    }
+}

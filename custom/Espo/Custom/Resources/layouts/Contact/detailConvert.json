@@ -1,0 +1,37 @@
+[
+    {
+        "rows": [
+            [
+                {
+                    "name": "cVankoCRM"
+                }
+            ],
+            [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "cTypeKlant"
+                }
+            ],
+            [
+                {
+                    "name": "emailAddress"
+                },
+                {
+                    "name": "phoneNumber"
+                }
+            ],
+            [
+                {
+                    "name": "cTeam"
+                },
+                {
+                    "name": "cSlimFitCenter"
+                }
+            ]
+        ],
+        "style": "default",
+        "label": ""
+    }
+]

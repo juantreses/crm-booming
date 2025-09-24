@@ -1,0 +1,15 @@
+{
+    "stream": true,
+    "disabled": false,
+    "statusField": "status",
+    "kanbanStatusIgnoreList": null,
+    "stars": false,
+    "preserveAuditLog": false,
+    "duplicateCheckFieldList": [
+        "emailAddress",
+        "cVankoCRM",
+        "phoneNumber"
+    ],
+    "collaborators": false,
+    "assignedUsers": false
+}

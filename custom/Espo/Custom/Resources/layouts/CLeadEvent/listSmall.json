@@ -1,0 +1,10 @@
+[
+    {
+        "name": "eventDate",
+        "width": 20
+    },
+    {
+        "name": "eventType",
+        "width": 20
+    }
+]

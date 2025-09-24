@@ -1,0 +1,107 @@
+[
+    {
+        "rows": [
+            [
+                {
+                    "name": "actief"
+                },
+                {
+                    "name": "herbalifeID"
+                },
+                {
+                    "name": "herbalifePin"
+                }
+            ],
+            [
+                {
+                    "name": "name"
+                }
+            ],
+            [
+                {
+                    "name": "sponser"
+                }
+            ]
+        ],
+        "style": "default",
+        "label": "Overview"
+    },
+    {
+        "rows": [
+            [
+                {
+                    "name": "enquete"
+                },
+                {
+                    "name": "cadeaubon"
+                }
+            ],
+            [
+                {
+                    "name": "berichten"
+                }
+            ],
+            [
+                {
+                    "name": "bissKaartSlimFitCenter"
+                },
+                {
+                    "name": "bissKaartCoachingCenter"
+                }
+            ]
+        ],
+        "dynamicLogicVisible": null,
+        "style": "default",
+        "tabBreak": true,
+        "tabLabel": "Links",
+        "hidden": false,
+        "noteText": null,
+        "noteStyle": "info",
+        "customLabel": "Actie Links"
+    },
+    {
+        "rows": [
+            [
+                {
+                    "name": "betaalLinkProefPakket"
+                },
+                {
+                    "name": "betaalQRProefPakket"
+                }
+            ],
+            [
+                {
+                    "name": "betaalLinkSportweek"
+                },
+                {
+                    "name": "betaalQRSportweek"
+                }
+            ]
+        ],
+        "dynamicLogicVisible": null,
+        "style": "default",
+        "tabBreak": false,
+        "tabLabel": "Betaal Links",
+        "hidden": false,
+        "noteText": null,
+        "noteStyle": "info",
+        "customLabel": "Betaal Links"
+    },
+    {
+        "rows": [
+            [
+                {
+                    "name": "maxCallAttempts"
+                }
+            ]
+        ],
+        "dynamicLogicVisible": null,
+        "style": "default",
+        "tabBreak": true,
+        "tabLabel": "Config",
+        "hidden": false,
+        "noteText": null,
+        "noteStyle": "info",
+        "customLabel": "Configuratie"
+    }
+]

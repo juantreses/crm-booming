@@ -1,0 +1,22 @@
+[
+    {
+        "name": "datum",
+        "width": 20
+    },
+    {
+        "name": "gewicht",
+        "width": 20
+    },
+    {
+        "name": "vetPercentage",
+        "width": 20
+    },
+    {
+        "name": "spiermassa",
+        "width": 20
+    },
+    {
+        "name": "visceraalvet",
+        "width": 20
+    }
+]

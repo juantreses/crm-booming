@@ -1,0 +1,38 @@
+{
+    "activities": {
+        "disabled": true
+    },
+    "history": {
+        "disabled": true
+    },
+    "stream": {
+        "disabled": true
+    },
+    "_delimiter_": {
+        "disabled": true
+    },
+    "_tabBreak_0": {
+        "index": 0,
+        "tabBreak": true,
+        "tabLabel": "Bodyscans"
+    },
+    "cBodyscans": {
+        "index": 1
+    },
+    "_tabBreak_1": {
+        "index": 2,
+        "tabBreak": true,
+        "tabLabel": "Gewicht evolutie"
+    },
+    "weightProgression": {
+        "index": 3
+    },
+    "_tabBreak_2": {
+        "index": 4,
+        "tabBreak": true,
+        "tabLabel": "Trainingsschema"
+    },
+    "cWorkoutSchemas": {
+        "index": 5
+    }
+}
