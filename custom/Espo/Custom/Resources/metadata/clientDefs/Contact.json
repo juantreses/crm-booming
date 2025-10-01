@@ -40,6 +40,9 @@
             "selectPrimaryFilterName": null
         }
     },
+    "views": {
+        "detail": "custom:views/contact/detail"
+    },
     "bottomPanels": {
         "detail": [
             "__APPEND__",
