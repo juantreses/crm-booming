@@ -30,7 +30,9 @@ class VankoWebhookService
         'cTeamId',
         'cSlimFitCenterId'
     ];
-    
+    private const COMETLY_FIELDS_TO_WATCH = [
+        "status",
+    ];
     private const CLIENT_TYPE_MAPPING = [
         'sample_pack' => 'Proefpakket',
         'sport_only' => 'SportOnly',
@@ -141,6 +143,7 @@ class VankoWebhookService
     {
         return [
             'id' => $lead->getId(),
+            'status' => $lead->get('status'),
             'contact_id' => $contact ? $contact->getId() : null,
             'vanko_id' => $this->getFieldValue($contact, $lead, 'cVankoCRM'),
             'first_name' => $this->getFieldValue($contact, $lead, 'firstName'),
