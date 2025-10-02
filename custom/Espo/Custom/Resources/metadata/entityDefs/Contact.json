@@ -85,6 +85,12 @@
         },
         "cWorkoutSchemas": {
             "type": "linkMultiple"
+        },
+        "cHeight": {
+            "type": "int",
+            "min": 130,
+            "max": 230,
+            "isCustom": true
         }
     },
     "links": {
