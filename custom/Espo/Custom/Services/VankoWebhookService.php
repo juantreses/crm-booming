@@ -51,6 +51,20 @@ class VankoWebhookService
         private readonly EntityManager $entityManager,
     ) {}
 
+    public function processVankoLead(Entity $entity): void
+    {
+        if ($this->hasLeadFieldsChanged($entity)) {
+            $this->processVankoLeadWebhook($entity);
+        }
+    }
+
+    public function processVankoContact(Entity $entity): void
+    {
+        if ($this->hasContactFieldsChanged($entity)) {
+            $this->processVankoContactWebhook($entity);
+        }
+    }
+
     public function hasLeadFieldsChanged(Entity $entity): bool
     {
         $changed = false;
@@ -105,133 +119,67 @@ class VankoWebhookService
         return false;
     }
 
-    public function syncAndProcessFromContact(Entity $contact): void
+    private function processVankoLeadWebhook(Entity $entity): void
     {
-        $this->log->info('Syncing and processing webhook from Contact ID: ' . $contact->getId());
-        $lead = $this->getRelatedLead($contact);
-
-        if ($lead) {
-            $this->log->info('Related Lead found, updating fields on Lead entity.');
-            $lead->set('firstName', $contact->get('firstName'));
-            $lead->set('lastName', $contact->get('lastName'));
-            $lead->set('emailAddress', $contact->get('emailAddress'));
-            $lead->set('phoneNumber', $contact->get('phoneNumber'));
-            $lead->set('cDateOfBirth', $contact->get('cDateOfBirth'));
-            $lead->set('cTeam', $contact->get('cTeam'));
-
-            $this->entityManager->saveEntity(
-                $lead, 
-                [
-                    SaveOption::SKIP_ALL => true,
-                ]
-            );
-        }
-        
-        $this->processVankoWebhook($lead, $contact);
+        $this->log->info('Preparing to send webhook from Lead ID: ' . $entity->getId());
+        $this->sendVankoLeadWebhook($this->buildWebhookLeadData($entity));
+    }
+    private function processVankoContactWebhook(Entity $entity): void
+    {
+        $this->log->info('Preparing to send webhook from Contact ID: ' . $entity->getId());
+        $this->sendVankoContactWebhook($this->buildWebhookContactData($entity));
     }
 
-    public function syncAndProcessFromLead(Entity $lead): void
+    private function buildWebhookLeadData(Entity $entity) : array 
     {
-        $this->log->info('Syncing and processing webhook from Lead ID: ' . $lead->getId());
-        $contact = $this->getRelatedContact($lead);
-
-        if ($contact) {
-            $this->log->info('Related Contact found, updating fields on Contact entity.');
-            $contact->set('firstName', $lead->get('firstName'));
-            $contact->set('lastName', $lead->get('lastName'));
-            $contact->set('emailAddress', $lead->get('emailAddress'));
-            $contact->set('phoneNumber', $lead->get('phoneNumber'));
-            $contact->set('cDateOfBirth', $lead->get('cDateOfBirth'));
-            $contact->set('cTeam', $lead->get('cTeam'));
-
-            $this->entityManager->saveEntity(
-                $contact, 
-                [
-                    SaveOption::SKIP_ALL => true,
-                ]
-            );
-        }
-
-        $this->processVankoWebhook($lead, $contact);
+        $data = $this->buildWebhookBaseData($entity);
+        $data['status'] = $entity->get('status');
+        return $data;
     }
 
-    private function processVankoWebhook(Entity $lead, ?Entity $contact): void
+    private function buildWebhookContactData(Entity $entity) : array 
     {
-        $this->log->info('Preparing to send webhook from Lead ID: ' . $lead->getId());
-        $this->sendVankoWebhook($this->buildWebhookData($lead, $contact));
-    }
-    
-    private function getRelatedLead(Entity $contact): ?Entity
-    {
-        $vankoCRMId = $contact->get('cVankoCRM');
-        if (!$vankoCRMId) {
-            return null;
-        }
-
-        return $this->entityManager->getRepository('Lead')->where(['cVankoCRM' => $vankoCRMId])->findOne();
+        $data = $this->buildWebhookBaseData($entity);
+        $data['date_of_birth'] = $entity->get('cDateOfBirth');
+        $data['client_type'] = self::CLIENT_TYPE_MAPPING[$entity->get('cTypeKlant')]?self::CLIENT_TYPE_MAPPING[$entity->get('cTypeKlant')]:"Lead";
+        return $data;
     }
 
-    private function getRelatedContact(Entity $lead): ?Entity
+    private function buildWebhookBaseData(Entity $entity): array
     {
-        $vankoCRMId = $lead->get('cVankoCRM');
-        if (!$vankoCRMId) {
-            return null;
-        }
-
-        return $this->entityManager->getRepository('Contact')->where(['cVankoCRM' => $vankoCRMId])->findOne();
+        $data = [];
+        $data['id'] = $entity->getId();
+        $data['vanko_id'] = $entity->get('cVankoCRM');
+        $data['first_name'] = $entity->get('firstName');
+        $data['last_name'] = $entity->get('lastName');
+        $data['emailAddress'] = $entity->get('emailAddress');
+        $data['phoneNumber'] = $entity->get('phoneNumber');
+        $data['team'] = $entity->get('cTeam') ? $entity->get('cTeam')->get('name') : "";
+        $data['slimfitcenter'] = $entity->get('cSlimFitCenter') ? $entity->get('cSlimFitCenter')->get('name') : "";
+        return $data;
     }
 
-
-    private function buildWebhookData(Entity $lead, ?Entity $contact = null): array
+    private function sendVankoLeadWebhook(array $webhookData): void
     {
-        return [
-            'id' => $lead->getId(),
-            'status' => $lead->get('status'),
-            'contact_id' => $contact ? $contact->getId() : null,
-            'vanko_id' => $this->getFieldValue($contact, $lead, 'cVankoCRM'),
-            'first_name' => $this->getFieldValue($contact, $lead, 'firstName'),
-            'last_name' => $this->getFieldValue($contact, $lead, 'lastName'),
-            'emailAddress' => $this->getFieldValue($contact, $lead, 'emailAddress'),
-            'phoneNumber' => $this->getFieldValue($contact, $lead, 'phoneNumber'),
-            'date_of_birth' => $this->getFieldValue($contact, $lead, 'cDateOfBirth'),
-            'team' => $this->getTeamName($contact, $lead),
-            'client_type' => $this->mapClientType($contact),
-        ];
-    }
-
-    private function getFieldValue(?Entity $contact, Entity $lead, string $field): mixed
-    {
-        return $contact && $contact->get($field) !== null ? $contact->get($field) : $lead->get($field);
-    }
-
-    private function getTeamName(?Entity $contact, Entity $lead): ?string
-    {
-        $team = $this->getFieldValue($contact, $lead, 'cTeam');
-        return $team ? $team->get('name') : null;
-    }
-
-    private function mapClientType(?Entity $contact = null): ?string
-    {
-        if ($contact && $contact->get('cTypeKlant')) {
-            $clientType = $contact->get('cTypeKlant');
-        } 
-        else {
-            return 'Lead';
-        }
-
-        return self::CLIENT_TYPE_MAPPING[$clientType] ?? 'Lead';
-    }
-
-    private function sendVankoWebhook(array $webhookData): void
-    {
+        $this->log->info('Sending webhook to Vanko for Lead ID: ' . $webhookData['id']);
         $endpoint = $this->config->get('vanko.webhooks.lead.process');
+        $this->sendVankoWebhook($webhookData,$endpoint);
+    }
 
+    private function sendVankoContactWebhook(array $webhookData): void
+    {
+        $this->log->info('Sending webhook to Vanko for Lead ID: ' . $webhookData['id']);
+        $endpoint = $this->config->get('vanko.webhooks.contact.process');
+        $this->sendVankoWebhook($webhookData,$endpoint);
+    }
+
+    private function sendVankoWebhook(array $webhookData, string $endpoint): void
+    {
         if (!$endpoint) {
             $this->log->warning('Vanko webhook endpoint not configured');
             return;
         }
-
-        $this->log->info('Sending webhook to Vanko for Lead ID: ' . $webhookData['id']);
+        $this->log->info('Sending webhook to Vanko for ID: ' . $webhookData['id']);
         $this->sendWebhookSync(
             endpoint: $endpoint,
             payload: $webhookData,
