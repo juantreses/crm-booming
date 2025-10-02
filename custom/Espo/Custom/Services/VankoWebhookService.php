@@ -143,6 +143,7 @@ class VankoWebhookService
     {
         return [
             'id' => $lead->getId(),
+            'status' => $lead->get('status'),
             'contact_id' => $contact ? $contact->getId() : null,
             'vanko_id' => $this->getFieldValue($contact, $lead, 'cVankoCRM'),
             'first_name' => $this->getFieldValue($contact, $lead, 'firstName'),
