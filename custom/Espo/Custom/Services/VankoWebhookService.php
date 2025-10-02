@@ -30,7 +30,9 @@ class VankoWebhookService
         'cTeamId',
         'cSlimFitCenterId'
     ];
-    
+    private const COMETLY_FIELDS_TO_WATCH = [
+        "status",
+    ];
     private const CLIENT_TYPE_MAPPING = [
         'sample_pack' => 'Proefpakket',
         'sport_only' => 'SportOnly',
