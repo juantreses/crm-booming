@@ -19,7 +19,7 @@ class AfterSaveHook implements AfterSave
     {
         try {
             $this->log->info('Lead After Save Hook triggered for Lead ID: ' . $lead->getId());
-            if ($this->vankoWebhookService->hasVankoFieldsChanged($lead)) {
+            if ($this->vankoWebhookService->hasLeadFieldsChanged($lead)) {
                 $this->vankoWebhookService->syncAndProcessFromLead($lead);
             }
         } catch (\Exception $e) {

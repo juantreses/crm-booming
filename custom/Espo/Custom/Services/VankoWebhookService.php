@@ -18,19 +18,22 @@ class VankoWebhookService
 {
     use WebhookTrait;
 
-    private const VANKO_FIELDS_TO_WATCH = [
+    private const BASE_FIELDS_TO_WATCH = [
         'cVankoCRM',
         'firstName',
         'lastName',
         'emailAddress',
         'phoneNumber',
-        'cDateOfBirth',
-        'cTeam',
-        'cTypeKlant',
         'cTeamId',
         'cSlimFitCenterId'
     ];
-    
+    private const LEAD_FIELDS_TO_WATCH = [
+        "status",
+    ];
+    private const CONTACT_FIELDS_TO_WATCH = [
+        'cDateOfBirth',
+        'cTypeKlant',
+    ];
     private const CLIENT_TYPE_MAPPING = [
         'sample_pack' => 'Proefpakket',
         'sport_only' => 'SportOnly',
@@ -48,10 +51,52 @@ class VankoWebhookService
         private readonly EntityManager $entityManager,
     ) {}
 
+    public function hasLeadFieldsChanged(Entity $entity): bool
+    {
+        $changed = false;
+        $changed = $this->hasFieldsChanged($entity,self::BASE_FIELDS_TO_WATCH);
+        if($changed){
+            $this->log->info('Base field change detected for ' . $entity->getEntityType() . ' ID: ' . $entity->getId());
+            return $changed;
+        }
+        $changed = $this->hasFieldsChanged($entity,self::LEAD_FIELDS_TO_WATCH);
+        if($changed){
+            $this->log->info('Lead field change detected for ' . $entity->getEntityType() . ' ID: ' . $entity->getId());
+            return $changed;
+        }
+        return $changed;
+    }
+
+    public function hasContactFieldsChanged(Entity $entity): bool
+    {
+        $changed = false;
+        $changed = $this->hasFieldsChanged($entity,self::BASE_FIELDS_TO_WATCH);
+        if($changed){
+            $this->log->info('Base field change detected for ' . $entity->getEntityType() . ' ID: ' . $entity->getId());
+            return $changed;
+        }
+        $changed = $this->hasFieldsChanged($entity,self::CONTACT_FIELDS_TO_WATCH);
+        if($changed){
+            $this->log->info('Lead field change detected for ' . $entity->getEntityType() . ' ID: ' . $entity->getId());
+            return $changed;
+        }
+        return $changed;
+    }
+
+    public function hasFieldsChanged(Entity $entity, array $fields): bool
+    {
+        foreach ($fields as $field) {
+            if ($entity->isAttributeChanged($field)) {
+                $this->log->info('Field change detected for ' . $entity->getEntityType() . ' ID: ' . $entity->getId() . ' - field: ' . $field);
+                return true;
+            }
+        }
+        return false;
+    }
 
     public function hasVankoFieldsChanged(Entity $entity): bool
     {
-        foreach (self::VANKO_FIELDS_TO_WATCH as $field) {
+        foreach (self::BASE_FIELDS_TO_WATCH as $field) {
             if ($entity->isAttributeChanged($field)) {
                 $this->log->info('Vanko field changed detected for ' . $entity->getEntityType() . ' ID: ' . $entity->getId() . ' - field: ' . $field);
                 return true;
@@ -141,6 +186,7 @@ class VankoWebhookService
     {
         return [
             'id' => $lead->getId(),
+            'status' => $lead->get('status'),
             'contact_id' => $contact ? $contact->getId() : null,
             'vanko_id' => $this->getFieldValue($contact, $lead, 'cVankoCRM'),
             'first_name' => $this->getFieldValue($contact, $lead, 'firstName'),

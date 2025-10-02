@@ -20,7 +20,7 @@ class AfterSaveHook implements AfterSave
         try {
             $this->log->info('Contact After Save Hook triggered for Contact ID: ' . $contact->getId());
            
-            if ($this->vankoWebhookService->hasVankoFieldsChanged($contact)) {
+            if ($this->vankoWebhookService->hasContactFieldsChanged($contact)) {
                 $this->vankoWebhookService->syncAndProcessFromContact($contact);
             }
         } catch (\Exception $e) {
