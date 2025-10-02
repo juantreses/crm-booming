@@ -1,3 +1,0 @@
-{
-    "beforeSaveCustomScript": "vetmassa = gewicht * (vetPercentage / 100);\nspierpercentage = ifThen(gewicht > 0, (spiermassa / gewicht) * 100, 0);"
-}
