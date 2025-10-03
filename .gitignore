@@ -6,6 +6,7 @@
 /data/config-internal.php
 /install/
 .env
+/.gitlab
 
 /custom/Espo/Modules/*/vendor
 deployment.log
