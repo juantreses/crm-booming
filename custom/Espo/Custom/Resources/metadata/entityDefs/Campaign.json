@@ -12,6 +12,65 @@
     "fields": {
         "cCampagneRoundRobins": {
             "type": "linkMultiple"
+        },
+        "cCampaignType": {
+            "type": "enum",
+            "required": true,
+            "options": [
+                "Unknown",
+                "Referral_Buddy",
+                "Action_Enquete",
+                "Action_Berichten",
+                "Action_Flyer",
+                "Action_CadeauBon",
+                "Service_Enquete",
+                "Service_Flyer",
+                "Service_CadeauBon",
+                "Service_Advertentie",
+                "Service_ShopPosters",
+                "Action_WarmeMarkt",
+                "Action_TeleMarketing"
+            ],
+            "style": {
+                "Unknown": null,
+                "Referral_Buddy": null,
+                "Action_Enquete": null,
+                "Action_Berichten": null,
+                "Action_Flyer": null,
+                "Action_CadeauBon": null,
+                "Service_Enquete": null,
+                "Service_Flyer": null,
+                "Service_CadeauBon": null,
+                "Service_Advertentie": null,
+                "Service_ShopPosters": null,
+                "Action_WarmeMarkt": null,
+                "Action_TeleMarketing": null
+            },
+            "default": "Unknown",
+            "displayAsLabel": true,
+            "audited": true,
+            "maxLength": 100,
+            "isCustom": true
+        },
+        "cCampaignSubType": {
+            "type": "enum",
+            "options": [
+                "General",
+                "CadeauBon",
+                "WinActie",
+                "SparkTrial",
+                "BeautyWorkshop"
+            ],
+            "style": {
+                "General": null,
+                "CadeauBon": null,
+                "WinActie": null,
+                "SparkTrial": null,
+                "BeautyWorkshop": null
+            },
+            "default": "General",
+            "maxLength": 100,
+            "isCustom": true
         }
     },
     "links": {
