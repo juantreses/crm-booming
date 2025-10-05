@@ -1,0 +1,54 @@
+{
+    "collection": {
+        "orderBy": "number",
+        "order": "desc",
+        "textFilterFields": [
+            "name",
+            "number",
+            "description"
+        ],
+        "fullTextSearch": true,
+        "countDisabled": false
+    },
+    "optimisticConcurrencyControl": true,
+    "fields": {
+        "status": {
+            "options": [
+                "New",
+                "Assigned",
+                "Pending",
+                "ToBeDiscussed",
+                "Blocked",
+                "Closed",
+                "Rejected",
+                "Duplicate"
+            ],
+            "style": {
+                "New": null,
+                "Assigned": "primary",
+                "Pending": "warning",
+                "ToBeDiscussed": "warning",
+                "Blocked": "danger",
+                "Closed": "success",
+                "Rejected": "info",
+                "Duplicate": "info"
+            },
+            "required": true,
+            "isSorted": false
+        },
+        "type": {
+            "options": [
+                "",
+                "Question",
+                "Problem",
+                "Idea"
+            ],
+            "style": {
+                "": null,
+                "Question": "info",
+                "Problem": "danger",
+                "Idea": null
+            }
+        }
+    }
+}
