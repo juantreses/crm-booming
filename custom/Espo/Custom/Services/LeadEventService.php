@@ -28,14 +28,14 @@ class LeadEventService
 
     // Mapping FE outcome -> events to create
     private const KICKSTART_OUTCOME_EVENT_MAP = [
-        KickstartOutcome::CONVERTED->value => [LeadEventType::ATTENDED, LeadEventType::CONVERTED],
+        KickstartOutcome::BECAME_CLIENT->value => [LeadEventType::ATTENDED, LeadEventType::BECAME_CLIENT],
         KickstartOutcome::NO_SHOW->value => [LeadEventType::NO_SHOW],
         KickstartOutcome::NOT_CONVERTED->value => [LeadEventType::ATTENDED, LeadEventType::NOT_CONVERTED],
         KickstartOutcome::STILL_THINKING->value => [LeadEventType::ATTENDED, LeadEventType::STILL_THINKING],
     ];
 
     private const KICKSTART_FOLLOW_UP_OUTCOME_EVENT_MAP = [
-        KickstartOutcome::CONVERTED->value => [LeadEventType::CONVERTED],
+        KickstartOutcome::BECAME_CLIENT->value => [LeadEventType::BECAME_CLIENT],
         KickstartOutcome::NOT_CONVERTED->value => [LeadEventType::NOT_CONVERTED],
     ];
 
@@ -53,7 +53,7 @@ class LeadEventService
         LeadEventType::APPOINTMENT_BOOKED->value => LeadEventType::APPOINTMENT_BOOKED->value,
         LeadEventType::ATTENDED->value => LeadEventType::ATTENDED->value,
         LeadEventType::APPOINTMENT_CANCELLED->value => LeadEventType::APPOINTMENT_CANCELLED->value,
-        LeadEventType::CONVERTED->value => LeadEventType::CONVERTED->value,
+        LeadEventType::BECAME_CLIENT->value => LeadEventType::BECAME_CLIENT->value,
         LeadEventType::NOT_CONVERTED->value => LeadEventType::NOT_CONVERTED->value,
         LeadEventType::STILL_THINKING->value => LeadEventType::STILL_THINKING->value,
         LeadEventType::NO_SHOW->value => LeadEventType::NO_SHOW->value,

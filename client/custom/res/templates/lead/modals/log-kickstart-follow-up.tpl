@@ -6,7 +6,7 @@
 					<label>Bericht uitkomst *</label>
 					<select name="outcome" class="form-control" required>
 						<option value="">-- Selecteer uitkomst --</option>
-                        <option value="converted">Klant geworden</option>
+                        <option value="became_client">Klant geworden</option>
                         <option value="not_converted">Geen klant geworden</option>
 					</select>
 				</div>

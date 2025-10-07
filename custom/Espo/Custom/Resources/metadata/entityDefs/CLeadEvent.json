@@ -52,7 +52,7 @@
                 "appointment_cancelled",
                 "attended",
                 "no_show",
-                "converted",
+                "became_client",
                 "not_converted",
                 "still_thinking",
                 "became_coach"
@@ -70,7 +70,7 @@
                 "appointment_cancelled": null,
                 "attended": null,
                 "no_show": null,
-                "converted": null,
+                "became_client": null,
                 "not_converted": null,
                 "still_thinking": null,
                 "became_coach": null

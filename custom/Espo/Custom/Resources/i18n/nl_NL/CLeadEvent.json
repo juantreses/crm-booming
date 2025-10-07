@@ -16,7 +16,7 @@
             "appointment_cancelled": "Afgezegd KS",
             "attended": "Aanwezig KS",
             "no_show": "Niet gekomen KS",
-            "converted": "Opgestart",
+            "became_client": "Opgestart",
             "not_converted": "Niet opgestart",
             "became_coach": "Coach geworden",
             "still_thinking": "Twijfel KS"

@@ -60,7 +60,7 @@ class CTeamStatisticsService
         $appointmentBookedLeads = $this->getUniqueLeadsWithEventType(LeadEventType::APPOINTMENT_BOOKED, $team, $dateFilter);
         $attendedLeads = $this->getUniqueLeadsWithEventType(LeadEventType::ATTENDED, $team, $dateFilter);
         $noShowLeads = $this->getUniqueLeadsWithEventType(LeadEventType::NO_SHOW, $team, $dateFilter);
-        $convertedLeads = $this->getUniqueLeadsWithEventType(LeadEventType::CONVERTED, $team, $dateFilter);
+        $convertedLeads = $this->getUniqueLeadsWithEventType(LeadEventType::BECAME_CLIENT, $team, $dateFilter);
 
         return [
             'eventTypeBreakdown' => $eventCounts,
@@ -178,7 +178,7 @@ class CTeamStatisticsService
         $joinCleConditions = [
             'cle.leadId:' => 'l.id',
             'cle.deleted' => false,
-            'cle.eventType' => LeadEventType::CONVERTED->value,
+            'cle.eventType' => LeadEventType::BECAME_CLIENT->value,
         ];
         
         // Add date filters to JOIN conditions
