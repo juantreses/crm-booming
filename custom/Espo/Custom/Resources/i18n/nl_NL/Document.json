@@ -1,0 +1,12 @@
+{
+    "options": {
+        "type": {
+            "": "Geen",
+            "Contract": "Contract",
+            "NDA": "NDA",
+            "Presentatie": "Presentatie",
+            "Prijslijst": "Prijslijst",
+            "Handleiding": "Handleiding"
+        }
+    }
+}

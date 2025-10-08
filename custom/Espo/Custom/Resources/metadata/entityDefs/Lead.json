@@ -26,9 +26,10 @@
                 "no_show",
                 "still_thinking",
                 "appointment_cancelled",
-                "converted",
                 "not_converted",
-                "became_coach"
+                "became_client",
+                "became_coach",
+                "Converted"
             ],
             "style": {
                 "new": null,
@@ -44,9 +45,10 @@
                 "no_show": null,
                 "still_thinking": null,
                 "appointment_cancelled": null,
-                "converted": null,
                 "not_converted": null,
-                "became_coach": null
+                "became_client": null,
+                "became_coach": null,
+                "Converted": "success"
             },
             "required": true,
             "labelType": null,

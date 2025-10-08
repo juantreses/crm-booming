@@ -6,7 +6,7 @@
                     <label>Kickstart Uitkomst *</label>
                     <select name="outcome" class="form-control" required>
                         <option value="">-- Selecteer uitkomst --</option>
-                        <option value="converted">Klant geworden</option>
+                        <option value="became_client">Klant geworden</option>
                         <option value="no_show">Niet opgedaagd</option>
                         <option value="not_converted">Geen klant geworden</option>
                         <option value="still_thinking">Twijfel</option>

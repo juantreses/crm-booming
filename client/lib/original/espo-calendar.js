@@ -9,14 +9,13 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
   _moment = _interopRequireDefault(_moment);
   FullCalendar = _interopRequireWildcard(FullCalendar);
   _recordModal = _interopRequireDefault(_recordModal);
-  function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
-  function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
+  function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 Yurii Kuznietsov, Taras Machyshyn, Oleksii Avramenko
+   * Copyright (C) 2014-2025 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -58,8 +57,30 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
     template = 'crm:calendar/calendar';
     eventAttributes = [];
     colors = {};
-    allDayScopeList = ['Task'];
+
+    /**
+     * @private
+     * @type {string[]}
+     */
+    allDayScopeList;
+
+    /**
+     * @private
+     * @type {string[]}
+     */
     scopeList = ['Meeting', 'Call', 'Task'];
+
+    /**
+     * @private
+     * @type {string[]}
+     */
+    onlyDateScopeList;
+
+    /**
+     * @private
+     * @type {string[]}
+     */
+    enabledScopeList;
     header = true;
     modeList = [];
     fullCalendarModeList = ['month', 'agendaWeek', 'agendaDay', 'basicWeek', 'basicDay', 'listWeek'];
@@ -124,6 +145,30 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
         this.toggleScopeFilter(filterName);
       }
     };
+
+    /**
+     * @param {{
+     *     userId?: string,
+     *     userName?: string|null,
+     *     mode?: string|null,
+     *     date?: string|null,
+     *     scrollToNowSlots?: boolean,
+     *     $container?: JQuery,
+     *     suppressLoadingAlert?: boolean,
+     *     slotDuration?: number,
+     *     scrollHour?: number,
+     *     teamIdList?: string[],
+     *     containerSelector?: string,
+     *     height?: number,
+     *     enabledScopeList?: string[],
+     *     header?: boolean,
+     *     onSave?: function(),
+     * }} options
+     */
+    constructor(options) {
+      super(options);
+      this.options = options;
+    }
     data() {
       return {
         mode: this.mode,
@@ -147,7 +192,15 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
       this.colors = Espo.Utils.clone(this.getMetadata().get('clientDefs.Calendar.colors') || this.colors);
       this.modeList = this.getMetadata().get('clientDefs.Calendar.modeList') || this.modeList;
       this.scopeList = this.getConfig().get('calendarEntityList') || Espo.Utils.clone(this.scopeList);
-      this.allDayScopeList = this.getMetadata().get('clientDefs.Calendar.allDayScopeList') || this.allDayScopeList;
+      this.allDayScopeList = this.getMetadata().get('clientDefs.Calendar.allDayScopeList') ?? [];
+      this.scopeList.forEach(scope => {
+        if (this.getMetadata().get(`scopes.${scope}.calendarOneDay`) && !this.allDayScopeList.includes(scope)) {
+          this.allDayScopeList.push(scope);
+        }
+      });
+      this.onlyDateScopeList = this.scopeList.filter(scope => {
+        return this.getMetadata().get(`entityDefs.${scope}.fields.dateStart.type`) === 'date';
+      });
       this.slotDuration = this.options.slotDuration || this.getPreferences().get('calendarSlotDuration') || this.getMetadata().get('clientDefs.Calendar.slotDuration') || this.slotDuration;
       this.setupScrollHour();
       this.colors = {
@@ -423,10 +476,10 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
       });
       let start;
       let end;
-      if (o.dateStart) {
+      if (o.dateStart || o.dateStartDate) {
         start = !o.dateStartDate ? this.getDateTime().toMoment(o.dateStart) : this.dateToMoment(o.dateStartDate);
       }
-      if (o.dateEnd) {
+      if (o.dateEnd || o.dateEndDate) {
         end = !o.dateEndDate ? this.getDateTime().toMoment(o.dateEnd) : this.dateToMoment(o.dateEndDate);
       }
       if (end && start) {
@@ -560,7 +613,7 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
       if (event.dateStartDate && event.dateEndDate) {
         event.allDay = true;
         event.allDayCopy = event.allDay;
-        if (!afterDrop) {
+        if (!afterDrop && end) {
           end.add(1, 'days');
         }
         if (start) {
@@ -721,7 +774,10 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
         },
         eventClick: async info => {
           const event = info.event;
+
+          /** @type {string} */
           const scope = event.extendedProps.scope;
+          /** @type {string} */
           const recordId = event.extendedProps.recordId;
           const helper = new _recordModal.default();
 
@@ -731,6 +787,16 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
             entityType: scope,
             id: recordId,
             removeDisabled: false,
+            beforeSave: () => {
+              if (this.options.onSave) {
+                this.options.onSave();
+              }
+            },
+            beforeDestroy: () => {
+              if (this.options.onSave) {
+                this.options.onSave();
+              }
+            },
             afterSave: (model, o) => {
               if (!o.bypassClose) {
                 modalView.close();
@@ -754,10 +820,14 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
           const toStr = to.utc().format(dateTimeFormat);
           this.fetchEvents(fromStr, toStr, callback);
         },
-        eventDrop: info => {
+        eventDrop: async info => {
           const event = /** @type {EventImpl} */info.event;
           const delta = info.delta;
           const scope = event.extendedProps.scope;
+          if (this.onlyDateScopeList.includes(scope)) {
+            info.revert();
+            return;
+          }
           if (!event.allDay && event.extendedProps.allDayCopy) {
             info.revert();
             return;
@@ -801,37 +871,45 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
           this.handleAllDay(props, true);
           this.fillColor(props);
           Espo.Ui.notify(this.translate('saving', 'messages'));
-          this.getModelFactory().create(scope, model => {
-            model.id = props.recordId;
-            model.save(attributes, {
+          const model = await this.getModelFactory().create(scope);
+          model.id = props.recordId;
+          if (this.options.onSave) {
+            this.options.onSave();
+          }
+          try {
+            await model.save(attributes, {
               patch: true
-            }).then(() => {
-              Espo.Ui.notify(false);
-              this.applyPropsToEvent(event, props);
-            }).catch(() => {
-              info.revert();
             });
-          });
+          } catch (e) {
+            info.revert();
+            return;
+          }
+          Espo.Ui.notify();
+          this.applyPropsToEvent(event, props);
         },
-        eventResize: info => {
+        eventResize: async info => {
           const event = info.event;
           const attributes = {
             dateEnd: this.convertDateTime(event.endStr)
           };
           const duration = (0, _moment.default)(event.end).unix() - (0, _moment.default)(event.start).unix();
           Espo.Ui.notify(this.translate('saving', 'messages'));
-          this.getModelFactory().create(event.extendedProps.scope, model => {
-            model.id = event.extendedProps.recordId;
-            model.save(attributes, {
+          const model = await this.getModelFactory().create(event.extendedProps.scope);
+          model.id = event.extendedProps.recordId;
+          if (this.options.onSave) {
+            this.options.onSave();
+          }
+          try {
+            await model.save(attributes, {
               patch: true
-            }).then(() => {
-              Espo.Ui.notify(false);
-              event.setExtendedProp('dateEnd', attributes.dateEnd);
-              event.setExtendedProp('duration', duration);
-            }).catch(() => {
-              info.revert();
             });
-          });
+          } catch (e) {
+            info.revert();
+            return;
+          }
+          Espo.Ui.notify();
+          event.setExtendedProp('dateEnd', attributes.dateEnd);
+          event.setExtendedProp('duration', duration);
         },
         eventAllow: (info, event) => {
           if (event.allDay && !info.allDay) {
@@ -912,7 +990,7 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
      *   [dateEndDate]: ?string,
      * }} [values]
      */
-    createEvent(values) {
+    async createEvent(values) {
       values = values || {};
       if (!values.dateStart && this.date !== this.getDateTime().getToday() && (this.mode === 'day' || this.mode === 'agendaDay')) {
         values.allDay = true;
@@ -924,29 +1002,34 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
         attributes.assignedUserId = this.options.userId;
         attributes.assignedUserName = this.options.userName || this.options.userId;
       }
+      const scopeList = this.enabledScopeList.filter(it => !this.onlyDateScopeList.includes(it));
       Espo.Ui.notifyWait();
-      this.createView('quickEdit', 'crm:views/calendar/modals/edit', {
+      const view = await this.createView('dialog', 'crm:views/calendar/modals/edit', {
         attributes: attributes,
-        enabledScopeList: this.enabledScopeList,
+        enabledScopeList: scopeList,
         scopeList: this.scopeList,
         allDay: values.allDay,
         dateStartDate: values.dateStartDate,
         dateEndDate: values.dateEndDate,
         dateStart: values.dateStart,
         dateEnd: values.dateEnd
-      }, view => {
-        view.render();
-        Espo.Ui.notify(false);
-        let added = false;
-        this.listenTo(view, 'after:save', model => {
-          if (!added) {
-            this.addModel(model);
-            added = true;
-            return;
-          }
-          this.updateModel(model);
-        });
       });
+      let added = false;
+      this.listenTo(view, 'before:save', () => {
+        if (this.options.onSave) {
+          this.options.onSave();
+        }
+      });
+      this.listenTo(view, 'after:save', model => {
+        if (!added) {
+          this.addModel(model);
+          added = true;
+          return;
+        }
+        this.updateModel(model);
+      });
+      await view.render();
+      Espo.Ui.notify();
     }
 
     /**

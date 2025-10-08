@@ -40,7 +40,7 @@
             "attended": "Aanwezig KS",
             "no_show": "Niet opgedaagd KS",
             "appointment_cancelled": "Geannuleerd KS",
-            "converted": "Klant geworden",
+            "became_client": "Klant geworden",
             "not_converted": "Geen klant geworden",
             "became_coach": "Coach geworden",
             "new": "Nieuw",

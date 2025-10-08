@@ -4,7 +4,7 @@ namespace Espo\Custom\Enums;
 
 enum KickstartOutcome: string
 {
-    case CONVERTED = 'converted';
+    case BECAME_CLIENT = 'became_client';
     case NO_SHOW = 'no_show';
     case NOT_CONVERTED = 'not_converted';
     case STILL_THINKING = 'still_thinking';
@@ -12,7 +12,7 @@ enum KickstartOutcome: string
     public function getLabel(): string
     {
         return match($this) {
-            self::CONVERTED => 'Converted',
+            self::BECAME_CLIENT => 'Became Client',
             self::NO_SHOW => 'No Show',
             self::NOT_CONVERTED => 'Not Converted',
             self::STILL_THINKING => 'Still Thinking',

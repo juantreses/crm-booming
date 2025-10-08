@@ -21,18 +21,18 @@ class LogKickstartValidator
         $timezone = new \DateTimeZone('Europe/Brussels');
 
         if (isset($data->kickstartDateTime) && !empty($data->kickstartDateTime)) {
-            if (new \DateTime($data->kickstartDateTime) > new \DateTime()) {
-                throw new BadRequest('kickstartDateTime must be in the present or past.');
+            if (new \DateTime($data->kickstartDateTime, $timezone) > new \DateTime('now', $timezone)) {
+                throw new BadRequest('Kickstart datum/tijd mag niet in de toekomst zijn.');
             }
         }
 
         if ($outcome === KickstartOutcome::STILL_THINKING->value) {
             if (!isset($data->callAgainDateTime) || empty($data->callAgainDateTime)) {
-                throw new BadRequest('callAgainDateTime is required for "call again" outcome');
+                throw new BadRequest('Datum/tijd opnieuw bellen is verplicht.');
             }
 
             if (new \DateTime($data->callAgainDateTime, $timezone) <= new \DateTime('now', $timezone)) {
-                throw new BadRequest('callAgainDateTime must be in the future.');
+                throw new BadRequest('atum/tijd opnieuw bellen moet in de toekomst zijn.');
             }
         }
     }

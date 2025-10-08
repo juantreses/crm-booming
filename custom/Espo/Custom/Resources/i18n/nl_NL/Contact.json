@@ -28,7 +28,9 @@
             "pcx_35": "PCX 35",
             "21_day_bootcamp": "21 dagen SlimFit Bootcamp",
             "distributeur": "Distributeur",
-            "distributor": "Distributeur"
+            "distributor": "Distributeur",
+            "spark_trail": "Spark Proefperiode",
+            "spark_subscription": "Spark Subscription"
         },
         "salutationName": {
             "": "",

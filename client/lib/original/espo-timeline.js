@@ -13,7 +13,7 @@ define("modules/crm/views/scheduler/scheduler", ["exports", "view", "vis-data", 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 Yurii Kuznietsov, Taras Machyshyn, Oleksii Avramenko
+   * Copyright (C) 2014-2025 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -475,7 +475,7 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 Yurii Kuznietsov, Taras Machyshyn, Oleksii Avramenko
+   * Copyright (C) 2014-2025 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -505,7 +505,30 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
     template = 'crm:calendar/timeline';
     eventAttributes = [];
     colors = {};
-    scopeList = [];
+
+    /**
+     * @private
+     * @type {string[]}
+     */
+    allDayScopeList;
+
+    /**
+     * @private
+     * @type {string[]}
+     */
+    scopeList = ['Meeting', 'Call', 'Task'];
+
+    /**
+     * @private
+     * @type {string[]}
+     */
+    enabledScopeList;
+
+    /**
+     * @private
+     * @type {string[]}
+     */
+    onlyDateScopeList;
     header = true;
     modeList = [];
     defaultMode = 'timeline';
@@ -569,6 +592,27 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
         this.actionShowSharedCalendarOptions();
       }
     };
+
+    /**
+     * @param {{
+     *     userId?: string,
+     *     userName?: string|null,
+     *     mode?: string|null,
+     *     date?: string|null,
+     *     $container?: JQuery,
+     *     suppressLoadingAlert?: boolean,
+     *     containerSelector?: string,
+     *     enabledScopeList?: string[],
+     *     calendarType?: string,
+     *     userList?: string[],
+     *     header?: boolean,
+     *     onSave?: function(),
+     * }} options
+     */
+    constructor(options) {
+      super(options);
+      this.options = options;
+    }
     data() {
       const calendarTypeDataList = this.getCalendarTypeDataList();
       return {
@@ -588,8 +632,13 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
       this.$container = this.options.$container;
       this.colors = Espo.Utils.clone(this.getMetadata().get('clientDefs.Calendar.colors') || this.colors || {});
       this.modeList = this.getMetadata().get('clientDefs.Calendar.modeList') || this.modeList || [];
-      this.scopeList = this.getConfig().get('calendarEntityList') || Espo.Utils.clone(this.scopeList) || [];
-      this.allDayScopeList = this.getMetadata().get('clientDefs.Calendar.allDayScopeList') || this.allDayScopeList || [];
+      this.scopeList = this.getConfig().get('calendarEntityList') || Espo.Utils.clone(this.scopeList);
+      this.allDayScopeList = this.getMetadata().get('clientDefs.Calendar.allDayScopeList') ?? [];
+      this.scopeList.forEach(scope => {
+        if (this.getMetadata().get(`scopes.${scope}.calendarOneDay`) && !this.allDayScopeList.includes(scope)) {
+          this.allDayScopeList.push(scope);
+        }
+      });
       this.colors = {
         ...this.colors,
         ...this.getHelper().themeManager.getParam('calendarColors')
@@ -618,6 +667,9 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
         if (color) {
           this.colors[item] = color;
         }
+      });
+      this.onlyDateScopeList = this.scopeList.filter(scope => {
+        return this.getMetadata().get(`entityDefs.${scope}.fields.dateStart.type`) === 'date';
       });
       if (this.options.calendarType) {
         this.calendarType = this.options.calendarType;
@@ -777,27 +829,27 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
       this.eventAttributes.forEach(attr => {
         event[attr] = o[attr];
       });
-      if (o.dateStart) {
+      if (o.dateStart || o.dateStartDate) {
         if (!o.dateStartDate) {
           event.start = this.getDateTime().toMoment(o.dateStart);
         } else {
           event.start = _moment.default.tz(o.dateStartDate, this.getDateTime().getTimeZone());
         }
       }
-      if (o.dateEnd) {
+      if (o.dateEnd || o.dateEndDate) {
         if (!o.dateEndDate) {
           event.end = this.getDateTime().toMoment(o.dateEnd);
         } else {
           event.end = _moment.default.tz(o.dateEndDate, this.getDateTime().getTimeZone());
         }
       }
-      if (o.dateStartDate && !~this.allDayScopeList.indexOf(o.scope)) {
+      if (o.dateStartDate && !this.allDayScopeList.includes(o.scope) && event.end) {
         event.end = event.end.clone().add(1, 'days');
       }
       if (o.isBusyRange) {
         return event;
       }
-      if (~this.allDayScopeList.indexOf(o.scope)) {
+      if (this.allDayScopeList.includes(o.scope)) {
         event.type = 'box';
         if (event.end) {
           if (o.dateEndDate) {
@@ -904,11 +956,13 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
               onTag: (tag, html) => html
             }
           },
-          moment: date => {
+          moment: /** Record */date => {
             const m = (0, _moment.default)(date);
             if (date && date.noTimeZone) {
               return m;
             }
+
+            // noinspection JSUnresolvedReference
             return m.tz(this.getDateTime().getTimeZone());
           },
           format: this.getFormatObject(),
@@ -974,7 +1028,13 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
         });
       });
     }
-    createEvent(dateStart, userId) {
+
+    /**
+     * @private
+     * @param {string} dateStart
+     * @param {string} [userId]
+     */
+    async createEvent(dateStart, userId) {
       if (!dateStart) {
         const time = (this.timeline.getWindow().end - this.timeline.getWindow().start) / 2 + this.timeline.getWindow().start;
         dateStart = (0, _moment.default)(time).utc().format(this.getDateTime().internalDateTimeFormat);
@@ -995,18 +1055,21 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
         attributes.assignedUserId = userId;
         attributes.assignedUserName = userName || userId;
       }
+      const scopeList = this.enabledScopeList.filter(it => !this.onlyDateScopeList.includes(it));
       Espo.Ui.notifyWait();
-      this.createView('quickEdit', 'crm:views/calendar/modals/edit', {
+      const view = await this.createView('dialog', 'crm:views/calendar/modals/edit', {
         attributes: attributes,
-        enabledScopeList: this.enabledScopeList,
+        enabledScopeList: scopeList,
         scopeList: this.scopeList
-      }, view => {
-        view.render();
-        view.notify(false);
-        this.listenTo(view, 'after:save', () => {
-          this.runFetch();
-        });
       });
+      this.listenTo(view, 'before:save', () => {
+        if (this.options.onSave) {
+          this.options.onSave();
+        }
+      });
+      this.listenTo(view, 'after:save', () => this.runFetch());
+      await view.render();
+      Espo.Ui.notify();
     }
 
     /**
@@ -1023,6 +1086,16 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
         entityType: scope,
         id: id,
         removeDisabled: false,
+        beforeSave: () => {
+          if (this.options.onSave) {
+            this.options.onSave();
+          }
+        },
+        beforeDestroy: () => {
+          if (this.options.onSave) {
+            this.options.onSave();
+          }
+        },
         afterSave: (model, o) => {
           if (!o.bypassClose) {
             modalView.close();
@@ -1179,7 +1252,7 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
       return (0, _jquery.default)('<img>').addClass('avatar avatar-link').attr('width', '16').attr('src', this.getBasePath() + '?entryPoint=avatar&size=small&id=' + id + '&t=' + t).get(0).outerHTML;
     }
     fetchEvents(from, to, callback) {
-      if (!this.options.noFetchLoadingMessage) {
+      if (!this.options.suppressLoadingAlert) {
         Espo.Ui.notifyWait();
       }
       from = from.clone().add(-1 * this.leftMargin, 'seconds');

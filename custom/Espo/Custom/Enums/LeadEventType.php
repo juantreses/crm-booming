@@ -20,7 +20,7 @@ enum LeadEventType: string
     case APPOINTMENT_BOOKED = 'appointment_booked';
     case ATTENDED = 'attended';
     case NO_SHOW = 'no_show';
-    case CONVERTED = 'converted';
+    case BECAME_CLIENT = 'became_client';
     case NOT_CONVERTED = 'not_converted';
     case STILL_THINKING = 'still_thinking';
     case APPOINTMENT_CANCELLED = 'appointment_cancelled';
@@ -45,7 +45,7 @@ enum LeadEventType: string
             self::APPOINTMENT_BOOKED => 'Appointment Booked',
             self::ATTENDED => 'Attended',
             self::NO_SHOW => 'No Show',
-            self::CONVERTED => 'Converted',
+            self::BECAME_CLIENT => 'Became Client',
             self::NOT_CONVERTED => 'Not Converted',
             self::STILL_THINKING => 'Still thinking',
             self::APPOINTMENT_CANCELLED => 'Appointment Cancelled',

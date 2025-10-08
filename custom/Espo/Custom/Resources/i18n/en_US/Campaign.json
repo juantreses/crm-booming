@@ -1,8 +1,34 @@
 {
     "fields": {
-        "cCampagneRoundRobins": "Campagne Round Robins"
+        "cCampagneRoundRobins": "Campagne Round Robins",
+        "cCampaignType": "Campaign Type",
+        "cCampaignSubType": "Campaign Sub Type"
     },
     "links": {
         "cCampagneRoundRobins": "Campagne Round Robins"
+    },
+    "options": {
+        "cCampaignType": {
+            "Unknown": "Onbekend",
+            "Referral_Buddy": "Referral Buddy",
+            "Action_Enquete": "Action Enquete",
+            "Action_Berichten": "Action Berichten",
+            "Action_Flyer": "Action Flyer",
+            "Action_CadeauBon": "Action CadeauBon",
+            "Service_Enquete": "Service Enquete",
+            "Service_Flyer": "Service Flyer",
+            "Service_CadeauBon": "Service CadeauBon",
+            "Service_Advertentie": "Service Advertentie",
+            "Service_ShopPosters": "Service ShopPosters",
+            "Action_WarmeMarkt": "Action WarmeMarkt",
+            "Action_TeleMarketing": "Action TeleMarketing"
+        },
+        "cCampaignSubType": {
+            "General": "General",
+            "CadeauBon": "CadeauBon",
+            "WinActie": "Win Actie",
+            "SparkTrial": "Spark Trial",
+            "BeautyWorkshop": "Beauty Workshop"
+        }
     }
 }

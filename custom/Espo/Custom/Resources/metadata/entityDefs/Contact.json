@@ -36,8 +36,10 @@
             "required": true,
             "options": [
                 "sample_pack",
-                "sport_only",
+                "spark_trail",
                 "21_day_bootcamp",
+                "sport_only",
+                "spark_subscription",
                 "retail",
                 "pcx_15",
                 "pcx_25",
@@ -47,8 +49,10 @@
             "default": "sample_pack",
             "style": {
                 "sample_pack": null,
-                "sport_only": null,
+                "spark_trail": null,
                 "21_day_bootcamp": null,
+                "sport_only": null,
+                "spark_subscription": null,
                 "retail": null,
                 "pcx_15": null,
                 "pcx_25": null,

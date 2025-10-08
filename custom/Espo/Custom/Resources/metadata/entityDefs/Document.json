@@ -1,0 +1,24 @@
+{
+    "fields": {
+        "type": {
+            "options": [
+                "",
+                "Contract",
+                "NDA",
+                "Presentatie",
+                "Prijslijst",
+                "Handleiding"
+            ],
+            "style": {
+                "": null,
+                "Contract": "danger",
+                "NDA": "danger",
+                "Presentatie": "primary",
+                "Prijslijst": "info",
+                "Handleiding": "info"
+            },
+            "required": true,
+            "displayAsLabel": true
+        }
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "options": {
+        "status": {
+            "New": "Nieuw",
+            "Assigned": "Toegewezen",
+            "Pending": "In behandeling",
+            "Closed": "Gesloten",
+            "Rejected": "Afgewezen",
+            "Duplicate": "Dupliceer",
+            "Blocked": "Geblokkeerd",
+            "ToBeDiscussed": "Te Bespreken Met Head Coaches"
+        },
+        "type": {
+            "": "",
+            "Question": "Vraag",
+            "Problem": "Probleem",
+            "Idea": "Idee"
+        }
+    }
+}

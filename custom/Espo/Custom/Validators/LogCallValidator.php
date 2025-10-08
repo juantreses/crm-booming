@@ -22,17 +22,17 @@ class LogCallValidator
 
         if (isset($data->callDateTime) && !empty($data->callDateTime)) {
             if (new \DateTime($data->callDateTime, $timezone) > new \DateTime('now', $timezone)) {
-                throw new BadRequest('callDateTime must be in the present or past.');
+                throw new BadRequest('Gesprek datum/tijd mag niet in de toekomst zijn.');
             }
         }
 
         if ($outcome === CallOutcome::CALL_AGAIN->value) {
             if (!isset($data->callAgainDateTime) || empty($data->callAgainDateTime)) {
-                throw new BadRequest('callAgainDateTime is required for "call again" outcome');
+                throw new BadRequest('Datum/tijd opnieuw bellen is verplicht.');
             }
 
             if (new \DateTime($data->callAgainDateTime, $timezone) <= new \DateTime('now', $timezone)) {
-                throw new BadRequest('callAgainDateTime must be in the future.');
+                throw new BadRequest('Datum/tijd opnieuw bellen moet in de toekomst zijn.');
             }
         }
     }

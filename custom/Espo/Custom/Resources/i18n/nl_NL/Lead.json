@@ -43,11 +43,11 @@
             "no_show": "Niet opgedaagd KS",
             "still_thinking": "Twijfel KS",
             "appointment_cancelled": "Geannuleerd KS",
-            "converted": "Klant geworden",
             "not_converted": "Geen klant geworden",
             "became_coach": "Coach geworden",
             "message_to_be_sent": "Bericht Sturen",
-            "message_sent": "Bericht Gestuurd"
+            "message_sent": "Bericht Gestuurd",
+            "became_client": "Klant geworden"
         },
         "salutationName": {
             "": "",
