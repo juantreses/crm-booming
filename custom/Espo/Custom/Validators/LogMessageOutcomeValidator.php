@@ -22,11 +22,11 @@ class LogMessageOutcomeValidator
 
         if ($outcome === MessageSentOutcome::CALL_AGAIN->value) {
             if (!isset($data->callAgainDateTime) || empty($data->callAgainDateTime)) {
-                throw new BadRequest('callAgainDateTime is required for "call again" outcome');
+                throw new BadRequest('Datum/tijd opnieuw bellen is verplicht.');
             }
 
             if (new \DateTime($data->callAgainDateTime, $timezone) <= new \DateTime('now', $timezone)) {
-                throw new BadRequest('callAgainDateTime must be in the future.');
+                throw new BadRequest('Datum/tijd opnieuw bellen moet in de toekomst zijn.');
             }
         }
     }
