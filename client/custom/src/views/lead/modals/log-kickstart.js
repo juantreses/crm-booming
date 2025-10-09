@@ -1,4 +1,4 @@
-define('custom:views/lead/modals/log-kickstart', ['views/modal'], function (Dep) {
+define('custom:views/lead/modals/log-kickstart', ['views/modal', 'custom:utils/date-utils'], function (Dep, DateUtils) {
     
     return Dep.extend({
         
@@ -81,8 +81,8 @@ define('custom:views/lead/modals/log-kickstart', ['views/modal'], function (Dep)
             Espo.Ajax.postRequest(`lead/action/logKickstart`, {
                 id: this.model.id,
                 outcome: outcome,
-                kickstartDateTime: kickstartDateTime,
-                callAgainDateTime: callAgainDateTime || null,
+                kickstartDateTime: kickstartDateTime ? DateUtils.toOffsetISOString(new Date(kickstartDateTime)) : null,
+                callAgainDateTime: callAgainDateTime ? DateUtils.toOffsetISOString(new Date(callAgainDateTime)) : null,
                 coachNote: coachNote || null
             }).then((response) => {
                 this.trigger('success', response);
