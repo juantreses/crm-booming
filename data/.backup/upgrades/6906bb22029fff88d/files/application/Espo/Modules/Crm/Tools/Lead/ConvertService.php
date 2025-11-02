@@ -84,18 +84,25 @@ class ConvertService
     {
         $lead = $this->getLead($id);
 
-        if (!$params->skipDuplicateCheck())  {
-            $this->processDuplicateCheck($records);
-        }
+        $duplicateList = [];
+        $skipSave = false;
+
+        $duplicateCheck = !$params->skipDuplicateCheck();
 
         $account = $this->processAccount(
             lead: $lead,
             records: $records,
+            duplicateCheck: $duplicateCheck,
+            duplicateList: $duplicateList,
+            skipSave: $skipSave,
         );
 
         $contact = $this->processContact(
             lead: $lead,
             records: $records,
+            duplicateCheck: $duplicateCheck,
+            duplicateList: $duplicateList,
+            skipSave: $skipSave,
             account: $account,
         );
 
@@ -104,9 +111,16 @@ class ConvertService
         $opportunity = $this->processOpportunity(
             lead: $lead,
             records: $records,
+            duplicateCheck: $duplicateCheck,
+            duplicateList: $duplicateList,
+            skipSave: $skipSave,
             account: $account,
             contact: $contact,
         );
+
+        if ($duplicateCheck && count($duplicateList)) {
+            throw ConflictSilent::createWithBody('duplicate', Json::encode($duplicateList));
+        }
 
         $lead->setStatus(Lead::STATUS_CONVERTED);
 
@@ -266,12 +280,19 @@ class ConvertService
     }
 
     /**
+     * @param object[] $duplicateList
      * @throws Forbidden
      * @throws BadRequest
      * @throws Conflict
      */
-    private function processAccount(Lead $lead, Values $records): ?Account
-    {
+    private function processAccount(
+        Lead $lead,
+        Values $records,
+        bool $duplicateCheck,
+        array &$duplicateList,
+        bool &$skipSave,
+    ): ?Account {
+
         if (!$records->has(Account::ENTITY_TYPE)) {
             return null;
         }
@@ -284,14 +305,35 @@ class ConvertService
 
         $service = $this->recordServiceContainer->getByClass(Account::class);
 
+        $account = $this->entityManager->getRDBRepositoryByClass(Account::class)->getNew();
+        $account->set($values);
+
+        if ($duplicateCheck) {
+            foreach ($service->findDuplicates($account) ?? [] as $e) {
+                $duplicateList[] = (object) [
+                    'id' => $e->getId(),
+                    'name' => $e->getName(),
+                    '_entityType' => $e->getEntityType(),
+                ];
+
+                $skipSave = true;
+            }
+        }
+
+        if ($skipSave) {
+            return null;
+        }
+
+
         $account = $service->create($values, CreateParams::create()->withSkipDuplicateCheck());
 
-        $lead->setCreatedAccount($account);
+        $lead->set('createdAccountId', $account->getId());
 
         return $account;
     }
 
     /**
+     * @param object[] $duplicateList
      * @throws Forbidden
      * @throws BadRequest
      * @throws Conflict
@@ -299,6 +341,9 @@ class ConvertService
     private function processContact(
         Lead $lead,
         Values $records,
+        bool $duplicateCheck,
+        array &$duplicateList,
+        bool &$skipSave,
         ?Account $account,
     ): ?Contact {
 
@@ -318,6 +363,25 @@ class ConvertService
 
         $service = $this->recordServiceContainer->getByClass(Contact::class);
 
+        $contact = $this->entityManager->getRDBRepositoryByClass(Contact::class)->getNew();
+        $contact->set($values);
+
+        if ($duplicateCheck) {
+            foreach ($service->findDuplicates($contact) ?? [] as $e) {
+                $duplicateList[] = (object) [
+                    'id' => $e->getId(),
+                    'name' => $e->getName(),
+                    '_entityType' => $e->getEntityType(),
+                ];
+
+                $skipSave = true;
+            }
+        }
+
+        if ($skipSave) {
+            return null;
+        }
+
         $contact = $service->create($values, CreateParams::create()->withSkipDuplicateCheck());
 
         $lead->set('createdContactId', $contact->getId());
@@ -327,13 +391,14 @@ class ConvertService
             $contact->getAccount() &&
             !$contact->getAccount()->get('originalLeadId')
         ) {
-            $lead->setCreatedAccount($contact->getAccount());
+            $lead->set('createdAccountId', $contact->getAccount()->getId());
         }
 
         return $contact;
     }
 
     /**
+     * @param object[] $duplicateList
      * @throws Forbidden
      * @throws BadRequest
      * @throws Conflict
@@ -341,6 +406,9 @@ class ConvertService
     private function processOpportunity(
         Lead $lead,
         Values $records,
+        bool $duplicateCheck,
+        array &$duplicateList,
+        bool &$skipSave,
         ?Account $account,
         ?Contact $contact,
     ): ?Opportunity {
@@ -365,10 +433,30 @@ class ConvertService
 
         $service = $this->recordServiceContainer->getByClass(Opportunity::class);
 
+        $opportunity = $this->entityManager->getRDBRepositoryByClass(Opportunity::class)->getNew();
+        $opportunity->set($values);
+
+        if ($duplicateCheck) {
+            foreach ($service->findDuplicates($opportunity) ?? [] as $e) {
+                $duplicateList[] = (object) [
+                    'id' => $e->getId(),
+                    'name' => $e->getName(),
+                    '_entityType' => $e->getEntityType(),
+                ];
+
+                $skipSave = true;
+            }
+        }
+
+        if ($skipSave) {
+            return null;
+        }
+
         $opportunity = $service->create($values, CreateParams::create()->withSkipDuplicateCheck());
 
         if ($contact) {
             $this->entityManager
+                ->getRDBRepository(Contact::ENTITY_TYPE)
                 ->getRelation($contact, 'opportunities')
                 ->relate($opportunity);
         }
@@ -444,6 +532,7 @@ class ConvertService
         foreach ($calls as $call) {
             if ($contact && $contact->hasId()) {
                 $this->entityManager
+                    ->getRDBRepository(Call::ENTITY_TYPE)
                     ->getRelation($call, 'contacts')
                     ->relate($contact);
             }
@@ -490,12 +579,14 @@ class ConvertService
         foreach ($documents as $document) {
             if ($account && $account->hasId()) {
                 $this->entityManager
+                    ->getRDBRepository(Document::ENTITY_TYPE)
                     ->getRelation($document, 'accounts')
                     ->relate($account);
             }
 
             if ($opportunity && $opportunity->hasId()) {
                 $this->entityManager
+                    ->getRDBRepository(Document::ENTITY_TYPE)
                     ->getRelation($document, 'opportunities')
                     ->relate($opportunity);
             }
@@ -545,64 +636,5 @@ class ConvertService
         }
 
         return $account;
-    }
-
-    /**
-     * @throws Conflict
-     */
-    private function processDuplicateCheck(Values $records): void
-    {
-        $duplicateList = [];
-
-        if ($records->has(Account::ENTITY_TYPE)) {
-            $accountService = $this->recordServiceContainer->getByClass(Account::class);
-
-            $account = $this->entityManager->getRDBRepositoryByClass(Account::class)->getNew();
-            $account->set($records->get(Account::ENTITY_TYPE));
-
-            foreach ($accountService->findDuplicates($account) ?? [] as $e) {
-                $duplicateList[] = (object) [
-                    'id' => $e->getId(),
-                    'name' => $e->getName(),
-                    '_entityType' => $e->getEntityType(),
-                ];
-            }
-        }
-
-        if ($records->has(Contact::ENTITY_TYPE)) {
-            $contactService = $this->recordServiceContainer->getByClass(Contact::class);
-
-            $contact = $this->entityManager->getRDBRepositoryByClass(Contact::class)->getNew();
-            $contact->set($records->get(Contact::ENTITY_TYPE));
-
-            foreach ($contactService->findDuplicates($contact) ?? [] as $e) {
-                $duplicateList[] = (object) [
-                    'id' => $e->getId(),
-                    'name' => $e->getName(),
-                    '_entityType' => $e->getEntityType(),
-                ];
-            }
-        }
-
-        if ($records->has(Opportunity::ENTITY_TYPE)) {
-            $opportunityService = $this->recordServiceContainer->getByClass(Opportunity::class);
-
-            $opportunity = $this->entityManager->getRDBRepositoryByClass(Opportunity::class)->getNew();
-            $opportunity->set($records->get(Opportunity::ENTITY_TYPE));
-
-            foreach ($opportunityService->findDuplicates($opportunity) ?? [] as $e) {
-                $duplicateList[] = (object) [
-                    'id' => $e->getId(),
-                    'name' => $e->getName(),
-                    '_entityType' => $e->getEntityType(),
-                ];
-            }
-        }
-
-        if (!count($duplicateList)) {
-            return;
-        }
-
-        throw ConflictSilent::createWithBody('duplicate', Json::encode($duplicateList));
     }
 }
