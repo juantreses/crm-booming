@@ -47,7 +47,8 @@
             "became_coach": "Coach geworden",
             "message_to_be_sent": "Bericht Sturen",
             "message_sent": "Bericht Gestuurd",
-            "became_client": "Klant geworden"
+            "became_client": "Klant geworden",
+            "Disqualified": "Geen interesse"
         },
         "salutationName": {
             "": "",

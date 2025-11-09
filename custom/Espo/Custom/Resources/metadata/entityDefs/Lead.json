@@ -29,7 +29,8 @@
                 "not_converted",
                 "became_client",
                 "became_coach",
-                "Converted"
+                "Converted",
+                "Disqualified"
             ],
             "style": {
                 "new": null,
@@ -48,7 +49,8 @@
                 "not_converted": null,
                 "became_client": null,
                 "became_coach": null,
-                "Converted": "success"
+                "Converted": "success",
+                "Disqualified": "danger"
             },
             "required": true,
             "labelType": null,
