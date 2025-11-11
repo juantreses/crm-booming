@@ -14,6 +14,20 @@ use Espo\ORM\Repository\Option\SaveOption;
  */
 class LeadFactory
 {
+
+    // Pay close attention to exact characters (like the en-dash '–' or non-breaking space ' ').
+    private const Q_HEALTH_SCORE = 'Hoe zou je je algemene gezondheid op dit moment beoordelen? (Schaal 1–10)';
+    private const Q_SPORT_TYPE = 'Welke sport oefen je uit?';
+    private const Q_FREE_EXPERIENCE = 'Ik selecteer per week 10 mensen voor één van onze gratis en vrijblijvende ervaringen in ons SFC. Welke zou jij het liefste volgen?';
+    private const Q_BREAKFAST = 'Wat had je vanmorgen als ontbijt?';
+    private const Q_5_RESULTS = 'Ik geef je 5 gezondheidsresultaten. Stel dat er één vanaf nu zou werken, welke zou je kiezen?';
+    private const Q_COACH_INFO = 'Wil je vrijblijvend meer info over hoe je een centje kan bijvrienden als welzijnscoach? ';
+    private const Q_GOALS = 'Welke van deze doelen spreken jou het meest aan?';
+    private const Q_SLEEP = 'Slaap je gemiddeld voldoende (7–9 uur per nacht)?';
+    private const Q_DO_SPORT = 'Doe je aan sport?';
+    private const Q_SPORT_HOURS = 'Hoeveel uur in de week sport je?';
+    private const Q_REMARK = 'Opmerking';
+
     /**
      * Unified field mapping structure that supports both simple and fallback mappings.
      * For simple mappings, use a single-element array.
@@ -44,18 +58,24 @@ class LeadFactory
      */
     private const SURVEY_MAPPING = [
         'Sint-Katelijne-Waver' => [
-            'Wat had je vanmorgen als ontbijt?',
-            // Note: Ensure the dash here matches exactly (en-dash vs hyphen)
-            'Hoe zou je je algemene gezondheid op dit moment beoordelen? (Schaal 1–10)', 
-            'Ik geef je 5 gezondheidsresultaten. Stel dat er één vanaf nu zou werken, welke zou je kiezen?',
-             // Note: The incoming data might have a non-breaking space (\u00a0) at the end of this question
-            'Wil je vrijblijvend meer info over hoe je een centje kan bijvrienden als welzijnscoach? ',
+            self::Q_BREAKFAST,
+            self::Q_HEALTH_SCORE,
+            self::Q_5_RESULTS,
+            self::Q_COACH_INFO,
+            self::Q_SPORT_TYPE,
+            self::Q_FREE_EXPERIENCE,
+            self::Q_REMARK,
         ],
         'Drongen' => [
-            // Add Drongen specific questions here
-             'Andere vraag voor Drongen?',
+            self::Q_HEALTH_SCORE,
+            self::Q_GOALS,
+            self::Q_SLEEP,
+            self::Q_DO_SPORT,
+            self::Q_SPORT_HOURS,
+            self::Q_SPORT_TYPE,
+            self::Q_FREE_EXPERIENCE,
+            self::Q_REMARK,
         ],
-
     ];
 
     public function __construct(
