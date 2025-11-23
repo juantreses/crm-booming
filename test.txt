@@ -1,0 +1,54 @@
+Array
+(
+    [timestamp] => 2025-11-23 19:32:48
+    [params] => Array
+        (
+            [controller] => VankoApi
+            [action] => lead
+        )
+
+    [data] => stdClass Object
+        (
+            [CC_SlimFitCenter] => Drongen
+            [CC_SlimFitCenter_Campagne_Type] => Service_CadeauBon
+            [SFC_CRM_Lead_Identity] => 
+            [CC_SlimFitCenter_Coach] => 
+            [CC_SlimFitCenter_Campagne_Registratie] => 2025-08-29
+            [contact_id] => 12a80b85-b188-4925-8c45-4d12539f5c67
+            [phone] => 
+            [first_name] => 
+            [last_name] => 
+            [full_name] => Panda Power
+            [email] => 
+        )
+
+)
+
+
+Array
+(
+    [timestamp] => 2025-11-23 19:33:40
+    [params] => Array
+        (
+            [controller] => VankoApi
+            [action] => lead
+        )
+
+    [data] => stdClass Object
+        (
+            [CC_SlimFitCenter] => Drongen
+            [CC_SlimFitCenter_Campagne_Type] => Service_CadeauBon
+            [SFC_CRM_Lead_Identity] => 
+            [CC_SlimFitCenter_Coach] => 
+            [CC_SlimFitCenter_Campagne_Registratie] => 2025-08-29
+            [contact_id] => 06b3b57f-a3f5-4d93-be66-c47f87541146
+            [phone] => 315-833-2648
+            [first_name] => Nasir
+            [last_name] => Champlin
+            [full_name] => Panda Power
+            [email] => Jordon.Parker44@yahoo.com
+        )
+
+)
+
+
