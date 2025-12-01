@@ -1,4 +1,4 @@
-define('custom:views/lead/modals/log-message-outcome', ['views/modal'], function (Dep) {
+define('custom:views/lead/modals/log-message-outcome', ['views/modal', 'custom:utils/date-utils'], function (Dep, DateUtils) {
 
 	return Dep.extend({
 		template: 'custom:lead/modals/log-message-outcome',
@@ -68,7 +68,7 @@ define('custom:views/lead/modals/log-message-outcome', ['views/modal'], function
 			Espo.Ajax.postRequest('lead/action/logMessageOutcome', {
 				id: this.model.id,
 				outcome: outcome,
-				callAgainDateTime: callAgainDateTime || null,
+				callAgainDateTime: callAgainDateTime ? DateUtils.toOffsetISOString(new Date(callAgainDateTime)) : null,
 				coachNote: coachNote || null
 			}).then(() => {
 				this.trigger('success');

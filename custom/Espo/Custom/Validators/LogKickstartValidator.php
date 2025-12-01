@@ -18,21 +18,25 @@ class LogKickstartValidator
             throw new BadRequest('Invalid call outcome.');
         }
 
-        $timezone = new \DateTimeZone('Europe/Brussels');
-
-        if (isset($data->kickstartDateTime) && !empty($data->kickstartDateTime)) {
-            if (new \DateTime($data->kickstartDateTime, $timezone) > new \DateTime('now', $timezone)) {
-                throw new BadRequest('Kickstart datum/tijd mag niet in de toekomst zijn.');
+        if (!empty($data->kickstartDateTime)) {
+            $kickstart = new \DateTime($data->kickstartDateTime);
+            $now = new \DateTime('now', new \DateTimeZone('UTC'));
+    
+            if ($kickstart > $now) {
+                throw new BadRequest('Kickstartdatum/tijd mag niet in de toekomst zijn.');
             }
         }
-
+    
         if ($outcome === KickstartOutcome::STILL_THINKING->value) {
-            if (!isset($data->callAgainDateTime) || empty($data->callAgainDateTime)) {
+            if (empty($data->callAgainDateTime)) {
                 throw new BadRequest('Datum/tijd opnieuw bellen is verplicht.');
             }
-
-            if (new \DateTime($data->callAgainDateTime, $timezone) <= new \DateTime('now', $timezone)) {
-                throw new BadRequest('atum/tijd opnieuw bellen moet in de toekomst zijn.');
+    
+            $callAgain = new \DateTime($data->callAgainDateTime);
+            $now = new \DateTime('now', new \DateTimeZone('UTC'));
+    
+            if ($callAgain <= $now) {
+                throw new BadRequest('Datum/tijd opnieuw bellen moet in de toekomst zijn.');
             }
         }
     }
