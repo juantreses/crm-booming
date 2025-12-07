@@ -4,6 +4,10 @@
         "width": 20
     },
     {
+        "name": "modifiedBy",
+        "width": 20
+    },
+    {
         "name": "modifiedAt",
         "width": 20
     },
