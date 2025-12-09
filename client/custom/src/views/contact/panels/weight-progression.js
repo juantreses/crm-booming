@@ -86,14 +86,6 @@ define([
                                         <td>Evolutie:</td>
                                         <td style="color: {{visceralFatEvolutionColor}};">{{visceralFatEvolution}}</td>
                                     </tr>
-                                    <tr>
-                                        <td colspan="6" style="text-align: right;">
-                                            <a href="#" data-action="toggleAllResults">
-                                                <span class="fas fa-list"></span> {{#if showAllResults}}Toon minder resultaten{{else}}Toon alle resultaten{{/if}}
-                                            </a>
-                                        </td>
-                                    </tr>
-
                                     {{#if showAllResults}}
                                     <tr>
                                         <td>Vocht (%):</td>
@@ -120,6 +112,13 @@ define([
                                         <td style="color: {{metabolicAgeEvolutionColor}};">{{metabolicAgeEvolution}}</td>
                                     </tr>
                                     {{/if}}
+                                    <tr>
+                                        <td colspan="6" style="text-align: right;">
+                                            <a href="#" data-action="toggleAllResults">
+                                                <span class="fas fa-list"></span> {{#if showAllResults}}Toon minder resultaten{{else}}Toon alle resultaten{{/if}}
+                                            </a>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
