@@ -136,6 +136,7 @@
         "cMeetingType": {
             "type": "enum",
             "options": [
+                "",
                 "kickstart",
                 "bws",
                 "spark",
@@ -146,12 +147,13 @@
             "audited": true,
             "label": "Type afspraak",
             "style": {
+                "": null,
                 "kickstart": null,
                 "bws": null,
                 "spark": null,
                 "iom": null
             },
-            "default": "kickstart"
+            "default": null
         }
     },
     "collection": {

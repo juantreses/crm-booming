@@ -55,7 +55,8 @@
             "kickstart": "Kickstart",
             "bws": "Beauty Workshop",
             "spark": "SPARK",
-            "iom": "IOM"
+            "iom": "IOM",
+            "": ""
         }
     }
 }
