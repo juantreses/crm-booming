@@ -62,6 +62,12 @@ class VankoApi extends RecordBase
 
     public function postActionKickstart($params, $data)
     {
+$logData = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'params' => $params,
+            'data' => json_encode($data),
+        ];
+        file_put_contents('test.txt', print_r($logData, true) . "\n\n", FILE_APPEND);
         try {
             if (!$data) {
                 throw new BadRequest('No data provided');

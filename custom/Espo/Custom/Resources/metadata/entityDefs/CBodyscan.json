@@ -84,7 +84,7 @@
         "spiermassa": {
             "notNull": false,
             "type": "float",
-            "required": true,
+            "required": false,
             "min": 5,
             "max": 120,
             "decimalPlaces": 1,
@@ -107,7 +107,7 @@
         },
         "metabolischeleeftijd": {
             "type": "int",
-            "required": true,
+            "required": false,
             "min": 10,
             "max": 99,
             "readOnlyAfterCreate": true,
@@ -144,7 +144,7 @@
         "visceraalvet": {
             "notNull": false,
             "type": "float",
-            "required": true,
+            "required": false,
             "min": 1,
             "max": 59,
             "readOnlyAfterCreate": true,
