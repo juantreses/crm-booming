@@ -1,0 +1,14 @@
+[
+    {
+        "name": "datum",
+        "width": 20
+    },
+    {
+        "name": "meetingType",
+        "width": 20
+    },
+    {
+        "name": "status",
+        "width": 20
+    }
+]

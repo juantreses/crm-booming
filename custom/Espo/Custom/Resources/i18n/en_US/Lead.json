@@ -10,13 +10,15 @@
         "cCampagneRoundRobin": "Campagne Round Robin",
         "cExternalCreatedAt": "Vanko Aanmaakdatum",
         "cFollowUpAction": "Opvolgactie",
-        "cSurveyData": "Enquête"
+        "cSurveyData": "Enquête",
+        "cVankoAppointments": "Afspraken"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
         "cTeam": "Team",
         "cLeadEvents": "Lead Events",
-        "cCampagneRoundRobin": "Campagne Round Robin"
+        "cCampagneRoundRobin": "Campagne Round Robin",
+        "cVankoAppointments": "Afspraken"
     },
     "layouts": {
         "teamleadlist": "Team Lead List"
@@ -37,10 +39,10 @@
             "no_answer": "Geen antwoord",
             "wrong_number": "Verkeerd nummer",
             "not_interested": "Geen interesse (Telefoon)",
-            "invited": "Uitgenodigd KS",
+            "invited": "Uitgenodigd",
             "attended": "Aanwezig KS",
             "no_show": "Niet opgedaagd KS",
-            "appointment_cancelled": "Geannuleerd KS",
+            "appointment_cancelled": "Geannuleerd",
             "became_client": "Klant geworden",
             "not_converted": "Geen klant geworden",
             "became_coach": "Coach geworden",
@@ -48,7 +50,11 @@
             "assigned": "Toegewezen",
             "contacted": "Succesvol gecontacteerd",
             "appointment_booked": "Ingepland KS",
-            "call_again": "Opnieuw bellen"
+            "call_again": "Opnieuw bellen",
+            "message_to_be_sent": "Bericht Sturen",
+            "message_sent": "Bericht Gestuurd",
+            "still_thinking": "still_thinking",
+            "Disqualified": "Disqualified"
         }
     }
 }

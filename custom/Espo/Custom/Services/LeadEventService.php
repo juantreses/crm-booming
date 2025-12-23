@@ -80,33 +80,40 @@ class LeadEventService
             throw new NotFound('Lead not found');
         }
 
-        $eventRepository = $this->entityManager->getRepository('CLeadEvent');
-        $event = $this->entityManager->getEntity('CLeadEvent');
+        return $this->entityManager->getTransactionManager()->run(function () use ($lead, $eventType, $eventDate) {
+            $event = $this->entityManager->getNewEntity('CLeadEvent');
 
-        $timezone = new DateTimeZone('UTC');
-        if (!$eventDate) {
-            $dt = new DateTime('now', $timezone);
-        } else {
-            $dt = new DateTime($eventDate);
-            $dt->setTimezone($timezone);
-        }
-        $event->set([
-            'eventType' => $eventType->value,
-            'eventDate' => $dt->format('Y-m-d H:i:s'),
-        ]);
+            $timezone = new DateTimeZone('UTC');
+            if (!$eventDate) {
+                $dt = new DateTime('now', $timezone);
+            } else {
+                $dt = new DateTime($eventDate);
+                $dt->setTimezone($timezone);
+            }
 
-        $this->entityManager->saveEntity($event);
-        $eventRepository->getRelation($event, 'lead')->relate($lead);
-        $this->entityManager->saveEntity($event);
+            $event->set([
+                'eventType' => $eventType->value,
+                'eventDate' => $dt->format('Y-m-d H:i:s'),
+            ]);
 
-        $this->updateLeadStatus($lead, $eventType);
+            // Save the event
+            $this->entityManager->saveEntity($event);
 
-        return [
-            'success' => true,
-            'eventId' => $event->getId(),
-            'eventType' => $eventType->value,
-            'leadStatus' => $lead->get('status'),
-        ];
+            // Relate to lead
+            $eventRepository = $this->entityManager->getRepository('CLeadEvent');
+            $eventRepository->getRelation($event, 'lead')->relate($lead);
+
+            // This call triggers StatusValidator.php via beforeSave hook
+            // If it throws BadRequest, the transaction rolls back, and the event is deleted.
+            $this->updateLeadStatus($lead, $eventType);
+
+            return [
+                'success' => true,
+                'eventId' => $event->getId(),
+                'eventType' => $eventType->value,
+                'leadStatus' => $lead->get('status'),
+            ];
+        });
     }
 
     /**

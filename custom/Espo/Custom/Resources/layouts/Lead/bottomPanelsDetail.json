@@ -11,7 +11,20 @@
     "_delimiter_": {
         "disabled": true
     },
+    "_tabBreak_0": {
+        "index": 0,
+        "tabBreak": true,
+        "tabLabel": "Afspraken"
+    },
+    "cVankoAppointments": {
+        "index": 1
+    },
+    "_tabBreak_1": {
+        "index": 2,
+        "tabBreak": true,
+        "tabLabel": "Log"
+    },
     "cLeadEvents": {
-        "index": 0
+        "index": 3
     }
 }

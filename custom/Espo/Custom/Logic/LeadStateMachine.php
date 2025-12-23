@@ -24,18 +24,19 @@ class LeadStateMachine
      */
     private const TRANSITION_MAP = [
         self::STATE_NEW => [
-            self::STATE_ASSIGNED
+            self::STATE_ASSIGNED,
         ],
         self::STATE_ASSIGNED => [
             self::STATE_CALL_AGAIN,
             self::STATE_INVITED,
+            self::STATE_APPOINTMENT_BOOKED,
             self::STATE_DISQUALIFIED,
-            self::STATE_DEAD
+            self::STATE_DEAD,
         ],
         self::STATE_CALL_AGAIN => [
             self::STATE_INVITED,
             self::STATE_MESSAGE_TO_BE_SENT,
-            self::STATE_DISQUALIFIED
+            self::STATE_DISQUALIFIED,
         ],
         self::STATE_MESSAGE_TO_BE_SENT => [
             self::STATE_MESSAGE_SENT
@@ -43,7 +44,7 @@ class LeadStateMachine
         self::STATE_MESSAGE_SENT => [
             self::STATE_CALL_AGAIN,
             self::STATE_INVITED,
-            self::STATE_DISQUALIFIED
+            self::STATE_DISQUALIFIED,
         ],
         self::STATE_INVITED => [
             self::STATE_APPOINTMENT_BOOKED
@@ -53,23 +54,23 @@ class LeadStateMachine
             self::STATE_BECAME_CLIENT,
             self::STATE_STILL_THINKING,
             self::STATE_MESSAGE_TO_BE_SENT,
-            self::STATE_DISQUALIFIED
+            self::STATE_DISQUALIFIED,
         ],
         self::STATE_APPOINTMENT_CANCELLED => [
             self::STATE_CALL_AGAIN,
             self::STATE_DISQUALIFIED,
-            self::STATE_APPOINTMENT_BOOKED
+            self::STATE_APPOINTMENT_BOOKED,
         ],
         self::STATE_STILL_THINKING => [
             self::STATE_BECAME_CLIENT,
-            self::STATE_DISQUALIFIED
+            self::STATE_DISQUALIFIED,
         ],
         self::STATE_BECAME_CLIENT => [
-            self::STATE_CONVERTED
+            self::STATE_CONVERTED,
         ],
         self::STATE_DISQUALIFIED => [
             self::STATE_BECAME_CLIENT,
-            self::STATE_CALL_AGAIN
+            self::STATE_CALL_AGAIN,
         ],
         // Final states (Dead, Converted) have no outgoing transitions
         self::STATE_DEAD => [],

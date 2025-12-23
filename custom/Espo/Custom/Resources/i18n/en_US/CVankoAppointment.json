@@ -1,0 +1,35 @@
+{
+    "fields": {
+        "vankoMeetingId": "Vanko Id",
+        "meetingType": "Afspraak type",
+        "status": "Status",
+        "lead": "Lead",
+        "calendarName": "Calendar Name",
+        "datum": "Datum"
+    },
+    "links": {
+        "lead": "Lead"
+    },
+    "labels": {
+        "Create CVankoAppointment": "Create Afspraak"
+    },
+    "options": {
+        "meetingType": {
+            "KickStart": "KickStart",
+            "Online Kickstart": "Online Kickstart",
+            "SPARK": "SPARK",
+            "Beauty Workshop": "Beauty Workshop",
+            "IOM": "IOM",
+            "Workout": "Workout",
+            "Interview": "Interview",
+            "Coach": "Coach",
+            "Royalty Gesprek": "Royalty Gesprek"
+        },
+        "status": {
+            "Ingepland": "Ingepland",
+            "Geannuleerd": "Geannuleerd",
+            "Planned": "Ingepland",
+            "Canceled": "Geannuleerd"
+        }
+    }
+}

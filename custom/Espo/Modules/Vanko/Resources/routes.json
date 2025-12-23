@@ -1,34 +1,34 @@
 [
-   {
-        "route": "/vanko/lead",
-        "method": "post",
-        "params": {
-            "controller": "VankoApi",
-            "action": "lead"
-        }
-    },
-    {
-	"route": "/vanko/kickstart",
-	"method": "post",
-	"params": {
-	    "controller": "VankoApi",
-	    "action": "kickstart"
-	}
-    },
-    {
-        "route": "/vanko/kickstart/cancel",
-        "method": "post",
-        "params": {
-            "controller": "VankoApi",
-            "action": "cancelKickstart"
-        }
-    },
-    {
-        "route": "/vanko/syncState",
-        "method": "post",
-        "params": {
-            "controller": "VankoApi",
-            "action": "syncState"
-        }
+  {
+    "route": "/vanko/lead",
+    "method": "post",
+    "params": {
+      "controller": "VankoApi",
+      "action": "lead"
     }
+  },
+  {
+    "route": "/vanko/appointment",
+    "method": "post",
+    "params": {
+      "controller": "VankoApi",
+      "action": "appointment"
+    }
+  },
+  {
+    "route": "/vanko/appointment/cancel",
+    "method": "post",
+    "params": {
+      "controller": "VankoApi",
+      "action": "cancelAppointment"
+    }
+  },
+  {
+    "route": "/vanko/syncState",
+    "method": "post",
+    "params": {
+      "controller": "VankoApi",
+      "action": "syncState"
+    }
+  }
 ]

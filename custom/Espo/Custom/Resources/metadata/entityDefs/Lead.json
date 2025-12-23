@@ -164,6 +164,13 @@
             "entity": "CCampagneRoundRobin",
             "audited": false,
             "isCustom": true
+        },
+        "cVankoAppointments": {
+            "type": "hasMany",
+            "foreign": "lead",
+            "entity": "CVankoAppointment",
+            "audited": false,
+            "isCustom": true
         }
     }
 }

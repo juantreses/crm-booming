@@ -2,14 +2,23 @@
 
 namespace Espo\Modules\Vanko\Controllers;
 
-use Espo\Core\Controllers\RecordBase;
 use Espo\Core\Exceptions\BadRequest;
-use Espo\Core\Exceptions\Error;
+use Espo\Core\ORM\EntityManager;
 use Espo\Custom\Enums\LeadEventType;
+use Espo\Custom\Services\AppointmentService;
+use Espo\Custom\Services\LeadEventService;
 use Espo\Modules\Crm\Entities\Lead;
+use Espo\Modules\Vanko\Services\LeadService;
 
-class VankoApi extends RecordBase
+class VankoApi
 {
+    public function __construct(
+        private readonly LeadService $leadService,
+        private readonly LeadEventService $leadEventService,
+        private readonly AppointmentService $appointmentService,
+        private readonly EntityManager $entityManager,
+    ) {}
+
     public function postActionLead($params, $data)
     {
         // Log all data to test.txt
@@ -36,10 +45,7 @@ class VankoApi extends RecordBase
                 throw new BadRequest("Missing required field(s): " . implode(', ', $missing));
             }
 
-            $service = $this->getServiceFactory()->create('LeadService');
-            $result = $service->processLead($data);
-
-            return $result;
+            return $this->leadService->processLead($data);
         } catch (BadRequest $e) {
             // Return proper error response
             http_response_code(400);
@@ -60,7 +66,7 @@ class VankoApi extends RecordBase
         }
     }
 
-    public function postActionKickstart($params, $data)
+    public function postActionAppointment($params, $data)
     {
         try {
             if (!$data) {
@@ -68,13 +74,19 @@ class VankoApi extends RecordBase
             }
 
             $lead = $this->findLeadByData($data);
-
             if (!$lead) {
                 throw new BadRequest("Could not find a matching lead with the provided identifiers.");
             }
 
-            $service = $this->getServiceFactory()->create('LeadEventService');
-            return $service->logEvent($lead->getId(), LeadEventType::APPOINTMENT_BOOKED);
+            return $this->entityManager->getTransactionManager()->run(
+                function () use ($lead, $data) {
+                    $result = $this->leadEventService->logEvent($lead->getId(), LeadEventType::APPOINTMENT_BOOKED);
+                    if (!empty($data->customData)) {
+                        $this->appointmentService->createAppointment($lead, $data->customData);
+                    }
+                    return $result;
+                }
+            );
 
         } catch (BadRequest $e) {
             http_response_code(400);
@@ -94,7 +106,7 @@ class VankoApi extends RecordBase
         }
     }
 
-    public function postActionCancelKickstart($params, $data)
+    public function postActionCancelAppointment($params, $data)
     {
         try {
             if (!$data) {
@@ -107,8 +119,25 @@ class VankoApi extends RecordBase
                 throw new BadRequest("Could not find a matching lead with the provided identifiers.");
             }
 
-            $service = $this->getServiceFactory()->create('LeadEventService');
-            return $service->logEvent($lead->getId(), LeadEventType::APPOINTMENT_CANCELLED);
+            return $this->entityManager->getTransactionManager()->run(function () use ($data) {
+                $lead = $this->findLeadByData($data);
+
+                if (!$lead) {
+                    throw new BadRequest("Could not find a matching lead.");
+                }
+
+                $this->leadEventService->logEvent($lead->getId(), LeadEventType::APPOINTMENT_CANCELLED);
+
+                if (!empty($data->customData->vankoMeetingId)) {
+                    $found = $this->appointmentService->cancelAppointment($lead, $data->customData->vankoMeetingId);
+
+                    if (!$found) {
+                        $this->logInfo("Status updated for Lead {$lead->getId()}, but VankoAppointment record was not found.");
+                    }
+                }
+
+                return ['success' => true, 'appointmentUpdated' => $found ?? false];
+            });
 
         } catch (BadRequest $e) {
             http_response_code(400);
@@ -130,7 +159,7 @@ class VankoApi extends RecordBase
 
     private function findLeadByData($data): ?Lead
     {
-        $entityManager = $this->getEntityManager();
+        $entityManager = $this->entityManager;
 
         // Strategy 1: Find by the internal ID
         if (!empty($data->SFC_CRM_Lead_Identity)) {
