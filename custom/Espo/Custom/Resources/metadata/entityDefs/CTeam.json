@@ -149,9 +149,10 @@
     },
     "betaalLinkSportweek": {
       "type": "varchar",
-      "maxLength": 100,
+      "maxLength": 400,
       "options": [],
-      "isCustom": true
+      "isCustom": true,
+      "copyToClipboard": true
     },
     "activeCampaigns": {
       "type": "linkMultiple"
