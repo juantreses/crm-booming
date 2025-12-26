@@ -51,7 +51,6 @@ class VankoWebhookService
         'spark_progress' => 'Spark Progress',  
         'spark_evolution' => 'Spark Evolution',  
         'spark_10_beurten_kaart' => 'Spark 10 Beurten Kaart',  
-        'spark_21_days' => 'Spark 21 Days',  
     ];
 
     public function __construct(
