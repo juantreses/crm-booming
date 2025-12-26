@@ -11,18 +11,18 @@
             ],
             [
                 {
-                    "name": "emailAddress"
-                },
-                {
-                    "name": "phoneNumber"
-                }
-            ],
-            [
-                {
                     "name": "cSlimFitCenter"
                 },
                 {
                     "name": "cTeam"
+                }
+            ],
+            [
+                {
+                    "name": "emailAddress"
+                },
+                {
+                    "name": "phoneNumber"
                 }
             ],
             [

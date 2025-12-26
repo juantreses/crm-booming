@@ -32,7 +32,14 @@
             "distributeur": "Distributeur",
             "distributor": "Distributeur",
             "spark_trail": "Spark Proefperiode",
-            "spark_subscription": "Spark Subscription"
+            "spark_subscription": "Spark Subscription",
+            "spark_start": "Spark Start",
+            "spark_21_days_kickstart": "Spark 21 Days Kickstart",
+            "spark_next_step": "Spark Next Step",
+            "spark_progress": "Spark Progress",
+            "spark_evolution": "spark_evolution",
+            "spark_10_session_card": "Spark 10 Beurten Kaart",
+            "spark_21_days": "Spark 21 Days"
         }
     }
 }

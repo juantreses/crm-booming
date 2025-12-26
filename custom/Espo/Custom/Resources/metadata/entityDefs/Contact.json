@@ -44,7 +44,14 @@
                 "pcx_15",
                 "pcx_25",
                 "pcx_35",
-                "distributor"
+                "distributor",
+                "spark_start",
+                "spark_21_days_kickstart",
+                "spark_next_step",
+                "spark_progress",
+                "spark_evolution",
+                "spark_10_session_card",
+                "spark_21_days"
             ],
             "default": "sample_pack",
             "style": {
@@ -57,7 +64,14 @@
                 "pcx_15": null,
                 "pcx_25": null,
                 "pcx_35": null,
-                "distributor": null
+                "distributor": null,
+                "spark_start": null,
+                "spark_21_days_kickstart": null,
+                "spark_next_step": null,
+                "spark_progress": null,
+                "spark_evolution": null,
+                "spark_10_session_card": null,
+                "spark_21_days": null
             },
             "maxLength": 100,
             "isCustom": true
