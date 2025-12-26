@@ -1,299 +1,287 @@
 {
-    "fields": {
-        "name": {
-            "type": "varchar",
-            "required": true,
-            "pattern": "$noBadCharacters"
-        },
-        "description": {
-            "type": "text"
-        },
-        "createdAt": {
-            "type": "datetime",
-            "readOnly": true
-        },
-        "modifiedAt": {
-            "type": "datetime",
-            "readOnly": true
-        },
-        "createdBy": {
-            "type": "link",
-            "readOnly": true,
-            "view": "views/fields/user"
-        },
-        "modifiedBy": {
-            "type": "link",
-            "readOnly": true,
-            "view": "views/fields/user"
-        },
-        "assignedUser": {
-            "type": "link",
-            "required": false,
-            "view": "views/fields/assigned-user",
-            "disabled": true
-        },
-        "teams": {
-            "type": "linkMultiple",
-            "view": "views/fields/teams"
-        },
-        "user": {
-            "type": "link"
-        },
-        "sponser": {
-            "type": "link"
-        },
-        "downlines": {
-            "type": "linkMultiple"
-        },
-        "assignedUsers": {
-            "type": "linkMultiple",
-            "view": "views/fields/assigned-users",
-            "maxCount": 10
-        },
-        "leads": {
-            "type": "linkMultiple"
-        },
-        "members": {
-            "type": "linkMultiple"
-        },
-        "herbalifePin": {
-            "type": "enum",
-            "options": [
-                "Member",
-                "Senior Consultant",
-                "Succes Builder",
-                "Qualified Producer",
-                "Supervisor",
-                "World Team",
-                "GET",
-                "GET 2.5",
-                "Millionair Team",
-                "Millionair Team 7.5",
-                "President's Team",
-                "President's Team 15K",
-                "President's Team 20K",
-                "President's Team 30K",
-                "President's Team 50K",
-                "Chairman's Club",
-                "Founder's Circle"
-            ],
-            "style": {
-                "Member": null,
-                "Senior Consultant": null,
-                "Succes Builder": null,
-                "Qualified Producer": null,
-                "Supervisor": null,
-                "World Team": null,
-                "GET": null,
-                "GET 2.5": null,
-                "Millionair Team": null,
-                "Millionair Team 7.5": null,
-                "President's Team": null,
-                "President's Team 15K": null,
-                "President's Team 20K": null,
-                "President's Team 30K": null,
-                "President's Team 50K": null,
-                "Chairman's Club": null,
-                "Founder's Circle": null
-            },
-            "default": "Member",
-            "maxLength": 100,
-            "isCustom": true
-        },
-        "herbalifeID": {
-            "type": "varchar",
-            "maxLength": 100,
-            "options": [],
-            "isCustom": true
-        },
-        "accessGroup": {
-            "type": "varchar",
-            "maxLength": 100,
-            "audited": true,
-            "options": [],
-            "isCustom": true
-        },
-        "slimFitCenter": {
-            "type": "link"
-        },
-        "enquete": {
-            "type": "url",
-            "copyToClipboard": true,
-            "audited": true,
-            "isCustom": true
-        },
-        "cadeaubon": {
-            "type": "url",
-            "copyToClipboard": true,
-            "isCustom": true
-        },
-        "berichten": {
-            "type": "url",
-            "copyToClipboard": true,
-            "isCustom": true
-        },
-        "bissKaartSlimFitCenter": {
-            "type": "url",
-            "copyToClipboard": true,
-            "isCustom": true
-        },
-        "bissKaartCoachingCenter": {
-            "type": "url",
-            "copyToClipboard": true,
-            "isCustom": true
-        },
-        "betaalLinkProefPakket": {
-            "type": "url",
-            "copyToClipboard": true,
-            "isCustom": true
-        },
-        "betaalLinkSportweek": {
-            "type": "url",
-            "copyToClipboard": true,
-            "isCustom": true
-        },
-        "activeCampaigns": {
-            "type": "linkMultiple"
-        },
-        "actief": {
-            "notNull": true,
-            "type": "bool",
-            "isCustom": true
-        },
-        "maxCallAttempts": {
-            "type": "int",
-            "default": 2,
-            "min": 0,
-            "max": 100,
-            "tooltip": true,
-            "isCustom": true
-        },
-        "linkReferral": {
-            "type": "url",
-            "audited": true,
-            "isCustom": true
-        },
-        "linkGelaatsverzorgingworkshop": {
-            "type": "url",
-            "isCustom": true,
-            "copyToClipboard": true
-        },
-        "sparkGroepsles": {
-            "type": "url",
-            "copyToClipboard": true,
-            "isCustom": true
-        }
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "required": true,
+      "pattern": "$noBadCharacters"
     },
-    "links": {
-        "createdBy": {
-            "type": "belongsTo",
-            "entity": "User"
-        },
-        "modifiedBy": {
-            "type": "belongsTo",
-            "entity": "User"
-        },
-        "assignedUser": {
-            "type": "belongsTo",
-            "entity": "User",
-            "disabled": true
-        },
-        "teams": {
-            "type": "hasMany",
-            "entity": "Team",
-            "relationName": "entityTeam",
-            "layoutRelationshipsDisabled": true
-        },
-        "user": {
-            "type": "belongsTo",
-            "foreign": "cTeam",
-            "entity": "User",
-            "isCustom": true
-        },
-        "sponser": {
-            "type": "belongsTo",
-            "foreign": "downlines",
-            "entity": "CTeam",
-            "audited": false,
-            "isCustom": true
-        },
-        "downlines": {
-            "type": "hasMany",
-            "foreign": "sponser",
-            "entity": "CTeam",
-            "audited": false,
-            "isCustom": true
-        },
-        "assignedUsers": {
-            "type": "hasMany",
-            "entity": "User",
-            "relationName": "entityUser",
-            "layoutRelationshipsDisabled": true
-        },
-        "leads": {
-            "type": "hasMany",
-            "foreign": "cTeam",
-            "entity": "Lead",
-            "audited": false,
-            "isCustom": true
-        },
-        "members": {
-            "type": "hasMany",
-            "foreign": "cTeam",
-            "entity": "Contact",
-            "audited": false,
-            "isCustom": true
-        },
-        "slimFitCenter": {
-            "type": "belongsTo",
-            "foreign": "team",
-            "entity": "CSlimFitCenter",
-            "audited": true,
-            "isCustom": true
-        },
-        "activeCampaigns": {
-            "type": "hasMany",
-            "relationName": "cActiveCampaignsRoundRobinMembers",
-            "foreign": "activeMembers",
-            "entity": "CCampagneRoundRobin",
-            "audited": false,
-            "isCustom": true
-        }
+    "description": {
+      "type": "text"
     },
-    "collection": {
-        "orderBy": "createdAt",
-        "order": "desc",
-        "textFilterFields": [
-            "name"
-        ],
-        "fullTextSearch": false,
-        "countDisabled": false
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
     },
-    "indexes": {
-        "name": {
-            "columns": [
-                "name",
-                "deleted"
-            ]
-        },
-        "assignedUser": {
-            "columns": [
-                "assignedUserId",
-                "deleted"
-            ]
-        },
-        "createdAt": {
-            "columns": [
-                "createdAt"
-            ]
-        },
-        "createdAtId": {
-            "unique": true,
-            "columns": [
-                "createdAt",
-                "id"
-            ]
-        }
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
     },
-    "optimisticConcurrencyControl": false
+    "createdBy": {
+      "type": "link",
+      "readOnly": true,
+      "view": "views/fields/user"
+    },
+    "modifiedBy": {
+      "type": "link",
+      "readOnly": true,
+      "view": "views/fields/user"
+    },
+    "assignedUser": {
+      "type": "link",
+      "required": false,
+      "view": "views/fields/assigned-user",
+      "disabled": true
+    },
+    "teams": {
+      "type": "linkMultiple",
+      "view": "views/fields/teams"
+    },
+    "user": {
+      "type": "link"
+    },
+    "sponser": {
+      "type": "link"
+    },
+    "downlines": {
+      "type": "linkMultiple"
+    },
+    "assignedUsers": {
+      "type": "linkMultiple",
+      "view": "views/fields/assigned-users",
+      "maxCount": 10
+    },
+    "leads": {
+      "type": "linkMultiple"
+    },
+    "members": {
+      "type": "linkMultiple"
+    },
+    "herbalifePin": {
+      "type": "enum",
+      "options": [
+        "Member",
+        "Senior Consultant",
+        "Succes Builder",
+        "Qualified Producer",
+        "Supervisor",
+        "World Team",
+        "GET",
+        "GET 2.5",
+        "Millionair Team",
+        "Millionair Team 7.5",
+        "President's Team",
+        "President's Team 15K",
+        "President's Team 20K",
+        "President's Team 30K",
+        "President's Team 50K",
+        "Chairman's Club",
+        "Founder's Circle"
+      ],
+      "style": {
+        "Member": null,
+        "Senior Consultant": null,
+        "Succes Builder": null,
+        "Qualified Producer": null,
+        "Supervisor": null,
+        "World Team": null,
+        "GET": null,
+        "GET 2.5": null,
+        "Millionair Team": null,
+        "Millionair Team 7.5": null,
+        "President's Team": null,
+        "President's Team 15K": null,
+        "President's Team 20K": null,
+        "President's Team 30K": null,
+        "President's Team 50K": null,
+        "Chairman's Club": null,
+        "Founder's Circle": null
+      },
+      "default": "Member",
+      "maxLength": 100,
+      "isCustom": true
+    },
+    "herbalifeID": {
+      "type": "varchar",
+      "maxLength": 100,
+      "options": [],
+      "isCustom": true
+    },
+    "accessGroup": {
+      "type": "varchar",
+      "maxLength": 100,
+      "audited": true,
+      "options": [],
+      "isCustom": true
+    },
+    "slimFitCenter": {
+      "type": "link"
+    },
+    "enquete": {
+      "type": "url",
+      "copyToClipboard": true,
+      "audited": true,
+      "isCustom": true
+    },
+    "cadeaubon": {
+      "type": "url",
+      "copyToClipboard": true,
+      "isCustom": true
+    },
+    "berichten": {
+      "type": "url",
+      "copyToClipboard": true,
+      "isCustom": true
+    },
+    "bissKaartSlimFitCenter": {
+      "type": "url",
+      "copyToClipboard": true,
+      "isCustom": true
+    },
+    "bissKaartCoachingCenter": {
+      "type": "url",
+      "copyToClipboard": true,
+      "isCustom": true
+    },
+    "betaalLinkProefPakket": {
+      "type": "url",
+      "copyToClipboard": true,
+      "isCustom": true
+    },
+    "betaalLinkSportweek": {
+      "type": "varchar",
+      "maxLength": 100,
+      "options": [],
+      "isCustom": true
+    },
+    "activeCampaigns": {
+      "type": "linkMultiple"
+    },
+    "actief": {
+      "notNull": true,
+      "type": "bool",
+      "isCustom": true
+    },
+    "maxCallAttempts": {
+      "type": "int",
+      "default": 2,
+      "min": 0,
+      "max": 100,
+      "tooltip": true,
+      "isCustom": true
+    },
+    "linkReferral": {
+      "type": "url",
+      "audited": true,
+      "isCustom": true
+    },
+    "linkGelaatsverzorgingworkshop": {
+      "type": "url",
+      "isCustom": true,
+      "copyToClipboard": true
+    },
+    "sparkGroepsles": {
+      "type": "url",
+      "copyToClipboard": true,
+      "isCustom": true
+    }
+  },
+  "links": {
+    "createdBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "modifiedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User",
+      "disabled": true
+    },
+    "teams": {
+      "type": "hasMany",
+      "entity": "Team",
+      "relationName": "entityTeam",
+      "layoutRelationshipsDisabled": true
+    },
+    "user": {
+      "type": "belongsTo",
+      "foreign": "cTeam",
+      "entity": "User",
+      "isCustom": true
+    },
+    "sponser": {
+      "type": "belongsTo",
+      "foreign": "downlines",
+      "entity": "CTeam",
+      "audited": false,
+      "isCustom": true
+    },
+    "downlines": {
+      "type": "hasMany",
+      "foreign": "sponser",
+      "entity": "CTeam",
+      "audited": false,
+      "isCustom": true
+    },
+    "assignedUsers": {
+      "type": "hasMany",
+      "entity": "User",
+      "relationName": "entityUser",
+      "layoutRelationshipsDisabled": true
+    },
+    "leads": {
+      "type": "hasMany",
+      "foreign": "cTeam",
+      "entity": "Lead",
+      "audited": false,
+      "isCustom": true
+    },
+    "members": {
+      "type": "hasMany",
+      "foreign": "cTeam",
+      "entity": "Contact",
+      "audited": false,
+      "isCustom": true
+    },
+    "slimFitCenter": {
+      "type": "belongsTo",
+      "foreign": "team",
+      "entity": "CSlimFitCenter",
+      "audited": true,
+      "isCustom": true
+    },
+    "activeCampaigns": {
+      "type": "hasMany",
+      "relationName": "cActiveCampaignsRoundRobinMembers",
+      "foreign": "activeMembers",
+      "entity": "CCampagneRoundRobin",
+      "audited": false,
+      "isCustom": true
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "desc",
+    "textFilterFields": ["name"],
+    "fullTextSearch": false,
+    "countDisabled": false
+  },
+  "indexes": {
+    "name": {
+      "columns": ["name", "deleted"]
+    },
+    "assignedUser": {
+      "columns": ["assignedUserId", "deleted"]
+    },
+    "createdAt": {
+      "columns": ["createdAt"]
+    },
+    "createdAtId": {
+      "unique": true,
+      "columns": ["createdAt", "id"]
+    }
+  },
+  "optimisticConcurrencyControl": false
 }
