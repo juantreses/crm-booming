@@ -13,7 +13,8 @@
         "cCampagneRoundRobin": "Campagne Round Robin",
         "cExternalCreatedAt": "Vanko Aanmaakdatum",
         "cFollowUpAction": "Opvolgactie",
-        "cSurveyData": "Enquête"
+        "cSurveyData": "Enquête",
+        "cMeetingType": "Afspraak Type"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
@@ -38,12 +39,12 @@
             "call_again": "Opnieuw bellen",
             "wrong_number": "Verkeerd nummer",
             "not_interested": "Geen interesse (Telefoon)",
-            "invited": "Uitgenodigd KS/IOM",
-            "appointment_booked": "Ingepland KS/IOM",
-            "attended": "Aanwezig KS",
-            "no_show": "Niet opgedaagd KS",
-            "still_thinking": "Twijfel KS/IOM",
-            "appointment_cancelled": "Geannuleerd KS/IOM",
+            "invited": "Uitgenodigd",
+            "appointment_booked": "Ingepland",
+            "attended": "Aanwezig",
+            "no_show": "Niet opgedaagd",
+            "still_thinking": "Twijfel",
+            "appointment_cancelled": "Geannuleerd",
             "not_converted": "Geen klant geworden",
             "became_coach": "Coach geworden",
             "message_to_be_sent": "Bericht Sturen",
@@ -55,6 +56,13 @@
             "": "",
             "Mr.": "Dhr.",
             "Mrs.": "Mevr."
+        },
+        "cMeetingType": {
+            "kickstart": "Kickstart",
+            "bws": "Beauty Workshop",
+            "spark": "SPARK",
+            "iom": "IOM",
+            "": ""
         }
     }
 }

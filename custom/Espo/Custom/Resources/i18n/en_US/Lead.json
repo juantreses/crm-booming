@@ -11,7 +11,8 @@
         "cExternalCreatedAt": "Vanko Aanmaakdatum",
         "cFollowUpAction": "Opvolgactie",
         "cSurveyData": "Enquête",
-        "cVankoAppointments": "Afspraken"
+        "cVankoAppointments": "Afspraken",
+        "cMeetingType": "Afspraak Type"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
@@ -40,8 +41,8 @@
             "wrong_number": "Verkeerd nummer",
             "not_interested": "Geen interesse (Telefoon)",
             "invited": "Uitgenodigd",
-            "attended": "Aanwezig KS",
-            "no_show": "Niet opgedaagd KS",
+            "attended": "Aanwezig",
+            "no_show": "Niet opgedaagd",
             "appointment_cancelled": "Geannuleerd",
             "became_client": "Klant geworden",
             "not_converted": "Geen klant geworden",
@@ -49,12 +50,19 @@
             "new": "Nieuw",
             "assigned": "Toegewezen",
             "contacted": "Succesvol gecontacteerd",
-            "appointment_booked": "Ingepland KS",
+            "appointment_booked": "Ingepland",
             "call_again": "Opnieuw bellen",
-            "message_to_be_sent": "Bericht Sturen",
-            "message_sent": "Bericht Gestuurd",
+            "message_to_be_sent": "Bericht sturen",
+            "message_sent": "Bericht gestuurd",
             "still_thinking": "still_thinking",
             "Disqualified": "Disqualified"
+        },
+        "cMeetingType": {
+            "kickstart": "Kickstart",
+            "bws": "Beauty Workshop",
+            "spark": "SPARK",
+            "iom": "IOM",
+            "": ""
         }
     }
 }

@@ -35,15 +35,23 @@ class VankoWebhookService
     ];
     private const CLIENT_TYPE_MAPPING = [
         'sample_pack' => 'Proefpakket',
-        'sport_only' => 'SportOnly',
+        'spark_trail' => 'Spark Proefperiode', 
         '21_day_bootcamp' => '21 Dagen Bootcamp',
+        'spark_21_days' => 'Spark 21 Days',
+        'spark_10_sessions' => 'Spark 10 Beurtenkaart',
+        'sport_only' => 'SportOnly',
+        'spark_subscription' => 'Spark Subscription',
         'retail' => 'Retail',
         'pcx_15' => 'PCX15',
         'pcx_25' => 'PCX25',
         'pcx_35' => 'PCX35',
-        'distributor' => 'Distributeur',
-        'spark_trail' => 'Spark Proefperiode',
-        'spark_subscription' => 'Spark Subscription',
+        'distributor' => 'Distributeur',  
+        'spark_21_days_kickstart' => 'Spark 21 Days Kickstart',  
+        'spark_next_step' => 'Spark Next Step',  
+        'spark_progress' => 'Spark Progress',  
+        'spark_evolution' => 'Spark Evolution',  
+        'spark_10_beurten_kaart' => 'Spark 10 Beurten Kaart',  
+        'spark_21_days' => 'Spark 21 Days',  
     ];
 
     public function __construct(

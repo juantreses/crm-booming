@@ -22,7 +22,9 @@
         "activeCampaigns": "Active Campaigns",
         "actief": "Actief",
         "maxCallAttempts": "Aantal keer bellen vóór bericht",
-        "linkReferral": "Link Referral"
+        "linkReferral": "Link Referral",
+        "linkGelaatsverzorgingworkshop": "Link Gelaatsverzorgingworkshop",
+        "sparkGroepsles": "Link Spark Groepsles"
     },
     "links": {
         "user": "User",

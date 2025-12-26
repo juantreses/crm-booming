@@ -4,11 +4,17 @@
             [
                 {
                     "name": "status"
+                },
+                {
+                    "name": "cMeetingType"
                 }
             ],
             [
                 {
                     "name": "name"
+                },
+                {
+                    "name": "cFollowUpAction"
                 }
             ],
             [

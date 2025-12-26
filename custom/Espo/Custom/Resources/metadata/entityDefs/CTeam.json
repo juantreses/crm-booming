@@ -172,6 +172,16 @@
             "type": "url",
             "audited": true,
             "isCustom": true
+        },
+        "linkGelaatsverzorgingworkshop": {
+            "type": "url",
+            "isCustom": true,
+            "copyToClipboard": true
+        },
+        "sparkGroepsles": {
+            "type": "url",
+            "copyToClipboard": true,
+            "isCustom": true
         }
     },
     "links": {

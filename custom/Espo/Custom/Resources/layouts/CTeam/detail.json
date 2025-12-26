@@ -47,6 +47,16 @@
                 {
                     "name": "linkReferral"
                 }
+            ],
+            [
+                {
+                    "name": "linkGelaatsverzorgingworkshop"
+                }
+            ],
+            [
+                {
+                    "name": "sparkGroepsles"
+                }
             ]
         ],
         "dynamicLogicVisible": null,
@@ -71,7 +81,8 @@
         ],
         "dynamicLogicVisible": null,
         "style": "default",
-        "tabBreak": false,
+        "tabBreak": true,
+        "tabLabel": "BISS Card",
         "hidden": false,
         "noteText": null,
         "noteStyle": "info",
@@ -98,7 +109,7 @@
         ],
         "dynamicLogicVisible": null,
         "style": "default",
-        "tabBreak": false,
+        "tabBreak": true,
         "tabLabel": "Betaal Links",
         "hidden": false,
         "noteText": null,

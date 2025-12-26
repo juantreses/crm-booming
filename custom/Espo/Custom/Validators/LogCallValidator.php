@@ -37,5 +37,13 @@ class LogCallValidator
                 }
             }
         }
+
+        if ($outcome === CallOutcome::INVITED->value) {
+            $allowed = ['kickstart', 'bws', 'spark', 'iom'];
+            $meetingType = $data->meetingType ?? '';
+            if ($meetingType === '' || !in_array($meetingType, $allowed, true)) {
+                throw new BadRequest('Type afspraak is verplicht en moet geldig zijn.');
+            }
+        }
     }
 }
