@@ -117,42 +117,46 @@
       "type": "link"
     },
     "enquete": {
-      "type": "url",
-      "copyToClipboard": true,
-      "audited": true,
+      "type": "varchar",
+      "maxLength": 400,
+      "options": [],
       "isCustom": true
     },
     "cadeaubon": {
-      "type": "url",
-      "copyToClipboard": true,
+      "type": "varchar",
+      "maxLength": 400,
+      "options": [],
       "isCustom": true
     },
     "berichten": {
-      "type": "url",
-      "copyToClipboard": true,
+      "type": "varchar",
+      "maxLength": 400,
+      "options": [],
       "isCustom": true
     },
     "bissKaartSlimFitCenter": {
-      "type": "url",
-      "copyToClipboard": true,
+      "type": "varchar",
+      "maxLength": 400,
+      "options": [],
       "isCustom": true
     },
     "bissKaartCoachingCenter": {
-      "type": "url",
-      "copyToClipboard": true,
+      "type": "varchar",
+      "maxLength": 400,
+      "options": [],
       "isCustom": true
     },
     "betaalLinkProefPakket": {
-      "type": "url",
-      "copyToClipboard": true,
+      "type": "varchar",
+      "maxLength": 400,
+      "options": [],
       "isCustom": true
     },
     "betaalLinkSportweek": {
       "type": "varchar",
       "maxLength": 400,
       "options": [],
-      "isCustom": true,
-      "copyToClipboard": true
+      "isCustom": true
     },
     "activeCampaigns": {
       "type": "linkMultiple"
@@ -171,18 +175,21 @@
       "isCustom": true
     },
     "linkReferral": {
-      "type": "url",
-      "audited": true,
+      "type": "varchar",
+      "maxLength": 400,
+      "options": [],
       "isCustom": true
     },
     "linkGelaatsverzorgingworkshop": {
-      "type": "url",
-      "isCustom": true,
-      "copyToClipboard": true
+      "type": "varchar",
+      "maxLength": 400,
+      "options": [],
+      "isCustom": true
     },
     "sparkGroepsles": {
-      "type": "url",
-      "copyToClipboard": true,
+      "type": "varchar",
+      "maxLength": 400,
+      "options": [],
       "isCustom": true
     }
   },
