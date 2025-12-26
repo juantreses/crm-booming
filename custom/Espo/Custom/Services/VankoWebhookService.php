@@ -45,7 +45,13 @@ class VankoWebhookService
         'pcx_15' => 'PCX15',
         'pcx_25' => 'PCX25',
         'pcx_35' => 'PCX35',
-        'distributor' => 'Distributeur',    
+        'distributor' => 'Distributeur',  
+        'spark_21_days_kickstart' => 'Spark 21 Days Kickstart',  
+        'spark_next_step' => 'Spark Next Step',  
+        'spark_progress' => 'Spark Progress',  
+        'spark_evolution' => 'Spark Evolution',  
+        'spark_10_beurten_kaart' => 'Spark 10 Beurten Kaart',  
+        'spark_21_days' => 'Spark 21 Days',  
     ];
 
     public function __construct(
