@@ -59,7 +59,7 @@ class LeadFactory
         'Hoeveel uur in de week sport je?',
         'Waar wil jij je huid het liefst in verbeteren?',
         'Kun je de komende weken op zondagochtend tussen 10.00 en 12.00 meedoen aan de gratis workshop?',
-        'Welke van deze doelen spreken jou het meest aan?',
+        'Welke doelen spreken jou vandaag het meest aan? ',
         'Zou je de komende weken willen meedoen met een groepsles, als het voor jou uitkomt?',
     ];
 
