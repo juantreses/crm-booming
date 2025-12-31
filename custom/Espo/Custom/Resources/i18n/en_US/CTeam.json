@@ -16,7 +16,6 @@
         "bissKaartCoachingCenter": "Link Biss Kaart Coaching-Center",
         "betaalLinkProefPakket": "Betaal Link ProefPakket",
         "betaalLinkSportweek": "Betaal Link Sportweek",
-        "activeCampaigns": "Active Campaigns",
         "actief": "Actief",
         "maxCallAttempts": "Aantal keer bellen vóór bericht",
         "linkReferral": "Link Referral",
@@ -29,11 +28,10 @@
         "downlines": "Downlines",
         "leads": "Leads",
         "members": "Leden",
-        "slimFitCenter": "SlimFit-Center",
-        "activeCampaigns": "Active Campaigns"
+        "slimFitCenter": "SlimFit-Center"
     },
     "labels": {
-        "Create CTeam": "Creëer HB Team"
+        "Create CTeam": "Create HBL Team"
     },
     "options": {
         "herbalifePin": {

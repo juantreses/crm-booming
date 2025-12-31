@@ -1,24 +1,16 @@
 {
     "scopeNames": {
-        "CTeam": "HB Team",
+        "CTeam": "HBL Team",
         "CSlimFitCenter": "SlimFit-Center",
         "CBodyscan": "Bodyscan",
         "CLeadEvent": "Lead Event",
-        "CWorkoutSchema": "Workout Schema",
-        "CWorkoutOefening": "Workout Oefening",
-        "CCampagneRoundRobin": "Round Robin",
-        "CWorkoutSessie": "Workout Sessie",
         "CNote": "Note"
     },
     "scopeNamesPlural": {
-        "CTeam": "HB Teams",
+        "CTeam": "HBL Teams",
         "CSlimFitCenter": "SlimFit-Centers",
         "CBodyscan": "Bodyscans",
         "CLeadEvent": "Lead Events",
-        "CWorkoutSchema": "Workout Schemas",
-        "CWorkoutOefening": "Workout Oefeningen",
-        "CCampagneRoundRobin": "Round Robins",
-        "CWorkoutSessie": "Workout Sessies",
         "CNote": "Notes"
     }
 }

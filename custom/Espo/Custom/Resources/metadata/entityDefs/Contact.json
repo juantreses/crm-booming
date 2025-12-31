@@ -101,9 +101,6 @@
             "options": [],
             "isCustom": true
         },
-        "cWorkoutSchemas": {
-            "type": "linkMultiple"
-        },
         "cHeight": {
             "type": "int",
             "min": 130,
@@ -149,13 +146,6 @@
             "layoutRelationshipsDisabled": true,
             "relationName": "attachments",
             "utility": true
-        },
-        "cWorkoutSchemas": {
-            "type": "hasMany",
-            "foreign": "contact",
-            "entity": "CWorkoutSchema",
-            "audited": false,
-            "isCustom": true
         },
         "cNotes": {
             "type": "hasMany",

@@ -97,9 +97,6 @@
             "cutHeight": 200,
             "isCustom": true
         },
-        "cCampagneRoundRobin": {
-            "type": "link"
-        },
         "salutationName": {
             "options": [
                 "",
@@ -187,13 +184,6 @@
             "type": "hasMany",
             "foreign": "lead",
             "entity": "CLeadEvent",
-            "audited": false,
-            "isCustom": true
-        },
-        "cCampagneRoundRobin": {
-            "type": "belongsTo",
-            "foreign": "leads",
-            "entity": "CCampagneRoundRobin",
             "audited": false,
             "isCustom": true
         }

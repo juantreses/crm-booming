@@ -7,7 +7,6 @@
         "cLeadEvents": "Lead Events",
         "cCallCount": "Aantal keer gebeld",
         "cNotes": "Notities",
-        "cCampagneRoundRobin": "Campagne Round Robin",
         "cExternalCreatedAt": "Vanko Aanmaakdatum",
         "cFollowUpAction": "Opvolgactie",
         "cSurveyData": "Enquête",
@@ -16,8 +15,7 @@
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
         "cTeam": "Team",
-        "cLeadEvents": "Lead Events",
-        "cCampagneRoundRobin": "Campagne Round Robin"
+        "cLeadEvents": "Lead Events"
     },
     "layouts": {
         "teamleadlist": "Team Lead List"
