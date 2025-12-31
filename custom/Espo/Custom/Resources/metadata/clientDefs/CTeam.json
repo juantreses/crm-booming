@@ -29,10 +29,6 @@
         "slimFitCenter": {
             "layout": null,
             "selectPrimaryFilterName": null
-        },
-        "activeCampaigns": {
-            "layout": null,
-            "selectPrimaryFilterName": null
         }
     },
     "kanbanViewMode": false,

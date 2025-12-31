@@ -1,16 +1,7 @@
 {
     "collection": {
-        "orderBy": "number",
-        "order": "desc",
-        "textFilterFields": [
-            "name",
-            "number",
-            "description"
-        ],
-        "fullTextSearch": true,
         "countDisabled": false
     },
-    "optimisticConcurrencyControl": true,
     "fields": {
         "status": {
             "options": [

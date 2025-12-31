@@ -1,11 +1,7 @@
 {
     "fields": {
-        "cCampagneRoundRobins": "Campagne Round Robins",
         "cCampaignType": "Campaign Type",
         "cCampaignSubType": "Campaign Sub Type"
-    },
-    "links": {
-        "cCampagneRoundRobins": "Campagne Round Robins"
     },
     "options": {
         "cCampaignType": {

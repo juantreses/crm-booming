@@ -48,9 +48,6 @@
         },
         "team": {
             "type": "linkMultiple"
-        },
-        "campagneRoundRobins": {
-            "type": "linkMultiple"
         }
     },
     "links": {
@@ -111,13 +108,6 @@
             "type": "hasMany",
             "foreign": "slimFitCenter",
             "entity": "CTeam",
-            "audited": false,
-            "isCustom": true
-        },
-        "campagneRoundRobins": {
-            "type": "hasMany",
-            "foreign": "slimFitCenter",
-            "entity": "CCampagneRoundRobin",
             "audited": false,
             "isCustom": true
         }

@@ -56,10 +56,10 @@
                     "actionFunction": "logCall",
                     "checkVisibilityFunction": "isLogCallVisible"
                 },
-		        {
+                {
                     "label": "Kickstart",
                     "name": "logKickstart",
-                    "action": "logKickstart", 
+                    "action": "logKickstart",
                     "style": "default",
                     "acl": "edit",
                     "aclScope": "Lead",

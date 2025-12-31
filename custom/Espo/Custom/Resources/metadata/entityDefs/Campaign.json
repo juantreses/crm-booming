@@ -10,9 +10,6 @@
     },
     "optimisticConcurrencyControl": false,
     "fields": {
-        "cCampagneRoundRobins": {
-            "type": "linkMultiple"
-        },
         "cCampaignType": {
             "type": "enum",
             "required": true,
@@ -70,15 +67,6 @@
             },
             "default": "General",
             "maxLength": 100,
-            "isCustom": true
-        }
-    },
-    "links": {
-        "cCampagneRoundRobins": {
-            "type": "hasMany",
-            "foreign": "campaign",
-            "entity": "CCampagneRoundRobin",
-            "audited": false,
             "isCustom": true
         }
     }

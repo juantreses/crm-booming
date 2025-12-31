@@ -8,7 +8,6 @@
         "cTypeKlant": "Type Klant",
         "cDateOfBirth": "Verjaardag",
         "cVankoCRM": "VankoCRM",
-        "cWorkoutSchemas": "Workout Schemas",
         "cHeight": "Lengte",
         "cNotes": "Notes"
     },
@@ -17,7 +16,6 @@
         "cTeam": "Team",
         "cBodyscans": "Bodyscans",
         "cUser": "Account",
-        "cWorkoutSchemas": "Workout Schemas",
         "cNotes": "Notes"
     },
     "options": {

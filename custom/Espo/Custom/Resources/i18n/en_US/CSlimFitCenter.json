@@ -9,8 +9,7 @@
         "adresCountry": "Adres Land",
         "adresPostalCode": "Adres Postcode",
         "adresMap": "Adres Kaart",
-        "team": "Team",
-        "campagneRoundRobins": "Campagne Round Robins"
+        "team": "Team"
     },
     "links": {
         "meetings": "Meetings",
@@ -18,8 +17,7 @@
         "tasks": "Tasks",
         "members": "Members",
         "leads": "Leads",
-        "team": "Team",
-        "campagneRoundRobins": "Campagne Round Robins"
+        "team": "Team"
     },
     "labels": {
         "Create CSlimFitCenter": "Create SlimFit-Center"

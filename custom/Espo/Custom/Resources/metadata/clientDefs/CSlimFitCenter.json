@@ -47,10 +47,6 @@
         "team": {
             "layout": null,
             "selectPrimaryFilterName": null
-        },
-        "campagneRoundRobins": {
-            "layout": null,
-            "selectPrimaryFilterName": null
         }
     }
 }
