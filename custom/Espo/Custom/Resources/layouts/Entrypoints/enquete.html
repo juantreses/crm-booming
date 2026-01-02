@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFC Welzijnsevaluatie</title>
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --bg-color: #f4f7f6;
+            --border-radius: 10px;
+            --text-main: #333;
+            --text-muted: #777;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            position: relative;
+            box-sizing: border-box;
+        }
+        .step-indicator {
+            position: absolute;
+            top: 25px;
+            right: 30px;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        h2 {
+            font-size: 26px;
+            margin-top: 0;
+            border-bottom: 4px solid var(--primary-color);
+            display: inline-block;
+            padding-bottom: 8px;
+            margin-bottom: 35px;
+            color: #111;
+        }
+        label.question {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 15px;
+            margin-top: 25px;
+            color: #222;
+            cursor: pointer;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .option {
+            display: flex;
+            align-items: center;
+            background: #f9fbfb;
+            padding: 14px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            border: 1px solid #edf2f2;
+            transition: all 0.2s ease;
+        }
+        .option:hover {
+            background: #f0f4f4;
+            border-color: #d1dbdb;
+        }
+        .option input {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+        .option span { font-size: 14px; font-weight: 500; }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background: #fafafa;
+            transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            background: white;
+        }
+
+        .other-input-container {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f7f1;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .error-msg {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+            font-weight: 500;
+            background: #fff5f5;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .step { display: none; }
+        .step.active { display: block; }
+
+        button {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+        button:active { transform: translateY(1px); }
+        button:hover { box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3); }
+
+        button.back {
+            background: transparent;
+            color: var(--text-muted);
+            text-decoration: underline;
+            margin-top: 15px;
+            font-weight: 500;
+            box-shadow: none;
+            padding: 10px;
+        }
+        button.back:hover { box-shadow: none; color: #333; }
+
+        /* Mobiele aanpassingen */
+        @media (max-width: 480px) {
+            .checkbox-grid { grid-template-columns: 1fr; }
+            .container { padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <form id="surveyForm">
+        <input type="hidden" name="teamId" id="teamId">
+
+        <div id="step1" class="step active">
+            <span class="step-indicator">Stap 1 van 2</span>
+            <h2>Welzijnsvragen</h2>
+
+            <label class="question">Wat had je vanmorgen als ontbijt? *</label>
+            <div class="checkbox-grid">
+                <label class="option"><input type="checkbox" name="Ontbijt[]" value="Brood"><span>Brood</span></label>
+                <label class="option"><input type="checkbox" name="Ontbijt[]" value="Eitjes"><span>Eitjes</span></label>
+                <label class="option"><input type="checkbox" name="Ontbijt[]" value="Cornflakes"><span>Cornflakes</span></label>
+                <label class="option"><input type="checkbox" name="Ontbijt[]" value="Fruit"><span>Fruit</span></label>
+                <label class="option"><input type="checkbox" name="Ontbijt[]" value="Havermout"><span>Havermout</span></label>
+                <label class="option"><input type="checkbox" name="Ontbijt[]" value="Niets"><span>Niets</span></label>
+                <label class="option"><input type="checkbox" name="Ontbijt[]" value="Yoghurt"><span>Yoghurt</span></label>
+                <label class="option"><input type="checkbox" name="Ontbijt[]" value="Andere" id="ontbijt-andere"><span>Andere</span></label>
+            </div>
+
+            <div id="ontbijt-andere-container" class="other-input-container">
+                <label class="question" for="field-ontbijt-specifiek" style="margin-top: 0;">Namelijk:</label>
+                <input type="text" id="field-ontbijt-specifiek" name="OntbijtAndere" placeholder="Wat heb je precies gegeten?">
+            </div>
+
+            <label class="question" for="field-score">Hoe zou je je algemene gezondheid beoordelen? (1-10)? *</label>
+            <input type="number" id="field-score" name="GezondheidScore" min="1" max="10" placeholder="Kies een score">
+
+            <label class="question">Welk gezondheidsresultaat zou je kiezen? (min. 1) *</label>
+            <div class="checkbox-grid">
+                <label class="option"><input type="checkbox" name="Resultaat[]" value="Meer energie"><span>Meer energie</span></label>
+                <label class="option"><input type="checkbox" name="Resultaat[]" value="Betere sportprestaties"><span>Betere sportprestaties / recuperatie</span></label>
+                <label class="option"><input type="checkbox" name="Resultaat[]" value="Afslanken"><span>Afslanken</span></label>
+                <label class="option"><input type="checkbox" name="Resultaat[]" value="Aankomen (in spieren)"><span>Aankomen (in spieren)</span></label>
+                <label class="option"><input type="checkbox" name="Resultaat[]" value="Gezondere huid"><span>Gezondere huid</span></label>
+            </div>
+
+            <label class="question">Wil je info over bijverdienen als welzijnscoach? *</label>
+            <div class="checkbox-grid">
+                <label class="option"><input type="radio" name="Bijverdienen" value="Ja"><span>Ja</span></label>
+                <label class="option"><input type="radio" name="Bijverdienen" value="Nee"><span>Nee</span></label>
+            </div>
+
+            <label class="question" for="field-sport">Doe je aan sport? Zo ja, welke?</label>
+            <input type="text" id="field-sport" name="SportType" placeholder="Bijv. Hardlopen, Fitness...">
+
+            <label class="question">Welke ervaring zou jij het liefste volgen?</label>
+            <div class="checkbox-grid">
+                <label class="option"><input type="checkbox" name="Ervaring[]" value="Beauty workshop"><span>Beauty workshop</span></label>
+                <label class="option"><input type="checkbox" name="Ervaring[]" value="Groepsworkout"><span>Groepsworkout</span></label>
+                <label class="option"><input type="checkbox" name="Ervaring[]" value="Info-avond"><span>Info-avond bijverdienen als welzijnscoach</span></label>
+                <label class="option"><input type="checkbox" name="Ervaring[]" value="Bodyscan"><span>Bodyscan + welzijnsevaluatie</span></label>
+            </div>
+
+            <p id="error1" class="error-msg">⚠️ Vul a.u.b. alle verplichte vragen in (*).</p>
+            <button type="button" onclick="validateAndNext()">Volgende stap</button>
+        </div>
+
+        <div id="step2" class="step">
+            <span class="step-indicator">Stap 2 van 2</span>
+            <h2>Jouw Gegevens</h2>
+
+            <label class="question" for="field-firstName">Voornaam *</label>
+            <input type="text" id="field-firstName" name="firstName" placeholder="Jouw voornaam" required>
+
+            <label class="question" for="field-lastName">Achternaam *</label>
+            <input type="text" id="field-lastName" name="lastName" placeholder="Jouw achternaam" required>
+
+            <label class="question" for="field-email">E-mailadres *</label>
+            <input type="email" id="field-email" name="emailAddress" placeholder="email@voorbeeld.be" required>
+
+            <label class="question" for="field-phone">GSM-Nummer *</label>
+            <input type="tel" id="field-phone" name="phoneNumber" placeholder="04.. / .." required>
+
+            <label class="question" for="field-opmerking">Opmerking / Need To Know</label>
+            <textarea id="field-opmerking" name="Opmerking" placeholder="..." rows="3"></textarea>
+
+            <button type="submit">Enquête afronden</button>
+            <button type="button" class="back" onclick="prevStep()">Terug naar vragen</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    document.getElementById('teamId').value = params.get('teamId');
+
+    const otherCheckbox = document.getElementById('ontbijt-andere');
+    const otherContainer = document.getElementById('ontbijt-andere-container');
+    const otherInput = document.getElementById('field-ontbijt-specifiek');
+
+    otherCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            otherContainer.style.display = 'block';
+            otherInput.focus();
+        } else {
+            otherContainer.style.display = 'none';
+            otherInput.value = '';
+        }
+    });
+
+    function validateAndNext() {
+        const form = document.getElementById('surveyForm');
+        const error = document.getElementById('error1');
+
+        const ontbijtChecked = form.querySelectorAll('input[name="Ontbijt[]"]:checked').length > 0;
+        const scoreVal = form.querySelector('input[name="GezondheidScore"]').value;
+        const resultChecked = form.querySelectorAll('input[name="Resultaat[]"]:checked').length > 0;
+        const bijverdienenChecked = form.querySelector('input[name="Bijverdienen"]:checked');
+
+        if (!ontbijtChecked || !scoreVal || !resultChecked || !bijverdienenChecked) {
+            error.style.display = 'block';
+            return;
+        }
+
+        error.style.display = 'none';
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    function prevStep() {
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    // Verzenden naar Espo Lead Capture
+    document.getElementById('surveyForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Verzenden...';
+
+        const formData = new FormData(e.target);
+        const data = {};
+        formData.forEach((value, key) => {
+            if (key.endsWith('[]')) {
+                const cleanKey = key.slice(0, -2);
+                if (!data[cleanKey]) data[cleanKey] = [];
+                data[cleanKey].push(value);
+            } else {
+                data[key] = value;
+            }
+        });
+
+        const FORM_ID = '0833dbe2770a98e40dc04352f5dece99';
+
+        try {
+            const response = await fetch(`${window.location.origin}/api/v1/LeadCapture/${FORM_ID}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Lead gepost');
+                location.reload();
+            } else {
+                alert('Er ging iets mis bij het verzenden. Controleer je verbinding.');
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Enquête afronden';
+            }
+        } catch (error) {
+            console.error(error);
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Enquête afronden';
+        }
+    });
+</script>
+</body>
+</html>

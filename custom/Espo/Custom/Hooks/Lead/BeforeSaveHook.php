@@ -19,10 +19,10 @@ class BeforeSaveHook implements BeforeSave
         private readonly GroupAssignmentService $groupAssignmentService,
     ) {}
 
-    public function beforeSave(Entity $lead, SaveOptions $options): void
+    public function beforeSave(Entity $entity, SaveOptions $options): void
     {
         try {
-            $this->groupAssignmentService->syncGroupsFromFields($lead, self::FIELDS_TO_WATCH);
+            $this->groupAssignmentService->syncGroupsFromFields($entity, self::FIELDS_TO_WATCH);
         } catch (\Exception $e) {
             $this->log->error('Lead Before Save Hook error: ' . $e->getMessage());
         }
