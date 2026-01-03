@@ -40,6 +40,7 @@ class LeadEventService
     ];
 
     private const MESSAGE_OUTCOME_EVENT_MAP = [
+        MessageSentOutcome::INVITED->value => [LeadEventType::INVITED],
         MessageSentOutcome::NOT_INTERESTED->value => [LeadEventType::NOT_INTERESTED],
         MessageSentOutcome::CALL_AGAIN->value => [LeadEventType::CALL_AGAIN],
     ];
@@ -228,6 +229,7 @@ class LeadEventService
         $outcome = MessageSentOutcome::from($data->outcome);
         $callAgainDateTime = $data->callAgainDateTime ?? null;
         $coachNote = $data->coachNote ?? null;
+        $meetingType = $data->meetingType ?? null;
 
         if (!isset(self::MESSAGE_OUTCOME_EVENT_MAP[$outcome->value])) {
             throw new BadRequest('Invalid message sent outcome: ' . $outcome->value);
@@ -247,6 +249,14 @@ class LeadEventService
         if ($coachNote) {
             $source = 'Bericht';
             $this->addCoachNote($leadId, $coachNote, $source);
+        }
+
+        if ($outcome->value === MessageSentOutcome::INVITED->value && $meetingType) {
+            $lead = $this->fetchLead($leadId);
+            if ($lead) {
+                $lead->set('cMeetingType', $meetingType);
+                $this->entityManager->saveEntity($lead);
+            }
         }
 
         return [

@@ -22,7 +22,7 @@
                         <option value="kickstart">Kickstart</option>
                         <option value="bws">BWS (skin)</option>
                         <option value="spark">SPARK</option>
-                        <option value="iom">IOM</option>
+                        <option value="iom">HOM</option>
                     </select>
                 </div>
             </div>

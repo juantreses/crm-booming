@@ -4,6 +4,8 @@ namespace Espo\Custom\Enums;
 
 enum MessageSentOutcome: string
 {
+
+    case INVITED = 'invited';
     case CALL_AGAIN = 'call_again';
     case NOT_INTERESTED = 'not_interested';
 
@@ -12,6 +14,7 @@ enum MessageSentOutcome: string
         return match ($this) {
             self::CALL_AGAIN => 'Call Again',
             self::NOT_INTERESTED => 'Not Interested',
+            self::INVITED => 'Invited',
         };
     }
 

@@ -6,11 +6,24 @@
 					<label>Bericht uitkomst *</label>
 					<select name="outcome" class="form-control" required>
 						<option value="">-- Selecteer uitkomst --</option>
-						<option value="not_interested">Geen interesse</option>
-						<option value="call_again">Opnieuw bellen</option>
+                        <option value="invited">Afspraak ingepland</option>
+                        <option value="call_again">Opnieuw bellen</option>
+                        <option value="not_interested">Geen interesse</option>
 					</select>
 				</div>
 			</div>
+            <div class="col-md-6" data-field="meeting-type" style="display: none;">
+                <div class="form-group">
+                    <label>Type afspraak *</label>
+                    <select name="meetingType" class="form-control">
+                        <option value="">-- Selecteer type --</option>
+                        <option value="kickstart">Kickstart</option>
+                        <option value="bws">BWS (skin)</option>
+                        <option value="spark">SPARK</option>
+                        <option value="iom">HOM</option>
+                    </select>
+                </div>
+            </div>
 			<div class="col-md-6" data-field="call-again-date" style="display: none;">
 				<div class="form-group">
 					<label>Datum/tijd opnieuw bellen *</label>

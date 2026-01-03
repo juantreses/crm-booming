@@ -15,7 +15,7 @@ class LogMessageOutcomeValidator
 
         $outcome = $data->outcome ?? null;
         if (!$outcome || !MessageSentOutcome::isValid($outcome)) {
-            throw new BadRequest('Invalid call outcome.');
+            throw new BadRequest('Invalid message outcome.');
         }
     
         if ($outcome === MessageSentOutcome::CALL_AGAIN->value) {
@@ -28,6 +28,14 @@ class LogMessageOutcomeValidator
     
             if ($callAgain <= $now) {
                 throw new BadRequest('Datum/tijd opnieuw bellen moet in de toekomst zijn.');
+            }
+        }
+
+        if ($outcome === MessageSentOutcome::INVITED->value) {
+            $allowed = ['kickstart', 'bws', 'spark', 'iom'];
+            $meetingType = $data->meetingType ?? '';
+            if ($meetingType === '' || !in_array($meetingType, $allowed, true)) {
+                throw new BadRequest('Type afspraak is verplicht en moet geldig zijn.');
             }
         }
     }

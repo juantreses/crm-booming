@@ -99,7 +99,7 @@ class Lead extends LeadController
             throw $e;
         } catch (\Exception $e) {
             $GLOBALS['log']->error('Lead Log Message Sent Error: ' . $e->getMessage(), [
-                'leadId' => $leadId,
+                'leadId' => $data->id,
                 'trace' => $e->getTraceAsString()
             ]);
             throw new BadRequest('Failed to log message sent: ' . $e->getMessage());
