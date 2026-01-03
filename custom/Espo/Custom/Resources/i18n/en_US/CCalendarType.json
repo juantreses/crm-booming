@@ -1,0 +1,24 @@
+{
+    "fields": {
+        "description": "Beschrijving",
+        "name": "Naam",
+        "duration": "Duur (uur)",
+        "minBookingNotice": "Min aantal uur",
+        "maxBookingRange": "Max (aantal)",
+        "maxBookingRangeUnit": "Max aantal (eenheid)",
+        "seatsPerMeeting": "Aantal Plaatsen",
+        "priority": "Prioriteit"
+    },
+    "links": [],
+    "labels": {
+        "Create CCalendarType": "Create Kalender"
+    },
+    "options": {
+        "maxBookingRangeUnit": {
+            "hours": "Uren",
+            "days": "Dagen",
+            "weeks": "Weken",
+            "months": "Maanden"
+        }
+    }
+}
