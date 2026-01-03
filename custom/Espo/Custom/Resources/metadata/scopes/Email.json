@@ -1,6 +1,6 @@
 {
     "stream": false,
-    "disabled": true,
+    "disabled": false,
     "statusField": null,
     "kanbanStatusIgnoreList": null,
     "stars": false,
