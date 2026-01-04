@@ -1,0 +1,15 @@
+{
+    "fields": {
+        "type": "Type"
+    },
+    "links": [],
+    "labels": {
+        "Create CAvailability": "Create Beschikbaarheid"
+    },
+    "options": {
+        "type": {
+            "recurrent": "Recurrent",
+            "specific": "Specifieke Datum"
+        }
+    }
+}

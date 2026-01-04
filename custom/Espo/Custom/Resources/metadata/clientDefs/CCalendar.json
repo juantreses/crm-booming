@@ -1,0 +1,9 @@
+{
+    "controller": "controllers/record",
+    "boolFilterList": [
+        "onlyMy"
+    ],
+    "iconClass": "fas fa-calendar-day",
+    "kanbanViewMode": false,
+    "color": "#4a90e2"
+}

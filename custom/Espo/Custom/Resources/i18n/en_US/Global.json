@@ -4,13 +4,17 @@
         "CSlimFitCenter": "SlimFit-Center",
         "CBodyscan": "Bodyscan",
         "CLeadEvent": "Lead Event",
-        "CNote": "Note"
+        "CNote": "Note",
+        "CCalendar": "Kalender",
+        "CAvailability": "Beschikbaarheid"
     },
     "scopeNamesPlural": {
         "CTeam": "HBL Teams",
         "CSlimFitCenter": "SlimFit-Centers",
         "CBodyscan": "Bodyscans",
         "CLeadEvent": "Lead Events",
-        "CNote": "Notes"
+        "CNote": "Notes",
+        "CCalendar": "Kalenders",
+        "CAvailability": "Beschikbaarheden"
     }
 }

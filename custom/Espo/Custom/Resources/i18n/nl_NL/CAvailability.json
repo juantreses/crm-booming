@@ -1,0 +1,14 @@
+{
+    "labels": {
+        "Create CAvailability": "Creëer Beschikbaarheid"
+    },
+    "fields": {
+        "type": "Type"
+    },
+    "options": {
+        "type": {
+            "recurrent": "Recurrent",
+            "specific": "Specifieke Datum"
+        }
+    }
+}

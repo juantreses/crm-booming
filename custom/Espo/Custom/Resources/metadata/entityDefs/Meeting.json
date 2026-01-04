@@ -9,6 +9,33 @@
                 "Case",
                 "CSlimFitCenter"
             ]
+        },
+        "acceptanceStatus": {
+            "style": {
+                "None": null,
+                "Accepted": "success",
+                "Tentative": "warning",
+                "Declined": "danger"
+            }
+        },
+        "cType": {
+            "type": "enum",
+            "required": true,
+            "options": [
+                "kickstart",
+                "bws",
+                "spark",
+                "hom"
+            ],
+            "style": {
+                "kickstart": null,
+                "bws": null,
+                "spark": null,
+                "hom": null
+            },
+            "default": "kickstart",
+            "maxLength": 100,
+            "isCustom": true
         }
     },
     "collection": {

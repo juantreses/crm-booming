@@ -1,7 +1,4 @@
 {
-    "_delimiter_": {
-        "disabled": true
-    },
     "activities": {
         "disabled": true
     },
@@ -11,28 +8,39 @@
     "stream": {
         "disabled": true
     },
-    "_tabBreak_0": {
+    "_delimiter_": {
+        "disabled": true
+    },
+    "_tabBreak_3": {
         "index": 0,
+        "tabBreak": true,
+        "tabLabel": "Afspraken"
+    },
+    "meetings": {
+        "index": 1
+    },
+    "_tabBreak_0": {
+        "index": 2,
         "tabBreak": true,
         "tabLabel": "Bodyscans"
     },
     "cBodyscans": {
-        "index": 1
+        "index": 3
     },
     "_tabBreak_1": {
-        "index": 2,
+        "index": 4,
         "tabBreak": true,
         "tabLabel": "Gewicht evolutie"
     },
     "weightProgression": {
-        "index": 3
+        "index": 5
     },
     "_tabBreak_2": {
-        "index": 4,
+        "index": 6,
         "tabBreak": true,
         "tabLabel": "Notes"
     },
     "cNotes": {
-        "index": 5
+        "index": 7
     }
 }

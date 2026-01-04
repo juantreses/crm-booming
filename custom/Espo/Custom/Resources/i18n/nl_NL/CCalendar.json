@@ -1,0 +1,20 @@
+{
+    "labels": {
+        "Create CCalendar": "Creëer Kalender"
+    },
+    "fields": {
+        "duration": "Duur (minuten)",
+        "minLeadTime": "Min Voorlooptijd (uren)",
+        "maxBookingRange": "Plantermijn (dagen)",
+        "seatsPerMeeting": "Aantal plaatsen",
+        "priority": "Prioriteit",
+        "bufferTime": "Buffer (Minuten)",
+        "isActive": "Actief"
+    },
+    "tooltips": {
+        "bufferTime": "Tijd tussen twee boekingen",
+        "maxBookingRange": "Hoeveel dagen in de toekomst mag de kalender getoond worden?",
+        "minLeadTime": "Hoeveel uur van tevoren mag iemand minimaal boeken?",
+        "priority": "Hogere prioriteit blokkeert lagere prioriteit kalenders"
+    }
+}

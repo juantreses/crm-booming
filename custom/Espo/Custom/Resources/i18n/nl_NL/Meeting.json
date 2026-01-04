@@ -1,0 +1,16 @@
+{
+    "labels": {
+        "Create Meeting": "Creëer Afspraak"
+    },
+    "fields": {
+        "cType": "Type"
+    },
+    "options": {
+        "cType": {
+            "kickstart": "Kickstart",
+            "bws": "BWS (skin)",
+            "spark": "SPARK",
+            "hom": "HOM"
+        }
+    }
+}
