@@ -4,10 +4,10 @@ namespace Espo\Custom\Services;
 
 use Espo\Core\Utils\Log;
 
-class WebhookService
+readonly class WebhookService
 {
     public function __construct(
-        private readonly Log $log
+        private Log $log
     ) {}
 
     public function sendWebhook($data): void
