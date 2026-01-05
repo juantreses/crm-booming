@@ -3,12 +3,29 @@
         "Create CAvailability": "Creëer Beschikbaarheid"
     },
     "fields": {
-        "type": "Type"
+        "type": "Type",
+        "daysOfWeek": "Dag(en)",
+        "startTime": "Starttijd",
+        "endTime": "Eindtijd",
+        "date": "Datum",
+        "calendar": "Kalender"
     },
     "options": {
         "type": {
             "recurrent": "Recurrent",
             "specific": "Specifieke Datum"
-        }
+        },
+        "daysOfWeek": [
+            "Zondag",
+            "Maandag",
+            "Dinsdag",
+            "Woensdag",
+            "Donderdag",
+            "Vrijdag",
+            "Zaterdag"
+        ]
+    },
+    "links": {
+        "calendar": "Kalender"
     }
 }

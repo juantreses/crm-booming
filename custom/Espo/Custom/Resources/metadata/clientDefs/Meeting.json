@@ -1,5 +1,11 @@
 {
     "kanbanViewMode": false,
     "color": "#4a90e2",
-    "iconClass": "fas fa-calendar-check"
+    "iconClass": "fas fa-calendar-check",
+    "relationshipPanels": {
+        "calendar": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    }
 }

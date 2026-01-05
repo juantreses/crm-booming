@@ -6,13 +6,5 @@
             "controller": "CTeam",
             "action": "statistics"
         }
-    },
-    {
-        "route": "/CCampagneRoundRobin/{id}/member-stats",
-        "method": "GET",
-        "params": {
-            "controller": "CCampagneRoundRobin",
-            "action": "memberStats"
-        }
     }
 ]

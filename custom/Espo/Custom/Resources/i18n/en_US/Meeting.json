@@ -1,6 +1,7 @@
 {
     "fields": {
-        "cType": "Type"
+        "cType": "Type",
+        "cCalendar": "Kalender"
     },
     "options": {
         "cType": {
@@ -9,5 +10,8 @@
             "spark": "SPARK",
             "hom": "HOM"
         }
+    },
+    "links": {
+        "cCalendar": "Kalender"
     }
 }

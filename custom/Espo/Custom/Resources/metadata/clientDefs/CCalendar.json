@@ -5,5 +5,15 @@
     ],
     "iconClass": "fas fa-calendar-day",
     "kanbanViewMode": false,
-    "color": "#4a90e2"
+    "color": "#4a90e2",
+    "relationshipPanels": {
+        "availabilities": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "meetings": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    }
 }

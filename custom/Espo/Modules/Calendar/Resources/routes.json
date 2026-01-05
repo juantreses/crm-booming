@@ -1,0 +1,10 @@
+[
+  {
+    "route": "/calendar/:id/slots",
+    "method": "get",
+    "params": {
+      "controller": "CalendarApi",
+      "action": "slots"
+    }
+  }
+]

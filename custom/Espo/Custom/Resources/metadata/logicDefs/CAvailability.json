@@ -1,0 +1,26 @@
+{
+    "fields": {
+        "daysOfWeek": {
+            "visible": {
+                "conditionGroup": [
+                    {
+                        "type": "equals",
+                        "attribute": "type",
+                        "value": "recurrent"
+                    }
+                ]
+            }
+        },
+        "date": {
+            "visible": {
+                "conditionGroup": [
+                    {
+                        "type": "equals",
+                        "attribute": "type",
+                        "value": "specific"
+                    }
+                ]
+            }
+        }
+    }
+}

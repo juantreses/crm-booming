@@ -3,31 +3,25 @@
         "rows": [
             [
                 {
-                    "name": "name"
+                    "name": "type"
                 }
             ],
             [
                 {
-                    "name": "status"
-                },
-                {
-                    "name": "cCalendar"
+                    "name": "daysOfWeek"
                 }
             ],
             [
                 {
-                    "name": "dateStart"
-                },
-                {
-                    "name": "dateEnd"
+                    "name": "date"
                 }
             ],
             [
                 {
-                    "name": "duration"
+                    "name": "startTime"
                 },
                 {
-                    "name": "description"
+                    "name": "endTime"
                 }
             ]
         ],

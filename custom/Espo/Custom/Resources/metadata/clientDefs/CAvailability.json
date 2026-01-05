@@ -5,5 +5,11 @@
     ],
     "iconClass": "fas fa-calendar-days",
     "kanbanViewMode": false,
-    "color": "#4a90e2"
+    "color": "#4a90e2",
+    "relationshipPanels": {
+        "calendar": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    }
 }

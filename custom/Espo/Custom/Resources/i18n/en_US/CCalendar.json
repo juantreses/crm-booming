@@ -6,9 +6,14 @@
         "seatsPerMeeting": "Aantal plaatsen",
         "priority": "Prioriteit",
         "bufferTime": "Buffer (Minuten)",
-        "isActive": "Actief"
+        "isActive": "Actief",
+        "availabilities": "Beschikbaarheden",
+        "meetings": "Afspraken"
     },
-    "links": [],
+    "links": {
+        "availabilities": "Beschikbaarheden",
+        "meetings": "Afspraken"
+    },
     "labels": {
         "Create CCalendar": "Create Kalender"
     },

@@ -2,8 +2,9 @@
     "fields": {
         "name": {
             "type": "varchar",
-            "required": true,
-            "pattern": "$noBadCharacters"
+            "required": false,
+            "pattern": "$noBadCharacters",
+            "options": []
         },
         "description": {
             "type": "text"
@@ -49,6 +50,50 @@
             "default": "recurrent",
             "maxLength": 100,
             "isCustom": true
+        },
+        "daysOfWeek": {
+            "type": "checklist",
+            "storeArrayValues": true,
+            "required": false,
+            "default": [],
+            "options": [
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "0"
+            ],
+            "isCustom": true
+        },
+        "startTime": {
+            "type": "varchar",
+            "required": true,
+            "maxLength": 100,
+            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+            "default": "10:00",
+            "options": [],
+            "isCustom": true
+        },
+        "endTime": {
+            "type": "varchar",
+            "required": true,
+            "maxLength": 100,
+            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+            "default": "17:00",
+            "options": [],
+            "isCustom": true
+        },
+        "date": {
+            "notNull": false,
+            "type": "date",
+            "required": false,
+            "default": null,
+            "isCustom": true
+        },
+        "calendar": {
+            "type": "link"
         }
     },
     "links": {
@@ -69,6 +114,13 @@
             "entity": "Team",
             "relationName": "entityTeam",
             "layoutRelationshipsDisabled": true
+        },
+        "calendar": {
+            "type": "belongsTo",
+            "foreign": "availabilities",
+            "entity": "CCalendar",
+            "audited": false,
+            "isCustom": true
         }
     },
     "collection": {

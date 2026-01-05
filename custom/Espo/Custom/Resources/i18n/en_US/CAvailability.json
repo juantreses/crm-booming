@@ -1,8 +1,15 @@
 {
     "fields": {
-        "type": "Type"
+        "type": "Type",
+        "daysOfWeek": "Dag(en)",
+        "startTime": "Starttijd",
+        "endTime": "Eindtijd",
+        "date": "Datum",
+        "calendar": "Kalender"
     },
-    "links": [],
+    "links": {
+        "calendar": "Kalender"
+    },
     "labels": {
         "Create CAvailability": "Create Beschikbaarheid"
     },
@@ -10,6 +17,15 @@
         "type": {
             "recurrent": "Recurrent",
             "specific": "Specifieke Datum"
-        }
+        },
+        "daysOfWeek": [
+            "Zondag",
+            "Maandag",
+            "Dinsdag",
+            "Woensdag",
+            "Donderdag",
+            "Vrijdag",
+            "Zaterdag"
+        ]
     }
 }

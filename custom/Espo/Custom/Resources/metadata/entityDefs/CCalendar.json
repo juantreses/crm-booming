@@ -89,7 +89,8 @@
         "isActive": {
             "notNull": true,
             "type": "bool",
-            "isCustom": true
+            "isCustom": true,
+            "default": true
         }
     },
     "links": {
@@ -110,6 +111,20 @@
             "entity": "Team",
             "relationName": "entityTeam",
             "layoutRelationshipsDisabled": true
+        },
+        "availabilities": {
+            "type": "hasMany",
+            "foreign": "calendar",
+            "entity": "CAvailability",
+            "audited": false,
+            "isCustom": true
+        },
+        "meetings": {
+            "type": "hasMany",
+            "foreign": "cCalendar",
+            "entity": "Meeting",
+            "audited": false,
+            "isCustom": true
         }
     },
     "collection": {

@@ -1,0 +1,23 @@
+[
+    {
+        "name": "type",
+        "width": 20
+    },
+    {
+        "name": "daysOfWeek",
+        "width": 20,
+        "notSortable": true
+    },
+    {
+        "name": "date",
+        "width": 20
+    },
+    {
+        "name": "startTime",
+        "width": 20
+    },
+    {
+        "name": "endTime",
+        "width": 20
+    }
+]

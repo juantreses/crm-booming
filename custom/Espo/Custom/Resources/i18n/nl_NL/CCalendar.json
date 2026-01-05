@@ -9,12 +9,18 @@
         "seatsPerMeeting": "Aantal plaatsen",
         "priority": "Prioriteit",
         "bufferTime": "Buffer (Minuten)",
-        "isActive": "Actief"
+        "isActive": "Actief",
+        "availabilities": "Beschikbaarheden",
+        "meetings": "Afspraken"
     },
     "tooltips": {
         "bufferTime": "Tijd tussen twee boekingen",
         "maxBookingRange": "Hoeveel dagen in de toekomst mag de kalender getoond worden?",
         "minLeadTime": "Hoeveel uur van tevoren mag iemand minimaal boeken?",
         "priority": "Hogere prioriteit blokkeert lagere prioriteit kalenders"
+    },
+    "links": {
+        "availabilities": "Beschikbaarheden",
+        "meetings": "Afspraken"
     }
 }

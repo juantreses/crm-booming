@@ -3,7 +3,8 @@
         "Create Meeting": "Creëer Afspraak"
     },
     "fields": {
-        "cType": "Type"
+        "cType": "Type",
+        "cCalendar": "Kalender"
     },
     "options": {
         "cType": {
@@ -11,6 +12,14 @@
             "bws": "BWS (skin)",
             "spark": "SPARK",
             "hom": "HOM"
+        },
+        "status": {
+            "Tentative": "Voorlopig",
+            "Planned": "Gepland",
+            "Cancelled": "Geannuleerd"
         }
+    },
+    "links": {
+        "cCalendar": "Kalender"
     }
 }

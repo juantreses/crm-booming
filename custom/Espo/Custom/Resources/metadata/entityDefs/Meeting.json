@@ -36,6 +36,21 @@
             "default": "kickstart",
             "maxLength": 100,
             "isCustom": true
+        },
+        "cCalendar": {
+            "type": "link"
+        },
+        "status": {
+            "options": [
+                "Tentative",
+                "Planned",
+                "Cancelled"
+            ],
+            "style": {
+                "Tentative": "info",
+                "Planned": "success",
+                "Cancelled": "danger"
+            }
         }
     },
     "collection": {
@@ -47,5 +62,14 @@
         "fullTextSearch": false,
         "countDisabled": false
     },
-    "optimisticConcurrencyControl": false
+    "optimisticConcurrencyControl": false,
+    "links": {
+        "cCalendar": {
+            "type": "belongsTo",
+            "foreign": "meetings",
+            "entity": "CCalendar",
+            "audited": false,
+            "isCustom": true
+        }
+    }
 }

@@ -1,0 +1,6 @@
+{
+  "calendar": {
+    "handler": "Espo\\Custom\\EntryPoint\\Calendar",
+    "auth": false
+  }
+}
