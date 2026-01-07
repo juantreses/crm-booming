@@ -8,8 +8,9 @@ use Espo\ORM\Entity;
 use Espo\ORM\EntityCollection;
 use Espo\ORM\SthCollection;
 use Exception;
+use function cal_days_in_month;
 
-class CalendarSlotService
+class CalendarService
 {
     public function __construct(
         private readonly EntityManager $entityManager
@@ -172,5 +173,46 @@ class CalendarSlotService
         }
 
         return $counts;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getMonthAvailability(string $calendarId, int $year, int $month): array
+    {
+        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
+        $availableDates = [];
+        $daysInMonth = (int) (new \DateTime("$year-$month-01"))->format('t');
+
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dateString = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
+            // Gebruik de nieuwe range check
+            if (!$this->isDateWithinRange($dateString, $calendar)) {
+                continue;
+            }
+
+            $slots = $this->getAvailableSlots($calendarId, $dateString);
+
+            foreach ($slots as $slot) {
+                if ($slot['isBookable'] ?? false) {
+                    $availableDates[] = $dateString;
+                    break;
+                }
+            }
+        }
+        return $availableDates;
+    }
+
+    private function isDateWithinRange(string $dateString, Entity $calendar): bool
+    {
+        $maxDays = $calendar->get('maxBookingRange') ?? 30; // Gebruik de waarde uit CRM of default naar 30
+
+        $today = new \DateTime('today');
+        $requestedDate = new \DateTime($dateString);
+        $maxDate = (clone $today)->modify("+$maxDays days");
+
+        // De datum mag niet in het verleden liggen én niet verder dan de max range
+        return $requestedDate >= $today && $requestedDate <= $maxDate;
     }
 }

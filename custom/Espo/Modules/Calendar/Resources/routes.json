@@ -6,5 +6,21 @@
       "controller": "CalendarApi",
       "action": "slots"
     }
+  },
+  {
+    "route": "/calendar/:id/settings",
+    "method": "get",
+    "params": {
+      "controller": "CalendarApi",
+      "action": "settings"
+    }
+  },
+  {
+    "route": "/calendar/:id/availability",
+    "method": "get",
+    "params": {
+      "controller": "CalendarApi",
+      "action": "availability"
+    }
   }
 ]
