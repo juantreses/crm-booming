@@ -91,6 +91,11 @@
             "type": "bool",
             "isCustom": true,
             "default": true
+        },
+        "needsApproval": {
+            "notNull": true,
+            "type": "bool",
+            "isCustom": true
         }
     },
     "links": {

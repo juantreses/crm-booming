@@ -11,7 +11,8 @@
         "bufferTime": "Buffer (Minuten)",
         "isActive": "Actief",
         "availabilities": "Beschikbaarheden",
-        "meetings": "Afspraken"
+        "meetings": "Afspraken",
+        "needsApproval": "Bevestiging nodig"
     },
     "tooltips": {
         "bufferTime": "Tijd tussen twee boekingen",
