@@ -1,0 +1,13 @@
+{
+    "placeholders": {
+        "startDate": {
+            "className": "Espo\\Modules\\Booking\\Tools\\EmailTemplate\\Placeholders\\StartDate",
+            "order": 10
+        },
+        "startTime": {
+            "className": "Espo\\Modules\\Booking\\Tools\\EmailTemplate\\Placeholders\\StartTime",
+            "order": 11
+        }
+    }
+}
+

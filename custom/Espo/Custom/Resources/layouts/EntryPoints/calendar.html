@@ -80,6 +80,13 @@
     </div>
 
     <div class="flex-1 p-10 bg-white">
+        <button v-if="step === 2" @click="step = 1" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors font-bold text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Terug naar kalender
+        </button>
+
         <div v-if="step === 1">
             <h3 class="text-xl font-extrabold text-gray-800 mb-10">Selecteer datum en tijd</h3>
 
@@ -132,6 +139,16 @@
 
         <div v-if="step === 2" class="max-w-xl mx-auto py-4">
             <h3 class="text-lg font-bold text-gray-800 mb-8">Details invoeren</h3>
+            
+            <div v-if="errorMessage" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-sm text-red-700">{{ errorMessage }}</p>
+                </div>
+            </div>
+            
             <form @submit.prevent="submitBooking" class="space-y-6">
                 <div class="grid grid-cols-2 gap-6">
                     <div>
@@ -172,6 +189,47 @@
                 </div>
             </form>
         </div>
+
+        <div v-if="step === 3" class="text-center py-10 animate-fade-in">
+            <div class="mb-6 inline-flex items-center justify-center w-20 h-20 bg-green-100 text-green-600 rounded-full">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                    <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+
+            <h3 class="text-2xl font-black text-gray-900 mb-4">Afspraak aangevraagd!</h3>
+            <p class="text-gray-600 mb-8">
+                Bedankt {{ form.firstName }}. Je afspraak is succesvol geregistreerd in ons systeem.
+                Er wordt momenteel een bevestigingsmail verstuurd naar <strong>{{ form.email }}</strong>.
+            </p>
+
+            <div class="bg-gray-50 rounded-2xl p-6 text-left inline-block w-full max-w-md border border-gray-100">
+                <h4 class="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-4">Overzicht van je boeking</h4>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Sessie:</span>
+                        <span class="font-bold text-gray-800">{{ settings.name }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Datum:</span>
+                        <span class="font-bold text-gray-800 capitalize">{{ formattedDate }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Tijd:</span>
+                        <span class="font-bold text-gray-800">{{ selectedTime }}</span>
+                    </div>
+                    <div class="flex justify-between border-t pt-3 mt-3">
+                        <span class="text-gray-500">Duur:</span>
+                        <span class="font-bold text-gray-800">{{ settings.duration }} Minuten</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10">
+                <button @click="resetFlow" class="text-blue-600 font-bold hover:underline">
+                    Nog een afspraak maken
+                </button>
+            </div>
     </div>
 </div>
 
@@ -188,6 +246,7 @@
             const selectedTime = ref('');
             const loading = ref(false);
             const booking = ref(false);
+            const errorMessage = ref('');
             const form = ref({firstName: '', lastName: '', email: '', phone: '', note: ''});
 
             let fp = null;
@@ -269,10 +328,63 @@
 
             const submitBooking = async () => {
                 booking.value = true;
-                setTimeout(() => {
-                    alert('Afspraak aangevraagd!');
+                errorMessage.value = '';
+                try {
+                    const response = await fetch('/api/v1/booking', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            calendarId: calendarId,
+                            date: selectedDate.value,
+                            time: selectedTime.value,
+                            ...form.value
+                        })
+                    });
+
+                    // Handle 409 Conflict - slot no longer available
+                    if (response.status === 409) {
+                        const errorMsg = response.headers.get('X-Status-Reason') || 
+                                       'Dit tijdstip is niet meer beschikbaar. Kies een ander moment.';
+                        errorMessage.value = errorMsg;
+                        // Refresh slots to show updated availability
+                        await fetchSlots();
+                        return;
+                    }
+
+                    // Handle other error status codes
+                    if (!response.ok) {
+                        let errorText = 'Er is iets misgegaan';
+                        try {
+                            const result = await response.json();
+                            errorText = result.error || errorText;
+                        } catch (e) {
+                            // If JSON parsing fails, try reading from header
+                            errorText = response.headers.get('X-Status-Reason') || errorText;
+                        }
+                        errorMessage.value = errorText;
+                        return;
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        step.value = 3;
+                    } else {
+                        errorMessage.value = result.error || 'Er is iets misgegaan';
+                    }
+                } catch (error) {
+                    console.error("Booking Error:", error);
+                    errorMessage.value = error.message || 'Er is een onverwachte fout opgetreden. Probeer het opnieuw.';
+                } finally {
                     booking.value = false;
-                }, 1500);
+                }
+            };
+
+            const resetFlow = () => {
+                window.location.reload();
             };
 
             onMounted(async () => {
@@ -306,12 +418,15 @@
                 slots,
                 selectedDate,
                 formattedDate,
+                selectedTime,
                 loading,
                 booking,
+                errorMessage,
                 form,
                 confirmSlot,
                 searchNext,
-                submitBooking
+                submitBooking,
+                resetFlow
             };
         }
     }).mount('#app');

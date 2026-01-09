@@ -6,12 +6,17 @@
                     "name": "name"
                 },
                 {
-                    "name": "isActive"
+                    "name": "type"
                 }
             ],
             [
                 {
                     "name": "description"
+                }
+            ],
+            [
+                {
+                    "name": "location"
                 }
             ],
             [
@@ -37,9 +42,37 @@
                 {
                     "name": "bufferTime"
                 }
+            ],
+            [
+                {
+                    "name": "needsApproval"
+                },
+                {
+                    "name": "isActive"
+                }
             ]
         ],
         "style": "default",
         "label": "Overview"
+    },
+    {
+        "rows": [
+            [
+                {
+                    "name": "confirmationTemplate"
+                },
+                {
+                    "name": "reminderTemplate"
+                }
+            ]
+        ],
+        "dynamicLogicVisible": null,
+        "style": "default",
+        "tabBreak": true,
+        "tabLabel": "E-mail",
+        "hidden": false,
+        "noteText": null,
+        "noteStyle": "info",
+        "customLabel": "E-mail Templates"
     }
 ]

@@ -9,11 +9,23 @@
         "isActive": "Actief",
         "availabilities": "Beschikbaarheden",
         "meetings": "Afspraken",
-        "needsApproval": "Bevestiging nodig"
+        "needsApproval": "Bevestiging nodig",
+        "type": "Type",
+        "emailTemplate": "Bevestiging",
+        "reminderTemplate": "Reminder",
+        "location": "Locatie",
+        "locationStreet": "Locatie Straat",
+        "locationCity": "Locatie Plaats",
+        "locationState": "Locatie Staat",
+        "locationCountry": "Locatie Land",
+        "locationPostalCode": "Locatie Postcode",
+        "locationMap": "Locatie Kaart"
     },
     "links": {
         "availabilities": "Beschikbaarheden",
-        "meetings": "Afspraken"
+        "meetings": "Afspraken",
+        "emailTemplate": "Bevestiging",
+        "reminderTemplate": "Reminder"
     },
     "labels": {
         "Create CCalendar": "Create Kalender"
@@ -23,5 +35,14 @@
         "maxBookingRange": "Hoeveel dagen in de toekomst mag de kalender getoond worden?",
         "minLeadTime": "Hoeveel uur van tevoren mag iemand minimaal boeken?",
         "priority": "Hogere prioriteit blokkeert lagere prioriteit kalenders"
+    },
+    "options": {
+        "type": {
+            "kickstart": "Kickstart",
+            "bws": "BWS (skin)",
+            "spark": "SPARK",
+            "hom": "HOM",
+            "workout": "Workout"
+        }
     }
 }

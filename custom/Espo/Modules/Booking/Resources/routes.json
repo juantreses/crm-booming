@@ -1,0 +1,10 @@
+[
+  {
+    "route": "/booking",
+    "method": "post",
+    "params": {
+      "controller": "BookingApi",
+      "action": "booking"
+    }
+  }
+]

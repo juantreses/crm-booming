@@ -1,9 +1,11 @@
 <?php
 
-namespace Espo\Modules\Calendar\Controllers;
+namespace Espo\Modules\Booking\Controllers;
 
 use Espo\Core\Api\Request;
-use Espo\Modules\Calendar\Services\BookingService;
+use Espo\Core\Exceptions\BadRequest;
+use Espo\Core\Exceptions\Conflict;
+use Espo\Modules\Booking\Services\BookingService;
 
 readonly class BookingApi
 {
@@ -11,11 +13,15 @@ readonly class BookingApi
         private BookingService $bookingService
     ){}
 
-    public function postAction(Request $request): array
+    /**
+     * @throws BadRequest
+     * @throws Conflict
+     */
+    public function postActionBooking(Request $request): array
     {
         $data = $request->getParsedBody();
 
-        if (empty($data['calendarId']) || empty($data['email'])) {
+        if (empty($data->calendarId) || empty($data->email)) {
             throw new BadRequest("Onvoldoende gegevens voor de boeking.");
         }
 

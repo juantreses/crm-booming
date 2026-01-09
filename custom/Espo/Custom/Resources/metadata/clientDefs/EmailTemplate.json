@@ -1,0 +1,16 @@
+{
+    "relationshipPanels": {
+        "calendars": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "cCalendars": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "calendars1": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        }
+    }
+}

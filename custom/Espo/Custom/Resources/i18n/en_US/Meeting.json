@@ -1,15 +1,14 @@
 {
     "fields": {
-        "cType": "Type",
-        "cCalendar": "Kalender"
-    },
-    "options": {
-        "cType": {
-            "kickstart": "Kickstart",
-            "bws": "BWS (skin)",
-            "spark": "SPARK",
-            "hom": "HOM"
-        }
+        "cCalendar": "Kalender",
+        "cLocation": "Locatie",
+        "cLocationStreet": "Locatie Straat",
+        "cLocationCity": "Locatie Plaats",
+        "cLocationState": "Locatie Staat",
+        "cLocationCountry": "Locatie Land",
+        "cLocationPostalCode": "Locatie Postcode",
+        "cLocationMap": "Locatie Kaart",
+        "cReminderSent": "Herinnering verstuurd"
     },
     "links": {
         "cCalendar": "Kalender"

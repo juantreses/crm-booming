@@ -3,16 +3,17 @@
         "Create Meeting": "Creëer Afspraak"
     },
     "fields": {
-        "cType": "Type",
-        "cCalendar": "Kalender"
+        "cCalendar": "Kalender",
+        "cLocation": "Locatie",
+        "cLocationStreet": "Locatie Straat",
+        "cLocationCity": "Locatie Plaats",
+        "cLocationState": "Locatie Staat",
+        "cLocationCountry": "Locatie Land",
+        "cLocationPostalCode": "Locatie Postcode",
+        "cLocationMap": "Locatie Kaart",
+        "cReminderSent": "Herinnering verstuurd"
     },
     "options": {
-        "cType": {
-            "kickstart": "Kickstart",
-            "bws": "BWS (skin)",
-            "spark": "SPARK",
-            "hom": "HOM"
-        },
         "status": {
             "Tentative": "Voorlopig",
             "Planned": "Gepland",

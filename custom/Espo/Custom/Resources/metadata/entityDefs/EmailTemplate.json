@@ -1,0 +1,18 @@
+{
+    "links": {
+        "cCalendars": {
+            "type": "hasMany",
+            "foreign": "emailTemplate",
+            "entity": "CCalendar",
+            "audited": false,
+            "isCustom": true
+        },
+        "cCalendars1": {
+            "type": "hasMany",
+            "foreign": "reminderTemplate",
+            "entity": "CCalendar",
+            "audited": false,
+            "isCustom": true
+        }
+    }
+}

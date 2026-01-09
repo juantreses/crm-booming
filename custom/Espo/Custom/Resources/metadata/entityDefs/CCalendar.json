@@ -96,6 +96,37 @@
             "notNull": true,
             "type": "bool",
             "isCustom": true
+        },
+        "type": {
+            "type": "enum",
+            "options": [
+                "kickstart",
+                "bws",
+                "spark",
+                "hom",
+                "workout"
+            ],
+            "style": {
+                "kickstart": null,
+                "bws": null,
+                "spark": null,
+                "hom": null,
+                "workout": null
+            },
+            "default": "kickstart",
+            "maxLength": 100,
+            "isCustom": true,
+            "required": true
+        },
+        "confirmationTemplate": {
+            "type": "link"
+        },
+        "reminderTemplate": {
+            "type": "link"
+        },
+        "location": {
+            "type": "address",
+            "isCustom": true
         }
     },
     "links": {
@@ -128,6 +159,20 @@
             "type": "hasMany",
             "foreign": "cCalendar",
             "entity": "Meeting",
+            "audited": false,
+            "isCustom": true
+        },
+        "confirmationTemplate": {
+            "type": "belongsTo",
+            "foreign": "cCalendars",
+            "entity": "EmailTemplate",
+            "audited": false,
+            "isCustom": true
+        },
+        "reminderTemplate": {
+            "type": "belongsTo",
+            "foreign": "cCalendars1",
+            "entity": "EmailTemplate",
             "audited": false,
             "isCustom": true
         }

@@ -3,17 +3,17 @@
 namespace Espo\Modules\Calendar\Services;
 
 use DateTime;
+use DateTimeZone;
 use Espo\Core\ORM\EntityManager;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityCollection;
 use Espo\ORM\SthCollection;
 use Exception;
-use function cal_days_in_month;
 
-class CalendarService
+readonly class CalendarService
 {
     public function __construct(
-        private readonly EntityManager $entityManager
+        private EntityManager   $entityManager,
     ) {}
 
     /**
@@ -22,8 +22,9 @@ class CalendarService
     public function getAvailableSlots($calendarId, $dateString): array
     {
         $calendar = $this->entityManager
-            ->getRDBRepository('CCalendar')
-            ->getById($calendarId);
+            ->getEntityById('CCalendar', $calendarId);
+        $tzLocal = new DateTimeZone('Europe/Brussels');
+        $tzUTC = new DateTimeZone('UTC');
 
         if (!$calendar) {
             throw new Exception("Kalender niet gevonden.");
@@ -36,22 +37,23 @@ class CalendarService
         $blockingPeriods = $this->getBlockingAvailability($calendar, $dateString);
         $availability = $this->getAvailabilityForDate($calendar, $dateString);
         if (!$availability) {
-            return ["no availability", date('w', strtotime($dateString))];
+            return [];
         }
+
+        $startTime = new DateTime($dateString . ' ' . $availability->get('startTime'), $tzLocal);
+        $endTime = new DateTime($dateString . ' ' . $availability->get('endTime'), $tzLocal);
+        $startTimeUTC = (clone $startTime)->setTimezone($tzUTC);
+        $endTimeUTC = (clone $endTime)->setTimezone($tzUTC);
 
         $duration = $calendar->get('duration');
         $buffer = $calendar->get('bufferTime');
         $maxSeats = $calendar->get('seatsPerMeeting');
 
-        $startTime = new DateTime($dateString . ' ' . $availability->get('startTime'));
-        $endTime = new DateTime($dateString . ' ' . $availability->get('endTime'));
-
         $bookings = $this->getExistingBookings($calendarId, $dateString);
 
         $slots = [];
-        $currentPointer = clone $startTime;
-
-        $maxTime = (clone $endTime)->modify("-$duration minutes");
+        $currentPointer = clone $startTimeUTC;
+        $maxTime = (clone $endTimeUTC)->modify("-$duration minutes");
 
         $now = new DateTime();
         $minLeadTime = $calendar->get('minLeadTime') ?? 0;
@@ -59,6 +61,9 @@ class CalendarService
         $firstBookableMoment = (clone $now)->modify("+$minLeadTime hours");
 
         while ($currentPointer <= $maxTime) {
+            $displayPointer = clone $currentPointer;
+            $displayPointer->setTimezone($tzLocal);
+
             $slotStart = $currentPointer->format('H:i');
             $slotEnd = (clone $currentPointer)->modify("+{$duration} minutes")->format('H:i');
 
@@ -94,8 +99,8 @@ class CalendarService
 
             if (!$isBlocked) {
                 $slots[] = [
-                    'start' => $slotStart,
-                    'end' => $slotEnd,
+                    'start' => $displayPointer->format('H:i'),
+                    'end' => (clone $displayPointer)->modify("+{$duration} minutes")->format('H:i'),
                     'availableSeats' => $availableSeats,
                     'isBookable' => $isBookable,
                     'reason' => $isTooSoon ? 'te kort dag' : ($hasSeats ? '' : 'volzet'),
@@ -139,7 +144,6 @@ class CalendarService
                         ],
                         [
                             'type' => 'recurrent',
-                            // Gebruik de exacte veldnaam uit je entityDef met een asterisk voor LIKE
                             'daysOfWeek*' => '%' . $dayNum . '%'
                         ]
                     ]

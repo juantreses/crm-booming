@@ -1,0 +1,115 @@
+<?php
+
+namespace Espo\Modules\Booking\Services;
+
+use DateTime;
+use DateTimeZone;
+use Espo\Core\Exceptions\Conflict;
+use Espo\Modules\Calendar\Services\CalendarService;
+use Espo\ORM\EntityManager;
+
+readonly class BookingService
+{
+    public function __construct(
+        private EntityManager $entityManager,
+        private CalendarService $calendarService,
+
+    ) {}
+
+    /**
+     * @throws Conflict
+     */
+    public function processBooking(array $data): array
+    {
+        $calendar = $this->entityManager->getEntityById('CCalendar', $data['calendarId']);
+
+        //--- RACE CONDITION CHECK ---
+        $slots = $this->calendarService->getAvailableSlots($data['calendarId'], $data['date']);
+        $isStillAvailable = false;
+        foreach ($slots as $slot) {
+            if ($slot['start'] === $data['time'] && $slot['isBookable']) {
+                $isStillAvailable = true;
+                break;
+            }
+        }
+
+        if (!$isStillAvailable) {
+            throw new Conflict("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
+        }
+
+        $dateStartStr = $data['date'] . ' ' . $data['time'] . ':00';
+        $duration = $calendar->get('duration') ?? 60;
+
+        $dateStart = new DateTime($dateStartStr, new DateTimeZone('Europe/Brussels'));
+        $dateStart->setTimezone(new DateTimeZone('UTC'));
+        $dateEnd = (clone $dateStart)->modify("+$duration minutes");
+
+        $status = $calendar->get('needsApproval') ? 'Tentative' : 'Planned';
+        $person = $this->findOrCreatePerson($data);
+
+        $meeting = $this->entityManager->getNewEntity('Meeting');
+        $meeting->set([
+            'name' => ucfirst($calendar->get('type')) . ' - ' . $person->get('name'),
+            'status' => $status,
+            'dateStart' => $dateStart->format('Y-m-d H:i:s'),
+            'dateEnd' => $dateEnd->format('Y-m-d H:i:s'),
+            'description' => $data['note'] ?? '',
+            'cCalendarId' => $calendar->get('id'),
+            'parentId' => $person->get('id'),
+            'parentType' => $person->getEntityType(),
+            'cLocationStreet' => $calendar->get('locationStreet'),
+            'cLocationCity' => $calendar->get('locationCity'),
+            'cLocationState' => $calendar->get('locationState'),
+            'cLocationCountry' => $calendar->get('locationCountry'),
+            'cLocationPostalCode' => $calendar->get('locationPostalCode'),
+        ]);
+
+        $this->entityManager->saveEntity($meeting);
+
+        $relationName = ($person->getEntityType() === 'Contact') ? 'contacts' : 'leads';
+        $this->entityManager
+            ->getRDBRepository('Meeting')
+            ->getRelation($meeting, $relationName)
+            ->relate($person, [
+                'status' => 'Accepted'
+            ]);
+
+        return ['success' => true, 'id' => $meeting->get('id')];
+    }
+
+    private function findOrCreatePerson(array $data): \Espo\ORM\Entity
+    {
+        $email = strtolower(trim($data['email']));
+        $firstName = $data['firstName'] ?? '';
+        $lastName = $data['lastName'] ?? '';
+        $phone = $data['phone'] ?? null;
+
+        $person = $this->entityManager->getRDBRepository('Contact')
+            ->where(['emailAddress' => $email])
+            ->findOne();
+
+        if ($person) {
+            return $person;
+        }
+
+        $person = $this->entityManager->getRDBRepository('Lead')
+            ->where(['emailAddress' => $email])
+            ->findOne();
+
+        if ($person) {
+            return $person;
+        }
+
+        $person = $this->entityManager->getNewEntity('Lead');
+        $person->set([
+            'firstName' => $firstName,
+            'lastName' => $lastName,
+            'emailAddress' => $email,
+            'phoneNumber' => $phone
+        ]);
+
+        $this->entityManager->saveEntity($person);
+
+        return $person;
+    }
+}

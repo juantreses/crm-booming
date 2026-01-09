@@ -18,25 +18,6 @@
                 "Declined": "danger"
             }
         },
-        "cType": {
-            "type": "enum",
-            "required": true,
-            "options": [
-                "kickstart",
-                "bws",
-                "spark",
-                "hom"
-            ],
-            "style": {
-                "kickstart": null,
-                "bws": null,
-                "spark": null,
-                "hom": null
-            },
-            "default": "kickstart",
-            "maxLength": 100,
-            "isCustom": true
-        },
         "cCalendar": {
             "type": "link"
         },
@@ -51,6 +32,15 @@
                 "Planned": "success",
                 "Cancelled": "danger"
             }
+        },
+        "cLocation": {
+            "type": "address",
+            "isCustom": true
+        },
+        "cReminderSent": {
+            "notNull": true,
+            "type": "bool",
+            "isCustom": true
         }
     },
     "collection": {

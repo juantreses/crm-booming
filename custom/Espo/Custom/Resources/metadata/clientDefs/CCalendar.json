@@ -14,6 +14,14 @@
         "meetings": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "emailTemplate": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "reminderTemplate": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     }
 }

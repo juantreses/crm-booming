@@ -1,0 +1,10 @@
+{
+    "fields": {
+        "cCalendars": "Kalenders",
+        "cCalendars1": "Calendars"
+    },
+    "links": {
+        "cCalendars": "Kalenders",
+        "cCalendars1": "Calendars"
+    }
+}

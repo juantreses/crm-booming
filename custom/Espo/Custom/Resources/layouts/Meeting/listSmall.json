@@ -1,10 +1,6 @@
 [
     {
-        "name": "cType",
-        "width": 20
-    },
-    {
-        "name": "acceptanceStatus",
+        "name": "name",
         "width": 20
     },
     {
