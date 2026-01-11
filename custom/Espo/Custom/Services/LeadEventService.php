@@ -6,7 +6,6 @@ namespace Espo\Custom\Services;
 
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\NotFound;
-use Espo\Core\Utils\Config;
 use Espo\ORM\EntityManager;
 use Espo\ORM\Entity;
 use Espo\Custom\Enums\CallOutcome;
@@ -46,6 +45,7 @@ class LeadEventService
     ];
 
     private const STATUS_MAP = [
+        LeadEventType::ASSIGNED->value => LeadEventType::ASSIGNED->value,
         LeadEventType::NO_ANSWER->value => LeadEventType::CALL_AGAIN->value,
         LeadEventType::CALL_AGAIN->value => LeadEventType::CALL_AGAIN->value,
         LeadEventType::WRONG_NUMBER->value => LeadEventType::WRONG_NUMBER->value,
@@ -65,7 +65,6 @@ class LeadEventService
 
     public function __construct(
         private readonly EntityManager $entityManager,
-        private readonly Config $config
     ) {}
 
     public function logEvent(string $leadId, LeadEventType $eventType, ?string $eventDate = null): array
@@ -77,7 +76,7 @@ class LeadEventService
         }
 
         $eventRepository = $this->entityManager->getRepository('CLeadEvent');
-        $event = $this->entityManager->getEntity('CLeadEvent');
+        $event = $this->entityManager->getNewEntity('CLeadEvent');
 
         $timezone = new \DateTimeZone('UTC');
         if (!$eventDate) {

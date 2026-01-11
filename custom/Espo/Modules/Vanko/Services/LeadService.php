@@ -47,8 +47,6 @@ class LeadService
         try {
             $this->validator->validate($data);
 
-            $this->log->info("Processing lead for Vanko ID {$data->contact_id}");
-
             $lead = $this->findLeadByVankoId($data->contact_id);
             $action = 'updated';
 
@@ -65,7 +63,6 @@ class LeadService
             $this->handleAssignments($lead, $data);
 
             $this->entityManager->saveEntity($lead);
-            $this->log->info("Successfully {$action} lead {$lead->getId()} for Vanko ID {$data->contact_id}");
 
             return $this->createResponse(
                 success: true,
@@ -95,7 +92,6 @@ class LeadService
 
         if ($teamWasAssigned) {
             $lead->set('status', self::DEFAULT_LEAD_STATUS);
-            $this->log->info("Set lead status to: " . self::DEFAULT_LEAD_STATUS);
         }
     }
 
@@ -104,7 +100,7 @@ class LeadService
         try {
             /** @var Lead|null */
             return $this->entityManager
-                ->getRepository('Lead')
+                ->getRDBRepository(Lead::ENTITY_TYPE)
                 ->where(['cVankoCRM' => $contactId])
                 ->findOne();
         } catch (\Exception $e) {

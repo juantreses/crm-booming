@@ -47,6 +47,9 @@
             "rowsMin": 2,
             "cutHeight": 200,
             "isCustom": true
+        },
+        "assignedUser": {
+            "required": false
         }
     },
     "collection": {

@@ -238,7 +238,9 @@
 
     createApp({
         setup() {
-            const calendarId = new URLSearchParams(window.location.search).get('id');
+            const urlParams = new URLSearchParams(window.location.search);
+            const calendarId = urlParams.get('id');
+            const coachId = urlParams.get('coach');
             const step = ref(1);
             const settings = ref({});
             const slots = ref([]);
@@ -338,6 +340,7 @@
                         },
                         body: JSON.stringify({
                             calendarId: calendarId,
+                            coachId: coachId,
                             date: selectedDate.value,
                             time: selectedTime.value,
                             ...form.value

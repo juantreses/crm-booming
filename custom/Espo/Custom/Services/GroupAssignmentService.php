@@ -4,13 +4,12 @@ namespace Espo\Custom\Services;
 
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
-use Espo\Core\Utils\Log;
+use Espo\Entities\Team;
 
 class GroupAssignmentService
 {
     public function __construct(
         private readonly EntityManager $entityManager,
-        private readonly Log $log,
     ) {}
 
     /**
@@ -24,8 +23,6 @@ class GroupAssignmentService
     {
         $sourceEntity = $sourceEntity ?? $destinationEntity;
         
-        $this->log->info("Syncing group assignments for {$destinationEntity->getEntityType()} ID: {$destinationEntity->getId()} from {$sourceEntity->getEntityType()} ID: {$sourceEntity->getId()}");
-
         $requiredGroupIds = $this->getGroupsFromFields($sourceEntity, $fieldsToWatch);
         $this->setGroupsForEntity($destinationEntity, $requiredGroupIds);
     }
@@ -49,13 +46,10 @@ class GroupAssignmentService
     private function setGroupsForEntity(Entity $entity, array $requiredGroupIds): void
     {
         $entity->setLinkMultipleIdList('teams', $requiredGroupIds);
-        $entityType = $entity->getEntityType();
-        $entityId = $entity->getId();
-        $this->log->info("Setting group assignments [" . implode(', ', $requiredGroupIds) . "] for {$entityType} ID: {$entityId}");
     }
 
     private function getGroupByName(string $groupName): ?Entity
     {
-        return $this->entityManager->getRepository('Team')->where(['name' => $groupName])->findOne();
+        return $this->entityManager->getRDBRepository(Team::ENTITY_TYPE)->where(['name' => $groupName])->findOne();
     }
 }

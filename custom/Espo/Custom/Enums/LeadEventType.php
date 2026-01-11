@@ -4,6 +4,8 @@ namespace Espo\Custom\Enums;
 
 enum LeadEventType: string
 {
+    case ASSIGNED = 'assigned';
+
     //Call events
     case CALLED = 'called';
     case INVITED = 'invited';
@@ -31,6 +33,7 @@ enum LeadEventType: string
     public function getLabel(): string
     {
         return match ($this) {
+            self::ASSIGNED => 'Assigned',
             //Call events
             self::CALLED => 'Called',
             self::INVITED => 'Invited',
@@ -56,6 +59,6 @@ enum LeadEventType: string
 
     public static function isValid(string $eventType): bool
     {
-        return (bool) self::tryFrom($outcome);
+        return (bool) self::tryFrom($eventType);
     }
 } 

@@ -5,7 +5,9 @@ namespace Espo\Modules\Booking\Services;
 use DateTime;
 use DateTimeZone;
 use Espo\Core\Exceptions\Conflict;
+use Espo\Core\Utils\Log;
 use Espo\Modules\Calendar\Services\CalendarService;
+use Espo\Modules\LeadManager\Services\LeadService;
 use Espo\ORM\EntityManager;
 
 readonly class BookingService
@@ -13,7 +15,7 @@ readonly class BookingService
     public function __construct(
         private EntityManager $entityManager,
         private CalendarService $calendarService,
-
+        private LeadService $leadService,
     ) {}
 
     /**
@@ -45,7 +47,7 @@ readonly class BookingService
         $dateEnd = (clone $dateStart)->modify("+$duration minutes");
 
         $status = $calendar->get('needsApproval') ? 'Tentative' : 'Planned';
-        $person = $this->findOrCreatePerson($data);
+        $person = $this->leadService->findOrCreate($data);
 
         $meeting = $this->entityManager->getNewEntity('Meeting');
         $meeting->set([
