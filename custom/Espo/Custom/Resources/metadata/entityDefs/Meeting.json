@@ -41,6 +41,12 @@
             "notNull": true,
             "type": "bool",
             "isCustom": true
+        },
+        "cMailError": {
+            "type": "text",
+            "rowsMin": 2,
+            "cutHeight": 200,
+            "isCustom": true
         }
     },
     "collection": {

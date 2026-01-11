@@ -8,7 +8,8 @@
         "cLocationCountry": "Locatie Land",
         "cLocationPostalCode": "Locatie Postcode",
         "cLocationMap": "Locatie Kaart",
-        "cReminderSent": "Herinnering verstuurd"
+        "cReminderSent": "Herinnering verstuurd",
+        "cMailError": "MailError"
     },
     "links": {
         "cCalendar": "Kalender"

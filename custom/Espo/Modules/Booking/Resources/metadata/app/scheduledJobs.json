@@ -1,0 +1,8 @@
+{
+    "SendReminders": {
+        "name": "Send booking reminders",
+        "isSystem": false,
+        "scheduling": "0 * * * *",
+        "jobClassName": "Espo\\Modules\\Booking\\Jobs\\SendReminders"
+    }
+}

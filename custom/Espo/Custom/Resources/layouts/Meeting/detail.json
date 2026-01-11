@@ -32,9 +32,33 @@
                 {
                     "name": "description"
                 }
+            ],
+            [
+                {
+                    "name": "parent"
+                }
             ]
         ],
         "style": "default",
         "label": ""
+    },
+    {
+        "rows": [
+            [
+                {
+                    "name": "cMailError"
+                },
+                {
+                    "name": "cReminderSent"
+                }
+            ]
+        ],
+        "dynamicLogicVisible": null,
+        "style": "default",
+        "tabBreak": false,
+        "hidden": true,
+        "noteText": null,
+        "noteStyle": "info",
+        "customLabel": "Mail - Log"
     }
 ]
