@@ -50,7 +50,7 @@
             "default": "Normaal",
             "maxLength": 100,
             "isCustom": true,
-            "readOnlyAfterCreate": true
+            "readOnlyAfterCreate": false
         },
         "gewicht": {
             "notNull": false,
@@ -59,7 +59,7 @@
             "min": 30,
             "max": 300,
             "decimalPlaces": 1,
-            "readOnlyAfterCreate": true,
+            "readOnlyAfterCreate": false,
             "isCustom": true
         },
         "vetPercentage": {
@@ -69,7 +69,7 @@
             "min": 1,
             "max": 70,
             "decimalPlaces": 1,
-            "readOnlyAfterCreate": true,
+            "readOnlyAfterCreate": false,
             "isCustom": true
         },
         "vochtpercentage": {
@@ -78,7 +78,7 @@
             "min": 30,
             "max": 75,
             "decimalPlaces": 1,
-            "readOnlyAfterCreate": true,
+            "readOnlyAfterCreate": false,
             "isCustom": true
         },
         "spiermassa": {
@@ -88,21 +88,21 @@
             "min": 5,
             "max": 120,
             "decimalPlaces": 1,
-            "readOnlyAfterCreate": true,
+            "readOnlyAfterCreate": false,
             "isCustom": true
         },
         "lichaamstype": {
             "type": "int",
             "min": 1,
             "max": 9,
-            "readOnlyAfterCreate": true,
+            "readOnlyAfterCreate": false,
             "isCustom": true
         },
         "bmr": {
             "type": "int",
             "min": 800,
             "max": 4000,
-            "readOnlyAfterCreate": true,
+            "readOnlyAfterCreate": false,
             "isCustom": true
         },
         "metabolischeleeftijd": {
@@ -110,7 +110,7 @@
             "required": false,
             "min": 10,
             "max": 99,
-            "readOnlyAfterCreate": true,
+            "readOnlyAfterCreate": false,
             "isCustom": true
         },
         "botmassa": {
@@ -118,7 +118,7 @@
             "type": "float",
             "min": 1,
             "max": 6,
-            "readOnlyAfterCreate": true,
+            "readOnlyAfterCreate": false,
             "isCustom": true
         },
         "contact": {
@@ -147,7 +147,7 @@
             "required": false,
             "min": 1,
             "max": 59,
-            "readOnlyAfterCreate": true,
+            "readOnlyAfterCreate": false,
             "isCustom": true
         },
         "datum": {
