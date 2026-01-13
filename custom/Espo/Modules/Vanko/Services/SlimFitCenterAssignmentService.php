@@ -53,7 +53,7 @@ class SlimFitCenterAssignmentService
     private function assignCenter(Lead $lead, Entity $center): bool
     {
         try {
-            $this->entityManager->getRepository('Lead')->getRelation($lead, 'cSlimFitCenter')->relate($center);
+            $this->entityManager->getRDBRepository(Lead::ENTITY_TYPE)->getRelation($lead, 'cSlimFitCenter')->relate($center);
             $this->log->info("Assigned SlimFitCenter {$center->getId()} to lead {$lead->getId()}");
             return true;
         } catch (\Exception $e) {
@@ -64,12 +64,13 @@ class SlimFitCenterAssignmentService
 
     public function unassignCenter(Lead $lead): void
     {
-        if (empty($lead->get('cSlimFitCenterId'))) {
+        $sfcId = $lead->get('cSlimFitCenterId');
+        if (empty($sfcId)) {
             return;
         }
         
         try {
-            $this->entityManager->getRepository('Lead')->getRelation($lead, 'cSlimFitCenter')->unrelate($lead->get('cSlimFitCenter'));
+            $this->entityManager->getRDBRepository(Lead::ENTITY_TYPE)->getRelation($lead, 'cSlimFitCenter')->unrelateById($sfcId);
             $this->log->info("Removed SlimFitCenter relationship from lead {$lead->getId()}");
         } catch (\Exception $e) {
             $this->log->error("Failed to remove SlimFitCenter relationship from lead {$lead->getId()}: " . $e->getMessage());

@@ -7,13 +7,13 @@ use Espo\Core\Api\Response;
 use Espo\Core\EntryPoint\EntryPoint;
 use Espo\Core\EntryPoint\Traits\NoAuth;
 
-class Calendar implements EntryPoint
+class Survey implements EntryPoint
 {
     use NoAuth;
 
     public function run(Request $request, Response $response): void
     {
-        $file = 'custom/Espo/Custom/Resources/layouts/EntryPoints/calendar.html';
+        $file = 'custom/Espo/Custom/Resources/layouts/EntryPoints/survey.html';
 
         if (file_exists($file)) {
             $html = file_get_contents($file);
@@ -23,7 +23,7 @@ class Calendar implements EntryPoint
             $response->setHeader('Content-Type', 'text/html');
         } else {
             // Foutafhandeling als het bestand ontbreekt
-            $response->writeBody("Fout: Calendar layout bestand niet gevonden op pad: " . $file);
+            $response->writeBody("Fout: Survey layout bestand niet gevonden op pad: " . $file);
             $response->setStatus(404);
         }
     }

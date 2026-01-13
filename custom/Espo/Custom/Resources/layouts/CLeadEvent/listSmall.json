@@ -6,5 +6,9 @@
     {
         "name": "eventType",
         "width": 20
+    },
+    {
+        "name": "description",
+        "width": 20
     }
 ]

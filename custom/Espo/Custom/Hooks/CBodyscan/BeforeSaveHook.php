@@ -7,6 +7,7 @@ use Espo\ORM\Repository\Option\SaveOptions;
 use Espo\ORM\Entity;
 use Espo\Core\Utils\Log;
 use Espo\Custom\Services\GroupAssignmentService;
+use Espo\ORM\EntityManager;
 
 class BeforeSaveHook implements BeforeSave
 {
@@ -17,12 +18,14 @@ class BeforeSaveHook implements BeforeSave
     public function __construct(
         private readonly Log $log,
         private readonly GroupAssignmentService $groupAssignmentService,
+        private readonly EntityManager $entityManager,
     ) {}
 
     public function beforeSave(Entity $entity, SaveOptions $options): void
     {
         try {
-            $this->groupAssignmentService->syncGroupsFromFields($entity, self::FIELDS_TO_WATCH, $entity->get('contact'));
+            $contact = $this->entityManager->getRelation($entity, 'contact')->findOne();
+            $this->groupAssignmentService->syncGroupsFromFields($entity, self::FIELDS_TO_WATCH, $contact);
         } catch (\Exception $e) {
             $this->log->error('Lead Before Save Hook error: ' . $e->getMessage());
         }

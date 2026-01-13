@@ -31,7 +31,7 @@ class GroupAssignmentService
     {
         $requiredGroupIds = [];
         foreach ($fieldsToWatch as $field) {
-            $relatedEntity = $entity->get($field);
+            $relatedEntity = $this->entityManager->getRelation($entity, $field)->findOne();
             if ($relatedEntity && $relatedEntity->get('name')) {
                 $group = $this->getGroupByName($relatedEntity->get('name'));
                 if ($group) {
@@ -45,7 +45,7 @@ class GroupAssignmentService
 
     private function setGroupsForEntity(Entity $entity, array $requiredGroupIds): void
     {
-        $entity->setLinkMultipleIdList('teams', $requiredGroupIds);
+        $entity->setMultiple(['teamsIds' => $requiredGroupIds]);
     }
 
     private function getGroupByName(string $groupName): ?Entity

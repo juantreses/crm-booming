@@ -12,6 +12,7 @@ use Espo\Custom\Enums\CallOutcome;
 use Espo\Custom\Enums\KickstartOutcome;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\MessageSentOutcome;
+use Espo\Modules\Crm\Entities\Lead;
 
 class LeadEventService
 {
@@ -67,7 +68,7 @@ class LeadEventService
         private readonly EntityManager $entityManager,
     ) {}
 
-    public function logEvent(string $leadId, LeadEventType $eventType, ?string $eventDate = null): array
+    public function logEvent(string $leadId, LeadEventType $eventType, ?string $eventDate = null, ?string $description = null): array
     {
         $lead = $this->fetchLead($leadId);
         
@@ -75,7 +76,7 @@ class LeadEventService
             throw new NotFound('Lead not found');
         }
 
-        $eventRepository = $this->entityManager->getRepository('CLeadEvent');
+        $eventRepository = $this->entityManager->getRDBRepository('CLeadEvent');
         $event = $this->entityManager->getNewEntity('CLeadEvent');
 
         $timezone = new \DateTimeZone('UTC');
@@ -88,6 +89,7 @@ class LeadEventService
         $event->set([
             'eventType' => $eventType->value,
             'eventDate' => $dt->format('Y-m-d H:i:s'),
+            'description' => $description,
         ]);
 
         $this->entityManager->saveEntity($event);
@@ -337,8 +339,8 @@ class LeadEventService
     private function updateLeadStatus(Entity $lead, LeadEventType $eventType): void
     {
         if ($eventType->value === LeadEventType::NO_ANSWER->value) {
-            $team = $lead->get('cTeam');
-            $maxCallAttempts = $team->get('maxCallAttempts') ?? 3;
+            $team = $this->entityManager->getRelation($lead, 'cTeam')->findOne();
+            $maxCallAttempts = $team?->get('maxCallAttempts') ?? 3;
             $currentCallCount = $lead->get('cCallCount') ?? 0;
 
             if ($currentCallCount >= $maxCallAttempts) {

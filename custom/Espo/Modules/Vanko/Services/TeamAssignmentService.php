@@ -54,7 +54,7 @@ class TeamAssignmentService
     public function assignTeam(Lead $lead, Entity $team): bool
     {
         try {
-            $this->entityManager->getRepository('Lead')->getRelation($lead, 'cTeam')->relate($team);
+            $this->entityManager->getRDBRepository(Lead::ENTITY_TYPE)->getRelation($lead, 'cTeam')->relate($team);
             $this->log->info("Assigned team {$team->getId()} to lead {$lead->getId()}");
             return true;
         } catch (\Exception $e) {
@@ -70,7 +70,7 @@ class TeamAssignmentService
         }
         
         try {
-            $this->entityManager->getRepository('Lead')->getRelation($lead, 'cTeam')->unrelate($lead->get('cTeam'));
+            $this->entityManager->getRDBRepository(Lead::ENTITY_TYPE)->getRelation($lead, 'cTeam')->unrelate($lead->get('cTeam'));
             $this->log->info("Removed team relationship from lead {$lead->getId()}");
         } catch (\Exception $e) {
             $this->log->error("Failed to remove team relationship from lead {$lead->getId()}: " . $e->getMessage());

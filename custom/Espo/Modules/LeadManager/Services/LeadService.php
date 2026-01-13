@@ -2,7 +2,8 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
-use Espo\Core\Utils\Log;
+use DateTime;
+use Espo\Custom\Controllers\CLeadEvent;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Services\LeadEventService;
 use Espo\Modules\Crm\Entities\Contact;
@@ -21,8 +22,13 @@ readonly class LeadService
     public function findOrCreate(array $data): Entity
     {
         $email = $data['email'] ?? '';
+        $phone = $data['phone'] ?? '';
 
-        $person = $this->lookupByEmail($email);
+        // Try to find by email first, then by phone
+        $person = $email ? $this->lookupBy('emailAddress', $email) : null;
+        if (!$person && $phone) {
+            $person = $this->lookupBy('phoneNumber', $phone);
+        }
 
         if (!$person) {
             $person = $this->createLead($data);
@@ -36,14 +42,14 @@ readonly class LeadService
         return $person;
     }
 
-    private function lookupByEmail(string $email): ?Entity
+    private function lookupBy(string $fieldName, string $value): ?Entity
     {
-        if (empty($email)) {
+        if (empty($value)) {
             return null;
         }
 
         $contact = $this->entityManager->getRDBRepository(Contact::ENTITY_TYPE)
-            ->where(['emailAddress' => $email])
+            ->where([$fieldName => $value])
             ->findOne();
 
         if ($contact) {
@@ -51,7 +57,7 @@ readonly class LeadService
         }
 
         return $this->entityManager->getRDBRepository(Lead::ENTITY_TYPE)
-            ->where(['emailAddress' => $email])
+            ->where([$fieldName => $value])
             ->findOne();
     }
 
@@ -72,26 +78,74 @@ readonly class LeadService
         return $lead;
     }
 
-    private function assignCoach(Entity $person, string $coachId): void
+    private function assignCoach(Entity $person, string $newCoachId): void
     {
-        if ($person->get('cTeamId') === $coachId) {
-            return; 
-        }
+        $oldCoachId = $person->get('cTeamId');
 
-        $coach = $this->entityManager->getEntityById('CTeam', $coachId);
-        if (!$coach) {
+        // 1. Klanten (Contacts) worden NOOIT opnieuw toegewezen
+        if ($person->getEntityType() === Contact::ENTITY_TYPE) {
             return;
         }
 
-        $person->set('cTeamId', $coachId);
-        if ($sfcId = $coach->get('slimFitCenterId')) {
+        // 2. Als de lead al bij deze coach zit, hoeven we niets te doen
+        if ($oldCoachId === $newCoachId) {
+            return; 
+        }
+
+        // 3. Controleer op inactiviteit (30 dagen) bij Leads
+        if ($oldCoachId && !$this->isLeadEligibleForReassignment($person)) {
+            $oldCoach = $this->entityManager->getEntityById('CTeam', $oldCoachId);
+            $msg = "Toewijzing gefaald: Lead is nog actief bij coach " . ($oldCoach?->get('name') ?? 'onbekend');
+            
+            $existingNotes = (string) ($person->get('cNotes') ?? '');
+            $timezone = new \DateTimeZone('Europe/Brussels');
+            $dt = new \DateTime('now', $timezone);
+            $formattedHeader = $dt->format('[d/m/Y H:i]');
+            $newLine = "$formattedHeader (enquête): $msg";
+            $updatedNotes = $existingNotes ? ($newLine . "\n\n" . $existingNotes) : $newLine;
+
+            $person->set('cNotes', $updatedNotes);
+            return;
+        }
+
+        $newCoach = $this->entityManager->getEntityById('CTeam', $newCoachId);
+        if (!$newCoach) {
+            return;
+        }
+
+        $oldCoachName = $oldCoachId ? ($this->entityManager->getEntityById('CTeam', $oldCoachId)?->get('name') ?? 'Onbekend') : 'null';
+        $newCoachName = $newCoach->get('name');
+
+        $person->set('cTeamId', $newCoachId);
+        if ($sfcId = $newCoach->get('slimFitCenterId')) {
             $person->set('cSlimFitCenterId', $sfcId);
         }
+        $this->entityManager->saveEntity($person);
 
-        if ($person->getEntityType() === Lead::ENTITY_TYPE) {
-            $this->leadEventService->logEvent($person->get('id'), LeadEventType::ASSIGNED);
+        $this->leadEventService->logEvent(
+            $person->get('id'), 
+            LeadEventType::ASSIGNED, 
+            description: "{$oldCoachName} -> {$newCoachName}"
+        );
+    }
+
+    private function isLeadEligibleForReassignment(Entity $lead): bool
+    {
+        if (!$lead->get('cTeamId')) {
+            return true;
         }
 
-        $this->entityManager->saveEntity($person);
+        $lastEvent = $this->entityManager->getRDBRepository('CLeadEvent')
+            ->where(['leadId' => $lead->get('id')])
+            ->order('eventDate', 'DESC')
+            ->findOne();
+
+        $lastActivityDate = $lastEvent 
+            ? new DateTime($lastEvent->get('eventDate')) 
+            : new DateTime($lead->get('createdAt'));
+
+        $thirtyDaysAgo = new DateTime('-30 days');
+
+        return $lastActivityDate < $thirtyDaysAgo;
     }
 }

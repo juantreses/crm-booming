@@ -2,15 +2,21 @@
 
 namespace Espo\Modules\Downlines\Services;
 
-use Espo\Core\Controllers\RecordBase;
 use Espo\Core\Exceptions\NotFound;
 use Espo\ORM\Entity;
+use Espo\ORM\EntityManager;
 
-class DownlinesApi extends RecordBase 
+readonly class DownlinesApi
 {
+
+    public function __construct(
+        private EntityManager $entityManager,
+    )
+    {}
+
     public function getDownlines(string $teamId, int $maxDepth = 6): array
     {
-        $entity = $this->getEntityManager()->getEntity('CTeam', $teamId);
+        $entity = $this->entityManager->getEntityById('CTeam', $teamId);
         if (!$entity) {
             throw new NotFound("CTeam $teamId not found");
         }
@@ -24,8 +30,7 @@ class DownlinesApi extends RecordBase
             return [];
     	}
 
-        $relation = $this->getEntityManager()->getRepository('CTeam')->getRelation($team, 'downlines');
-	$downlines = $relation->find();
+        $downlines = $this->entityManager->getRDBRepository('CTeam')->getRelation($team, 'downlines')->find();
 
         $result = [];
 

@@ -18,7 +18,6 @@ class AfterSaveHook implements AfterSave
     public function afterSave(Entity $entity, SaveOptions $options): void
     {
         try {
-            $this->log->info('Lead After Save Hook triggered for Lead ID: ' . $entity->getId());
             $this->entitySyncService->syncFromLead($entity);
         } catch (\Exception $e) {
             $this->log->error('Lead After Save Hook error: ' . $e->getMessage());

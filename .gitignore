@@ -9,4 +9,5 @@
 
 /custom/Espo/Modules/*/vendor
 deployment.log
-test.txt
+
+/node_modules
