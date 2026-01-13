@@ -87,12 +87,7 @@ readonly class LeadService
             return;
         }
 
-        // 2. Als de lead al bij deze coach zit, hoeven we niets te doen
-        if ($oldCoachId === $newCoachId) {
-            return; 
-        }
-
-        // 3. Controleer op inactiviteit (30 dagen) bij Leads
+        // 2. Controleer op inactiviteit (30 dagen) bij Leads
         if ($oldCoachId && !$this->isLeadEligibleForReassignment($person)) {
             $oldCoach = $this->entityManager->getEntityById('CTeam', $oldCoachId);
             $msg = "Toewijzing gefaald: Lead is nog actief bij coach " . ($oldCoach?->get('name') ?? 'onbekend');
