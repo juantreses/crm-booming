@@ -79,39 +79,4 @@ readonly class BookingService
         return ['success' => true, 'id' => $meeting->get('id')];
     }
 
-    private function findOrCreatePerson(array $data): \Espo\ORM\Entity
-    {
-        $email = strtolower(trim($data['email']));
-        $firstName = $data['firstName'] ?? '';
-        $lastName = $data['lastName'] ?? '';
-        $phone = $data['phone'] ?? null;
-
-        $person = $this->entityManager->getRDBRepository('Contact')
-            ->where(['emailAddress' => $email])
-            ->findOne();
-
-        if ($person) {
-            return $person;
-        }
-
-        $person = $this->entityManager->getRDBRepository('Lead')
-            ->where(['emailAddress' => $email])
-            ->findOne();
-
-        if ($person) {
-            return $person;
-        }
-
-        $person = $this->entityManager->getNewEntity('Lead');
-        $person->set([
-            'firstName' => $firstName,
-            'lastName' => $lastName,
-            'emailAddress' => $email,
-            'phoneNumber' => $phone
-        ]);
-
-        $this->entityManager->saveEntity($person);
-
-        return $person;
-    }
 }

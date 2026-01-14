@@ -29,21 +29,28 @@ class ConfirmationEmail implements AfterSave
                       (!$isNew && $status === 'Planned' && $oldStatus !== 'Planned');
 
         if ($shouldSend) {
+            $error = '';
+            $calendarId = $entity->get('cCalendarId');
+            if (!$calendarId) {
+                $error = 'Geen kalender gelinkt aan meeting';
+            }
+            
+            $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
+            if (!$calendar) {
+                $error = "Kalender met id $calendarId niet teruggevonden";
+            }
+
+            $templateId = $calendar->get('confirmationTemplateId');
+            if (!$templateId) {
+                $error = 'Geen bevestiging email gelinkt aan kalender';
+            }
+
+            if (!empty($error)) {
+                $entity->set('cMailError', "Bevestiging fout: " . $error);
+                return;
+            }
+
             try {
-                $calendarId = $entity->get('cCalendarId');
-                if (!$calendarId) {
-                    throw new \Exception('Geen kalender gelinkt aan meeting');
-                }
-                $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
-                if (!$calendar) {
-                    throw new \Exception("Kalender met id $calendarId niet teruggevonden");
-                }
-
-                $templateId = $calendar->get('confirmationTemplateId');
-                if (!$templateId) {
-                    throw new \Exception('Geen reminder email gelinkt aan kalender');
-                }
-
                 $this->emailService->sendMeetingEmail($entity, $templateId);
             } catch (\Exception $e) {
                 $entity->set('cMailError', "Bevestiging fout: " . $e->getMessage());
