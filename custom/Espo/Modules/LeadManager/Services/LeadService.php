@@ -36,7 +36,7 @@ readonly class LeadService
 
         $coachId = $data['coachId'] ?? null;
         if ($coachId) {
-            $this->assignCoach($person, $coachId);
+            $this->assignCoach($person, $coachId, $data->source ?? 'Webform');
         }
 
         return $person;
@@ -78,7 +78,7 @@ readonly class LeadService
         return $lead;
     }
 
-    private function assignCoach(Entity $person, string $newCoachId): void
+    private function assignCoach(Entity $person, string $newCoachId, $source = 'Webform'): void
     {
         $oldCoachId = $person->get('cTeamId');
 
@@ -96,7 +96,7 @@ readonly class LeadService
             $timezone = new \DateTimeZone('Europe/Brussels');
             $dt = new \DateTime('now', $timezone);
             $formattedHeader = $dt->format('[d/m/Y H:i]');
-            $newLine = "$formattedHeader (enquête): $msg";
+            $newLine = "$formattedHeader ($source): $msg";
             $updatedNotes = $existingNotes ? ($newLine . "\n\n" . $existingNotes) : $newLine;
 
             $person->set('cNotes', $updatedNotes);

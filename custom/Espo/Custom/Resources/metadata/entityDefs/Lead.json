@@ -151,6 +151,12 @@
                 "iom": null
             },
             "default": null
+        },
+        "cReferredBy": {
+            "type": "varchar",
+            "maxLength": 100,
+            "options": [],
+            "isCustom": true
         }
     },
     "collection": {

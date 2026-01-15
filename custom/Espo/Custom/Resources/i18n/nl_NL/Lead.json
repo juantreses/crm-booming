@@ -14,7 +14,8 @@
         "cExternalCreatedAt": "Vanko Aanmaakdatum",
         "cFollowUpAction": "Opvolgactie",
         "cSurveyData": "Enquête",
-        "cMeetingType": "Afspraak Type"
+        "cMeetingType": "Afspraak Type",
+        "cReferredBy": "Doorverwezen door"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",

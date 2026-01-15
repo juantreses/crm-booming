@@ -6,7 +6,7 @@
                     "name": "status"
                 },
                 {
-                    "name": "cMeetingType"
+                    "name": "cReferredBy"
                 }
             ],
             [
@@ -61,28 +61,5 @@
         "noteText": null,
         "noteStyle": "info",
         "customLabel": "Vragen en Antwoorden"
-    },
-    {
-        "rows": [
-            [
-                {
-                    "name": "cExternalCreatedAt"
-                },
-                {
-                    "name": "campaign"
-                },
-                {
-                    "name": "cCampagneRoundRobin"
-                }
-            ]
-        ],
-        "dynamicLogicVisible": null,
-        "style": "default",
-        "tabBreak": true,
-        "tabLabel": "Campagne Info",
-        "hidden": false,
-        "noteText": null,
-        "noteStyle": "info",
-        "customLabel": "Tool Info"
     }
 ]

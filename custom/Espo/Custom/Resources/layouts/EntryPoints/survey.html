@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SFC Welzijnsevaluatie</title>
     <link rel="stylesheet" href="client/custom/res/tailwind.min.css">
-    <script src="client/custom/lib/vue.prod.js"></script>    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <style>[v-cloak] { display: none; }</style>
 </head>
 <body class="bg-[#f8faff] min-h-screen flex items-center justify-center p-2 md:p-4">
@@ -170,7 +170,8 @@ createApp({
             email: '', 
             phone: '', 
             opmerking: '',
-            coachId: urlParams.get('coach')
+            coachId: urlParams.get('coach'),
+            source: 'enquête'
         };
         const form = ref({...initialForm});
 
@@ -182,12 +183,12 @@ createApp({
 
         const isStep1Valid = computed(() => form.value.ontbijt.length > 0 && form.value.score !== null);
         const isStep2Valid = computed(() => form.value.resultaten.length > 0 && form.value.ervaringen.length > 0 && form.value.bijverdienen !== null);
-        const isStep3Valid = computed(() => form.value.firstName.trim() !== '' && form.value.lastName.trim() !== '' && form.value.email.includes('@') && form.value.phone.length > 7);
+        const isStep3Valid = computed(() => form.value.firstName.trim() !== '' && form.value.lastName.trim() !== '' && form.value.email.includes('@') && form.value.phone.length > 8);
 
         const submitSurvey = async () => {
             loading.value = true;
             try {
-                const res = await fetch('/api/v1/survey', {
+                const res = await fetch('/api/v1/widget/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(form.value)

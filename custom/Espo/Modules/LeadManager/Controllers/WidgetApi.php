@@ -5,9 +5,8 @@ namespace Espo\Modules\LeadManager\Controllers;
 use Espo\Modules\LeadManager\Services\LeadService;
 use Espo\ORM\EntityManager;
 use Espo\Core\Api\Request;
-use Espo\Core\Api\Response;
 
-class SurveyApi
+class WidgetApi
 {
     public function __construct(
         private EntityManager $entityManager,
@@ -34,10 +33,14 @@ class SurveyApi
             'Welk resultaat kies je?' => $data->resultaten ?? [],
             'Welke ervaring wil je graag bijwonen?' => $data->ervaringen ?? [],
             'Wil je graag iets bijverdienen als coach?' => $data->bijverdienen ?? null,
+            'Waarin ben je geïnteresseerd?' => $data->interests ?? [],
             'Opmerking' => $data->opmerking ?? '',
         ];
 
-        $person->set('cSurveyData', json_encode($surveyResults, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        $survey = array_filter($surveyResults);
+
+        $person->set('cSurveyData', json_encode($survey, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        $person->set('cReferredBy', $data->referredBy ?? '');
 
         $this->entityManager->saveEntity($person);
 
