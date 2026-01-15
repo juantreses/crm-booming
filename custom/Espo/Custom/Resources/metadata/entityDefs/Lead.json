@@ -124,10 +124,10 @@
         },
         "cSurveyData": {
             "type": "text",
+            "view": "custom:views/fields/survey-data",
             "rowsMin": 2,
             "cutHeight": 200,
             "seeMoreDisabled": true,
-            "readOnly": true,
             "isCustom": true
         },
         "cMeetingType": {

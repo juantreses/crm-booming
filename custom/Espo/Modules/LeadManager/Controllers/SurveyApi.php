@@ -26,14 +26,14 @@ class SurveyApi
         $person = $this->leadService->findOrCreate((array)$data);
 
         $surveyResults = [
-            'Ontbijt' => $data->ontbijt ?? [],
-            'Ontbijt_Andere' => $data->ontbijtAndere ?? '',
+            'Wat had je vanmorgen als ontbijt?' => $data->ontbijt ?? [],
+            'Ontbijt Andere:' => $data->ontbijtAndere ?? '',
             'Gezondheidsscore' => $data->score ?? null,
-            'Sport' => $data->sport ?? [],
-            'Sport_Andere' => $data->sportAndere ?? '',
-            'Resultaten' => $data->resultaten ?? [],
-            'Ervaringen' => $data->ervaringen ?? [],
-            'Bijverdienen' => $data->bijverdienen ?? null,
+            'Doe je aan sport?' => $data->sport ?? [],
+            'Sport Andere:' => $data->sportAndere ?? '',
+            'Welk resultaat kies je?' => $data->resultaten ?? [],
+            'Welke ervaring wil je graag bijwonen?' => $data->ervaringen ?? [],
+            'Wil je graag iets bijverdienen als coach?' => $data->bijverdienen ?? null,
             'Opmerking' => $data->opmerking ?? '',
         ];
 

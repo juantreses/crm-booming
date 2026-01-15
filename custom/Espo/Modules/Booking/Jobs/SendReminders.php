@@ -57,7 +57,7 @@ class SendReminders implements JobDataLess
                 $meeting->set('cReminderSent', true);
                 $meeting->set('cMailError', null);
             } catch (\Exception $e) {
-                $meeting->set('cMailError', $meeting->get('cMailError') . "/n " . $e->getMessage());
+                $meeting->set('cMailError', $e->getMessage());
             }
         }
 
