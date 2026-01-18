@@ -3,7 +3,7 @@
  * This file is part of EspoCRM.
  *
  * EspoCRM – Open Source CRM application.
- * Copyright (C) 2014-2025 EspoCRM, Inc.
+ * Copyright (C) 2014-2026 EspoCRM, Inc.
  * Website: https://www.espocrm.com
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,26 +27,33 @@
  * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
  ************************************************************************/
 
-namespace Espo\Core\Utils\Database\Dbal\Platforms\Keywords;
+namespace Espo\Tools\UserSecurity\Password\Recovery;
 
-use Doctrine\DBAL\Platforms\Keywords\MariaDBKeywords;
+use const FILTER_VALIDATE_URL;
+use const PHP_URL_HOST;
 
 /**
- * 'LEAD' happened to be a reserved words on some environments.
+ * @internal
  */
-class MariaDb102Keywords extends MariaDBKeywords
+class UrlValidatorUtil
 {
-    /** @deprecated */
-    public function getName(): string
+    public static function validate(string $url, string $siteUrl): bool
     {
-        return 'MariaDb102';
-    }
+        $host = parse_url($url, PHP_URL_HOST);
+        $siteHost = parse_url($siteUrl, PHP_URL_HOST);
 
-    protected function getKeywords(): array
-    {
-        return [
-            ...parent::getKeywords(),
-            'LEAD',
-        ];
+        if ($host !== $siteHost) {
+            return false;
+        }
+
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        if (!str_starts_with($url, $siteUrl)) {
+            return false;
+        }
+
+        return true;
     }
 }

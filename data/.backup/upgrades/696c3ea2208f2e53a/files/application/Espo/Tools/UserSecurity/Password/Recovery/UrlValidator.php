@@ -27,26 +27,44 @@
  * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
  ************************************************************************/
 
-namespace Espo\Core\Utils\Database\Dbal\Platforms\Keywords;
+namespace Espo\Tools\UserSecurity\Password\Recovery;
 
-use Doctrine\DBAL\Platforms\Keywords\MariaDBKeywords;
+use Espo\Core\Exceptions\Forbidden;
+use Espo\Core\Utils\Config;
+use Espo\Entities\Portal;
+use Espo\ORM\EntityManager;
 
-/**
- * 'LEAD' happened to be a reserved words on some environments.
- */
-class MariaDb102Keywords extends MariaDBKeywords
+class UrlValidator
 {
-    /** @deprecated */
-    public function getName(): string
-    {
-        return 'MariaDb102';
-    }
+    public function __construct(
+        private Config $config,
+        private EntityManager $entityManager
+    ) {}
 
-    protected function getKeywords(): array
+    /**
+     * @throws Forbidden
+     */
+    public function validate(string $url): void
     {
-        return [
-            ...parent::getKeywords(),
-            'LEAD',
-        ];
+        $siteUrl = rtrim($this->config->get('siteUrl') ?? '', '/');
+
+        if (str_starts_with($url, $siteUrl)) {
+            return;
+        }
+
+        /** @var iterable<Portal> $portals */
+        $portals = $this->entityManager
+            ->getRDBRepositoryByClass(Portal::class)
+            ->find();
+
+        foreach ($portals as $portal) {
+            $siteUrl = rtrim($portal->getUrl() ?? '', '/');
+
+            if (str_starts_with($url, $siteUrl)) {
+                return;
+            }
+        }
+
+        throw new Forbidden("URL does not match Site URL.");
     }
 }

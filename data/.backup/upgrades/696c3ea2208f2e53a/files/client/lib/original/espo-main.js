@@ -6110,7 +6110,7 @@ define("views/modals/edit", ["exports", "views/modal", "backbone"], function (_e
         if (this.saveDisabled) {
           return;
         }
-        if (this.buttonList.findIndex(item => item.name === 'save' && !item.hidden && !item.disabled) === -1) {
+        if (this.buttonList.findIndex(item => item.name === 'save' && !item.hidden) === -1) {
           return;
         }
         e.preventDefault();
@@ -6128,7 +6128,7 @@ define("views/modals/edit", ["exports", "views/modal", "backbone"], function (_e
         if (this.saveDisabled) {
           return;
         }
-        if (this.buttonList.findIndex(item => item.name === 'save' && !item.hidden && !item.disabled) === -1) {
+        if (this.buttonList.findIndex(item => item.name === 'save' && !item.hidden) === -1) {
           return;
         }
         e.preventDefault();
@@ -46256,13 +46256,6 @@ define("views/fields/currency", ["exports", "views/fields/float", "ui/select"], 
      */
     validations = ['required', 'number', 'range'];
 
-    /**
-     * @protected
-     * @type {string}
-     * @since 9.2.6
-     */
-    currencyAttribute;
-
     /** @inheritDoc */
     data() {
       const currencyValue = this.model.get(this.currencyFieldName) || this.getPreferences().get('defaultCurrency') || this.getConfig().get('defaultCurrency');
@@ -46281,7 +46274,7 @@ define("views/fields/currency", ["exports", "views/fields/float", "ui/select"], 
     /** @inheritDoc */
     setup() {
       super.setup();
-      this.currencyFieldName = this.currencyAttribute ?? this.name + 'Currency';
+      this.currencyFieldName = this.name + 'Currency';
       this.defaultCurrency = this.getConfig().get('defaultCurrency');
       this.currencyList = this.getConfig().get('currencyList') || [this.defaultCurrency];
       this.decimalPlaces = this.getConfig().get('currencyDecimalPlaces');
@@ -57467,7 +57460,7 @@ define("views/modals/related-list", ["exports", "views/modal", "search-manager",
       if (title) {
         title = this.getHelper().escapeString(this.options.title).replace(/@right/, '<span class="chevron-right"></span>');
       }
-      this.$header.append(title || (0, _jquery.default)('<span>').text(this.getLanguage().translate(this.link, 'links', this.scope)));
+      this.$header.append(title || (0, _jquery.default)('<span>').text(this.getLanguage().translate(this.link, 'links', this.entityType)));
       if (this.options.listViewUrl) {
         this.$header = (0, _jquery.default)('<a>').attr('href', this.options.listViewUrl).append(this.$header);
       }
@@ -72972,12 +72965,8 @@ define("views/user/password-change-request", ["exports", "view", "model"], funct
       }).then(data => {
         this.$el.find('.password-change').remove();
         const url = data.url || this.baseUrl;
-        const a = document.createElement('a');
-        a.href = url;
-        a.innerText = this.translate('Login', 'labels', 'User');
-        const message = this.translate('passwordChangedByRequest', 'messages', 'User');
-        const html = this.getHelper().escapeString(message) + ' ' + a.outerHTML;
-        this.$el.find('.msg-box').removeClass('hidden').html('<span class="text-success">' + html + '</span>');
+        const msg = this.translate('passwordChangedByRequest', 'messages', 'User') + ' <a href="' + url + '">' + this.translate('Login', 'labels', 'User') + '</a>.';
+        this.$el.find('.msg-box').removeClass('hidden').html('<span class="text-success">' + msg + '</span>');
       }).catch(() => {
         return $submit.removeClass('disabled');
       });
@@ -88583,7 +88572,7 @@ define("views/modals/compose-email", ["exports", "views/modals/edit", "helpers/m
     shortcutKeys = {
       /** @this ComposeEmailModalView */
       'Control+Enter': function (e) {
-        if (this.buttonList.findIndex(item => item.name === 'send' && !item.hidden && !item.disabled) === -1) {
+        if (this.buttonList.findIndex(item => item.name === 'send' && !item.hidden) === -1) {
           return;
         }
         e.stopPropagation();

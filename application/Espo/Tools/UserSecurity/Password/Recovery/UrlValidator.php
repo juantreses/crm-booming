@@ -48,7 +48,7 @@ class UrlValidator
     {
         $siteUrl = rtrim($this->config->get('siteUrl') ?? '', '/');
 
-        if (str_starts_with($url, $siteUrl)) {
+        if (UrlValidatorUtil::validate($url, $siteUrl)) {
             return;
         }
 
@@ -60,7 +60,7 @@ class UrlValidator
         foreach ($portals as $portal) {
             $siteUrl = rtrim($portal->getUrl() ?? '', '/');
 
-            if (str_starts_with($url, $siteUrl)) {
+            if (UrlValidatorUtil::validate($url, $siteUrl)) {
                 return;
             }
         }
