@@ -5,6 +5,7 @@ namespace Espo\Modules\Calendar\Services;
 use DateTime;
 use DateTimeZone;
 use Espo\Core\ORM\EntityManager;
+use Espo\Modules\Utils\SlugService;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityCollection;
 use Espo\ORM\SthCollection;
@@ -13,14 +14,16 @@ use Exception;
 readonly class CalendarService
 {
     public function __construct(
-        private EntityManager   $entityManager,
+        private EntityManager $entityManager,
+        private SlugService $slugService,
     ) {}
 
     /**
      * @throws Exception
      */
-    public function getAvailableSlots($calendarId, $dateString): array
+    public function getAvailableSlots($identifier, $dateString): array
     {
+        $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         $calendar = $this->validateCalendar($calendarId);
         $availabilities = $this->getAvailabilityForDate($calendar, $dateString);
         
@@ -29,7 +32,7 @@ readonly class CalendarService
         }
 
         $availabilities = $this->normalizeAvailabilities($availabilities);
-        $calendarConfig = $this->getCalendarConfig($calendar, $calendarId, $dateString);
+        $calendarConfig = $this->getCalendarConfig($calendar, $dateString);
         
         $allSlots = [];
         foreach ($availabilities as $availability) {
@@ -67,7 +70,7 @@ readonly class CalendarService
         return is_array($availabilities) ? $availabilities : iterator_to_array($availabilities);
     }
 
-    private function getCalendarConfig(Entity $calendar, string $calendarId, string $dateString): array
+    private function getCalendarConfig(Entity $calendar, string $dateString): array
     {
         $tzLocal = new DateTimeZone('Europe/Brussels');
         $tzUTC = new DateTimeZone('UTC');
@@ -80,7 +83,7 @@ readonly class CalendarService
             'buffer' => $calendar->get('bufferTime'),
             'maxSeats' => $calendar->get('seatsPerMeeting'),
             'blockingPeriods' => $this->getBlockingAvailability($calendar, $dateString),
-            'bookings' => $this->getExistingBookings($calendarId, $dateString),
+            'bookings' => $this->getExistingBookings($calendar, $dateString),
             'firstBookableMoment' => (clone $now)->modify("+$minLeadTime hours"),
             'tzLocal' => $tzLocal,
             'tzUTC' => $tzUTC,
@@ -234,11 +237,11 @@ readonly class CalendarService
             ->find();
     }
 
-    private function getExistingBookings($calendarId, $dateString): array
+    private function getExistingBookings($calendar, $dateString): array
     {
         $bookingList = $this->entityManager->getRDBRepository('Meeting')
             ->where([
-                'cCalendarId' => $calendarId,
+                'cCalendarId' => $calendar->get('id'),
                 'dateStart>=' => $dateString . ' 00:00:00',
                 'dateStart<=' => $dateString . ' 23:59:59',
                 'status!=' => ['Cancelled', 'Tentative']
@@ -264,9 +267,14 @@ readonly class CalendarService
     /**
      * @throws Exception
      */
-    public function getMonthAvailability(string $calendarId, int $year, int $month): array
+    public function getMonthAvailability(string $identifier, int $year, int $month): array
     {
+        $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
+        if (!$calendar) {
+            return [];
+        }
+
         $availableDates = [];
         $daysInMonth = (int) (new \DateTime("$year-$month-01"))->format('t');
 
@@ -300,5 +308,25 @@ readonly class CalendarService
 
         // De datum mag niet in het verleden liggen én niet verder dan de max range
         return $requestedDate >= $today && $requestedDate <= $maxDate;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getSettings(string $identifier): array
+    {
+        $calendarId = $this->slugService->resolve('CCalendar', $identifier);
+        if (!$calendarId) {
+            throw new Exception("Kalender niet gevonden voor identifier: {$identifier}");
+        }
+
+        $calendar = $this->validateCalendar($calendarId);
+
+        return [
+            'name' => $calendar->get('name'),
+            'description' => $calendar->get('description'),
+            'duration' => $calendar->get('duration'),
+            'maxBookingRange' => $calendar->get('maxBookingRange') ?? 30,
+        ];
     }
 }

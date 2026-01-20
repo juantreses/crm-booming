@@ -2,7 +2,7 @@
     "fields": {
         "name": {
             "type": "varchar",
-            "required": false,
+            "required": true,
             "pattern": "$noBadCharacters",
             "options": []
         },
@@ -36,67 +36,17 @@
             "type": "linkMultiple",
             "view": "views/fields/teams"
         },
-        "type": {
-            "type": "enum",
-            "required": true,
-            "options": [
-                "recurrent",
-                "specific"
-            ],
-            "style": {
-                "recurrent": null,
-                "specific": null
-            },
-            "default": "recurrent",
-            "maxLength": 100,
-            "isCustom": true
-        },
-        "daysOfWeek": {
-            "type": "checklist",
-            "storeArrayValues": true,
-            "required": false,
-            "default": [],
-            "options": [
-                "1",
-                "2",
-                "3",
-                "4",
-                "5",
-                "6",
-                "0"
-            ],
-            "isCustom": true
-        },
-        "startTime": {
+        "slug": {
             "type": "varchar",
             "required": true,
             "maxLength": 100,
-            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
-            "default": "10:00",
+            "readOnlyAfterCreate": true,
             "options": [],
             "isCustom": true
         },
-        "endTime": {
-            "type": "varchar",
-            "required": true,
-            "maxLength": 100,
-            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
-            "default": "17:00",
-            "options": [],
+        "address": {
+            "type": "address",
             "isCustom": true
-        },
-        "date": {
-            "notNull": false,
-            "type": "date",
-            "required": false,
-            "default": null,
-            "isCustom": true
-        },
-        "calendar": {
-            "type": "link"
-        },
-        "location": {
-            "type": "link"
         }
     },
     "links": {
@@ -118,29 +68,17 @@
             "relationName": "entityTeam",
             "layoutRelationshipsDisabled": true
         },
-        "calendar": {
-            "type": "belongsTo",
-            "foreign": "availabilities",
-            "entity": "CCalendar",
-            "audited": false,
-            "isCustom": true
-        },
-        "location": {
-            "type": "belongsTo",
-            "foreign": "availabilities",
-            "entity": "CLocation",
+        "availabilities": {
+            "type": "hasMany",
+            "foreign": "location",
+            "entity": "CAvailability",
             "audited": false,
             "isCustom": true
         }
     },
     "collection": {
         "orderBy": "createdAt",
-        "order": "desc",
-        "textFilterFields": [
-            "name"
-        ],
-        "fullTextSearch": false,
-        "countDisabled": false
+        "order": "desc"
     },
     "indexes": {
         "name": {
@@ -167,6 +105,5 @@
                 "id"
             ]
         }
-    },
-    "optimisticConcurrencyControl": false
+    }
 }

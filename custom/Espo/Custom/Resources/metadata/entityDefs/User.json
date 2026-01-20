@@ -17,6 +17,13 @@
             "maxLength": 50,
             "options": [],
             "isCustom": true
+        },
+        "cSlug": {
+            "type": "varchar",
+            "required": true,
+            "maxLength": 100,
+            "options": [],
+            "isCustom": true
         }
     },
     "links": {

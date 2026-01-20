@@ -3,7 +3,7 @@
         "rows": [
             [
                 {
-                    "name": "cVankoCRM"
+                    "name": "name"
                 },
                 {
                     "name": "userName"
@@ -14,12 +14,12 @@
                     "name": "cHerbalifeID"
                 },
                 {
-                    "name": "cMember"
+                    "name": "cSlug"
                 }
             ],
             [
                 {
-                    "name": "name"
+                    "name": "cMember"
                 }
             ],
             [

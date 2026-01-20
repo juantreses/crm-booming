@@ -27,5 +27,17 @@
         ],
         "style": "default",
         "label": ""
+    },
+    {
+        "rows": [
+            [
+                {
+                    "name": "location"
+                }
+            ]
+        ],
+        "style": "default",
+        "noteStyle": "info",
+        "label": ""
     }
 ]

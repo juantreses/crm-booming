@@ -3,7 +3,8 @@
         "cTeam": "Team",
         "cHerbalifeID": "Herbalife ID",
         "cMember": "Member",
-        "cVankoCRM": "VankoCRM"
+        "cVankoCRM": "VankoCRM",
+        "cSlug": "Slug"
     },
     "links": {
         "cTeam": "Team",

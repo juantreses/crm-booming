@@ -6,7 +6,8 @@
         "CLeadEvent": "Lead Event",
         "CNote": "Note",
         "CCalendar": "Kalender",
-        "CAvailability": "Beschikbaarheid"
+        "CAvailability": "Beschikbaarheid",
+        "CLocation": "Locatie"
     },
     "scopeNamesPlural": {
         "CTeam": "HBL Teams",
@@ -15,6 +16,7 @@
         "CLeadEvent": "Lead Events",
         "CNote": "Notes",
         "CCalendar": "Kalenders",
-        "CAvailability": "Beschikbaarheden"
+        "CAvailability": "Beschikbaarheden",
+        "CLocation": "Locaties"
     }
 }

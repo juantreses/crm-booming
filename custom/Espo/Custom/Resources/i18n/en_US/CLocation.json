@@ -1,0 +1,19 @@
+{
+    "fields": {
+        "slug": "Slug",
+        "address": "Adres",
+        "addressStreet": "Adres Straat",
+        "addressCity": "Adres Plaats",
+        "addressState": "Adres Staat",
+        "addressCountry": "Adres Land",
+        "addressPostalCode": "Adres Postcode",
+        "addressMap": "Adres Kaart",
+        "availabilities": "Beschikbaarheden"
+    },
+    "links": {
+        "availabilities": "Beschikbaarheden"
+    },
+    "labels": {
+        "Create CLocation": "Create Locatie"
+    }
+}

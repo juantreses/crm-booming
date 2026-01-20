@@ -8,7 +8,8 @@
         "startTime": "Starttijd",
         "endTime": "Eindtijd",
         "date": "Datum",
-        "calendar": "Kalender"
+        "calendar": "Kalender",
+        "location": "Locatie"
     },
     "options": {
         "type": {
@@ -26,6 +27,7 @@
         ]
     },
     "links": {
-        "calendar": "Kalender"
+        "calendar": "Kalender",
+        "location": "Locatie"
     }
 }

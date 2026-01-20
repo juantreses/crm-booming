@@ -5,10 +5,12 @@
         "startTime": "Starttijd",
         "endTime": "Eindtijd",
         "date": "Datum",
-        "calendar": "Kalender"
+        "calendar": "Kalender",
+        "location": "Locatie"
     },
     "links": {
-        "calendar": "Kalender"
+        "calendar": "Kalender",
+        "location": "Locatie"
     },
     "labels": {
         "Create CAvailability": "Create Beschikbaarheid"

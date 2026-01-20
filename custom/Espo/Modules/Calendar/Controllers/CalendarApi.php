@@ -15,8 +15,7 @@ readonly class CalendarApi
 {
     public function __construct(
         private Log             $log,
-        private EntityManager   $entityManager,
-        private CalendarService $calendarSlotService,
+        private CalendarService $calendarService,
     ) {}
 
     public function getActionSettings(Request $request): array
@@ -28,17 +27,7 @@ readonly class CalendarApi
                 throw new BadRequest("Missing required param id");
             }
 
-            $calendar = $this->entityManager->getEntityById('CCalendar', $id);
-            if (!$calendar || !$calendar->get('isActive')) {
-                throw new NotFound("Kalender niet beschikbaar.");
-            }
-
-            return [
-                'name' => $calendar->get('name'),
-                'description' => $calendar->get('description'),
-                'duration' => $calendar->get('duration'),
-                'maxBookingRange' => $calendar->get('maxBookingRange') ?? 30,
-            ];
+            return $this->calendarService->getSettings($id);
 
         }  catch (BadRequest $e) {
             // Return proper error response
@@ -78,7 +67,7 @@ readonly class CalendarApi
                 throw new BadRequest("Missing required param id");
             }
 
-            return $this->calendarSlotService->getAvailableSlots($id, $date);
+            return $this->calendarService->getAvailableSlots($id, $date);
 
         }  catch (BadRequest $e) {
             // Return proper error response
@@ -111,7 +100,7 @@ readonly class CalendarApi
                 throw new BadRequest("Missing required param id");
             }
 
-            return $this->calendarSlotService->getMonthAvailability($id, (int)$year, (int)$month);
+            return $this->calendarService->getMonthAvailability($id, (int)$year, (int)$month);
 
         }  catch (BadRequest $e) {
             // Return proper error response

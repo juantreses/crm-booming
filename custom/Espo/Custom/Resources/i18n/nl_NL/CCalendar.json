@@ -23,7 +23,8 @@
         "locationState": "Locatie Staat",
         "locationCountry": "Locatie Land",
         "locationPostalCode": "Locatie Postcode",
-        "locationMap": "Locatie Kaart"
+        "locationMap": "Locatie Kaart",
+        "slug": "Slug"
     },
     "tooltips": {
         "bufferTime": "Tijd tussen twee boekingen",

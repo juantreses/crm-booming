@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sneltoevoegen Lead - SFC Booming</title>
+    <link rel="stylesheet" href="client/custom/res/tailwind.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <style>[v-cloak] { display: none; }</style>
+</head>
+<body class="bg-[#f8faff] min-h-screen flex items-center justify-center p-2 md:p-4">
+
+<div id="app" v-cloak class="bg-white rounded-2xl shadow-xl max-w-4xl w-full flex flex-col md:flex-row overflow-hidden border border-gray-100 min-h-[500px]">
+    
+    <div class="md:w-72 p-8 border-r border-gray-100 flex flex-col bg-white">
+        <div class="mb-6 p-3 border border-gray-100 inline-block rounded-xl shadow-sm w-fit">
+            <img src="?entryPoint=LogoImage" class="h-10 w-auto object-contain">
+        </div>
+        <h2 class="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Coach Tool</h2>
+        <h1 class="text-xl font-black text-gray-900 leading-tight mb-4">Sneltoevoegen Lead</h1>
+        
+        <p class="text-[11px] text-gray-500 leading-relaxed mt-4">
+            Gebruik dit formulier om snel een nieuwe lead te registreren in het systeem zonder enquête of referral-gegevens.
+        </p>
+
+        <div class="mt-auto pt-6 border-t border-gray-100">
+            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Directe Invoer</p>
+        </div>
+    </div>
+
+    <div class="flex-1 p-6 md:p-10 relative">
+        
+        <div v-if="loading" class="absolute inset-0 bg-white/80 z-10 flex items-center justify-center backdrop-blur-sm rounded-2xl">
+            <div class="flex flex-col items-center">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-3"></div>
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Bezig met opslaan...</span>
+            </div>
+        </div>
+
+        <div class="max-w-md mx-auto space-y-6">
+            <div>
+                <h3 class="text-lg font-extrabold text-gray-800 mb-1">Contactgegevens</h3>
+                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Vul de basisgegevens in</p>
+            </div>
+
+            <div v-if="errorMessage" class="p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
+                <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-sm text-red-600 font-medium">{{ errorMessage }}</p>
+            </div>
+
+            <form @submit.prevent="submitDirect" class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <input v-model="form.firstName" placeholder="Voornaam *" required 
+                           class="p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm font-medium transition-all">
+                    <input v-model="form.lastName" placeholder="Achternaam *" required 
+                           class="p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm font-medium transition-all">
+                </div>
+                
+                <input v-model="form.email" type="email" placeholder="E-mailadres *" required 
+                       class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm font-medium transition-all">
+                
+                <input v-model="form.phone" type="tel" placeholder="Telefoonnummer *" required 
+                       class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm font-medium transition-all">
+
+                <button type="submit" :disabled="loading || !isValid" 
+                    :class="[isValid && !loading ? 'bg-blue-600 shadow-blue-200 hover:bg-blue-700' : 'bg-gray-200 cursor-not-allowed opacity-50']"
+                    class="w-full text-white py-4 rounded-xl font-bold shadow-lg transition-all transform active:scale-[0.98] mt-4">
+                    Lead Aanmaken
+                </button>
+            </form>
+        </div>
+
+        <div v-if="success" class="mt-6 p-4 bg-green-50 border border-green-100 rounded-xl flex items-center gap-3 animate-pulse">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p class="text-sm text-green-700 font-bold uppercase tracking-tight">Lead succesvol toegevoegd!</p>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+createApp({
+    setup() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const loading = ref(false);
+        const success = ref(false);
+        const errorMessage = ref('');
+
+        const initialForm = {
+            firstName: '', 
+            lastName: '', 
+            email: '', 
+            phone: '', 
+            coachId: urlParams.get('coach'),
+            source: 'direct'
+        };
+
+        const form = ref({...initialForm});
+
+        const isValid = computed(() => {
+            return form.value.firstName.trim() !== '' && 
+                   form.value.lastName.trim() !== '' && 
+                   form.value.email.includes('@') && 
+                   form.value.phone.length > 8;
+        });
+
+        const submitDirect = async () => {
+            loading.value = true;
+            success.value = false;
+            errorMessage.value = '';
+
+            try {
+                const res = await fetch('/api/v1/widget/submit', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(form.value)
+                });
+
+                if (res.ok) {
+                    success.value = true;
+                    form.value = {...initialForm};
+                    setTimeout(() => { success.value = false; }, 3000);
+                } else {
+                    const data = await res.json();
+                    errorMessage.value = data.error || 'Fout bij het opslaan.';
+                }
+            } catch (e) {
+                errorMessage.value = 'Netwerkfout. Probeer het opnieuw.';
+            } finally { 
+                loading.value = false; 
+            }
+        };
+
+        return { form, isValid, submitDirect, loading, success, errorMessage };
+    }
+}).mount('#app');
+</script>
+</body>
+</html>

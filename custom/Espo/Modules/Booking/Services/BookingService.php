@@ -5,7 +5,6 @@ namespace Espo\Modules\Booking\Services;
 use DateTime;
 use DateTimeZone;
 use Espo\Core\Exceptions\Conflict;
-use Espo\Core\Utils\Log;
 use Espo\Modules\Calendar\Services\CalendarService;
 use Espo\Modules\LeadManager\Services\LeadService;
 use Espo\ORM\EntityManager;
