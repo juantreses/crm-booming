@@ -39,7 +39,13 @@
             "spark_progress": "Spark Progress",
             "spark_evolution": "Spark Evolution",
             "spark_10_session_card": "Spark 10 Beurten Kaart",
-            "spark_21_days": "Spark 21 Days"
+            "spark_21_days": "Spark 21 Days",
+            "21_day_base": "21 Dagen Basis",
+            "21_day_fit": "21 Dagen Fit",
+            "21_day_best_deal": "21 Dagen Best Deal",
+            "21_day_ultimate": "21 Dagen Ultimate",
+            "spark_free": "SPARK Gratis",
+            "spark_10x": "SPARK 10 Beurten"
         },
         "salutationName": {
             "": "",
