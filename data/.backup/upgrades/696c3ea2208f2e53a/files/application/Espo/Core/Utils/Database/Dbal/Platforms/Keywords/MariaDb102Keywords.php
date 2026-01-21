@@ -34,7 +34,7 @@ use Doctrine\DBAL\Platforms\Keywords\MariaDBKeywords;
 /**
  * 'LEAD' happened to be a reserved words on some environments.
  */
-class MariaDb102Keywords extends MariaDBKeywords
+final class MariaDb102Keywords extends MariaDBKeywords
 {
     /** @deprecated */
     public function getName(): string

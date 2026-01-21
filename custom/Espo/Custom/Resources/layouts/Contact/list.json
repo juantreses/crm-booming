@@ -8,6 +8,10 @@
         "width": 16
     },
     {
+        "name": "cTypeKlant",
+        "width": 16
+    },
+    {
         "name": "emailAddress",
         "width": 20,
         "notSortable": true
