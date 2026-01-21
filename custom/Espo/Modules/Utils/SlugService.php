@@ -21,7 +21,6 @@ readonly class SlugService
         }
 
         $fieldName = $this->getSlugFieldName($entityType);
-        $GLOBALS['log']->info('fieldname: ' . $fieldName);
         if (!$fieldName) {
             return null;
         }

@@ -1,0 +1,30 @@
+[2026-01-21 20:58:14] --- STARTING PLAYLIST PROCESSING: THE NOISE OF DECEMBER 2025 (everything is noise) ---
+[2026-01-21 20:58:14] SUCCESS: [Isobel Waller-Bridge – Objects] -> Added 'Objective Contemplation' from 'Objects'
+[2026-01-21 20:58:15] SUCCESS: [Ólöf Arnalds – Spíra] -> Added 'Heimurinn núna' from 'Spíra'
+[2026-01-21 20:58:16] SUCCESS: [Omegavortex – Diabolic Messiah of the New World Order] -> Added 'Dystopian Worldrape' from 'Diabolic Messiah of the New World Order'
+[2026-01-21 20:58:16] SUCCESS: [Tourist – Music Is Invisible] -> Added 'The Light In Others' from 'Music Is Invisible'
+[2026-01-21 20:58:17] SUCCESS: [DÄLEK – HAYWARDxDÄLEK] -> Added 'Increments' from 'HAYWARDxDÄLEK'
+[2026-01-21 20:58:18] REJECTED: [ONLY – EYES WIDE OPEN] matched 'Eyes Wide Open' but failed validation: Artist Mismatch (Got 'TWICE' for term 'ONLY')
+[2026-01-21 20:58:18] REJECTED: [ONLY – EYES WIDE OPEN] matched 'Eyes Wide Open (From "North Star")' but failed validation: Artist Mismatch (Got 'Blanco White' for term 'ONLY')
+[2026-01-21 20:58:18] REJECTED: [ONLY – EYES WIDE OPEN] matched 'Eyes Closed' but failed validation: Artist Mismatch (Got 'HAEVN' for term 'ONLY')
+[2026-01-21 20:58:18] FAILURE: No valid Spotify match found for: [ONLY – EYES WIDE OPEN]
+[2026-01-21 20:58:18] REJECTED: [VP – COSMOSIS] matched 'Cosmic Dust' but failed validation: Artist Mismatch (Got 'Astro Energy' for term 'VP')
+[2026-01-21 20:58:18] REJECTED: [VP – COSMOSIS] matched 'Cosmic Harmony' but failed validation: Artist Mismatch (Got 'Connectionist' for term 'VP')
+[2026-01-21 20:58:18] REJECTED: [VP – COSMOSIS] matched 'Cosmos' but failed validation: Artist Mismatch (Got 'Kyron Fade' for term 'VP')
+[2026-01-21 20:58:18] FAILURE: No valid Spotify match found for: [VP – COSMOSIS]
+[2026-01-21 20:58:18] SUCCESS: [ambretta – Ephemeral] -> Added 'Humility' from 'Ephemeral'
+[2026-01-21 20:58:19] SUCCESS: [Health – Conflict DLC] -> Added 'ANTIDOTE' from 'CONFLICT DLC'
+[2026-01-21 20:58:20] SUCCESS: [Orange and Mountains – Pareti] -> Added 'Bolla D'Aria' from 'Pareti'
+[2026-01-21 20:58:20] SUCCESS: [Fleshvessel – Obstinacy: Sisyphean Dreams Unfolded] -> Added 'Mental Myiasis' from 'Obstinacy: Sisyphean Dreams Unfolded'
+[2026-01-21 20:58:21] SUCCESS: [Conway the Machine – You Can’t Kill God With Bullets] -> Added 'Parisian Nights' from 'You Can't Kill God With Bullets'
+[2026-01-21 20:58:22] SUCCESS: [Hierophany – Tenebrario] -> Added 'Ars Moriendi' from 'Tenebrario'
+[2026-01-21 20:58:22] SUCCESS: [Material Girl – Vendetta] -> Added 'you in the front row' from 'Vendetta'
+[2026-01-21 20:58:23] SUCCESS: [Thëm – Ciò Che Resta Di Me] -> Added 'Incontrami' from 'Ciò Che Resta Di Me'
+[2026-01-21 20:58:23] SUCCESS: [Kaitlyn Aurelia Smith – Thoughts On The Future] -> Added 'Thoughts On The Future' from 'Thoughts On The Future'
+[2026-01-21 20:58:24] SUCCESS: [Mathew Lee Cothran – The Honey House Is Empty Now] -> Added 'Let's Try Again in Sevastopol' from 'The Honey House Is Empty Now'
+[2026-01-21 20:58:24] REJECTED: [honoka – 花咲く丘の子供たち Children of the Blooming Hill] matched 'Genshin Impact - Outside It Is Growing Dark (Original Game Soundtrack)' but failed validation: Artist Mismatch (Got 'HOYO-MiX' for term 'honoka')
+[2026-01-21 20:58:24] REJECTED: [honoka – 花咲く丘の子供たち Children of the Blooming Hill] matched 'The Wind Rises Soundtrack' but failed validation: Artist Mismatch (Got 'Joe Hisaishi' for term 'honoka')
+[2026-01-21 20:58:24] REJECTED: [honoka – 花咲く丘の子供たち Children of the Blooming Hill] matched 'From Up On Poppy Hill Soundtrack' but failed validation: Artist Mismatch (Got 'Satoshi Takebe' for term 'honoka')
+[2026-01-21 20:58:24] FAILURE: No valid Spotify match found for: [honoka – 花咲く丘の子供たち Children of the Blooming Hill]
+[2026-01-21 20:58:25] COMPLETE: Added 15 tracks to THE NOISE OF DECEMBER 2025 (everything is noise)
+
