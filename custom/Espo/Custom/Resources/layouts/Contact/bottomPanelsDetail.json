@@ -38,9 +38,12 @@
     "_tabBreak_2": {
         "index": 6,
         "tabBreak": true,
-        "tabLabel": "Notes"
+        "tabLabel": "Notities"
     },
     "cNotes": {
+        "dynamicLogicVisible": null,
+        "style": "default",
+        "sticked": false,
         "index": 7
     }
 }
