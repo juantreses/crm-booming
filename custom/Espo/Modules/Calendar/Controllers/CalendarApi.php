@@ -6,7 +6,6 @@ namespace Espo\Modules\Calendar\Controllers;
 use Espo\Core\Api\Request;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\NotFound;
-use Espo\Core\ORM\EntityManager;
 use Espo\Core\Utils\Log;
 use Espo\Modules\Calendar\Services\CalendarService;
 use Exception;
@@ -62,12 +61,13 @@ readonly class CalendarApi
         try {
             $id = $request->getRouteParam('id');
             $date = $request->getQueryParam('date') ?? date('Y-m-d');
+            $location = $request->getQueryParam('location');
 
             if (!$id) {
                 throw new BadRequest("Missing required param id");
             }
 
-            return $this->calendarService->getAvailableSlots($id, $date);
+            return $this->calendarService->getAvailableSlots($id, $date, $location);
 
         }  catch (BadRequest $e) {
             // Return proper error response
@@ -95,12 +95,13 @@ readonly class CalendarApi
             $id = $request->getRouteParam('id');
             $year = $request->getQueryParam('year') ?? date('Y');
             $month = $request->getQueryParam('month') ?? date('m');
+            $location = $request->getQueryParam('location');
 
             if (!$id) {
                 throw new BadRequest("Missing required param id");
             }
 
-            return $this->calendarService->getMonthAvailability($id, (int)$year, (int)$month);
+            return $this->calendarService->getMonthAvailability($id, (int)$year, (int)$month, $location);
 
         }  catch (BadRequest $e) {
             // Return proper error response

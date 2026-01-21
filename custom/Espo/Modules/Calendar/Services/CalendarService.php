@@ -21,22 +21,49 @@ readonly class CalendarService
     /**
      * @throws Exception
      */
-    public function getAvailableSlots($identifier, $dateString): array
+    public function getAvailableSlots($identifier, $dateString, ?string $locationIdentifier = null): array
     {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
+        $locationId = $this->slugService->resolve('CLocation', $locationIdentifier);
+
         $calendar = $this->validateCalendar($calendarId);
-        $availabilities = $this->getAvailabilityForDate($calendar, $dateString);
+        $availabilities = $this->getAvailabilityForDate($calendar, $dateString, $locationId);
         
         if (!$availabilities || (is_countable($availabilities) && count($availabilities) === 0)) {
             return [];
         }
 
         $availabilities = $this->normalizeAvailabilities($availabilities);
+
+        $locationIds = [];
+        foreach($availabilities as $availability) {
+            if ($lid = $availability->get('cLocationId')) {
+                $locationIds[] = $lid;
+            }
+        }
+
+        $locationMap = [];
+        if (!empty($locationIds)) {
+            $locations = $this->entityManager->getRDBRepository('CLocation')
+                            ->where(['id' => array_unique($locationIds)])
+                            ->find();
+            
+            foreach($locations as $loc) {
+                $locationMap[$loc->getId()] = [
+                    'name' => $loc->get('name'),
+                    'address' => $loc->get('address'),
+                ];
+            }
+        }
+
         $calendarConfig = $this->getCalendarConfig($calendar, $dateString);
         
         $allSlots = [];
         foreach ($availabilities as $availability) {
-            $slots = $this->generateSlotsForAvailability($availability, $dateString, $calendarConfig);
+            $locId = $availability->get('cLocationId');
+            $locationData = $locId ? ($locationMap[$locId] ?? null) : null;
+
+            $slots = $this->generateSlotsForAvailability($availability, $dateString, $calendarConfig, $locationData);
             $allSlots = array_merge($allSlots, $slots);
         }
 
@@ -120,7 +147,7 @@ readonly class CalendarService
         return $slots;
     }
 
-    private function createSlot(DateTime $currentPointer, string $dateString, array $config, DateTimeZone $tzLocal): array
+    private function createSlot(DateTime $currentPointer, string $dateString, array $config, DateTimeZone $tzLocal, ?array $locationData = null): array
     {
         $displayPointer = clone $currentPointer;
         $displayPointer->setTimezone($tzLocal);
@@ -141,6 +168,8 @@ readonly class CalendarService
             'isBookable' => $isBookable,
             'isBlocked' => $isBlocked,
             'reason' => $isTooSoon ? 'te kort dag' : ($hasSeats ? '' : 'volzet'),
+            'locationName' => $locationData['name'] ?? null,
+            'locationAddress' => $locationData['address'] ?? null,
         ];
     }
 
@@ -213,27 +242,33 @@ readonly class CalendarService
             ->find();
     }
 
-    private function getAvailabilityForDate($calendar, $dateString): SthCollection|EntityCollection
+    private function getAvailabilityForDate($calendar, $dateString, ?string $locationId = null): SthCollection|EntityCollection
     {
         $dayNum = (string) date('w', strtotime($dateString));
 
-        return $this->entityManager->getRDBRepository('CAvailability')
-            ->select()
-            ->where([
-                'calendarId' => $calendar->get('id'),
-                [
-                    'OR' => [
-                        [
-                            'type' => 'specific',
-                            'date' => $dateString
-                        ],
-                        [
-                            'type' => 'recurrent',
-                            'daysOfWeek*' => '%' . $dayNum . '%'
-                        ]
+        $criteria = [
+            'calendarId' => $calendar->get('id'),
+            [
+                'OR' => [
+                    [
+                        'type' => 'specific',
+                        'date' => $dateString
+                    ],
+                    [
+                        'type' => 'recurrent',
+                        'daysOfWeek*' => '%' . $dayNum . '%'
                     ]
                 ]
-            ])
+            ]
+                    ];
+
+        if ($locationId) {
+            $criteria['locationId'] = $locationId;
+        }
+
+        return $this->entityManager->getRDBRepository('CAvailability')
+            ->select()
+            ->where($criteria)
             ->find();
     }
 
@@ -267,9 +302,11 @@ readonly class CalendarService
     /**
      * @throws Exception
      */
-    public function getMonthAvailability(string $identifier, int $year, int $month): array
+    public function getMonthAvailability(string $identifier, int $year, int $month, ?string $locationIdentifier = null): array
     {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
+        $locationId = $this->slugService->resolve('CLocation', $locationIdentifier);
+
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
         if (!$calendar) {
             return [];
@@ -286,7 +323,7 @@ readonly class CalendarService
                 continue;
             }
 
-            $slots = $this->getAvailableSlots($calendarId, $dateString);
+            $slots = $this->getAvailableSlots($calendarId, $dateString, $locationIdentifier);
 
             foreach ($slots as $slot) {
                 if ($slot['isBookable'] ?? false) {

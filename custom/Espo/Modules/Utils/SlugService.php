@@ -14,8 +14,12 @@ readonly class SlugService
     )
     {}
 
-    public function resolve(string $entityType, string $identifier): ?string
+    public function resolve(string $entityType, ?string $identifier = null): ?string
     {
+        if (!$identifier) {
+            return null;
+        }
+        
         if (preg_match('/^[a-f0-9-]{17}$/', $identifier)) {
             return $identifier;
         }

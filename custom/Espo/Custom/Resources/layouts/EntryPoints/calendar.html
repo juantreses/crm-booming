@@ -240,6 +240,7 @@
         setup() {
             const urlParams = new URLSearchParams(window.location.search);
             const calendarId = urlParams.get('id');
+            const locationId = urlParams.get('location');
             const coachId = urlParams.get('coach');
             const step = ref(1);
             const settings = ref({});
@@ -264,7 +265,11 @@
 
             const updateCalendarAvailability = async (year, month) => {
                 try {
-                    const res = await fetch(`/api/v1/calendar/${calendarId}/availability?year=${year}&month=${month}`);
+                    let uri = `/api/v1/calendar/${calendarId}/availability?year=${year}&month=${month}`;
+                    if (locationId) {
+                        uri += `&location=${locationId}`
+                    }
+                    const res = await fetch(uri);
                     const availableDates = await res.json();
 
                     if (fp) {
@@ -316,7 +321,11 @@
             const fetchSlots = async () => {
                 loading.value = true;
                 try {
-                    const res = await fetch(`/api/v1/calendar/${calendarId}/slots?date=${selectedDate.value}`);
+                    let slotsUri = `/api/v1/calendar/${calendarId}/slots?date=${selectedDate.value}`;
+                    if (locationId) {
+                        slotsUri += `&location=${locationId}`;
+                    }
+                    const res = await fetch(slotsUri);
                     slots.value = await res.json();
                 } finally {
                     loading.value = false;
