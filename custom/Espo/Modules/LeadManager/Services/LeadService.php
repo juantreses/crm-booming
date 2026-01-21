@@ -8,6 +8,7 @@ use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Services\LeadEventService;
 use Espo\Modules\Crm\Entities\Contact;
 use Espo\Modules\Crm\Entities\Lead;
+use Espo\Modules\Utils\SlugService;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
@@ -16,6 +17,7 @@ readonly class LeadService
     public function __construct(
         private EntityManager $entityManager,
         private LeadEventService $leadEventService,
+        private SlugService $slug,
     )
     {}
 
@@ -34,7 +36,8 @@ readonly class LeadService
             $person = $this->createLead($data);
         }
 
-        $coachId = $data['coachId'] ?? null;
+        $coachIdentifier = $data['coachId'] ?? null;
+        $coachId = $this->slug->resolve('User', $coachIdentifier);
         if ($coachId) {
             $this->assignCoach($person, $coachId, $data->source ?? 'Webform');
         }
@@ -103,7 +106,7 @@ readonly class LeadService
             return;
         }
 
-        $newCoach = $this->entityManager->getEntityById('CTeam', $newCoachId);
+        $newCoach = $this->entityManager->getEntityById('User', $newCoachId);
         if (!$newCoach) {
             return;
         }
@@ -111,10 +114,16 @@ readonly class LeadService
         $oldCoachName = $oldCoachId ? ($this->entityManager->getEntityById('CTeam', $oldCoachId)?->get('name') ?? 'Onbekend') : 'null';
         $newCoachName = $newCoach->get('name');
 
-        $person->set('cTeamId', $newCoachId);
-        if ($sfcId = $newCoach->get('slimFitCenterId')) {
-            $person->set('cSlimFitCenterId', $sfcId);
+        $person->set('assignedUserId', $newCoachId);
+        $team = $this->entityManager->getRDBRepository('CTeam')->where('userId', $newCoachId)->findOne();
+        if ($team) {
+            $person->set('cTeamId', $team->getId());
+
+            if ($sfcId = $team->get('slimFitCenterId')) {
+                $person->set('cSlimFitCenterId', $sfcId);
+            }
         }
+        
         $this->entityManager->saveEntity($person);
 
         $this->leadEventService->logEvent(

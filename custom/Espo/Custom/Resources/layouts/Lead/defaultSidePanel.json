@@ -1,11 +1,14 @@
 [
     {
-        "name": "cVankoCRM"
-    },
-    {
-        "name": "convertedAt"
+        "name": ":assignedUser"
     },
     {
         "name": "teams"
+    },
+    {
+        "name": "source"
+    },
+    {
+        "name": "convertedAt"
     }
 ]

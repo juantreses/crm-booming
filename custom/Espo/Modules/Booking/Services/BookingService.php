@@ -7,6 +7,7 @@ use DateTimeZone;
 use Espo\Core\Exceptions\Conflict;
 use Espo\Modules\Calendar\Services\CalendarService;
 use Espo\Modules\LeadManager\Services\LeadService;
+use Espo\Modules\Utils\SlugService;
 use Espo\ORM\EntityManager;
 
 readonly class BookingService
@@ -15,6 +16,7 @@ readonly class BookingService
         private EntityManager $entityManager,
         private CalendarService $calendarService,
         private LeadService $leadService,
+        private SlugService $slug
     ) {}
 
     /**
@@ -22,10 +24,12 @@ readonly class BookingService
      */
     public function processBooking(array $data): array
     {
-        $calendar = $this->entityManager->getEntityById('CCalendar', $data['calendarId']);
+        $calendarIdentifier = $data['calendarId'];
+        $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
+        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
 
         //--- RACE CONDITION CHECK ---
-        $slots = $this->calendarService->getAvailableSlots($data['calendarId'], $data['date']);
+        $slots = $this->calendarService->getAvailableSlots($calendarId, $data['date']);
         $isStillAvailable = false;
         foreach ($slots as $slot) {
             if ($slot['start'] === $data['time'] && $slot['isBookable']) {
