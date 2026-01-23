@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,17 +19,14 @@
             background: transparent !important;
         }
 
-        /* Respecteer line-breaks uit de database */
         .description-text {
             white-space: pre-line;
         }
 
-        /* Zorg dat de kalender container de juiste ruimte inneemt */
         #calendar-inline {
-            display: none; /* Verberg het originele input/div element */
+            display: none;
         }
 
-        /* De div waar Flatpickr zichzelf in injecteert moet gestyled worden */
         .calendar-wrapper .flatpickr-calendar {
             margin: 0 auto;
         }
@@ -38,410 +36,493 @@
         }
     </style>
 </head>
+
 <body class="bg-[#f8faff] min-h-screen flex items-center justify-center p-4">
 
 
-<div id="app" v-cloak
-     class="bg-white rounded-2xl shadow-xl max-w-6xl w-full flex flex-col md:flex-row overflow-hidden border border-gray-100 min-h-[650px]">
+    <div id="app" v-cloak
+        class="bg-white rounded-2xl shadow-xl max-w-6xl w-full flex flex-col md:flex-row overflow-hidden border border-gray-100 min-h-[650px]">
 
-    <div class="md:w-96 p-10 border-r border-gray-100 flex flex-col bg-white">
-        <div class="mb-8 p-3 border border-gray-100 inline-block rounded-xl shadow-sm w-fit">
-            <img src="?entryPoint=LogoImage" class="h-14 w-auto object-contain">
-        </div>
-
-        <h2 class="text-gray-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-2">Spark Center Booming</h2>
-        <h1 class="text-2xl font-black text-gray-900 leading-tight mb-8">{{ settings.name }}</h1>
-
-        <div class="space-y-5">
-            <div class="flex items-center gap-4 text-gray-800 font-bold">
-                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" stroke-width="3"
-                     viewBox="0 0 24 24">
-                    <path d="M12 8v4l3 3" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="12" cy="12" r="9" stroke-width="2"/>
-                </svg>
-                <span class="text-lg">{{ settings.duration }} Min.</span>
+        <div class="md:w-96 p-10 border-r border-gray-100 flex flex-col bg-white">
+            <div class="mb-8 p-3 border border-gray-100 inline-block rounded-xl shadow-sm w-fit">
+                <img src="?entryPoint=LogoImage" class="h-14 w-auto object-contain">
             </div>
 
-            <div v-if="selectedDate" class="flex items-center gap-4 text-gray-800 font-bold">
-                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" stroke-width="2.5"
-                     viewBox="0 0 24 24">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                <span class="text-lg capitalize">{{ formattedDate }}</span>
-            </div>
-        </div>
+            <h2 class="text-gray-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-2">Spark Center Booming</h2>
+            <h1 class="text-2xl font-black text-gray-900 leading-tight mb-8">{{ settings.name }}</h1>
 
-        <div class="mt-10 text-[14px] text-gray-500 description-text border-t pt-8">
-            {{ settings.description }}
-        </div>
-    </div>
-
-    <div class="flex-1 p-10 bg-white">
-        <button v-if="step === 2" @click="step = 1" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors font-bold text-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Terug naar kalender
-        </button>
-
-        <div v-if="step === 1">
-            <h3 class="text-xl font-extrabold text-gray-800 mb-10">Selecteer datum en tijd</h3>
-
-            <div class="flex flex-col lg:flex-row gap-12">
-                <div class="w-full max-w-[320px]">
-                    <div id="calendar-inline"></div>
-
-                    <div class="mt-8 pt-6 border-t border-gray-100">
-                        <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-2">
-                            <span>🌐</span> GMT+01:00 Europe/Brussels
-                        </p>
+            <div class="space-y-6">
+                <div class="flex items-start gap-4">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path d="M12 8v4l3 3" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="12" cy="12" r="9" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Duur</p>
+                        <span class="text-md font-bold text-gray-800">{{ settings.duration }} Minuten</span>
                     </div>
                 </div>
 
-                <div class="flex-1">
-                    <div v-if="loading" class="flex justify-center py-10">
-                        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                    </div>
-
-                    <div v-else-if="slots.length > 0" class="space-y-3 overflow-y-auto max-h-[480px] pr-4">
-                        <button v-for="slot in slots" :key="slot.start"
-                                @click="slot.isBookable ? confirmSlot(slot) : null"
-                                :disabled="!slot.isBookable"
-                                :class="[
-                                'w-full py-5 border-2 rounded-2xl font-bold transition-all flex flex-col items-center justify-center min-h-[90px]',
-                                slot.isBookable
-                                    ? 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white shadow-sm'
-                                    : 'border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed'
-                            ]">
-                            <span class="text-2xl">{{ slot.start }}</span>
-                            <span class="text-[10px] tracking-widest mt-1 uppercase opacity-60">
-                                {{ slot.isBookable ? slot.availableSeats + ' Zetels' : slot.reason }}
-                            </span>
-                        </button>
-                    </div>
-
-                    <div v-else class="bg-gray-50 rounded-3xl p-10 text-center border border-gray-100">
-                        <p class="text-gray-500 mb-8 font-medium">Deze maand is er geen tijdsperiode beschikbaar.</p>
-                        <button @click="searchNext"
-                                class="bg-[#2563eb] text-white px-10 py-4 rounded-full font-bold shadow-lg hover:bg-blue-700 transition-all inline-flex items-center gap-3">
-                            Volgende beschikbare zoeken
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path d="M9 5l7 7-7 7" stroke-width="3"/>
+                <div class="min-h-[80px] transition-all duration-300 ease-in-out">
+                    <div v-if="displayLocation" class="flex items-start gap-4 animate-fade-in">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <circle cx="12" cy="11" r="3" />
                             </svg>
-                        </button>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Locatie</p>
+                            <p class="text-md font-bold text-gray-800 leading-tight">{{ displayLocation.name }}</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ displayLocation.addressStreet }}</p>
+                            <p class="text-xs text-gray-500">{{ displayLocation.addressCity }}</p>
+                        </div>
+                    </div>
+                    <div v-else class="flex items-center gap-4 opacity-50">
+                        <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center">
+                            <span class="text-gray-300">?</span>
+                        </div>
+                        <p class="text-xs text-gray-400 italic">Selecteer een tijdstip...</p>
                     </div>
                 </div>
+
+                <div v-if="selectedDate" class="flex items-start gap-4">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Datum</p>
+                        <span class="text-md font-bold text-gray-800 capitalize">{{ formattedDate }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10 text-[14px] text-gray-500 description-text border-t pt-8">
+                {{ settings.description }}
             </div>
         </div>
 
-        <div v-if="step === 2" class="max-w-xl mx-auto py-4">
-            <h3 class="text-lg font-bold text-gray-800 mb-8">Details invoeren</h3>
-            
-            <div v-if="errorMessage" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                    </svg>
-                    <p class="text-sm text-red-700">{{ errorMessage }}</p>
+        <div class="flex-1 p-10 bg-white">
+            <button v-if="step === 2" @click="step = 1"
+                class="mb-6 flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors font-bold text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                    <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Terug naar kalender
+            </button>
+
+            <div v-if="step === 1">
+                <h3 class="text-xl font-extrabold text-gray-800 mb-10">Selecteer datum en tijd</h3>
+
+                <div class="flex flex-col lg:flex-row gap-12">
+                    <div class="w-full max-w-[320px]">
+                        <div id="calendar-inline"></div>
+
+                        <div class="mt-8 pt-6 border-t border-gray-100">
+                            <p
+                                class="text-[11px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                                <span>🌐</span> GMT+01:00 Europe/Brussels
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex-1">
+                        <div v-if="loading" class="flex justify-center py-10">
+                            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                        </div>
+
+                        <div v-else-if="slots.length > 0" class="space-y-3 overflow-y-auto max-h-[480px] pr-4">
+                            <button v-for="slot in slots" :key="slot.start" @mouseenter="hoveredSlot = slot"
+                                @mouseleave="hoveredSlot = null" @click="slot.isBookable ? confirmSlot(slot) : null"
+                                :disabled="!slot.isBookable"
+                                class="group w-full py-4 px-4 border-2 rounded-2xl font-bold transition-all flex flex-col items-center justify-center min-h-[110px] relative"
+                                :class="[
+                                    slot.isBookable
+                                        ? 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white shadow-sm'
+                                        : 'border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed'
+                                ]">
+
+                                <span class="text-2xl mb-1">{{ slot.start }}</span>
+
+                                <span class="text-[10px] tracking-widest uppercase opacity-60 mb-3">
+                                    {{ slot.isBookable ? slot.availableSeats + ' Zetels' : slot.reason }}
+                                </span>
+
+                                <span v-if="slot.locationAddressCity"
+                                    class="text-[10px] tracking-widest uppercase opacity-60 mb-3"
+                                >
+                                    📍 {{ slot.locationAddressCity }}
+                                </span>
+                            </button>
+                        </div>
+
+                        <div v-else class="bg-gray-50 rounded-3xl p-10 text-center border border-gray-100">
+                            <p class="text-gray-500 mb-8 font-medium">Deze maand is er geen tijdsperiode beschikbaar.
+                            </p>
+                            <button @click="searchNext"
+                                class="bg-[#2563eb] text-white px-10 py-4 rounded-full font-bold shadow-lg hover:bg-blue-700 transition-all inline-flex items-center gap-3">
+                                Volgende beschikbare zoeken
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 5l7 7-7 7" stroke-width="3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <form @submit.prevent="submitBooking" class="space-y-6">
-                <div class="grid grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Voornaam *</label>
-                        <input v-model="form.firstName" required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Achternaam *</label>
-                        <input v-model="form.lastName" required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Telefoon *</label>
-                        <input v-model="form.phone" type="tel" required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">E-mail *</label>
-                        <input v-model="form.email" type="email" required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+
+            <div v-if="step === 2" class="max-w-xl mx-auto py-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-8">Details invoeren</h3>
+
+                <div v-if="errorMessage" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <p class="text-sm text-red-700">{{ errorMessage }}</p>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">Aanvullende informatie</label>
-                    <textarea v-model="form.note" rows="4"
-                              class="w-full px-4 py-3 border border-gray-300 rounded-lg"
-                              placeholder="Is er iets dat u graag wilt meedelen vóór uw afspraak?"></textarea>
-                </div>
-                <div class="flex justify-end pt-4">
-                    <button type="submit" :disabled="booking"
+
+                <form @submit.prevent="submitBooking" class="space-y-6">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-2">Voornaam *</label>
+                            <input v-model="form.firstName" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-2">Achternaam *</label>
+                            <input v-model="form.lastName" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-2">Telefoon *</label>
+                            <input v-model="form.phone" type="tel" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-2">E-mail *</label>
+                            <input v-model="form.email" type="email" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Aanvullende informatie</label>
+                        <textarea v-model="form.note" rows="4"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg"
+                            placeholder="Is er iets dat u graag wilt meedelen vóór uw afspraak?"></textarea>
+                    </div>
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" :disabled="booking"
                             class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 transition min-w-[140px]">
-                        <span v-if="!booking">Doorgaan</span>
-                        <span v-else class="flex items-center gap-2">Bezig...</span>
+                            <span v-if="!booking">Doorgaan</span>
+                            <span v-else class="flex items-center gap-2">Bezig...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div v-if="step === 3" class="text-center py-10 animate-fade-in">
+                <div
+                    class="mb-6 inline-flex items-center justify-center w-20 h-20 bg-green-100 text-green-600 rounded-full">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+
+                <h3 class="text-2xl font-black text-gray-900 mb-4">Afspraak aangevraagd!</h3>
+                <p class="text-gray-600 mb-8">
+                    Bedankt {{ form.firstName }}. Je afspraak is succesvol geregistreerd in ons systeem.
+                    Er wordt momenteel een bevestigingsmail verstuurd naar <strong>{{ form.email }}</strong>.
+                </p>
+
+                <div class="bg-gray-50 rounded-2xl p-6 text-left inline-block w-full max-w-md border border-gray-100">
+                    <h4 class="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-4">Overzicht van je
+                        boeking</h4>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Sessie:</span>
+                            <span class="font-bold text-gray-800">{{ settings.name }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Datum:</span>
+                            <span class="font-bold text-gray-800 capitalize">{{ formattedDate }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Tijd:</span>
+                            <span class="font-bold text-gray-800">{{ selectedTime }}</span>
+                        </div>
+                        <div class="flex justify-between border-t pt-3 mt-3">
+                            <span class="text-gray-500">Duur:</span>
+                            <span class="font-bold text-gray-800">{{ settings.duration }} Minuten</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-10">
+                    <button @click="resetFlow" class="text-blue-600 font-bold hover:underline">
+                        Nog een afspraak maken
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
 
-        <div v-if="step === 3" class="text-center py-10 animate-fade-in">
-            <div class="mb-6 inline-flex items-center justify-center w-20 h-20 bg-green-100 text-green-600 rounded-full">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                    <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
+        <script>
+            const { createApp, ref, onMounted, computed } = Vue;
 
-            <h3 class="text-2xl font-black text-gray-900 mb-4">Afspraak aangevraagd!</h3>
-            <p class="text-gray-600 mb-8">
-                Bedankt {{ form.firstName }}. Je afspraak is succesvol geregistreerd in ons systeem.
-                Er wordt momenteel een bevestigingsmail verstuurd naar <strong>{{ form.email }}</strong>.
-            </p>
+            createApp({
+                setup() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const calendarId = urlParams.get('id');
+                    const locationId = urlParams.get('location');
+                    const coachId = urlParams.get('coach');
+                    const step = ref(1);
+                    const settings = ref({});
+                    const slots = ref([]);
+                    const selectedDate = ref('');
+                    const selectedTime = ref('');
+                    const loading = ref(false);
+                    const booking = ref(false);
+                    const errorMessage = ref('');
+                    const hoveredSlot = ref(null);
+                    const form = ref({ firstName: '', lastName: '', email: '', phone: '', note: '' });
 
-            <div class="bg-gray-50 rounded-2xl p-6 text-left inline-block w-full max-w-md border border-gray-100">
-                <h4 class="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-4">Overzicht van je boeking</h4>
-                <div class="space-y-3">
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Sessie:</span>
-                        <span class="font-bold text-gray-800">{{ settings.name }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Datum:</span>
-                        <span class="font-bold text-gray-800 capitalize">{{ formattedDate }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Tijd:</span>
-                        <span class="font-bold text-gray-800">{{ selectedTime }}</span>
-                    </div>
-                    <div class="flex justify-between border-t pt-3 mt-3">
-                        <span class="text-gray-500">Duur:</span>
-                        <span class="font-bold text-gray-800">{{ settings.duration }} Minuten</span>
-                    </div>
-                </div>
-            </div>
+                    let fp = null;
 
-            <div class="mt-10">
-                <button @click="resetFlow" class="text-blue-600 font-bold hover:underline">
-                    Nog een afspraak maken
-                </button>
-            </div>
-    </div>
-</div>
-
-<script>
-    const {createApp, ref, onMounted, computed} = Vue;
-
-    createApp({
-        setup() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const calendarId = urlParams.get('id');
-            const locationId = urlParams.get('location');
-            const coachId = urlParams.get('coach');
-            const step = ref(1);
-            const settings = ref({});
-            const slots = ref([]);
-            const selectedDate = ref('');
-            const selectedTime = ref('');
-            const loading = ref(false);
-            const booking = ref(false);
-            const errorMessage = ref('');
-            const form = ref({firstName: '', lastName: '', email: '', phone: '', note: ''});
-
-            let fp = null;
-
-            const formattedDate = computed(() => {
-                return new Date(selectedDate.value ? selectedDate.value : '').toLocaleDateString('nl-NL', {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                });
-            });
-
-            const updateCalendarAvailability = async (year, month) => {
-                try {
-                    let uri = `/api/v1/calendar/${calendarId}/availability?year=${year}&month=${month}`;
-                    if (locationId) {
-                        uri += `&location=${locationId}`
-                    }
-                    const res = await fetch(uri);
-                    const availableDates = await res.json();
-
-                    if (fp) {
-                        fp.set('enable', availableDates);
-                        fp.redraw();
-                    }
-                    return availableDates;
-                } catch (e) {
-                    console.error("Fout bij ophalen beschikbaarheid", e);
-                    return [];
-                }
-            };
-
-            const initCalendar = () => {
-                const maxDays = settings.value.maxBookingRange || 30;
-                const maxDate = new Date();
-                maxDate.setDate(maxDate.getDate() + maxDays);
-
-                fp = flatpickr("#calendar-inline", {
-                    inline: true,
-                    locale: 'nl',
-                    minDate: 'today',
-                    maxDate: maxDate,
-                    dateFormat: 'Y-m-d',
-                    // Start met lege array, wordt gevuld door updateCalendarAvailability
-                    enable: [],
-                    onChange: (selectedDates, dateStr) => {
-                        selectedDate.value = dateStr;
-                        fetchSlots();
-                    },
-                    onMonthChange: (selectedDates, dateStr, instance) => {
-                        // Maand is 0-indexed in JS, maar API verwacht 1-12
-                        updateCalendarAvailability(instance.currentYear, instance.currentMonth + 1);
-                    }
-                });
-            };
-
-            const searchNext = async () => {
-                // Logica om echt naar de eerstvolgende maand met data te springen
-                // Je zou hier ook je 'getFirstAvailable' API kunnen aanroepen
-                fp.changeMonth(1);
-            };
-
-            const fetchSettings = async () => {
-                const res = await fetch(`/api/v1/calendar/${calendarId}/settings`);
-                settings.value = await res.json();
-            };
-
-            const fetchSlots = async () => {
-                loading.value = true;
-                try {
-                    let slotsUri = `/api/v1/calendar/${calendarId}/slots?date=${selectedDate.value}`;
-                    if (locationId) {
-                        slotsUri += `&location=${locationId}`;
-                    }
-                    const res = await fetch(slotsUri);
-                    slots.value = await res.json();
-                } finally {
-                    loading.value = false;
-                }
-            };
-
-            const confirmSlot = (slot) => {
-                selectedTime.value = slot.start;
-                step.value = 2;
-            };
-
-            const submitBooking = async () => {
-                booking.value = true;
-                errorMessage.value = '';
-                try {
-                    const response = await fetch('/api/v1/booking', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            calendarId: calendarId,
-                            coachId: coachId,
-                            date: selectedDate.value,
-                            time: selectedTime.value,
-                            ...form.value
-                        })
+                    const formattedDate = computed(() => {
+                        return new Date(selectedDate.value ? selectedDate.value : '').toLocaleDateString('nl-NL', {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                        });
                     });
 
-                    // Handle 409 Conflict - slot no longer available
-                    if (response.status === 409) {
-                        const errorMsg = response.headers.get('X-Status-Reason') || 
-                                       'Dit tijdstip is niet meer beschikbaar. Kies een ander moment.';
-                        errorMessage.value = errorMsg;
-                        // Refresh slots to show updated availability
-                        await fetchSlots();
-                        return;
-                    }
-
-                    // Handle other error status codes
-                    if (!response.ok) {
-                        let errorText = 'Er is iets misgegaan';
+                    const fetchAvailabilityData = async (year, month) => {
                         try {
-                            const result = await response.json();
-                            errorText = result.error || errorText;
+                            let uri = `/api/v1/calendar/${calendarId}/availability?year=${year}&month=${month}`;
+                            if (locationId) {
+                                uri += `&location=${locationId}`
+                            };
+                            const res = await fetch(uri);
+                            return await res.json();
                         } catch (e) {
-                            // If JSON parsing fails, try reading from header
-                            errorText = response.headers.get('X-Status-Reason') || errorText;
+                            console.error("Fout bij ophalen beschikbaarheid", e);
+                            return [];
                         }
-                        errorMessage.value = errorText;
-                        return;
-                    }
+                    };
 
-                    const result = await response.json();
+                    const updateCalendarAvailability = async (year, month) => {
 
-                    if (result.success) {
-                        step.value = 3;
-                    } else {
-                        errorMessage.value = result.error || 'Er is iets misgegaan';
-                    }
-                } catch (error) {
-                    console.error("Booking Error:", error);
-                    errorMessage.value = error.message || 'Er is een onverwachte fout opgetreden. Probeer het opnieuw.';
-                } finally {
-                    booking.value = false;
+                        try {
+                            const availableDates = await fetchAvailabilityData(year, month);
+                            if (fp) {
+                                fp.set('enable', availableDates);
+                                fp.redraw();
+                            }
+                            return availableDates;
+                        } catch (e) {
+                            console.error("Fout bij ophalen beschikbaarheid", e);
+                            return [];
+                        }
+                    };
+
+                    const initCalendar = () => {
+                        const maxDays = settings.value.maxBookingRange || 30;
+                        const maxDate = new Date();
+                        maxDate.setDate(maxDate.getDate() + maxDays);
+
+                        fp = flatpickr("#calendar-inline", {
+                            inline: true,
+                            locale: 'nl',
+                            minDate: 'today',
+                            maxDate: maxDate,
+                            dateFormat: 'Y-m-d',
+                            enable: [],
+                            onChange: (selectedDates, dateStr) => {
+                                selectedDate.value = dateStr;
+                                fetchSlots();
+                            },
+                            onMonthChange: (selectedDates, dateStr, instance) => {
+                                // Maand is 0-indexed in JS, maar API verwacht 1-12
+                                updateCalendarAvailability(instance.currentYear, instance.currentMonth + 1);
+                            }
+                        });
+                    };
+
+                    const searchNext = async () => {
+                        fp.changeMonth(1);
+                    };
+
+                    const fetchSettings = async () => {
+                        const res = await fetch(`/api/v1/calendar/${calendarId}/settings`);
+                        settings.value = await res.json();
+                    };
+
+                    const fetchSlots = async () => {
+                        loading.value = true;
+                        try {
+                            let slotsUri = `/api/v1/calendar/${calendarId}/slots?date=${selectedDate.value}`;
+                            if (locationId) {
+                                slotsUri += `&location=${locationId}`;
+                            }
+                            const res = await fetch(slotsUri);
+                            slots.value = await res.json();
+                        } finally {
+                            loading.value = false;
+                        }
+                    };
+
+                    const confirmSlot = (slot) => {
+                        selectedTime.value = slot.start;
+                        step.value = 2;
+                    };
+
+                    const submitBooking = async () => {
+                        booking.value = true;
+                        errorMessage.value = '';
+                        try {
+                            const response = await fetch('/api/v1/booking', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: JSON.stringify({
+                                    calendarId: calendarId,
+                                    coachId: coachId,
+                                    date: selectedDate.value,
+                                    time: selectedTime.value,
+                                    ...form.value
+                                })
+                            });
+
+                            // Handle 409 Conflict - slot no longer available
+                            if (response.status === 409) {
+                                const errorMsg = response.headers.get('X-Status-Reason') ||
+                                    'Dit tijdstip is niet meer beschikbaar. Kies een ander moment.';
+                                errorMessage.value = errorMsg;
+                                await fetchSlots();
+                                return;
+                            }
+
+                            // Handle other error status codes
+                            if (!response.ok) {
+                                let errorText = 'Er is iets misgegaan';
+                                try {
+                                    const result = await response.json();
+                                    errorText = result.error || errorText;
+                                } catch (e) {
+                                    errorText = response.headers.get('X-Status-Reason') || errorText;
+                                }
+                                errorMessage.value = errorText;
+                                return;
+                            }
+
+                            const result = await response.json();
+
+                            if (result.success) {
+                                step.value = 3;
+                            } else {
+                                errorMessage.value = result.error || 'Er is iets misgegaan';
+                            }
+                        } catch (error) {
+                            console.error("Booking Error:", error);
+                            errorMessage.value = error.message || 'Er is een onverwachte fout opgetreden. Probeer het opnieuw.';
+                        } finally {
+                            booking.value = false;
+                        }
+                    };
+
+                    const resetFlow = () => {
+                        window.location.reload();
+                    };
+
+                    const displayLocation = computed(() => {
+                        const target = hoveredSlot.value || (slots.value.length > 0 ? slots.value[0] : null);
+
+                        if (target && target.locationName) {
+                            return {
+                                name: target.locationName,
+                                addressStreet: target.locationAddressStreet,
+                                addressCity: target.locationAddressCity
+                            };
+                        }
+                        return null;
+                    });
+
+                    onMounted(async () => {
+                        const now = new Date();
+                        const currentYear = now.getFullYear();
+                        const currentMonth = now.getMonth() + 1;
+
+                        const settingsPromise = fetch(`/api/v1/calendar/${calendarId}/settings`).then(r => r.json());
+                        const availabilityPromise = fetchAvailabilityData(currentYear, currentMonth);
+
+                        const [settingsData, availabilityData] = await Promise.all([
+                            settingsPromise,
+                            availabilityPromise
+                        ]);
+
+                        settings.value = settingsData;
+
+                        initCalendar();
+
+                        if (fp) {
+                            fp.set('enable', availabilityData);
+                            fp.redraw();
+                        }
+
+                        if (availabilityData && availabilityData.length > 0) {
+                            const firstDate = availabilityData[0];
+
+                            fp.setDate(firstDate);
+
+                            selectedDate.value = firstDate;
+
+                            await fetchSlots();
+                        }
+                    });
+
+
+                    return {
+                        step,
+                        settings,
+                        slots,
+                        selectedDate,
+                        formattedDate,
+                        selectedTime,
+                        loading,
+                        booking,
+                        errorMessage,
+                        form,
+                        displayLocation,
+                        hoveredSlot,
+                        confirmSlot,
+                        searchNext,
+                        submitBooking,
+                        resetFlow
+                    };
                 }
-            };
-
-            const resetFlow = () => {
-                window.location.reload();
-            };
-
-            onMounted(async () => {
-                await fetchSettings();
-                initCalendar();
-
-                const now = new Date();
-                const currentYear = now.getFullYear();
-                const currentMonth = now.getMonth() + 1;
-
-                const availableDates = await updateCalendarAvailability(currentYear, currentMonth);
-
-                // 2. Automatische selectie van de eerste datum
-                if (availableDates && availableDates.length > 0) {
-                    const firstDate = availableDates[0];
-
-                    // Update Flatpickr visueel
-                    fp.setDate(firstDate);
-
-                    // Update de Vue staat
-                    selectedDate.value = firstDate;
-
-                    // Haal direct de slots op voor deze datum
-                    await fetchSlots();
-                }
-            });
-
-            return {
-                step,
-                settings,
-                slots,
-                selectedDate,
-                formattedDate,
-                selectedTime,
-                loading,
-                booking,
-                errorMessage,
-                form,
-                confirmSlot,
-                searchNext,
-                submitBooking,
-                resetFlow
-            };
-        }
-    }).mount('#app');
-</script>
+            }).mount('#app');
+        </script>
 </body>
+
 </html>

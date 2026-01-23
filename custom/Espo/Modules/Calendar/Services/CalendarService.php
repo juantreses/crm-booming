@@ -37,7 +37,7 @@ readonly class CalendarService
 
         $locationIds = [];
         foreach($availabilities as $availability) {
-            if ($lid = $availability->get('cLocationId')) {
+            if ($lid = $availability->get('locationId')) {
                 $locationIds[] = $lid;
             }
         }
@@ -51,7 +51,8 @@ readonly class CalendarService
             foreach($locations as $loc) {
                 $locationMap[$loc->getId()] = [
                     'name' => $loc->get('name'),
-                    'address' => $loc->get('address'),
+                    'addressStreet' => $loc->get('addressStreet'),
+                    'addressCity' => $loc->get('addressCity'),
                 ];
             }
         }
@@ -60,7 +61,7 @@ readonly class CalendarService
         
         $allSlots = [];
         foreach ($availabilities as $availability) {
-            $locId = $availability->get('cLocationId');
+            $locId = $availability->get('locationId');
             $locationData = $locId ? ($locationMap[$locId] ?? null) : null;
 
             $slots = $this->generateSlotsForAvailability($availability, $dateString, $calendarConfig, $locationData);
@@ -117,7 +118,7 @@ readonly class CalendarService
         ];
     }
 
-    private function generateSlotsForAvailability(Entity $availability, string $dateString, array $config): array
+    private function generateSlotsForAvailability(Entity $availability, string $dateString, array $config, ?array $locationData = null): array
     {
         $slots = [];
         $tzLocal = $config['tzLocal'];
@@ -134,7 +135,7 @@ readonly class CalendarService
         $maxTime = (clone $endTimeUTC)->modify("-$duration minutes");
 
         while ($currentPointer <= $maxTime) {
-            $slot = $this->createSlot($currentPointer, $dateString, $config, $tzLocal);
+            $slot = $this->createSlot($currentPointer, $dateString, $config, $tzLocal, $locationData);
             
             if (!$slot['isBlocked']) {
                 $slots[] = $slot;
@@ -169,7 +170,8 @@ readonly class CalendarService
             'isBlocked' => $isBlocked,
             'reason' => $isTooSoon ? 'te kort dag' : ($hasSeats ? '' : 'volzet'),
             'locationName' => $locationData['name'] ?? null,
-            'locationAddress' => $locationData['address'] ?? null,
+            'locationAddressStreet' => $locationData['addressStreet'] ?? null,
+            'locationAddressCity' => $locationData['addressCity'] ?? null,
         ];
     }
 
