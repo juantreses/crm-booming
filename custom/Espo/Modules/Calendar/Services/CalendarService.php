@@ -53,6 +53,9 @@ readonly class CalendarService
                     'name' => $loc->get('name'),
                     'addressStreet' => $loc->get('addressStreet'),
                     'addressCity' => $loc->get('addressCity'),
+                    'addressState' => $loc->get('addressState'),
+                    'addressCountry' => $loc->get('addressCountry'),
+                    'addressPostalCode' => $loc->get('addressPostalCode'),
                 ];
             }
         }
@@ -172,6 +175,9 @@ readonly class CalendarService
             'locationName' => $locationData['name'] ?? null,
             'locationAddressStreet' => $locationData['addressStreet'] ?? null,
             'locationAddressCity' => $locationData['addressCity'] ?? null,
+            'locationAddressState' => $locationData['addressState'],
+            'locationAddressCountry' => $locationData['addressCountry'],
+            'locationAddressPostalCode' => $locationData['addressPostalCode'],
         ];
     }
 

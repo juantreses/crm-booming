@@ -33,6 +33,7 @@ readonly class BookingService
         $isStillAvailable = false;
         foreach ($slots as $slot) {
             if ($slot['start'] === $data['time'] && $slot['isBookable']) {
+                $targetSlot = $slot;
                 $isStillAvailable = true;
                 break;
             }
@@ -62,11 +63,12 @@ readonly class BookingService
             'cCalendarId' => $calendar->get('id'),
             'parentId' => $person->get('id'),
             'parentType' => $person->getEntityType(),
-            'cLocationStreet' => $calendar->get('locationStreet'),
-            'cLocationCity' => $calendar->get('locationCity'),
-            'cLocationState' => $calendar->get('locationState'),
-            'cLocationCountry' => $calendar->get('locationCountry'),
-            'cLocationPostalCode' => $calendar->get('locationPostalCode'),
+            'assignedUserId' => $person->get('assignedUserId'),
+            'cLocationStreet' => $targetSlot['locationAddressStreet'],
+            'cLocationCity' => $targetSlot['locationAddressCity'],
+            'cLocationState' => $targetSlot['locationAddressState'],
+            'cLocationCountry' => $targetSlot['locationAddressCountry'],
+            'cLocationPostalCode' => $targetSlot['locationAddressPostalCode'],
         ]);
 
         $this->entityManager->saveEntity($meeting);
