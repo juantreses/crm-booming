@@ -30,14 +30,11 @@
             "type": "link",
             "required": false,
             "view": "views/fields/assigned-user",
-            "disabled": true
+            "disabled": false
         },
         "teams": {
             "type": "linkMultiple",
             "view": "views/fields/teams"
-        },
-        "user": {
-            "type": "link"
         },
         "sponser": {
             "type": "link"
@@ -202,19 +199,13 @@
         "assignedUser": {
             "type": "belongsTo",
             "entity": "User",
-            "disabled": true
+            "disabled": false
         },
         "teams": {
             "type": "hasMany",
             "entity": "Team",
             "relationName": "entityTeam",
             "layoutRelationshipsDisabled": true
-        },
-        "user": {
-            "type": "belongsTo",
-            "foreign": "cTeam",
-            "entity": "User",
-            "isCustom": true
         },
         "sponser": {
             "type": "belongsTo",
@@ -256,6 +247,22 @@
             "entity": "CSlimFitCenter",
             "audited": true,
             "isCustom": true
+        },
+        "availabilities": {
+            "type": "hasMany",
+            "relationName": "cAvailabilityTeam",
+            "foreign": "cTeams",
+            "entity": "CAvailability",
+            "audited": false,
+            "isCustom": true
+        },
+        "calendars": {
+            "type": "hasMany",
+            "relationName": "cCalendarTeam",
+            "foreign": "cTeams",
+            "entity": "CCalendar",
+            "audited": false,
+            "isCustom": true
         }
     },
     "collection": {
@@ -276,8 +283,7 @@
         },
         "assignedUser": {
             "columns": [
-                "assignedUserId",
-                "deleted"
+                "assignedUserId"
             ]
         },
         "createdAt": {

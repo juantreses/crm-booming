@@ -1,8 +1,5 @@
 {
     "fields": {
-        "cTeam": {
-            "type": "linkOne"
-        },
         "cHerbalifeID": {
             "type": "varchar",
             "maxLength": 100,
@@ -27,12 +24,6 @@
         }
     },
     "links": {
-        "cTeam": {
-            "type": "hasOne",
-            "foreign": "user",
-            "entity": "CTeam",
-            "isCustom": true
-        },
         "cMember": {
             "type": "belongsTo",
             "foreign": "cUser",

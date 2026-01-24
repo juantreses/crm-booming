@@ -7,6 +7,14 @@
         "member": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "calendars": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "availabilities": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     }
 }

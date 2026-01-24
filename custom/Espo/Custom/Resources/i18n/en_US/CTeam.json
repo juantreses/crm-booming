@@ -1,6 +1,5 @@
 {
     "fields": {
-        "user": "User",
         "sponser": "Sponsor",
         "downlines": "Downlines",
         "leads": "Leads",
@@ -20,15 +19,18 @@
         "maxCallAttempts": "Aantal keer bellen vóór bericht",
         "linkReferral": "Link Referral",
         "linkGelaatsverzorgingworkshop": "Link Gelaatsverzorgingworkshop",
-        "sparkGroepsles": "Link Spark Groepsles"
+        "sparkGroepsles": "Link Spark Groepsles",
+        "availabilities": "Beschikbaarheden",
+        "calendars": "Kalenders"
     },
     "links": {
-        "user": "User",
         "sponser": "Sponsor",
         "downlines": "Downlines",
         "leads": "Leads",
         "members": "Leden",
-        "slimFitCenter": "SlimFit-Center"
+        "slimFitCenter": "SlimFit-Center",
+        "availabilities": "Beschikbaarheden",
+        "calendars": "Kalenders"
     },
     "labels": {
         "Create CTeam": "Create HBL Team"

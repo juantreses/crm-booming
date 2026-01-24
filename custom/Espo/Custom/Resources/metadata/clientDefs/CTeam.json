@@ -6,10 +6,6 @@
     "color": "#008740",
     "iconClass": "fas fa-people-group",
     "relationshipPanels": {
-        "user": {
-            "layout": null,
-            "selectPrimaryFilterName": null
-        },
         "sponser": {
             "layout": null,
             "selectPrimaryFilterName": null
@@ -29,6 +25,14 @@
         "slimFitCenter": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "availabilities": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "calendars": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     },
     "kanbanViewMode": false,
@@ -45,6 +49,16 @@
                 "label": "Statistieken",
                 "view": "custom:views/cteam/record/panels/statistics"
             }
+        ]
+    },
+    "sidePanels": {
+        "detail": [
+            {
+                "name": "coachLinks",
+                "view": "custom:views/cteam/record/panels/links",
+                "stick": true
+            },
+            "__APPEND__"
         ]
     }
 }

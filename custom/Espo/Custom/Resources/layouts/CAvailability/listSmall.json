@@ -19,5 +19,9 @@
     {
         "name": "endTime",
         "width": 20
+    },
+    {
+        "name": "location",
+        "width": 20
     }
 ]

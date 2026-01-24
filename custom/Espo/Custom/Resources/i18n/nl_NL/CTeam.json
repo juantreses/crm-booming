@@ -3,7 +3,6 @@
         "Create CTeam": "Creëer HB Team"
     },
     "fields": {
-        "user": "User",
         "sponser": "Sponser",
         "downlines": "Downlines",
         "leads": "Leads",
@@ -24,16 +23,19 @@
         "maxCallAttempts": "Aantal keer bellen vóór bericht",
         "linkReferral": "Link Referral",
         "linkGelaatsverzorgingworkshop": "Link Gelaatsverzorgingworkshop",
-        "sparkGroepsles": "Link Spark Groepsles"
+        "sparkGroepsles": "Link Spark Groepsles",
+        "availabilities": "Beschikbaarheden",
+        "calendars": "Kalenders"
     },
     "links": {
-        "user": "User",
         "sponser": "Sponser",
         "downlines": "Downlines",
         "leads": "Leads",
         "members": "Leden",
         "slimFitCenter": "SlimFit-Center",
-        "activeCampaigns": "Active Campaigns"
+        "activeCampaigns": "Active Campaigns",
+        "availabilities": "Beschikbaarheden",
+        "calendars": "Kalenders"
     },
     "options": {
         "herbalifePin": {

@@ -24,7 +24,8 @@
         "locationCountry": "Locatie Land",
         "locationPostalCode": "Locatie Postcode",
         "locationMap": "Locatie Kaart",
-        "slug": "Slug"
+        "slug": "Slug",
+        "cTeams": "Gebruikers"
     },
     "tooltips": {
         "bufferTime": "Tijd tussen twee boekingen",
@@ -36,7 +37,8 @@
         "availabilities": "Beschikbaarheden",
         "meetings": "Afspraken",
         "emailTemplate": "Bevestiging",
-        "reminderTemplate": "Reminder"
+        "reminderTemplate": "Reminder",
+        "cTeams": "Gebruikers"
     },
     "options": {
         "type": {

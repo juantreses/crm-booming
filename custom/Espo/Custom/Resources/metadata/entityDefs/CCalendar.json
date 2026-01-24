@@ -182,6 +182,14 @@
             "entity": "EmailTemplate",
             "audited": false,
             "isCustom": true
+        },
+        "cTeams": {
+            "type": "hasMany",
+            "relationName": "cCalendarTeam",
+            "foreign": "calendars",
+            "entity": "CTeam",
+            "audited": false,
+            "isCustom": true
         }
     },
     "collection": {

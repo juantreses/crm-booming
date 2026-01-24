@@ -6,11 +6,13 @@
         "endTime": "Eindtijd",
         "date": "Datum",
         "calendar": "Kalender",
-        "location": "Locatie"
+        "location": "Locatie",
+        "cTeams": "Gebruiker"
     },
     "links": {
         "calendar": "Kalender",
-        "location": "Locatie"
+        "location": "Locatie",
+        "cTeams": "Gebruiker"
     },
     "labels": {
         "Create CAvailability": "Create Beschikbaarheid"

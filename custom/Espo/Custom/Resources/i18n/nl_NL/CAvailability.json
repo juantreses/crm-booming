@@ -9,7 +9,8 @@
         "endTime": "Eindtijd",
         "date": "Datum",
         "calendar": "Kalender",
-        "location": "Locatie"
+        "location": "Locatie",
+        "cTeams": "Gebruiker"
     },
     "options": {
         "type": {
@@ -28,6 +29,7 @@
     },
     "links": {
         "calendar": "Kalender",
-        "location": "Locatie"
+        "location": "Locatie",
+        "cTeams": "Gebruiker"
     }
 }

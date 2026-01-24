@@ -20,13 +20,15 @@
         "locationCountry": "Locatie Land",
         "locationPostalCode": "Locatie Postcode",
         "locationMap": "Locatie Kaart",
-        "slug": "Slug"
+        "slug": "Slug",
+        "cTeams": "Gebruikers"
     },
     "links": {
         "availabilities": "Beschikbaarheden",
         "meetings": "Afspraken",
         "emailTemplate": "Bevestiging",
-        "reminderTemplate": "Reminder"
+        "reminderTemplate": "Reminder",
+        "cTeams": "Gebruikers"
     },
     "labels": {
         "Create CCalendar": "Create Kalender"

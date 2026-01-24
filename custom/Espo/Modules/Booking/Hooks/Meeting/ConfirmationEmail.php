@@ -21,15 +21,12 @@ class ConfirmationEmail implements AfterSave
      */
     public function afterSave(Entity $entity, SaveOptions $options): void
     {
-        $GLOBALS['log']->info('meeting after save');
         $isNew = $entity->isNew();
         $status = $entity->get('status');
         $oldStatus = $entity->getFetched('status');
 
         $shouldSend = ($isNew && $status === 'Planned') || 
                       (!$isNew && $status === 'Planned' && $oldStatus !== 'Planned');
-
-        $GLOBALS['log']->info('Moet ' . ($shouldSend ? 'wel' : 'geen') . ' mail sturen');
 
         if ($shouldSend) {
             $error = '';

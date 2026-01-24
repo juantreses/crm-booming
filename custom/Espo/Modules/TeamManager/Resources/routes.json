@@ -1,0 +1,10 @@
+[
+    {
+        "route": "/team/:id/links",
+        "method": "get",
+        "params": {
+            "controller": "TeamApi",
+            "action": "links"
+        }
+    }
+]

@@ -14,6 +14,10 @@
         "location": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "cTeams": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     }
 }

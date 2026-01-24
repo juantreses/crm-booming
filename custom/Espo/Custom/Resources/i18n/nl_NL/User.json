@@ -1,13 +1,11 @@
 {
     "fields": {
-        "cTeam": "Team",
         "cHerbalifeID": "Herbalife ID",
         "cMember": "Member",
         "cVankoCRM": "VankoCRM",
         "cSlug": "Slug"
     },
     "links": {
-        "cTeam": "Team",
         "cMember": "Member"
     }
 }

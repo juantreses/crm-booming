@@ -131,6 +131,14 @@
             "entity": "CLocation",
             "audited": false,
             "isCustom": true
+        },
+        "cTeams": {
+            "type": "hasMany",
+            "relationName": "cAvailabilityTeam",
+            "foreign": "availabilities",
+            "entity": "CTeam",
+            "audited": false,
+            "isCustom": true
         }
     },
     "collection": {
