@@ -2,7 +2,7 @@ define('custom:views/cteam/record/panels/links', ['views/base'], (Dep) => {
 
     return class extends Dep {
         templateContent = `
-            <div class="panel panel-default">
+            <div class="panel panel-default" style="display: none;">
                 <div class="panel-heading">
                     <h4 class="panel-title">🔗 Links</h4>
                 </div>

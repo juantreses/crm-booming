@@ -4,12 +4,7 @@ namespace Espo\Custom\Controllers;
 
 use Espo\Modules\Crm\Controllers\Lead as LeadController;
 use Espo\Core\Exceptions\BadRequest;
-use Espo\Core\Exceptions\NotFound;
 use Espo\Custom\Services\LeadEventService;
-use Espo\Custom\Enums\CallOutcome;
-use Espo\Custom\Enums\KickstartOutcome;
-use Espo\Custom\Enums\MessageSentOutcome;
-use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Validators\LogCallValidator;
 use Espo\Custom\Validators\LogKickstartValidator;
 use Espo\Custom\Validators\LogMessageOutcomeValidator;
@@ -35,7 +30,7 @@ class Lead extends LeadController
         } catch (BadRequest $e) {
             // Re-throw BadRequest exceptions as-is (Validation errors)
             throw $e;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $GLOBALS['log']->error('Lead Log Call Error: ' . $e->getMessage(), [
                 'leadId' => $data->id,
                 'outcome' => $data->outcome,
@@ -157,7 +152,6 @@ class Lead extends LeadController
         } catch (\Exception $e) {
             $GLOBALS['log']->error('Lead Log Kickstart Follow Up Error: ' . $e->getMessage(), [
                 'leadId' => $data->id,
-                'outcome' => $outcome,
                 'callAgainDateTime' => $data->callAgainDateTime,
                 'trace' => $e->getTraceAsString()
             ]);
