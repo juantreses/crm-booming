@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SFC Welzijnsevaluatie</title>
+    <title>SPARK - Welzijnsevaluatie</title>
     <link rel="stylesheet" href="client/custom/res/tailwind.min.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <style>[v-cloak] { display: none; }</style>
@@ -16,7 +16,7 @@
         <div class="mb-6 p-3 border border-gray-100 inline-block rounded-xl shadow-sm w-fit">
             <img src="?entryPoint=LogoImage" class="h-10 w-auto object-contain">
         </div>
-        <h2 class="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">SFC Booming</h2>
+        <h2 class="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">SPARK Center Booming</h2>
         <h1 class="text-xl font-black text-gray-900 leading-tight mb-4">Welzijnsevaluatie</h1>
         <div class="mt-auto">
             <div class="flex gap-1 mb-2">
@@ -92,7 +92,7 @@
             </div>
 
             <div>
-                <label class="block text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Ik selecteer per week 10 mensen voor één van onze gratis en vrijblijvende ervaringen in ons SFC. Welke zou jij het liefste volgen? *</label>
+                <label class="block text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Ik selecteer per week 10 mensen voor één van onze gratis en vrijblijvende ervaringen in ons SPARK Center. Welke zou jij het liefste volgen? *</label>
                 <div class="grid grid-cols-1 gap-2">
                     <button v-for="opt in options.ervaringen" :key="opt"
                         @click="toggleMulti('ervaringen', opt)"

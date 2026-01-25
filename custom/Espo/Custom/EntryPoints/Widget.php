@@ -15,7 +15,7 @@ class Widget implements EntryPoint
     {
         $type = $request->getQueryParam('type');
         
-        $allowedTypes = ['survey', 'referral', 'calendar', 'direct'];
+        $allowedTypes = ['survey', 'referral', 'calendar', 'direct', 'voucher'];
         
         if (!in_array($type, $allowedTypes)) {
             $response->writeBody("Fout: Ongeldig widget type.");

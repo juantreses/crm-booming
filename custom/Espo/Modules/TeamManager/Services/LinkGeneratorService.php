@@ -28,9 +28,26 @@ readonly class LinkGeneratorService
         $links = [];
 
         $links['widgets'] = [
-            ['label' => 'Intake / Enquête', 'url' => "$baseWidgetUrl&type=survey&coach=$coachIdentifier", 'icon' => 'fas fa-clipboard-list'],
-            ['label' => 'Direct Boeken', 'url' => "$baseWidgetUrl&type=direct&coach=$coachIdentifier", 'icon' => 'fas fa-bolt'],
-            ['label' => 'Referral', 'url' => "$baseWidgetUrl&type=referral&coach=$coachIdentifier", 'icon' => 'fas fa-user-friends']
+            [
+                'label' => 'Intake / Enquête', 
+                'url' => "$baseWidgetUrl&type=survey&coach=$coachIdentifier", 
+                'icon' => 'fas fa-clipboard-list'
+            ],
+            [
+                'label' => 'Voucher',
+                'url' => "$baseWidgetUrl&type=voucher&coach=$coachIdentifier",
+                'icon' => 'fas fa-ticket-alt'
+            ],
+            [
+                'label' => 'Direct Boeken', 
+                'url' => "$baseWidgetUrl&type=direct&coach=$coachIdentifier", 
+                'icon' => 'fas fa-bolt'
+            ],
+            [
+                'label' => 'Referral', 
+                'url' => "$baseWidgetUrl&type=referral&coach=$coachIdentifier", 
+                'icon' => 'fas fa-user-friends'
+            ],
         ];
 
         $calendars = $this->entityManager->getRDBRepository('CCalendar')
