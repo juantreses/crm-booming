@@ -115,7 +115,7 @@ readonly class LeadService
         $newCoachName = $newCoach->get('name');
 
         $person->set('assignedUserId', $newCoachId);
-        $team = $this->entityManager->getRDBRepository('CTeam')->where('userId', $newCoachId)->findOne();
+        $team = $this->entityManager->getRDBRepository('CTeam')->where('assignedUserId', $newCoachId)->findOne();
         if ($team) {
             $person->set('cTeamId', $team->getId());
 

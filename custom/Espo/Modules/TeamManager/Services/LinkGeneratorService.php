@@ -29,7 +29,7 @@ readonly class LinkGeneratorService
 
         $links['widgets'] = [
             [
-                'label' => 'Intake / Enquête', 
+                'label' => 'Enquête', 
                 'url' => "$baseWidgetUrl&type=survey&coach=$coachIdentifier", 
                 'icon' => 'fas fa-clipboard-list'
             ],
