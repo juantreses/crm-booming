@@ -4,12 +4,7 @@ namespace Espo\Modules\Booking\Jobs;
 
 use Espo\Core\Job\JobDataLess;
 use Espo\ORM\EntityManager;
-use Espo\Tools\EmailTemplate\Processor as MailTemplateProcessor;
-use Espo\Core\Mail\EmailSender;
 use Espo\Modules\Crm\Entities\Meeting;
-use Espo\ORM\Entity;
-use Espo\Tools\EmailTemplate\Params as EmailTemplateParams;
-use Espo\Tools\EmailTemplate\Data as EmailTemplateData;
 use DateTime;
 use DateTimeZone;
 use Espo\Modules\Booking\Services\BookingEmailService;
@@ -26,7 +21,7 @@ class SendReminders implements JobDataLess
         $tzUTC = new DateTimeZone('UTC');
 
         $tomorrowStart = (new DateTime('tomorrow', $tzUTC))->format('Y-m-d H:i:s');
-        $tomorrowEnd = (new DateTime('tomorrow + 1 day', $tzUTC))->format('Y-m-d H:i:s');
+        $tomorrowEnd = (new DateTime('now + 24 hours', $tzUTC))->format('Y-m-d H:i:s');
 
         $meetings = $this->entityManager->getRDBRepositoryByClass(Meeting::class)
             ->where([
@@ -59,8 +54,8 @@ class SendReminders implements JobDataLess
             } catch (\Exception $e) {
                 $meeting->set('cMailError', $e->getMessage());
             }
-        }
 
-        $this->entityManager->saveEntity($meeting);
+            $this->entityManager->saveEntity($meeting);
+        }
     }
 }
