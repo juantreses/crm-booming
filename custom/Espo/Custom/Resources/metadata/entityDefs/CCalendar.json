@@ -104,14 +104,22 @@
                 "bws",
                 "spark",
                 "hom",
-                "workout"
+                "workout",
+                "coach",
+                "event",
+                "royalty",
+                "online"
             ],
             "style": {
                 "kickstart": null,
                 "bws": null,
                 "spark": null,
                 "hom": null,
-                "workout": null
+                "workout": null,
+                "coach": null,
+                "event": null,
+                "royalty": null,
+                "online": null
             },
             "default": "kickstart",
             "maxLength": 100,

@@ -6,7 +6,7 @@
                     "name": "status"
                 },
                 {
-                    "name": "cReferredBy"
+                    "name": "cMeetingType"
                 }
             ],
             [

@@ -8,7 +8,8 @@
         "addressCountry": "Adres Land",
         "addressPostalCode": "Adres Postcode",
         "addressMap": "Adres Kaart",
-        "availabilities": "Beschikbaarheden"
+        "availabilities": "Beschikbaarheden",
+        "parking": "Parkeerinstructies"
     },
     "links": {
         "availabilities": "Beschikbaarheden"

@@ -72,54 +72,6 @@
         "rows": [
             [
                 {
-                    "name": "bissKaartSlimFitCenter"
-                },
-                {
-                    "name": "bissKaartCoachingCenter"
-                }
-            ]
-        ],
-        "dynamicLogicVisible": null,
-        "style": "default",
-        "tabBreak": true,
-        "tabLabel": "BISS Card",
-        "hidden": false,
-        "noteText": null,
-        "noteStyle": "info",
-        "customLabel": "BISS Card"
-    },
-    {
-        "rows": [
-            [
-                {
-                    "name": "betaalLinkProefPakket"
-                },
-                {
-                    "name": "betaalQRProefPakket"
-                }
-            ],
-            [
-                {
-                    "name": "betaalLinkSportweek"
-                },
-                {
-                    "name": "betaalQRSportweek"
-                }
-            ]
-        ],
-        "dynamicLogicVisible": null,
-        "style": "default",
-        "tabBreak": true,
-        "tabLabel": "Betaal Links",
-        "hidden": false,
-        "noteText": null,
-        "noteStyle": "info",
-        "customLabel": "Betaal Links"
-    },
-    {
-        "rows": [
-            [
-                {
                     "name": "maxCallAttempts"
                 }
             ]

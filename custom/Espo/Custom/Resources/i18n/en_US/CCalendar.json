@@ -45,7 +45,11 @@
             "bws": "BWS (skin)",
             "spark": "SPARK",
             "hom": "HOM",
-            "workout": "Workout"
+            "workout": "Workout",
+            "coach": "Coach",
+            "event": "Event",
+            "royalty": "Royalty",
+            "online": "Online Kickstart"
         }
     }
 }

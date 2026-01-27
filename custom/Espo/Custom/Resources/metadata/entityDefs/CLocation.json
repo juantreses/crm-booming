@@ -47,6 +47,12 @@
         "address": {
             "type": "address",
             "isCustom": true
+        },
+        "parking": {
+            "type": "text",
+            "rowsMin": 2,
+            "cutHeight": 200,
+            "isCustom": true
         }
     },
     "links": {
