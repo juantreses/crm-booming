@@ -3,22 +3,6 @@
     "boolFilterList": [
         "onlyMy"
     ],
-    "sidePanels": {
-        "detail": [
-            {
-                "name": "activities",
-                "reference": "activities"
-            },
-            {
-                "name": "history",
-                "reference": "history"
-            },
-            {
-                "name": "tasks",
-                "reference": "tasks"
-            }
-        ]
-    },
     "bottomPanels": {
         "detail": [
             {
@@ -30,7 +14,13 @@
                 "name": "history",
                 "reference": "history",
                 "disabled": true
-            }
+            },
+            {
+                "name": "centerLinks",
+                "view": "custom:views/cslimfitcenter/record/panels/links",
+                "stick": true
+            },
+            "__APPEND__"
         ]
     },
     "color": "#00ff1c",

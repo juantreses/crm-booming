@@ -1,0 +1,10 @@
+[
+    {
+        "route": "/center/links",
+        "method": "get",
+        "params": {
+            "controller": "CenterApi",
+            "action": "links"
+        }
+    }
+]
