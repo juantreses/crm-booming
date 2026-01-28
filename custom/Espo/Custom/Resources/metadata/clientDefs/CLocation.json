@@ -9,6 +9,10 @@
         "availabilities": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "meetings": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     }
 }

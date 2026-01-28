@@ -50,6 +50,7 @@ readonly class CalendarService
             
             foreach($locations as $loc) {
                 $locationMap[$loc->getId()] = [
+                    'id' => $loc->getId(),
                     'name' => $loc->get('name'),
                     'addressStreet' => $loc->get('addressStreet'),
                     'addressCity' => $loc->get('addressCity'),
@@ -172,6 +173,7 @@ readonly class CalendarService
             'isBookable' => $isBookable,
             'isBlocked' => $isBlocked,
             'reason' => $isTooSoon ? 'te kort dag' : ($hasSeats ? '' : 'volzet'),
+            'locationId' => $locationData['id'] ?? null,
             'locationName' => $locationData['name'] ?? null,
             'locationAddressStreet' => $locationData['addressStreet'] ?? null,
             'locationAddressCity' => $locationData['addressCity'] ?? null,

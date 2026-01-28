@@ -33,10 +33,6 @@
                 "Cancelled": "danger"
             }
         },
-        "cLocation": {
-            "type": "address",
-            "isCustom": true
-        },
         "cReminderSent": {
             "notNull": true,
             "type": "bool",
@@ -50,6 +46,9 @@
         },
         "assignedUser": {
             "required": false
+        },
+        "cLocation": {
+            "type": "link"
         }
     },
     "collection": {
@@ -67,6 +66,13 @@
             "type": "belongsTo",
             "foreign": "meetings",
             "entity": "CCalendar",
+            "audited": false,
+            "isCustom": true
+        },
+        "cLocation": {
+            "type": "belongsTo",
+            "foreign": "meetings",
+            "entity": "CLocation",
             "audited": false,
             "isCustom": true
         }

@@ -99,11 +99,7 @@ readonly class BookingService
             'parentId' => $person->get('id'),
             'parentType' => $person->getEntityType(),
             'assignedUserId' => $person->get('assignedUserId'),
-            'cLocationStreet' => $targetSlot['locationAddressStreet'],
-            'cLocationCity' => $targetSlot['locationAddressCity'],
-            'cLocationState' => $targetSlot['locationAddressState'],
-            'cLocationCountry' => $targetSlot['locationAddressCountry'],
-            'cLocationPostalCode' => $targetSlot['locationAddressPostalCode'],
+            'cLocationId' => $targetSlot['locationId'] ?? null,
         ]);
 
         $this->entityManager->saveEntity($meeting);

@@ -3,7 +3,7 @@ define('custom:views/cSlimFitCenter/record/panels/links-bottom', ['views/record/
     return class extends BottomPanelView {
         templateContent = `
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-6">
                     <h4 style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
                         <i class="fas fa-magic"></i> Widgets
                     </h4>
@@ -26,7 +26,7 @@ define('custom:views/cSlimFitCenter/record/panels/links-bottom', ['views/record/
                     {{/if}}
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-6">
                     <h4 style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
                         <i class="fas fa-calendar-alt"></i> Kalenders
                     </h4>

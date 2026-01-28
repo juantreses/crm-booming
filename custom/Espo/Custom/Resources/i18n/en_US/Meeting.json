@@ -1,17 +1,12 @@
 {
     "fields": {
         "cCalendar": "Kalender",
-        "cLocation": "Locatie",
-        "cLocationStreet": "Locatie Straat",
-        "cLocationCity": "Locatie Plaats",
-        "cLocationState": "Locatie Staat",
-        "cLocationCountry": "Locatie Land",
-        "cLocationPostalCode": "Locatie Postcode",
-        "cLocationMap": "Locatie Kaart",
         "cReminderSent": "Herinnering verstuurd",
-        "cMailError": "MailError"
+        "cMailError": "MailError",
+        "cLocation": "Locatie"
     },
     "links": {
-        "cCalendar": "Kalender"
+        "cCalendar": "Kalender",
+        "cLocation": "Locatie"
     }
 }

@@ -12,9 +12,11 @@
         "addressPostalCode": "Adres Postcode",
         "addressMap": "Adres Kaart",
         "availabilities": "Beschikbaarheden",
-        "parking": "Parkeerinstructies"
+        "parking": "Parkeerinstructies",
+        "meetings": "Afspraken"
     },
     "links": {
-        "availabilities": "Beschikbaarheden"
+        "availabilities": "Beschikbaarheden",
+        "meetings": "Afspraken"
     }
 }

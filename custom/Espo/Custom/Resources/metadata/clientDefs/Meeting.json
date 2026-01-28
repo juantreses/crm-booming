@@ -6,6 +6,10 @@
         "calendar": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "location": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     }
 }
