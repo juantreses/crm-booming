@@ -115,7 +115,7 @@
         </div>
 
         <div class="flex-1 p-10 bg-white">
-            <button v-if="step === 2" @click="step = 1"
+            <button v-if="step === 2" @click="backToCalendar"
                 class="mb-6 flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors font-bold text-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                     <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" />
@@ -285,7 +285,7 @@
         </div>
 
         <script>
-            const { createApp, ref, onMounted, computed } = Vue;
+            const { createApp, ref, onMounted, computed, nextTick } = Vue;
 
             createApp({
                 setup() {
@@ -303,6 +303,7 @@
                     const errorMessage = ref('');
                     const hoveredSlot = ref(null);
                     const form = ref({ firstName: '', lastName: '', email: '', phone: '', note: '' });
+                    const currentAvailability = ref([]);
 
                     let fp = null;
 
@@ -333,6 +334,7 @@
 
                         try {
                             const availableDates = await fetchAvailabilityData(year, month);
+                            currentAvailability.value = availableDates;
                             if (fp) {
                                 fp.set('enable', availableDates);
                                 fp.redraw();
@@ -455,6 +457,24 @@
                         window.location.reload();
                     };
 
+                    const backToCalendar = async () => {
+                        step.value = 1;
+                        
+                        await nextTick();
+                        
+                        initCalendar();
+
+                        if (fp) {
+                            if (currentAvailability.value.length > 0) {
+                                fp.set('enable', currentAvailability.value);
+                            }
+                            
+                            if (selectedDate.value) {
+                                fp.setDate(selectedDate.value, true);
+                            }
+                        }
+                    };
+
                     const displayLocation = computed(() => {
                         const target = hoveredSlot.value || (slots.value.length > 0 ? slots.value[0] : null);
 
@@ -482,6 +502,7 @@
                         ]);
 
                         settings.value = settingsData;
+                        currentAvailability.value = availabilityData;
 
                         initCalendar();
 
@@ -518,7 +539,8 @@
                         confirmSlot,
                         searchNext,
                         submitBooking,
-                        resetFlow
+                        resetFlow,
+                        backToCalendar
                     };
                 }
             }).mount('#app');
