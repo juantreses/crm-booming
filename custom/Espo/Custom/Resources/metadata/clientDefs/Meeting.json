@@ -10,6 +10,10 @@
         "location": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "cLocation": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     }
 }

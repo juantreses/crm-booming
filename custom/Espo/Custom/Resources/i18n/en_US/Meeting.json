@@ -3,10 +3,10 @@
         "cCalendar": "Kalender",
         "cReminderSent": "Herinnering verstuurd",
         "cMailError": "MailError",
-        "cLocation": "Locatie"
+        "cLocation": "Gekoppelde Locatie"
     },
     "links": {
         "cCalendar": "Kalender",
-        "cLocation": "Locatie"
+        "cLocation": "Gekoppelde Locatie"
     }
 }
