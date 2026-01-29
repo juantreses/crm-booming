@@ -90,6 +90,7 @@
             "type": "date",
             "required": false,
             "default": null,
+            "timeZone": false,
             "isCustom": true
         },
         "calendar": {

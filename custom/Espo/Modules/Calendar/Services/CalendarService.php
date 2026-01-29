@@ -186,21 +186,17 @@ readonly class CalendarService
     private function isSlotBlocked(string $slotStart, string $slotEnd, $blockingPeriods): bool
     {
         foreach ($blockingPeriods as $block) {
-            $blockStart = $block->get('startTime');
-            $blockEnd = $block->get('endTime');
+            $blockStart = $block['startTime'];
+            $blockEnd = $block['endTime'];
 
-            $blockCalendar = $this->entityManager
-                ->getRelation($block, 'calendar')
-                ->findOne();
-
-            $blockBuffer = $blockCalendar?->get('bufferTime');
+            $blockBuffer = $block['_bufferTime'] ?? 0;
             if ($blockBuffer > 0) {
                 $blockEndObj = new DateTime($blockEnd);
                 $blockEndObj->modify("+$blockBuffer minutes");
                 $blockEnd = $blockEndObj->format('H:i');
             }
 
-            if ($slotStart < $blockEnd && $slotEnd > $blockStart) {
+            if ($slotStart <= $blockEnd && $slotEnd >= $blockStart) {
                 return true;
             }
         }
@@ -238,18 +234,37 @@ readonly class CalendarService
         return $uniqueSlots;
     }
 
-    private function getBlockingAvailability($currentCalendar, $dateString): SthCollection|EntityCollection
+    private function getBlockingAvailability($currentCalendar, $dateString): array
     {
-        return $this->entityManager->getRDBRepository('CAvailability')
-            ->join('CCalendar', 'calendar')
+        $collection = $this->entityManager->getRDBRepository('CAvailability')
+            ->join('calendar') 
             ->where([
                 'calendarId!=' => $currentCalendar->get('id'),
                 'type' => 'specific',
                 'date' => $dateString,
-                'calendar.priority >' => $currentCalendar->get('priority'),
+                'calendar.priority>' => $currentCalendar->get('priority'),
                 'calendar.isActive' => true,
             ])
             ->find();
+
+        $result = [];
+        
+        foreach ($collection as $entity) {
+            $data = (array) $entity->getValueMap();
+            
+            $blockingCalId = $entity->get('calendarId');
+            
+            if ($blockingCalId) {
+                $blockingCal = $this->entityManager->getEntityById('CCalendar', $blockingCalId);
+                $data['_bufferTime'] = $blockingCal ? $blockingCal->get('bufferTime') : 0;
+            } else {
+                $data['_bufferTime'] = 0;
+            }
+            
+            $result[] = $data;
+        }
+        
+        return $result;
     }
 
     private function getAvailabilityForDate($calendar, $dateString, ?string $locationId = null): SthCollection|EntityCollection
