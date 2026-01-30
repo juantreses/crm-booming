@@ -5,7 +5,8 @@
     "params": {
       "controller": "CalendarApi",
       "action": "slots"
-    }
+    },
+    "noAuth": true
   },
   {
     "route": "/calendar/:id/settings",
@@ -13,7 +14,8 @@
     "params": {
       "controller": "CalendarApi",
       "action": "settings"
-    }
+    },
+    "noAuth": true
   },
   {
     "route": "/calendar/:id/availability",
@@ -21,6 +23,7 @@
     "params": {
       "controller": "CalendarApi",
       "action": "availability"
-    }
+    },
+    "noAuth": true
   }
 ]

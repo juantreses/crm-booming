@@ -5,6 +5,7 @@
     "params": {
       "controller": "BookingApi",
       "action": "booking"
-    }
+    },
+    "noAuth": true
   }
 ]
