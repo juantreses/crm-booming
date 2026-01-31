@@ -5,6 +5,7 @@
       "params": {
         "controller": "WidgetApi",
         "action": "submit"
-      }
+      },
+      "noAuth": true
     }
 ]
