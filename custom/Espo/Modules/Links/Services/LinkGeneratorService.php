@@ -103,22 +103,19 @@ readonly class LinkGeneratorService
     {
         $repo = $this->entityManager->getRDBRepository('CAvailability');
         
-        $repo->where([
+        $where = [
             'calendarId' => $calendarId,
             'deleted' => 0
-        ]);
+        ];
 
         if ($teamId) {
-            $repo->leftJoin('cTeams', 'teamJoin')
-                 ->where([
-                     'OR' => [
-                         ['teamJoin.id' => $teamId],
-                         ['teamJoin.id' => null]
-                     ]
-                 ]);
+            $where['OR'] = [
+                ['teamId' => $teamId],
+                ['teamId' => null]
+            ];
         }
 
-        $availabilities = $repo->distinct()->find();
+        $availabilities = $repo->where($where)->distinct()->find();
 
         if (count($availabilities) === 0) {
             return [];
@@ -130,13 +127,15 @@ readonly class LinkGeneratorService
                 $locationIds[] = $locId;
             }
         }
+        
+        $locationIds = array_unique($locationIds);
 
         if (empty($locationIds)) {
             return [];
         }
 
         $locations = $this->entityManager->getRDBRepository('CLocation')
-            ->where(['id' => array_unique($locationIds)])
+            ->where(['id' => $locationIds])
             ->order('name')
             ->find();
 
