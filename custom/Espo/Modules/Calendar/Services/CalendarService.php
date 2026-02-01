@@ -4,6 +4,8 @@ namespace Espo\Modules\Calendar\Services;
 
 use DateTime;
 use DateTimeZone;
+use Espo\Core\Exceptions\BadRequest;
+use Espo\Core\Exceptions\NotFound;
 use Espo\Core\ORM\EntityManager;
 use Espo\Modules\Utils\SlugService;
 use Espo\ORM\Entity;
@@ -73,6 +75,69 @@ readonly class CalendarService
         }
 
         return $this->deduplicateAndSortSlots($allSlots);
+    }
+
+    public function getBookableCalendars(): array
+    {
+        $calendars = $this->entityManager->getRDBRepository('CCalendar')
+            ->where([
+                'isActive' => true,
+                'isDirectBookable' => true,
+                'deleted' => false,
+            ])
+            ->find();
+
+        $result = [];
+        foreach ($calendars as $calendar) {
+            $result[] = [
+                'id' => $calendar->get('id'),
+                'name' => $calendar->get('name'),
+                'type' => $calendar->get('type'),
+                'identifier' => $calendar->get('slug')
+            ];
+        }
+        
+        return $result;
+    }
+
+    public function getUpcomingSlots(string $identifier): array
+    {
+        $calendarId = $this->slugService->resolve('CCalendar', $identifier);
+        if (!$calendarId) {
+            throw new BadRequest("Kalender ID onbekend: $identifier");
+        }
+        
+        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
+        if (!$calendar) {
+            throw new NotFound("Kalender niet gevonden");
+        }
+
+        $daysRange = $calendar->get('maxBookingRange') ?? 14; 
+        
+        if ($daysRange > 60) {
+            $daysRange = 60; 
+        }
+
+        $slots = [];
+        $currentDate = new \DateTime();
+
+        for ($i = 0; $i < $daysRange; $i++) {
+            $dateString = $currentDate->format('Y-m-d');
+            
+            try {
+                $daySlots = $this->getAvailableSlots($identifier, $dateString);
+                
+                if (!empty($daySlots)) {
+                    $slots[$dateString] = $daySlots;
+                }
+            } catch (\Exception $e) {
+                $GLOBALS['log']->error('CALENDAR: ' . $e->getMessage());
+            }
+            
+            $currentDate->modify('+1 day');
+        }
+
+        return $slots;
     }
 
     /**

@@ -1,8 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Espo\Custom\Services;
+namespace Espo\Modules\LeadManager\Services;
 
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\NotFound;
@@ -12,14 +10,14 @@ use Espo\Custom\Enums\CallOutcome;
 use Espo\Custom\Enums\KickstartOutcome;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\MessageSentOutcome;
-use Espo\Modules\Crm\Entities\Lead;
+use Espo\Modules\Booking\Services\BookingService;
 
-class LeadEventService
+readonly class LeadEventService
 {
     // Mapping FE outcome -> events to create
     private const CALL_OUTCOME_EVENT_MAP = [
         CallOutcome::CALLED->value => [LeadEventType::CALLED],
-        CallOutcome::INVITED->value => [LeadEventType::CALLED, LeadEventType::INVITED],
+        CallOutcome::INVITED->value => [LeadEventType::CALLED, LeadEventType::APPOINTMENT_BOOKED],
         CallOutcome::CALL_AGAIN->value => [LeadEventType::CALLED, LeadEventType::CALL_AGAIN],
         CallOutcome::NO_ANSWER->value => [LeadEventType::CALLED, LeadEventType::NO_ANSWER],
         CallOutcome::WRONG_NUMBER->value => [LeadEventType::CALLED, LeadEventType::WRONG_NUMBER],
@@ -65,7 +63,8 @@ class LeadEventService
     ];
 
     public function __construct(
-        private readonly EntityManager $entityManager,
+        private EntityManager $entityManager,
+        private BookingService $bookingService,
     ) {}
 
     public function logEvent(string $leadId, LeadEventType $eventType, ?string $eventDate = null, ?string $description = null): array
@@ -113,7 +112,6 @@ class LeadEventService
         $eventDate = $data->callDateTime ?? null;
         $callAgainDateTime = $data->callAgainDateTime ?? null;
         $coachNote = $data->coachNote ?? null;
-        $meetingType = $data->meetingType ?? null;
 
         if (!isset(self::CALL_OUTCOME_EVENT_MAP[$outcome->value])) {
             throw new BadRequest('Invalid call outcome: ' . $outcome->value);
@@ -138,13 +136,15 @@ class LeadEventService
             $this->addCoachNote($leadId, $coachNote, $source, $eventDate);
         }
 
-        // Persist meeting type on the Lead when invited
-        if ($outcome->value === CallOutcome::INVITED->value && $meetingType) {
-            $lead = $this->fetchLead($leadId);
-            if ($lead) {
-                $lead->set('cMeetingType', $meetingType);
-                $this->entityManager->saveEntity($lead);
-            }
+        if ($data->outcome === CallOutcome::INVITED->value) {
+            $GLOBALS['log']->info('proberen meeting aanmaken');
+            $this->bookingService->createInternalMeeting(
+                $data->calendarId,
+                $this->fetchLead($leadId),
+                $data->selectedDate,
+                $data->selectedTime,
+                $data->coachNote ?? null
+            );
         }
 
         return [

@@ -3,9 +3,7 @@
 namespace Espo\Modules\LeadManager\Services;
 
 use DateTime;
-use Espo\Custom\Controllers\CLeadEvent;
 use Espo\Custom\Enums\LeadEventType;
-use Espo\Custom\Services\LeadEventService;
 use Espo\Modules\Crm\Entities\Contact;
 use Espo\Modules\Crm\Entities\Lead;
 use Espo\Modules\Utils\SlugService;
@@ -16,7 +14,6 @@ readonly class LeadService
 {
     public function __construct(
         private EntityManager $entityManager,
-        private LeadEventService $leadEventService,
         private SlugService $slug,
     )
     {}
@@ -118,6 +115,7 @@ readonly class LeadService
         $team = $this->entityManager->getRDBRepository('CTeam')->where('assignedUserId', $newCoachId)->findOne();
         if ($team) {
             $person->set('cTeamId', $team->getId());
+            $person->set('status', LeadEventType::ASSIGNED);
 
             if ($sfcId = $team->get('slimFitCenterId')) {
                 $person->set('cSlimFitCenterId', $sfcId);
@@ -126,11 +124,22 @@ readonly class LeadService
         
         $this->entityManager->saveEntity($person);
 
-        $this->leadEventService->logEvent(
-            $person->get('id'), 
-            LeadEventType::ASSIGNED, 
-            description: "{$oldCoachName} -> {$newCoachName}"
-        );
+        $event = $this->entityManager->getNewEntity('CLeadEvent');
+        $timezone = new \DateTimeZone('UTC');
+        $dt = new \DateTime('now', $timezone);
+        
+        $event->set([
+            'eventType' => LeadEventType::ASSIGNED->value,
+            'eventDate' => $dt->format('Y-m-d H:i:s'),
+            'description' => "{$oldCoachName} -> {$newCoachName}",
+        ]);
+        
+        $this->entityManager->saveEntity($event);
+        $this->entityManager->getRDBRepository('CLeadEvent')
+            ->getRelation($event, 'lead')
+            ->relate($person);
+
+        $this->entityManager->saveEntity($event);
     }
 
     private function isLeadEligibleForReassignment(Entity $lead): bool

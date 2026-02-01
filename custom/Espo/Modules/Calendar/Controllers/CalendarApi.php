@@ -122,4 +122,19 @@ readonly class CalendarApi
             ];
         }
     }
+
+    public function getActionBookableList(): array
+    {
+        return $this->calendarService->getBookableCalendars();
+    }
+
+    public function getActionUpcomingSlots(Request $request): array
+    {
+        $id = $request->getQueryParam('id');
+        
+        if (!$id) {
+            throw new BadRequest("ID parameter is verplicht");
+        }
+        return $this->calendarService->getUpcomingSlots($id);
+    }
 }

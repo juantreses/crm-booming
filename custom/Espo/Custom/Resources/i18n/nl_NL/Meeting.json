@@ -12,7 +12,9 @@
         "status": {
             "Tentative": "Voorlopig",
             "Planned": "Gepland",
-            "Cancelled": "Geannuleerd"
+            "Cancelled": "Geannuleerd",
+            "Held": "Plaatsgevonden",
+            "Not Held": "Niet Plaatsgevonden"
         }
     },
     "links": {

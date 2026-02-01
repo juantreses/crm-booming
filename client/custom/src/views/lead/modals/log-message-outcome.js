@@ -81,7 +81,7 @@ define('custom:views/lead/modals/log-message-outcome', ['views/modal', 'custom:u
                 }
 			}
 
-			Espo.Ajax.postRequest('lead/action/logMessageOutcome', {
+			Espo.Ajax.postRequest('leadEvent/logMessageOutcome', {
 				id: this.model.id,
 				outcome: outcome,
 				callAgainDateTime: callAgainDateTime ? DateUtils.toOffsetISOString(new Date(callAgainDateTime)) : null,

@@ -21,7 +21,8 @@
         "locationPostalCode": "Locatie Postcode",
         "locationMap": "Locatie Kaart",
         "slug": "Slug",
-        "cTeams": "Gebruikers"
+        "cTeams": "Gebruikers",
+        "isDirectBookable": "Direct Boekbaar"
     },
     "links": {
         "availabilities": "Beschikbaarheden",
@@ -37,7 +38,8 @@
         "bufferTime": "Tijd tussen twee boekingen",
         "maxBookingRange": "Hoeveel dagen in de toekomst mag de kalender getoond worden?",
         "minLeadTime": "Hoeveel uur van tevoren mag iemand minimaal boeken?",
-        "priority": "Hogere prioriteit blokkeert lagere prioriteit kalenders"
+        "priority": "Hogere prioriteit blokkeert lagere prioriteit kalenders",
+        "isDirectBookable": "Kan vanuit het CRM geboekt worden via \"Telefoongesprek\""
     },
     "options": {
         "type": {

@@ -44,7 +44,7 @@ define('custom:views/lead/modals/log-kickstart-follow-up', ['views/modal', 'cust
                 }
             }
 
-			Espo.Ajax.postRequest('lead/action/logKickstartFollowUp', {
+			Espo.Ajax.postRequest('leadEvent/logKickstartFollowUp', {
 				id: this.model.id,
 				outcome: outcome,
 				followUpDateTime: followUpDateTime ? DateUtils.toOffsetISOString(new Date(followUpDateTime)) : null,

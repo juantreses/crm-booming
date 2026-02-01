@@ -19,29 +19,102 @@ define('custom:views/lead/modals/log-call', ['views/modal', 'custom:utils/date-u
                 }
             ];
             
-            this.headerText = 'Log Gesprek - ' + this.model.get('name');
+            this.events['change [name="outcome"]'] = 'handleOutcomeChange';
+            this.events['change [name="selectedCalendar"]'] = 'handleCalendarChange';
+        },
+
+        handleOutcomeChange: function() {
+            const outcome = this.$el.find('[name="outcome"]').val();
+            
+            const $callAgainField = this.$el.find('[data-field="call-again-date"]');
+            const $calDiv = this.$el.find('[data-field="calendar-select"]');
+            const $slotDiv = this.$el.find('[data-field="meeting-slot"]');
+            
+            if (outcome === 'call_again') {
+                $callAgainField.show();
+            } else {
+                $callAgainField.hide();
+            }
+        
+            if (outcome === 'invited') {
+                $calDiv.show();
+                this.loadBookableCalendars();
+            } else {
+                $calDiv.hide();
+                $slotDiv.hide();
+                this.$el.find('[name="selectedCalendar"]').val('');
+                this.$el.find('[name="selectedSlot"]').val('');
+            }
         },
         
-        afterRender: function () {
-            Dep.prototype.afterRender.call(this);
-            const $outcome = this.$el.find('[name="outcome"]');
-            const $callAgainField = this.$el.find('[data-field="call-again-date"]');
-            const $meetingTypeField = this.$el.find('[data-field="meeting-type"]');
+        loadBookableCalendars: function() {
+            const $calSelect = this.$el.find('[name="selectedCalendar"]');
+            $calSelect.prop('disabled', true).empty().append('<option value="">Laden...</option>');
+        
+            Espo.Ajax.getRequest('calendar/bookable-list')
+                .then(response => {
+                    $calSelect.empty().append('<option value="">-- Kies Agenda --</option>');
+                    
+                    response.forEach(cal => {
+                        $calSelect.append(`<option value="${cal.id}">${cal.name}</option>`)
+                    });
+        
+                    $calSelect.prop('disabled', false);
+                })
+                .catch(e => {
+                    console.error(e);
+                    $calSelect.empty().append('<option value="">Fout bij laden</option>');
+                });
+        },
+        
+        handleCalendarChange: function() {
+            const calendarIdentifier = this.$el.find('[name="selectedCalendar"]').val();
+            const $slotDiv = this.$el.find('[data-field="meeting-slot"]');
+            const $slotSelect = this.$el.find('[name="selectedSlot"]');
 
-            $outcome.on('change', () => {
-                const value = $outcome.val();
-                if (value === 'call_again') {
-                    $callAgainField.show();
-                } else {
-                    $callAgainField.hide();
-                }
+            $slotSelect.empty().append('<option value="">Laden...</option>');
+            
+            if (!calendarIdentifier) {
+                $slotDiv.hide();
+                return;
+            }
 
-                if (value === 'invited') {
-                    $meetingTypeField.show();
-                } else {
-                    $meetingTypeField.hide();
-                }
-            });
+            $slotDiv.show();
+            $slotSelect.prop('disabled', true);
+
+            Espo.Ajax.getRequest('calendar/upcoming-slots', { id: calendarIdentifier })
+                .then(response => {
+                    $slotSelect.empty().append('<option value="">-- Kies tijdstip --</option>');
+
+                    Object.keys(response).forEach(date => {
+                        const rawSlots = response[date];
+
+                        const validSlots = rawSlots.filter(slot => slot.isBookable && !slot.isBlocked);
+
+                        if (validSlots.length === 0) return;
+
+                        const dateObj = new Date(date);
+                        const groupLabel = dateObj.toLocaleDateString('nl-BE', { 
+                            weekday: 'long', 
+                            day: 'numeric', 
+                            month: 'long' 
+                        });
+                        const shortDate = dateObj.toLocaleDateString('nl-BE', { 
+                            day: 'numeric', 
+                            month: 'short' 
+                        });
+                        const $optgroup = $(`<optgroup label="${groupLabel}"></optgroup>`);
+
+                        validSlots.forEach(slot => {
+                            const label = `${shortDate} | ${slot.start} - ${slot.end}`;
+                            $optgroup.append(`<option value="${date} ${slot.start}">${label}</option>`);
+                        });
+
+                        $slotSelect.append($optgroup);
+                    });
+                    
+                    $slotSelect.prop('disabled', false);
+                });
         },
         
         actionSave: function () {
@@ -49,7 +122,17 @@ define('custom:views/lead/modals/log-call', ['views/modal', 'custom:utils/date-u
             const callDateTime = this.$el.find('[name="callDateTime"]').val();
             const callAgainDateTime = this.$el.find('[name="callAgainDateTime"]').val();
             const coachNote = this.$el.find('[name="coachNote"]').val();
-            const meetingType = this.$el.find('[name="meetingType"]').val();
+            const calendarId = this.$el.find('[name="selectedCalendar"] option:selected').val();
+            const selectedSlot = this.$el.find('[name="selectedSlot"]').val();
+
+            let slotDate = null;
+            let slotTime = null;
+
+            if (selectedSlot) {
+                const parts = selectedSlot.split(' ');
+                slotDate = parts[0];
+                slotTime = parts[1];
+            }
 
             const saveButton = this.$el.find('button[data-name="save"]');
             saveButton.prop('disabled', true);
@@ -61,8 +144,14 @@ define('custom:views/lead/modals/log-call', ['views/modal', 'custom:utils/date-u
             }
 
             if (outcome === 'invited') {
-                if (!meetingType) {
-                    Espo.Ui.error('Type afspraak is verplicht voor een uitnodiging.');
+                if (!calendarId) {
+                    Espo.Ui.error('Selecteer een agenda om de afspraak in te boeken.');
+                    saveButton.prop('disabled', false);
+                    return;
+                }
+            
+                if (!selectedSlot) {
+                    Espo.Ui.error('Kies een beschikbaar tijdstip voor de afspraak.');
                     saveButton.prop('disabled', false);
                     return;
                 }
@@ -93,13 +182,15 @@ define('custom:views/lead/modals/log-call', ['views/modal', 'custom:utils/date-u
                 }
             }
             
-            Espo.Ajax.postRequest(`lead/action/logCall`, {
+            Espo.Ajax.postRequest(`leadEvent/logCall`, {
                 id: this.model.id,
 		        outcome: outcome,
                 callDateTime: callDateTime ? DateUtils.toOffsetISOString(new Date(callDateTime)) : null,
                 callAgainDateTime: callAgainDateTime ? DateUtils.toOffsetISOString(new Date(callAgainDateTime)) : null,
                 coachNote: coachNote || null,
-                meetingType: meetingType || null
+                calendarId: calendarId,
+                selectedDate: slotDate,
+                selectedTime: slotTime
             }).then(() => {
                 this.trigger('success');
                 this.close();

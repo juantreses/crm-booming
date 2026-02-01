@@ -7,7 +7,6 @@ use DateTimeZone;
 use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Modules\Calendar\Services\CalendarService;
-use Espo\Modules\Crm\Entities\Lead;
 use Espo\Modules\LeadManager\Services\LeadService;
 use Espo\Modules\Utils\SlugService;
 use Espo\ORM\Entity;
@@ -42,20 +41,22 @@ readonly class BookingService
     }
 
     /**
-     * @throws Conflict
+     * Maakt direct een meeting aan vanuit interne logica (bvb Lead logCall)
      */
-    public function createMeetingForLead(string $leadId, string $calendarId, string $date, string $time,string $notes = ''): Entity
+    public function createInternalMeeting(string $calendarIdentifier, Entity $person, string $date, string $time, ?string $notes = null): Entity
     {
-        $lead = $this->entityManager->getEntityById(Lead::ENTITY_TYPE, $leadId);
-        if (!$lead) {
-            throw new NotFound("Lead niet gevonden");
+        $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
+        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
+        
+        if (!$calendar) {
+            throw new NotFound("Kalender met ID '$calendarId' niet gevonden.");
         }
 
-        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
         $targetSlot = $this->findSlot($calendarId, $date, $time);
-        $dateString = $date . ' ' . $time . ':00';
 
-        return $this->createMeeting($calendar, $lead, $dateString, $targetSlot, $notes);
+        $dateStartString = $date . ' ' . $time . ':00';
+
+        return $this->createMeeting($calendar, $person, $dateStartString, $targetSlot, $notes);
     }
 
     /**

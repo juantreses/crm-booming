@@ -4,13 +4,12 @@ namespace Espo\Modules\Vanko\Controllers;
 
 use Espo\Core\Controllers\RecordBase;
 use Espo\Core\Exceptions\BadRequest;
-use Espo\Core\Exceptions\Error;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Modules\Crm\Entities\Lead;
 
 class VankoApi extends RecordBase
 {
-    public function postActionLead($params, $data)
+    /*public function postActionLead($params, $data)
     {        
         try {
             if (!$data) {
@@ -170,7 +169,7 @@ class VankoApi extends RecordBase
         
         $this->logInfo("Could not find a matching lead for the provided data.");
         return null;
-    }
+    }*/
 
     /**
      * Centralized logging helper

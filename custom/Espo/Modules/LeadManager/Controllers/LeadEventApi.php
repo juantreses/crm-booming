@@ -1,25 +1,32 @@
 <?php
 
-namespace Espo\Custom\Controllers;
+namespace Espo\Modules\LeadManager\Controllers;
 
-use Espo\Modules\Crm\Controllers\Lead as LeadController;
+use Espo\Core\Api\Request;
 use Espo\Core\Exceptions\BadRequest;
-use Espo\Custom\Services\LeadEventService;
-use Espo\Custom\Validators\LogCallValidator;
-use Espo\Custom\Validators\LogKickstartValidator;
-use Espo\Custom\Validators\LogMessageOutcomeValidator;
+use Espo\Core\Exceptions\Conflict;
+use Espo\Modules\LeadManager\Services\LeadEventService;
+use Espo\Modules\LeadManager\Validators\LogCallValidator;
+use Espo\Modules\LeadManager\Validators\LogKickstartValidator;
+use Espo\Modules\LeadManager\Validators\LogMessageOutcomeValidator;
 
-class Lead extends LeadController
+readonly class LeadEventApi
 {
-    public function postActionLogCall($params, $data): array
+
+    public function __construct(
+        private LeadEventService $leadEventService
+    ) {}
+
+    public function postActionLogCall(Request $request): array
     {
         try {
+            $data = $request->getParsedBody();
+            $GLOBALS['log']->info('logging call');
             $validator = new LogCallValidator();
             $validator->validate($data);
-
-            /** @var LeadEventService $leadEventService */
-            $leadEventService = $this->getServiceFactory()->create('LeadEventService');
-            $result = $leadEventService->logCall($data);
+            
+            $GLOBALS['log']->info('logging call to leadeventService');
+            $result = $this->leadEventService->logCall($data);
 
             return [
                 'success' => true,
@@ -27,6 +34,8 @@ class Lead extends LeadController
                 'data' => $result
             ];
 
+        } catch (Conflict $e) {
+            throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
             // Re-throw BadRequest exceptions as-is (Validation errors)
             throw $e;
@@ -42,15 +51,15 @@ class Lead extends LeadController
         }
     }
 
-	public function postActionLogKickstart($params, $data): array
+	public function postActionLogKickstart(Request $request): array
     {
         try {
+            $data = $request->getParsedBody();
+
             $validator = new LogKickstartValidator();
             $validator->validate($data);
 
-            /** @var LeadEventService $leadEventService */
-            $leadEventService = $this->getServiceFactory()->create('LeadEventService');
-            $result = $leadEventService->logKickstart($data);
+            $result = $this->leadEventService->logKickstart($data);
 
             return [
                 'success' => true,
@@ -72,16 +81,16 @@ class Lead extends LeadController
         }
     }
 
-    public function postActionLogMessageSent($params, $data): array
+    public function postActionLogMessageSent(Request $request): array
     {
         try {
+            $data = $request->getParsedBody();
+
             if (!isset($data->id)) {
                 throw new BadRequest('Lead ID is required');
             }
 
-            /** @var LeadEventService $leadEventService */
-            $leadEventService = $this->getServiceFactory()->create('LeadEventService');
-            $result = $leadEventService->logMessageSent($data);
+            $result = $this->leadEventService->logMessageSent($data);
 
             return [
                 'success' => true,
@@ -101,16 +110,15 @@ class Lead extends LeadController
         }
     }
 
-    public function postActionLogMessageOutcome($params, $data): array
+    public function postActionLogMessageOutcome(Request $request): array
     {
         try {
+            $data = $request->getParsedBody();
+
             $validator = new LogMessageOutcomeValidator();
             $validator->validate($data);
-            
-            /** @var LeadEventService $leadEventService */
-            $leadEventService = $this->getServiceFactory()->create('LeadEventService');
 
-            $result = $leadEventService->logMessageOutcome($data);
+            $result = $this->leadEventService->logMessageOutcome($data);
 
             return [
                 'success' => true,
@@ -131,15 +139,15 @@ class Lead extends LeadController
         }
     }
 
-    public function postActionLogKickstartFollowUp($params, $data): array
+    public function postActionLogKickstartFollowUp(Request $request): array
     {
         try {
+            $data = $request->getParsedBody();
+
             $validator = new LogKickstartValidator();
             $validator->validate($data);
             
-            /** @var LeadEventService $leadEventService */
-            $leadEventService = $this->getServiceFactory()->create('LeadEventService');
-            $result = $leadEventService->logKickstartFollowUp($data);
+            $result = $this->leadEventService->logKickstartFollowUp($data);
 
             return [
                 'success' => true,

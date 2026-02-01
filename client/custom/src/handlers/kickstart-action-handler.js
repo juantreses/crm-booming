@@ -14,7 +14,6 @@ define(['action-handler'], (Dep) => {
                     this.view.model.fetch();
                     this.view.reRender();
                     
-                    // Show success message with more details if available
                     if (response && response.data) {
                         const eventCount = response.data.eventIds ? response.data.eventIds.length : 0;
                         Espo.Ui.success(`Kickstart logged successfully. Created ${eventCount} event(s).`);

@@ -25,12 +25,16 @@
             "options": [
                 "Tentative",
                 "Planned",
-                "Cancelled"
+                "Held",
+                "Cancelled",
+                "Not Held"
             ],
             "style": {
                 "Tentative": "info",
                 "Planned": "success",
-                "Cancelled": "danger"
+                "Held": "success",
+                "Cancelled": "danger",
+                "Not Held": "info"
             }
         },
         "cReminderSent": {

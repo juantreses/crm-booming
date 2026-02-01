@@ -1,11 +1,11 @@
 <?php
 
-namespace Espo\Custom\Validators;
+namespace Espo\Modules\LeadManager\Validators;
 
 use Espo\Core\Exceptions\BadRequest;
-use Espo\Custom\Enums\KickstartOutcome;
+use Espo\Custom\Enums\MessageSentOutcome;
 
-class LogKickstartValidator
+class LogMessageOutcomeValidator
 {
     public function validate(\StdClass $data): void
     {
@@ -14,20 +14,11 @@ class LogKickstartValidator
         }
 
         $outcome = $data->outcome ?? null;
-        if (!$outcome || !KickstartOutcome::isValid($outcome)) {
-            throw new BadRequest('Invalid call outcome.');
-        }
-
-        if (!empty($data->kickstartDateTime)) {
-            $kickstart = new \DateTime($data->kickstartDateTime);
-            $now = new \DateTime('now', new \DateTimeZone('UTC'));
-    
-            if ($kickstart > $now) {
-                throw new BadRequest('Kickstartdatum/tijd mag niet in de toekomst zijn.');
-            }
+        if (!$outcome || !MessageSentOutcome::isValid($outcome)) {
+            throw new BadRequest('Invalid message outcome.');
         }
     
-        if ($outcome === KickstartOutcome::STILL_THINKING->value) {
+        if ($outcome === MessageSentOutcome::CALL_AGAIN->value) {
             if (empty($data->callAgainDateTime)) {
                 throw new BadRequest('Datum/tijd opnieuw bellen is verplicht.');
             }
@@ -37,6 +28,14 @@ class LogKickstartValidator
     
             if ($callAgain <= $now) {
                 throw new BadRequest('Datum/tijd opnieuw bellen moet in de toekomst zijn.');
+            }
+        }
+
+        if ($outcome === MessageSentOutcome::INVITED->value) {
+            $allowed = ['kickstart', 'bws', 'spark', 'iom'];
+            $meetingType = $data->meetingType ?? '';
+            if ($meetingType === '' || !in_array($meetingType, $allowed, true)) {
+                throw new BadRequest('Type afspraak is verplicht en moet geldig zijn.');
             }
         }
     }

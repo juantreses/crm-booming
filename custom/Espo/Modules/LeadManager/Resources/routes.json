@@ -7,5 +7,45 @@
         "action": "submit"
       },
       "noAuth": true
+    },
+    {
+      "route": "/leadEvent/logCall",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "logCall"
+      }
+    },
+    {
+      "route": "/leadEvent/logKickstart",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "logKickstart"
+      }
+    },
+    {
+      "route": "/leadEvent/logMessageSent",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "logMessageSent"
+      }
+    },
+    {
+      "route": "/leadEvent/logMessageOutcome",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "logMessageOutcome"
+      }
+    },
+    {
+      "route": "/leadEvent/logKickstartFollowUp",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "logKickstartFollowUp"
+      }
     }
 ]

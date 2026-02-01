@@ -78,7 +78,7 @@ define('custom:views/lead/modals/log-kickstart', ['views/modal', 'custom:utils/d
                 }
             }
             
-            Espo.Ajax.postRequest(`lead/action/logKickstart`, {
+            Espo.Ajax.postRequest(`leadEvent/logKickstart`, {
                 id: this.model.id,
                 outcome: outcome,
                 kickstartDateTime: kickstartDateTime ? DateUtils.toOffsetISOString(new Date(kickstartDateTime)) : null,

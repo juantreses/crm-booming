@@ -25,5 +25,21 @@
       "action": "availability"
     },
     "noAuth": true
+  },
+  {
+    "route": "/calendar/bookable-list",
+    "method": "get",
+    "params": {
+        "controller": "CalendarApi",
+        "action": "bookableList"
+    }
+  },
+  {
+    "route": "/calendar/upcoming-slots",
+    "method": "get",
+    "params": {
+      "controller": "CalendarApi",
+      "action": "upcomingSlots"
+    }
   }
 ]
