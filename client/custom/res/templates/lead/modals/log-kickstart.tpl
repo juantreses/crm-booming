@@ -10,7 +10,16 @@
                         <option value="no_show">Niet opgedaagd</option>
                         <option value="not_converted">Geen klant geworden</option>
                         <option value="still_thinking">Twijfel</option>
+                        <option value="cancelled">Geannuleerd</option>
                     </select>
+                </div>
+            </div>
+            <div class="col-md-6" data-field="cancel-options" style="display: none; margin-top: 10px;">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="wantsNewAppointment" checked> 
+                        <strong>Lead wil een nieuwe afspraak (reschedule)</strong>
+                    </label>
                 </div>
             </div>
             <div class="col-md-6">

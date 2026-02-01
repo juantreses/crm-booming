@@ -26,28 +26,25 @@ class ConfirmationEmail implements AfterSave
         $oldStatus = $entity->getFetched('status');
 
         $shouldSend = ($isNew && $status === 'Planned') || 
-                      (!$isNew && $status === 'Planned' && $oldStatus !== 'Planned');
+                      (!$isNew && $status === 'Planned' && $oldStatus === 'Tentative');
 
         if ($shouldSend) {
-            $error = '';
             $calendarId = $entity->get('cCalendarId');
             if (!$calendarId) {
-                $error = 'Geen kalender gelinkt aan meeting';
+                $entity->set('cMailError', "Bevestiging fout: Geen kalender gelinkt aan meeting");
+                return;
             }
             
             $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
             if (!$calendar) {
-                $error = "Kalender met id $calendarId niet teruggevonden";
+                $entity->set('cMailError', "Bevestiging fout: Kalender met id $calendarId niet teruggevonden");
+                return;
             }
 
             $templateId = $calendar->get('confirmationTemplateId');
             if (!$templateId) {
-                $error = 'Geen bevestiging email gelinkt aan kalender';
-            }
-
-            if (!empty($error)) {
-                $entity->set('cMailError', "Bevestiging fout: " . $error);
-                return;
+                $entity->set('cMailError', "Bevestiging fout: Geen bevestiging email gelinkt aan kalender");
+                return;                
             }
 
             try {

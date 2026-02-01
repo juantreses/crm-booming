@@ -8,6 +8,7 @@ enum KickstartOutcome: string
     case NO_SHOW = 'no_show';
     case NOT_CONVERTED = 'not_converted';
     case STILL_THINKING = 'still_thinking';
+    case CANCELLED = 'cancelled';
 
     public function getLabel(): string
     {
@@ -16,6 +17,7 @@ enum KickstartOutcome: string
             self::NO_SHOW => 'No Show',
             self::NOT_CONVERTED => 'Not Converted',
             self::STILL_THINKING => 'Still Thinking',
+            self::CANCELLED => 'Cancelled',
         };
     }
 

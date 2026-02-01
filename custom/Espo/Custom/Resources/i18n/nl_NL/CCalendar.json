@@ -26,7 +26,8 @@
         "locationMap": "Locatie Kaart",
         "slug": "Slug",
         "cTeams": "Gebruikers",
-        "isDirectBookable": "Direct Boekbaar"
+        "isDirectBookable": "Direct Boekbaar",
+        "cancellationTemplate": "Annulerings e-mail"
     },
     "tooltips": {
         "bufferTime": "Tijd tussen twee boekingen",
@@ -40,7 +41,8 @@
         "meetings": "Afspraken",
         "emailTemplate": "Bevestiging",
         "reminderTemplate": "Reminder",
-        "cTeams": "Gebruikers"
+        "cTeams": "Gebruikers",
+        "cancellationTemplate": "Annulerings e-mail"
     },
     "options": {
         "type": {

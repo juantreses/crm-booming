@@ -13,8 +13,8 @@
             "Tentative": "Voorlopig",
             "Planned": "Gepland",
             "Cancelled": "Geannuleerd",
-            "Held": "Plaatsgevonden",
-            "Not Held": "Niet Plaatsgevonden"
+            "Held": "Gedaan",
+            "Not Held": "Niet Gedaan"
         }
     },
     "links": {

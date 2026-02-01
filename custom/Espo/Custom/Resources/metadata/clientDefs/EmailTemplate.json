@@ -11,6 +11,10 @@
         "calendars1": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "calendars2": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     }
 }

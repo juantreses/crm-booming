@@ -27,9 +27,10 @@ readonly class LeadEventService
     // Mapping FE outcome -> events to create
     private const KICKSTART_OUTCOME_EVENT_MAP = [
         KickstartOutcome::BECAME_CLIENT->value => [LeadEventType::ATTENDED, LeadEventType::BECAME_CLIENT],
-        KickstartOutcome::NO_SHOW->value => [LeadEventType::NO_SHOW],
+        KickstartOutcome::NO_SHOW->value => [LeadEventType::NO_SHOW, LeadEventType::CALL_AGAIN],
         KickstartOutcome::NOT_CONVERTED->value => [LeadEventType::ATTENDED, LeadEventType::NOT_CONVERTED],
         KickstartOutcome::STILL_THINKING->value => [LeadEventType::ATTENDED, LeadEventType::STILL_THINKING],
+        KickstartOutcome::CANCELLED->value => [LeadEventType::APPOINTMENT_CANCELLED],
     ];
 
     private const KICKSTART_FOLLOW_UP_OUTCOME_EVENT_MAP = [
@@ -165,6 +166,18 @@ readonly class LeadEventService
             throw new BadRequest('Invalid kickstart outcome: ' . $outcome->value);
         }
 
+        $meeting = $this->entityManager->getRDBRepository('Meeting')
+            ->where([
+                'parentId' => $leadId,
+                'parentType' => 'Lead',
+                'OR' => [
+                    'status' => 'Planned',
+                    'status' => 'Tentative',
+                ],
+            ])
+            ->order('dateStart', 'ASC')
+            ->findOne();
+
         $eventIds = [];
         foreach (self::KICKSTART_OUTCOME_EVENT_MAP[$outcome->value] as $eventType) {
             $eventIds[] = $this->logEvent($leadId, $eventType, $eventDate)['eventId'];
@@ -174,6 +187,31 @@ readonly class LeadEventService
             $this->addFollowupAction($leadId, $callAgainDateTime, 'KS twijfel - Opvolging');
         } else {
             $this->clearFollowupAction($leadId);
+        }
+
+        if ($outcome->value === KickstartOutcome::NO_SHOW->value) {
+            if ($meeting) {
+                $meeting->set('status', 'Not Held');
+                $this->entityManager->saveEntity($meeting);
+            }
+            $this->addFollowupAction($leadId, $callAgainDateTime, 'Niet opgedaagd Kickstart');
+        } elseif ($outcome->value === KickstartOutcome::CANCELLED->value) {
+            if ($meeting) {
+                $meeting->set('status', 'Cancelled');
+                $this->entityManager->saveEntity($meeting);
+            }
+    
+            if ($data->wantsNewAppointment) {
+                $eventIds[] = $this->logEvent($leadId, LeadEventType::CALL_AGAIN, $eventDate)['eventId'];
+                if ($callAgainDateTime) {
+                    $this->addFollowupAction($leadId, $callAgainDateTime, 'KS Geannuleerd');
+                }
+            }
+        } else {
+            if ($meeting) {
+                $meeting->set('status', 'Held');
+                $this->entityManager->saveEntity($meeting);
+            }
         }
 
         if ($coachNote) {
@@ -270,7 +308,7 @@ readonly class LeadEventService
 
     private function fetchLead(string $leadId): ?Entity
     {
-        return $this->entityManager->getEntity('Lead', $leadId);
+        return $this->entityManager->getEntityById('Lead', $leadId);
     }
 
     private function addCoachNote(string $leadId, string $coachNote, string $source, ?string $eventDate = null): void

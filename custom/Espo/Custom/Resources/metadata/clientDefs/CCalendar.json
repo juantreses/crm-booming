@@ -26,6 +26,10 @@
         "cTeams": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "cancellationTemplate": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     }
 }

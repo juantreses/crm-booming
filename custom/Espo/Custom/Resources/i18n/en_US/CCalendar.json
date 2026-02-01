@@ -22,14 +22,16 @@
         "locationMap": "Locatie Kaart",
         "slug": "Slug",
         "cTeams": "Gebruikers",
-        "isDirectBookable": "Direct Boekbaar"
+        "isDirectBookable": "Direct Boekbaar",
+        "cancellationTemplate": "Annulerings e-mail"
     },
     "links": {
         "availabilities": "Beschikbaarheden",
         "meetings": "Afspraken",
         "emailTemplate": "Bevestiging",
         "reminderTemplate": "Reminder",
-        "cTeams": "Gebruikers"
+        "cTeams": "Gebruikers",
+        "cancellationTemplate": "Annulerings e-mail"
     },
     "labels": {
         "Create CCalendar": "Create Kalender"

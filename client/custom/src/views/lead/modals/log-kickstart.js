@@ -27,22 +27,31 @@ define('custom:views/lead/modals/log-kickstart', ['views/modal', 'custom:utils/d
 
 			const $outcome = this.$el.find('[name="outcome"]');
 			const $callAgainField = this.$el.find('[data-field="call-again-date"]');
+            const $cancelOptions = this.$el.find('[data-field="cancel-options"]');
 
 			$outcome.on('change', () => {
 				const value = $outcome.val();
-				if (value === 'still_thinking') {
+				if (value === 'still_thinking' || value === 'cancelled' || value === 'no_show') {
 					$callAgainField.show();
 				} else {
 					$callAgainField.hide();
 				}
+
+                if (value === 'cancelled') {
+                    $cancelOptions.show();
+                } else {
+                    $cancelOptions.hide();
+                }
 			});
 		},
         
         actionSave: function () {
-            const outcome = this.$el.find('[name="outcome"]').val();
+            const $outcomeField = this.$el.find('[name="outcome"]');
+            const outcome = $outcomeField.val();
             const kickstartDateTime = this.$el.find('[name="kickstartDateTime"]').val();
             const callAgainDateTime = this.$el.find('[name="callAgainDateTime"]').val();
             const coachNote = this.$el.find('[name="coachNote"]').val();
+            const wantsNewAppointment = this.$el.find('[name="wantsNewAppointment"]').is(':checked');
 
             const saveButton = this.$el.find('button[data-name="save"]');
             saveButton.prop('disabled', true);
@@ -83,7 +92,8 @@ define('custom:views/lead/modals/log-kickstart', ['views/modal', 'custom:utils/d
                 outcome: outcome,
                 kickstartDateTime: kickstartDateTime ? DateUtils.toOffsetISOString(new Date(kickstartDateTime)) : null,
                 callAgainDateTime: callAgainDateTime ? DateUtils.toOffsetISOString(new Date(callAgainDateTime)) : null,
-                coachNote: coachNote || null
+                coachNote: coachNote || null,
+                wantsNewAppointment: wantsNewAppointment
             }).then((response) => {
                 this.trigger('success', response);
                 this.close();

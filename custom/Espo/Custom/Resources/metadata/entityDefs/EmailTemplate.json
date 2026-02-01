@@ -13,6 +13,13 @@
             "entity": "CCalendar",
             "audited": false,
             "isCustom": true
+        },
+        "cCalendars2": {
+            "type": "hasMany",
+            "foreign": "cancellationTemplate",
+            "entity": "CCalendar",
+            "audited": false,
+            "isCustom": true
         }
     }
 }

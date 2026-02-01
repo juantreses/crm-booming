@@ -148,6 +148,9 @@
             "type": "bool",
             "tooltip": true,
             "isCustom": true
+        },
+        "cancellationTemplate": {
+            "type": "link"
         }
     },
     "links": {
@@ -202,6 +205,13 @@
             "relationName": "cCalendarTeam",
             "foreign": "calendars",
             "entity": "CTeam",
+            "audited": false,
+            "isCustom": true
+        },
+        "cancellationTemplate": {
+            "type": "belongsTo",
+            "foreign": "cCalendars2",
+            "entity": "EmailTemplate",
             "audited": false,
             "isCustom": true
         }

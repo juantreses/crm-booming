@@ -67,6 +67,11 @@
                 {
                     "name": "reminderTemplate"
                 }
+            ],
+            [
+                {
+                    "name": "cancellationTemplate"
+                }
             ]
         ],
         "dynamicLogicVisible": null,

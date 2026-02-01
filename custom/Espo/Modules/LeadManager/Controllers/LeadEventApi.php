@@ -21,11 +21,9 @@ readonly class LeadEventApi
     {
         try {
             $data = $request->getParsedBody();
-            $GLOBALS['log']->info('logging call');
             $validator = new LogCallValidator();
             $validator->validate($data);
             
-            $GLOBALS['log']->info('logging call to leadeventService');
             $result = $this->leadEventService->logCall($data);
 
             return [
