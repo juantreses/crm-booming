@@ -99,7 +99,7 @@ readonly class BookingService
             'cCalendarId' => $calendar->get('id'),
             'parentId' => $person->get('id'),
             'parentType' => $person->getEntityType(),
-            'assignedUserId' => $person->get('assignedUserId'),
+            'assignedUserId' => $calendar->get('assignedUserId') ?: $person->get('assignedUserId'),
             'cLocationId' => $targetSlot['locationId'] ?? null,
         ]);
 
@@ -112,6 +112,11 @@ readonly class BookingService
             ->relate($person, [
                 'status' => 'Accepted'
             ]);
+
+        $this->entityManager
+            ->getRDBRepository('Meeting')
+            ->getRelation($meeting, 'users')
+            ->relateById($person->get('assignedUserId'));
 
         return $meeting;
     }

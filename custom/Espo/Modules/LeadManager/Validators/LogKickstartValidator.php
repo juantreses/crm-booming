@@ -26,12 +26,30 @@ class LogKickstartValidator
                 throw new BadRequest('Kickstartdatum/tijd mag niet in de toekomst zijn.');
             }
         }
+
+        if ($outcome === KickstartOutcome::CANCELLED->value) {
+            $action = $data->cancellationAction ?? null;
+            
+            if (!$action) {
+                throw new BadRequest('Vervolgactie is verplicht bij annulering.');
+            }
+
+            if ($action === 'reschedule_now' && empty($data->selectedDate)) {
+                throw new BadRequest('Nieuwe afspraakdatum is verplicht.');
+            }
+
+            if ($action === 'reschedule_later' && empty($data->callAgainDateTime)) {
+                throw new BadRequest('Datum voor terugbellen is verplicht.');
+            }
+        }
     
         if ($outcome === KickstartOutcome::STILL_THINKING->value) {
             if (empty($data->callAgainDateTime)) {
                 throw new BadRequest('Datum/tijd opnieuw bellen is verplicht.');
             }
-    
+        }
+
+        if (!empty($data->callAgainDateTime)) {
             $callAgain = new \DateTime($data->callAgainDateTime);
             $now = new \DateTime('now', new \DateTimeZone('UTC'));
     
@@ -39,5 +57,6 @@ class LogKickstartValidator
                 throw new BadRequest('Datum/tijd opnieuw bellen moet in de toekomst zijn.');
             }
         }
+        
     }
 }

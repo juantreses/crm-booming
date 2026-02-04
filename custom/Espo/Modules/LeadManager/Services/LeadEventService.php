@@ -138,7 +138,6 @@ readonly class LeadEventService
         }
 
         if ($data->outcome === CallOutcome::INVITED->value) {
-            $GLOBALS['log']->info('proberen meeting aanmaken');
             $this->bookingService->createInternalMeeting(
                 $data->calendarId,
                 $this->fetchLead($leadId),
@@ -161,6 +160,7 @@ readonly class LeadEventService
         $eventDate = $data->kickstartDateTime ?? null;
         $callAgainDateTime = $data->callAgainDateTime ?? null;
         $coachNote = $data->coachNote ?? null;
+        $cancellationAction = $data->cancellationAction ?? null;
 
         if (!isset(self::KICKSTART_OUTCOME_EVENT_MAP[$outcome->value])) {
             throw new BadRequest('Invalid kickstart outcome: ' . $outcome->value);
@@ -201,11 +201,29 @@ readonly class LeadEventService
                 $this->entityManager->saveEntity($meeting);
             }
     
-            if ($data->wantsNewAppointment) {
-                $eventIds[] = $this->logEvent($leadId, LeadEventType::CALL_AGAIN, $eventDate)['eventId'];
-                if ($callAgainDateTime) {
-                    $this->addFollowupAction($leadId, $callAgainDateTime, 'KS Geannuleerd');
-                }
+            switch ($cancellationAction) {
+                case 'reschedule_now':
+                    if (!empty($data->calendarId) && !empty($data->selectedDate)) {
+                        $this->bookingService->createInternalMeeting(
+                            $data->calendarId,
+                            $this->fetchLead($leadId),
+                            $data->selectedDate,
+                            $data->selectedTime,
+                            $data->coachNote ?? null
+                        );
+    
+                        $eventIds[] = $this->logEvent($leadId, LeadEventType::APPOINTMENT_BOOKED, $eventDate)['eventId'];
+                        $this->clearFollowupAction($leadId);
+                    }
+                    break;
+    
+                case 'reschedule_later':
+                    $eventIds[] = $this->logEvent($leadId, LeadEventType::CALL_AGAIN, $eventDate)['eventId'];
+                    
+                    $this->addFollowupAction($leadId, $callAgainDateTime, 'Kickstart geannuleerd - Opnieuw inplannen');
+                    break;
+                case 'cancel_stop':
+                    break;
             }
         } else {
             if ($meeting) {
