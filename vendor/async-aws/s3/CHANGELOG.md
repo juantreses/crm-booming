@@ -2,6 +2,55 @@
 
 ## NOT RELEASED
 
+## 2.10.0
+
+### Added
+
+- AWS api-change: Rework regions configuration
+- AWS api-change: Added `tagCount` property to the HeadObject response
+- AWS api-change: Adds support for additional server-side encryption mode and storage class values for accessing Amazon FSx data from Amazon S3 using S3 Access Points
+- AWS api-change: Added support for directory bucket creation with tags and bucket ARN retrieval in CreateBucket, ListDirectoryBuckets, and HeadBucket operations
+
+## 2.9.1
+
+### Changed
+
+- AWS enhancement: Documentation updates.
+
+## 2.9.0
+
+### Added
+
+- AWS api-change: Added `eu-isoe-west-1` region
+
+### Changed
+
+- Normalize the composer requirements
+- Sort exception alphabetically.
+- AWS enhancement: Documentation updates.
+
+## 2.8.0
+
+### Added
+
+- AWS api-change: This change enhances integrity protections for new SDK requests to S3. S3 SDKs now support the CRC64NVME checksum algorithm, full object checksums for multipart S3 objects, and new default integrity protections for S3 requests.
+- AWS api-change: Added `us-isof-east-1`  and `us-isof-south-1` regions
+- AWS api-change: Updated list of the valid AWS Region values for the LocationConstraint parameter for general purpose buckets.
+- AWS api-change: Added support for Content-Range header in HeadObject response.
+
+## 2.7.0
+
+### Added
+
+- AWS api-change: Amazon S3 introduces support for AWS Dedicated Local Zones
+- AWS api-change: Added `ap-southeast-7` region
+- AWS api-change: Added `mx-central-1` region
+
+### Changed
+
+- Avoid usage of `alias` when use statement refers to self
+- AWS enhancement: Documentation updates.
+
 ## 2.6.0
 
 ### Added

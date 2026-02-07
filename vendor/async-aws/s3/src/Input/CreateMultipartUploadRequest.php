@@ -7,6 +7,7 @@ use AsyncAws\Core\Input;
 use AsyncAws\Core\Request;
 use AsyncAws\Core\Stream\StreamFactory;
 use AsyncAws\S3\Enum\ChecksumAlgorithm;
+use AsyncAws\S3\Enum\ChecksumType;
 use AsyncAws\S3\Enum\ObjectCannedACL;
 use AsyncAws\S3\Enum\ObjectLockLegalHoldStatus;
 use AsyncAws\S3\Enum\ObjectLockMode;
@@ -42,25 +43,27 @@ final class CreateMultipartUploadRequest extends Input
      * The name of the bucket where the multipart upload is initiated and where the object is uploaded.
      *
      * **Directory buckets** - When you use this operation with a directory bucket, you must use virtual-hosted-style
-     * requests in the format `*Bucket_name*.s3express-*az_id*.*region*.amazonaws.com`. Path-style requests are not
-     * supported. Directory bucket names must be unique in the chosen Availability Zone. Bucket names must follow the format
-     * `*bucket_base_name*--*az-id*--x-s3` (for example, `*DOC-EXAMPLE-BUCKET*--*usw2-az1*--x-s3`). For information about
-     * bucket naming restrictions, see Directory bucket naming rules [^1] in the *Amazon S3 User Guide*.
+     * requests in the format `*Bucket-name*.s3express-*zone-id*.*region-code*.amazonaws.com`. Path-style requests are not
+     * supported. Directory bucket names must be unique in the chosen Zone (Availability Zone or Local Zone). Bucket names
+     * must follow the format `*bucket-base-name*--*zone-id*--x-s3` (for example,
+     * `*amzn-s3-demo-bucket*--*usw2-az1*--x-s3`). For information about bucket naming restrictions, see Directory bucket
+     * naming rules [^1] in the *Amazon S3 User Guide*.
      *
-     * **Access points** - When you use this action with an access point, you must provide the alias of the access point in
-     * place of the bucket name or specify the access point ARN. When using the access point ARN, you must direct requests
-     * to the access point hostname. The access point hostname takes the form
+     * **Access points** - When you use this action with an access point for general purpose buckets, you must provide the
+     * alias of the access point in place of the bucket name or specify the access point ARN. When you use this action with
+     * an access point for directory buckets, you must provide the access point name in place of the bucket name. When using
+     * the access point ARN, you must direct requests to the access point hostname. The access point hostname takes the form
      * *AccessPointName*-*AccountId*.s3-accesspoint.*Region*.amazonaws.com. When using this action with an access point
      * through the Amazon Web Services SDKs, you provide the access point ARN in place of the bucket name. For more
      * information about access point ARNs, see Using access points [^2] in the *Amazon S3 User Guide*.
      *
-     * > Access points and Object Lambda access points are not supported by directory buckets.
+     * > Object Lambda access points are not supported by directory buckets.
      *
-     * **S3 on Outposts** - When you use this action with Amazon S3 on Outposts, you must direct requests to the S3 on
-     * Outposts hostname. The S3 on Outposts hostname takes the form
+     * **S3 on Outposts** - When you use this action with S3 on Outposts, you must direct requests to the S3 on Outposts
+     * hostname. The S3 on Outposts hostname takes the form
      * `*AccessPointName*-*AccountId*.*outpostID*.s3-outposts.*Region*.amazonaws.com`. When you use this action with S3 on
-     * Outposts through the Amazon Web Services SDKs, you provide the Outposts access point ARN in place of the bucket name.
-     * For more information about S3 on Outposts ARNs, see What is S3 on Outposts? [^3] in the *Amazon S3 User Guide*.
+     * Outposts, the destination bucket must be the Outposts access point ARN or the access point alias. For more
+     * information about S3 on Outposts, see What is S3 on Outposts? [^3] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/directory-bucket-naming-rules.html
      * [^2]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-access-points.html
@@ -314,7 +317,7 @@ final class CreateMultipartUploadRequest extends Input
     private $metadata;
 
     /**
-     * The server-side encryption algorithm used when you store this object in Amazon S3 (for example, `AES256`, `aws:kms`).
+     * The server-side encryption algorithm used when you store this object in Amazon S3 or Amazon FSx.
      *
      * - **Directory buckets ** - For directory buckets, there are only two supported options for server-side encryption:
      *   server-side encryption with Amazon S3 managed keys (SSE-S3) (`AES256`) and server-side encryption with KMS keys
@@ -340,6 +343,11 @@ final class CreateMultipartUploadRequest extends Input
      *   > [^5] and UploadPartCopy [^6]), the encryption request headers must match the default encryption configuration of
      *   > the directory bucket.
      *
+     * - **S3 access points for Amazon FSx ** - When accessing data stored in Amazon FSx file systems using S3 access
+     *   points, the only valid server side encryption option is `aws:fsx`. All Amazon FSx file systems have encryption
+     *   configured by default and are encrypted at rest. Data is automatically encrypted before being written to the file
+     *   system, and automatically decrypted as it is read. These processes are handled transparently by Amazon FSx.
+     *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-express-serv-side-encryption.html
      * [^2]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-express-specifying-kms-encryption.html
      * [^3]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html
@@ -356,7 +364,8 @@ final class CreateMultipartUploadRequest extends Input
      * provides high durability and high availability. Depending on performance needs, you can specify a different Storage
      * Class. For more information, see Storage Classes [^1] in the *Amazon S3 User Guide*.
      *
-     * > - For directory buckets, only the S3 Express One Zone storage class is supported to store newly created objects.
+     * > - Directory buckets only support `EXPRESS_ONEZONE` (the S3 Express One Zone storage class) in Availability Zones
+     * >   and `ONEZONE_IA` (the S3 One Zone-Infrequent Access storage class) in Dedicated Local Zones.
      * > - Amazon S3 on Outposts only uses the OUTPOSTS Storage Class.
      * >
      *
@@ -416,14 +425,12 @@ final class CreateMultipartUploadRequest extends Input
      * `x-amz-server-side-encryption-aws-kms-key-id`, Amazon S3 uses the Amazon Web Services managed key (`aws/s3`) to
      * protect the data.
      *
-     * **Directory buckets** - If you specify `x-amz-server-side-encryption` with `aws:kms`, the `
-     * x-amz-server-side-encryption-aws-kms-key-id` header is implicitly assigned the ID of the KMS symmetric encryption
-     * customer managed key that's configured for your directory bucket's default encryption setting. If you want to specify
-     * the ` x-amz-server-side-encryption-aws-kms-key-id` header explicitly, you can only specify it with the ID (Key ID or
-     * Key ARN) of the KMS customer managed key that's configured for your directory bucket's default encryption setting.
-     * Otherwise, you get an HTTP `400 Bad Request` error. Only use the key ID or key ARN. The key alias format of the KMS
-     * key isn't supported. Your SSE-KMS configuration can only support 1 customer managed key [^1] per directory bucket for
-     * the lifetime of the bucket. The Amazon Web Services managed key [^2] (`aws/s3`) isn't supported.
+     * **Directory buckets** - To encrypt data using SSE-KMS, it's recommended to specify the `x-amz-server-side-encryption`
+     * header to `aws:kms`. Then, the `x-amz-server-side-encryption-aws-kms-key-id` header implicitly uses the bucket's
+     * default KMS customer managed key ID. If you want to explicitly set the ` x-amz-server-side-encryption-aws-kms-key-id`
+     * header, it must match the bucket's default customer managed key (using key ID or ARN, not alias). Your SSE-KMS
+     * configuration can only support 1 customer managed key [^1] per directory bucket's lifetime. The Amazon Web Services
+     * managed key [^2] (`aws/s3`) isn't supported. Incorrect key specification results in an HTTP `400 Bad Request` error.
      *
      * [^1]: https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#customer-cmk
      * [^2]: https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#aws-managed-cmk
@@ -434,7 +441,7 @@ final class CreateMultipartUploadRequest extends Input
 
     /**
      * Specifies the Amazon Web Services KMS Encryption Context to use for object encryption. The value of this header is a
-     * Base64-encoded string of a UTF-8 encoded JSON, which contains the encryption context as key-value pairs.
+     * Base64 encoded string of a UTF-8 encoded JSON, which contains the encryption context as key-value pairs.
      *
      * **Directory buckets** - You can optionally provide an explicit encryption context value. The value must match the
      * default encryption context - the bucket Amazon Resource Name (ARN). An additional encryption context value is not
@@ -527,6 +534,16 @@ final class CreateMultipartUploadRequest extends Input
     private $checksumAlgorithm;
 
     /**
+     * Indicates the checksum type that you want Amazon S3 to use to calculate the object’s checksum value. For more
+     * information, see Checking object integrity in the Amazon S3 User Guide [^1].
+     *
+     * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+     *
+     * @var ChecksumType::*|null
+     */
+    private $checksumType;
+
+    /**
      * @param array{
      *   ACL?: null|ObjectCannedACL::*,
      *   Bucket?: string,
@@ -558,6 +575,7 @@ final class CreateMultipartUploadRequest extends Input
      *   ObjectLockLegalHoldStatus?: null|ObjectLockLegalHoldStatus::*,
      *   ExpectedBucketOwner?: null|string,
      *   ChecksumAlgorithm?: null|ChecksumAlgorithm::*,
+     *   ChecksumType?: null|ChecksumType::*,
      *   '@region'?: string|null,
      * } $input
      */
@@ -593,6 +611,7 @@ final class CreateMultipartUploadRequest extends Input
         $this->objectLockLegalHoldStatus = $input['ObjectLockLegalHoldStatus'] ?? null;
         $this->expectedBucketOwner = $input['ExpectedBucketOwner'] ?? null;
         $this->checksumAlgorithm = $input['ChecksumAlgorithm'] ?? null;
+        $this->checksumType = $input['ChecksumType'] ?? null;
         parent::__construct($input);
     }
 
@@ -628,6 +647,7 @@ final class CreateMultipartUploadRequest extends Input
      *   ObjectLockLegalHoldStatus?: null|ObjectLockLegalHoldStatus::*,
      *   ExpectedBucketOwner?: null|string,
      *   ChecksumAlgorithm?: null|ChecksumAlgorithm::*,
+     *   ChecksumType?: null|ChecksumType::*,
      *   '@region'?: string|null,
      * }|CreateMultipartUploadRequest $input
      */
@@ -665,6 +685,14 @@ final class CreateMultipartUploadRequest extends Input
     public function getChecksumAlgorithm(): ?string
     {
         return $this->checksumAlgorithm;
+    }
+
+    /**
+     * @return ChecksumType::*|null
+     */
+    public function getChecksumType(): ?string
+    {
+        return $this->checksumType;
     }
 
     public function getContentDisposition(): ?string
@@ -919,6 +947,12 @@ final class CreateMultipartUploadRequest extends Input
             }
             $headers['x-amz-checksum-algorithm'] = $this->checksumAlgorithm;
         }
+        if (null !== $this->checksumType) {
+            if (!ChecksumType::exists($this->checksumType)) {
+                throw new InvalidArgument(\sprintf('Invalid parameter "ChecksumType" for "%s". The value "%s" is not a valid "ChecksumType".', __CLASS__, $this->checksumType));
+            }
+            $headers['x-amz-checksum-type'] = $this->checksumType;
+        }
         if (null !== $this->metadata) {
             foreach ($this->metadata as $key => $value) {
                 $headers["x-amz-meta-$key"] = $value;
@@ -984,6 +1018,16 @@ final class CreateMultipartUploadRequest extends Input
     public function setChecksumAlgorithm(?string $value): self
     {
         $this->checksumAlgorithm = $value;
+
+        return $this;
+    }
+
+    /**
+     * @param ChecksumType::*|null $value
+     */
+    public function setChecksumType(?string $value): self
+    {
+        $this->checksumType = $value;
 
         return $this;
     }

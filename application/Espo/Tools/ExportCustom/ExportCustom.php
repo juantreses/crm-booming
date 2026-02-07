@@ -3,7 +3,7 @@
  * This file is part of EspoCRM.
  *
  * EspoCRM – Open Source CRM application.
- * Copyright (C) 2014-2025 EspoCRM, Inc.
+ * Copyright (C) 2014-2026 EspoCRM, Inc.
  * Website: https://www.espocrm.com
  *
  * This program is free software: you can redistribute it and/or modify
@@ -48,7 +48,7 @@ use ZipArchive;
 
 class ExportCustom
 {
-    private string $minVersion = '8.0.0';
+    private string $minVersion = '9.1.0';
 
     /** @var string[] */
     private array $metadataFolderList = [
@@ -59,6 +59,7 @@ class ExportCustom
         'selectDefs',
         'aclDefs',
         'entityAcl',
+        'logicDefs',
         'formula',
     ];
 

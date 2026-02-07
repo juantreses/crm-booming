@@ -27,7 +27,10 @@ class UploadPartCopyOutput extends Result
     private $copyPartResult;
 
     /**
-     * The server-side encryption algorithm used when you store this object in Amazon S3 (for example, `AES256`, `aws:kms`).
+     * The server-side encryption algorithm used when you store this object in Amazon S3 or Amazon FSx.
+     *
+     * > When accessing data stored in Amazon FSx file systems using S3 access points, the only valid server side encryption
+     * > option is `aws:fsx`.
      *
      * @var ServerSideEncryption::*|null
      */
@@ -158,6 +161,7 @@ class UploadPartCopyOutput extends Result
             'LastModified' => (null !== $v = $xml->LastModified[0]) ? new \DateTimeImmutable((string) $v) : null,
             'ChecksumCRC32' => (null !== $v = $xml->ChecksumCRC32[0]) ? (string) $v : null,
             'ChecksumCRC32C' => (null !== $v = $xml->ChecksumCRC32C[0]) ? (string) $v : null,
+            'ChecksumCRC64NVME' => (null !== $v = $xml->ChecksumCRC64NVME[0]) ? (string) $v : null,
             'ChecksumSHA1' => (null !== $v = $xml->ChecksumSHA1[0]) ? (string) $v : null,
             'ChecksumSHA256' => (null !== $v = $xml->ChecksumSHA256[0]) ? (string) $v : null,
         ]);

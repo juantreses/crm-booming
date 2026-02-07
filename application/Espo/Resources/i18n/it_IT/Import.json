@@ -27,7 +27,6 @@
     "What to Import?": "Cosa Importare?",
     "Entity Type": "Tipo di Entità",
     "What to do?": "Cosa fare?",
-    "Properties": "Proprietà",
     "Header Row": "Intestazione riga",
     "Person Name Format": "Formato Nome Persona",
     "Field Delimiter": "Delimitatore di Campo",
@@ -50,7 +49,8 @@
     "Silent Mode": "Modalità silenziosa",
     "New import with same params": "Nuovo import con gli stessi parametri",
     "Run Manually": "Avvia Manualmente",
-    "Export": "Esporta"
+    "Export": "Esporta",
+    "Parameters": "Parametri"
   },
   "messages": {
     "utf8": "Dovrebbe avere codifica UTF-8",

@@ -44,7 +44,7 @@ For a more complete list of changes, please visit the [3.0 Upgrade Guide](https:
 
 ## Requirements
 
-MailMimeParser requires PHP 8.0 or newer.  Tested on PHP 8.0, 8.1, 8.2 and 8.3.
+MailMimeParser requires PHP 8.0 or newer.  Tested on PHP 8.0, 8.1, 8.2, 8.3 and 8.4.
 
 ## Usage
 
@@ -89,7 +89,7 @@ echo $message->getHeader('X-Foo');                     // for custom or undocume
 $att = $message->getAttachmentPart(0);                 // first attachment
 echo $att->getHeaderValue(HeaderConsts::CONTENT_TYPE); // e.g. "text/plain"
 echo $att->getHeaderParameter(                         // value of "charset" part
-    'content-type',
+    HeaderConsts::CONTENT_TYPE,
     'charset'
 );
 echo $att->getContent();                               // get the attached file's contents

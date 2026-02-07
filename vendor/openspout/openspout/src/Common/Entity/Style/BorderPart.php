@@ -4,87 +4,42 @@ declare(strict_types=1);
 
 namespace OpenSpout\Common\Entity\Style;
 
-use OpenSpout\Writer\Exception\Border\InvalidNameException;
-use OpenSpout\Writer\Exception\Border\InvalidStyleException;
-use OpenSpout\Writer\Exception\Border\InvalidWidthException;
-
 final readonly class BorderPart
 {
-    public const allowedStyles = [
-        Border::STYLE_NONE,
-        Border::STYLE_SOLID,
-        Border::STYLE_DASHED,
-        Border::STYLE_DOTTED,
-        Border::STYLE_DOUBLE,
-    ];
-
-    public const allowedNames = [
-        Border::LEFT,
-        Border::RIGHT,
-        Border::TOP,
-        Border::BOTTOM,
-    ];
-
-    public const allowedWidths = [
-        Border::WIDTH_THIN,
-        Border::WIDTH_MEDIUM,
-        Border::WIDTH_THICK,
-    ];
-
-    private string $style;
-    private string $name;
-    private string $color;
-    private string $width;
+    public const string DEFAULT_COLOR = Color::BLACK;
+    public const BorderWidth DEFAULT_WIDTH = BorderWidth::MEDIUM;
+    public const BorderStyle DEFAULT_STYLE = BorderStyle::SOLID;
 
     /**
-     * @param string $name  @see  BorderPart::allowedNames
-     * @param string $color A RGB color code
-     * @param string $width @see BorderPart::allowedWidths
-     * @param string $style @see BorderPart::allowedStyles
-     *
-     * @throws InvalidNameException
-     * @throws InvalidStyleException
-     * @throws InvalidWidthException
+     * @param non-empty-string $color A RGB color code
      */
     public function __construct(
-        string $name,
-        string $color = Color::BLACK,
-        string $width = Border::WIDTH_MEDIUM,
-        string $style = Border::STYLE_SOLID
-    ) {
-        if (!\in_array($name, self::allowedNames, true)) {
-            throw new InvalidNameException($name);
-        }
-        if (!\in_array($style, self::allowedStyles, true)) {
-            throw new InvalidStyleException($style);
-        }
-        if (!\in_array($width, self::allowedWidths, true)) {
-            throw new InvalidWidthException($width);
-        }
+        public BorderName $name,
+        public string $color = self::DEFAULT_COLOR,
+        public BorderWidth $width = self::DEFAULT_WIDTH,
+        public BorderStyle $style = self::DEFAULT_STYLE,
+    ) {}
 
-        $this->name = $name;
-        $this->color = $color;
-        $this->width = $width;
-        $this->style = $style;
+    public function withName(BorderName $name): self
+    {
+        return new self($name, $this->color, $this->width, $this->style);
     }
 
-    public function getName(): string
+    /**
+     * @param non-empty-string $color A RGB color code
+     */
+    public function withColor(string $color): self
     {
-        return $this->name;
+        return new self($this->name, $color, $this->width, $this->style);
     }
 
-    public function getStyle(): string
+    public function withWidth(BorderWidth $width): self
     {
-        return $this->style;
+        return new self($this->name, $this->color, $width, $this->style);
     }
 
-    public function getColor(): string
+    public function withStyle(BorderStyle $style): self
     {
-        return $this->color;
-    }
-
-    public function getWidth(): string
-    {
-        return $this->width;
+        return new self($this->name, $this->color, $this->width, $style);
     }
 }

@@ -2,6 +2,57 @@
 
 ## NOT RELEASED
 
+## 1.27.1
+
+### Fixed
+
+- SignerV4: fix sort of query parameters to build correct canoncal query string 
+
+## 1.27.0
+
+### Added
+
+- Support for Symfony 8
+
+### Changed
+
+- `ResultMockFactory` does not call `ReflectionProperty::setAccessible()` on PHP 8.1+
+
+## 1.26.0
+
+### Added
+
+- AWS api-change: Added `eu-isoe-west-1` region
+
+### Changed
+
+- Normalize the composer requirements
+- Sort exception alphabetically.
+
+## 1.25.0
+
+### Added
+
+- AWS api-change: Added `us-isof-east-1` and `us-isof-south-1` regions
+- Support for BedrockRuntime
+
+## 1.24.1
+
+### Fixed
+
+- Better detection and error messages for when SSO is used but required packages are not installed.
+
+## 1.24.0
+
+### Added
+
+- Support for SsoOidc
+- Support for SSO authentication
+
+### Changed
+
+- AWS enhancement: Documentation updates.
+
 ## 1.23.0
 
 ### Added

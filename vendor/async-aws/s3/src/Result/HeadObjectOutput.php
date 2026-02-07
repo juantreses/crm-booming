@@ -5,6 +5,7 @@ namespace AsyncAws\S3\Result;
 use AsyncAws\Core\Response;
 use AsyncAws\Core\Result;
 use AsyncAws\S3\Enum\ArchiveStatus;
+use AsyncAws\S3\Enum\ChecksumType;
 use AsyncAws\S3\Enum\ObjectLockLegalHoldStatus;
 use AsyncAws\S3\Enum\ObjectLockMode;
 use AsyncAws\S3\Enum\ReplicationStatus;
@@ -36,7 +37,8 @@ class HeadObjectOutput extends Result
      * header. It includes the `expiry-date` and `rule-id` key-value pairs providing object expiration information. The
      * value of the `rule-id` is URL-encoded.
      *
-     * > This functionality is not supported for directory buckets.
+     * > Object expiration information is not returned in directory buckets and this header returns the value
+     * > "`NotImplemented`" in all responses for directory buckets.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketLifecycleConfiguration.html
      *
@@ -57,8 +59,9 @@ class HeadObjectOutput extends Result
      *
      * For more information about archiving objects, see Transitioning Objects: General Considerations [^2].
      *
-     * > This functionality is not supported for directory buckets. Only the S3 Express One Zone storage class is supported
-     * > by directory buckets to store objects.
+     * > This functionality is not supported for directory buckets. Directory buckets only support `EXPRESS_ONEZONE` (the S3
+     * > Express One Zone storage class) in Availability Zones and `ONEZONE_IA` (the S3 One Zone-Infrequent Access storage
+     * > class) in Dedicated Local Zones.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_RestoreObject.html
      * [^2]: https://docs.aws.amazon.com/AmazonS3/latest/dev/object-lifecycle-mgmt.html#lifecycle-transition-general-considerations
@@ -91,11 +94,11 @@ class HeadObjectOutput extends Result
     private $contentLength;
 
     /**
-     * The base64-encoded, 32-bit CRC-32 checksum of the object. This will only be present if it was uploaded with the
-     * object. When you use an API operation on an object that was uploaded using multipart uploads, this value may not be a
-     * direct checksum value of the full object. Instead, it's a calculation based on the checksum values of each individual
-     * part. For more information about how checksums are calculated with multipart uploads, see Checking object integrity
-     * [^1] in the *Amazon S3 User Guide*.
+     * The Base64 encoded, 32-bit `CRC32 checksum` of the object. This checksum is only be present if the checksum was
+     * uploaded with the object. When you use an API operation on an object that was uploaded using multipart uploads, this
+     * value may not be a direct checksum value of the full object. Instead, it's a calculation based on the checksum values
+     * of each individual part. For more information about how checksums are calculated with multipart uploads, see Checking
+     * object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html#large-object-checksums
      *
@@ -104,11 +107,11 @@ class HeadObjectOutput extends Result
     private $checksumCrc32;
 
     /**
-     * The base64-encoded, 32-bit CRC-32C checksum of the object. This will only be present if it was uploaded with the
-     * object. When you use an API operation on an object that was uploaded using multipart uploads, this value may not be a
-     * direct checksum value of the full object. Instead, it's a calculation based on the checksum values of each individual
-     * part. For more information about how checksums are calculated with multipart uploads, see Checking object integrity
-     * [^1] in the *Amazon S3 User Guide*.
+     * The Base64 encoded, 32-bit `CRC32C` checksum of the object. This checksum is only present if the checksum was
+     * uploaded with the object. When you use an API operation on an object that was uploaded using multipart uploads, this
+     * value may not be a direct checksum value of the full object. Instead, it's a calculation based on the checksum values
+     * of each individual part. For more information about how checksums are calculated with multipart uploads, see Checking
+     * object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html#large-object-checksums
      *
@@ -117,11 +120,21 @@ class HeadObjectOutput extends Result
     private $checksumCrc32C;
 
     /**
-     * The base64-encoded, 160-bit SHA-1 digest of the object. This will only be present if it was uploaded with the object.
-     * When you use the API operation on an object that was uploaded using multipart uploads, this value may not be a direct
-     * checksum value of the full object. Instead, it's a calculation based on the checksum values of each individual part.
-     * For more information about how checksums are calculated with multipart uploads, see Checking object integrity [^1] in
-     * the *Amazon S3 User Guide*.
+     * The Base64 encoded, 64-bit `CRC64NVME` checksum of the object. For more information, see Checking object integrity in
+     * the Amazon S3 User Guide [^1].
+     *
+     * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+     *
+     * @var string|null
+     */
+    private $checksumCrc64Nvme;
+
+    /**
+     * The Base64 encoded, 160-bit `SHA1` digest of the object. This will only be present if the object was uploaded with
+     * the object. When you use the API operation on an object that was uploaded using multipart uploads, this value may not
+     * be a direct checksum value of the full object. Instead, it's a calculation based on the checksum values of each
+     * individual part. For more information about how checksums are calculated with multipart uploads, see Checking object
+     * integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html#large-object-checksums
      *
@@ -130,17 +143,29 @@ class HeadObjectOutput extends Result
     private $checksumSha1;
 
     /**
-     * The base64-encoded, 256-bit SHA-256 digest of the object. This will only be present if it was uploaded with the
-     * object. When you use an API operation on an object that was uploaded using multipart uploads, this value may not be a
-     * direct checksum value of the full object. Instead, it's a calculation based on the checksum values of each individual
-     * part. For more information about how checksums are calculated with multipart uploads, see Checking object integrity
-     * [^1] in the *Amazon S3 User Guide*.
+     * The Base64 encoded, 256-bit `SHA256` digest of the object. This will only be present if the object was uploaded with
+     * the object. When you use an API operation on an object that was uploaded using multipart uploads, this value may not
+     * be a direct checksum value of the full object. Instead, it's a calculation based on the checksum values of each
+     * individual part. For more information about how checksums are calculated with multipart uploads, see Checking object
+     * integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html#large-object-checksums
      *
      * @var string|null
      */
     private $checksumSha256;
+
+    /**
+     * The checksum type, which determines how part-level checksums are combined to create an object-level checksum for
+     * multipart objects. You can use this header response to verify that the checksum type that is received is the same
+     * checksum type that was specified in `CreateMultipartUpload` request. For more information, see Checking object
+     * integrity in the Amazon S3 User Guide [^1].
+     *
+     * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+     *
+     * @var ChecksumType::*|null
+     */
+    private $checksumType;
 
     /**
      * An entity tag (ETag) is an opaque identifier assigned by a web server to a specific version of a resource found at a
@@ -207,6 +232,13 @@ class HeadObjectOutput extends Result
     private $contentType;
 
     /**
+     * The portion of the object returned in the response for a `GET` request.
+     *
+     * @var string|null
+     */
+    private $contentRange;
+
+    /**
      * The date and time at which the object is no longer cacheable.
      *
      * @var \DateTimeImmutable|null
@@ -224,8 +256,10 @@ class HeadObjectOutput extends Result
     private $websiteRedirectLocation;
 
     /**
-     * The server-side encryption algorithm used when you store this object in Amazon S3 (for example, `AES256`, `aws:kms`,
-     * `aws:kms:dsse`).
+     * The server-side encryption algorithm used when you store this object in Amazon S3 or Amazon FSx.
+     *
+     * > When accessing data stored in Amazon FSx file systems using S3 access points, the only valid server side encryption
+     * > option is `aws:fsx`.
      *
      * @var ServerSideEncryption::*|null
      */
@@ -279,8 +313,8 @@ class HeadObjectOutput extends Result
      *
      * For more information, see Storage Classes [^1].
      *
-     * > **Directory buckets ** - Only the S3 Express One Zone storage class is supported by directory buckets to store
-     * > objects.
+     * > **Directory buckets ** - Directory buckets only support `EXPRESS_ONEZONE` (the S3 Express One Zone storage class)
+     * > in Availability Zones and `ONEZONE_IA` (the S3 One Zone-Infrequent Access storage class) in Dedicated Local Zones.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html
      *
@@ -334,6 +368,19 @@ class HeadObjectOutput extends Result
      * @var int|null
      */
     private $partsCount;
+
+    /**
+     * The number of tags, if any, on the object, when you have the relevant permission to read object tags.
+     *
+     * You can use GetObjectTagging [^1] to retrieve the tag set associated with an object.
+     *
+     * > This functionality is not supported for directory buckets.
+     *
+     * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectTagging.html
+     *
+     * @var int|null
+     */
+    private $tagCount;
 
     /**
      * The Object Lock mode, if any, that's in effect for this object. This header is only returned if the requester has the
@@ -415,6 +462,13 @@ class HeadObjectOutput extends Result
         return $this->checksumCrc32C;
     }
 
+    public function getChecksumCrc64Nvme(): ?string
+    {
+        $this->initialize();
+
+        return $this->checksumCrc64Nvme;
+    }
+
     public function getChecksumSha1(): ?string
     {
         $this->initialize();
@@ -427,6 +481,16 @@ class HeadObjectOutput extends Result
         $this->initialize();
 
         return $this->checksumSha256;
+    }
+
+    /**
+     * @return ChecksumType::*|null
+     */
+    public function getChecksumType(): ?string
+    {
+        $this->initialize();
+
+        return $this->checksumType;
     }
 
     public function getContentDisposition(): ?string
@@ -455,6 +519,13 @@ class HeadObjectOutput extends Result
         $this->initialize();
 
         return $this->contentLength;
+    }
+
+    public function getContentRange(): ?string
+    {
+        $this->initialize();
+
+        return $this->contentRange;
     }
 
     public function getContentType(): ?string
@@ -618,6 +689,13 @@ class HeadObjectOutput extends Result
         return $this->storageClass;
     }
 
+    public function getTagCount(): ?int
+    {
+        $this->initialize();
+
+        return $this->tagCount;
+    }
+
     public function getVersionId(): ?string
     {
         $this->initialize();
@@ -645,8 +723,10 @@ class HeadObjectOutput extends Result
         $this->contentLength = isset($headers['content-length'][0]) ? (int) $headers['content-length'][0] : null;
         $this->checksumCrc32 = $headers['x-amz-checksum-crc32'][0] ?? null;
         $this->checksumCrc32C = $headers['x-amz-checksum-crc32c'][0] ?? null;
+        $this->checksumCrc64Nvme = $headers['x-amz-checksum-crc64nvme'][0] ?? null;
         $this->checksumSha1 = $headers['x-amz-checksum-sha1'][0] ?? null;
         $this->checksumSha256 = $headers['x-amz-checksum-sha256'][0] ?? null;
+        $this->checksumType = $headers['x-amz-checksum-type'][0] ?? null;
         $this->etag = $headers['etag'][0] ?? null;
         $this->missingMeta = isset($headers['x-amz-missing-meta'][0]) ? (int) $headers['x-amz-missing-meta'][0] : null;
         $this->versionId = $headers['x-amz-version-id'][0] ?? null;
@@ -655,6 +735,7 @@ class HeadObjectOutput extends Result
         $this->contentEncoding = $headers['content-encoding'][0] ?? null;
         $this->contentLanguage = $headers['content-language'][0] ?? null;
         $this->contentType = $headers['content-type'][0] ?? null;
+        $this->contentRange = $headers['content-range'][0] ?? null;
         $this->expires = isset($headers['expires'][0]) ? new \DateTimeImmutable($headers['expires'][0]) : null;
         $this->websiteRedirectLocation = $headers['x-amz-website-redirect-location'][0] ?? null;
         $this->serverSideEncryption = $headers['x-amz-server-side-encryption'][0] ?? null;
@@ -666,6 +747,7 @@ class HeadObjectOutput extends Result
         $this->requestCharged = $headers['x-amz-request-charged'][0] ?? null;
         $this->replicationStatus = $headers['x-amz-replication-status'][0] ?? null;
         $this->partsCount = isset($headers['x-amz-mp-parts-count'][0]) ? (int) $headers['x-amz-mp-parts-count'][0] : null;
+        $this->tagCount = isset($headers['x-amz-tagging-count'][0]) ? (int) $headers['x-amz-tagging-count'][0] : null;
         $this->objectLockMode = $headers['x-amz-object-lock-mode'][0] ?? null;
         $this->objectLockRetainUntilDate = isset($headers['x-amz-object-lock-retain-until-date'][0]) ? new \DateTimeImmutable($headers['x-amz-object-lock-retain-until-date'][0]) : null;
         $this->objectLockLegalHoldStatus = $headers['x-amz-object-lock-legal-hold'][0] ?? null;

@@ -3,6 +3,7 @@
 namespace AsyncAws\S3\ValueObject;
 
 use AsyncAws\S3\Enum\ChecksumAlgorithm;
+use AsyncAws\S3\Enum\ChecksumType;
 use AsyncAws\S3\Enum\ObjectStorageClass;
 
 /**
@@ -51,6 +52,16 @@ final class AwsObject
     private $checksumAlgorithm;
 
     /**
+     * The checksum type that is used to calculate the object’s checksum value. For more information, see Checking object
+     * integrity [^1] in the *Amazon S3 User Guide*.
+     *
+     * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+     *
+     * @var ChecksumType::*|null
+     */
+    private $checksumType;
+
+    /**
      * Size in bytes of the object.
      *
      * @var int|null
@@ -60,8 +71,8 @@ final class AwsObject
     /**
      * The class of storage used to store the object.
      *
-     * > **Directory buckets** - Only the S3 Express One Zone storage class is supported by directory buckets to store
-     * > objects.
+     * > **Directory buckets** - Directory buckets only support `EXPRESS_ONEZONE` (the S3 Express One Zone storage class) in
+     * > Availability Zones and `ONEZONE_IA` (the S3 One Zone-Infrequent Access storage class) in Dedicated Local Zones.
      *
      * @var ObjectStorageClass::*|null
      */
@@ -81,8 +92,9 @@ final class AwsObject
      * retrieved. For more information about these storage classes and how to work with archived objects, see Working with
      * archived objects [^1] in the *Amazon S3 User Guide*.
      *
-     * > This functionality is not supported for directory buckets. Only the S3 Express One Zone storage class is supported
-     * > by directory buckets to store objects.
+     * > This functionality is not supported for directory buckets. Directory buckets only support `EXPRESS_ONEZONE` (the S3
+     * > Express One Zone storage class) in Availability Zones and `ONEZONE_IA` (the S3 One Zone-Infrequent Access storage
+     * > class) in Dedicated Local Zones.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/archived-objects.html
      *
@@ -96,6 +108,7 @@ final class AwsObject
      *   LastModified?: null|\DateTimeImmutable,
      *   ETag?: null|string,
      *   ChecksumAlgorithm?: null|array<ChecksumAlgorithm::*>,
+     *   ChecksumType?: null|ChecksumType::*,
      *   Size?: null|int,
      *   StorageClass?: null|ObjectStorageClass::*,
      *   Owner?: null|Owner|array,
@@ -108,6 +121,7 @@ final class AwsObject
         $this->lastModified = $input['LastModified'] ?? null;
         $this->etag = $input['ETag'] ?? null;
         $this->checksumAlgorithm = $input['ChecksumAlgorithm'] ?? null;
+        $this->checksumType = $input['ChecksumType'] ?? null;
         $this->size = $input['Size'] ?? null;
         $this->storageClass = $input['StorageClass'] ?? null;
         $this->owner = isset($input['Owner']) ? Owner::create($input['Owner']) : null;
@@ -120,6 +134,7 @@ final class AwsObject
      *   LastModified?: null|\DateTimeImmutable,
      *   ETag?: null|string,
      *   ChecksumAlgorithm?: null|array<ChecksumAlgorithm::*>,
+     *   ChecksumType?: null|ChecksumType::*,
      *   Size?: null|int,
      *   StorageClass?: null|ObjectStorageClass::*,
      *   Owner?: null|Owner|array,
@@ -137,6 +152,14 @@ final class AwsObject
     public function getChecksumAlgorithm(): array
     {
         return $this->checksumAlgorithm ?? [];
+    }
+
+    /**
+     * @return ChecksumType::*|null
+     */
+    public function getChecksumType(): ?string
+    {
+        return $this->checksumType;
     }
 
     public function getEtag(): ?string

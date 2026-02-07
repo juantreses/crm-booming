@@ -14,6 +14,7 @@ use Ratchet\RFC6455\Messaging\CloseFrameChecker;
 use Ratchet\RFC6455\Handshake\ServerNegotiator;
 use Ratchet\RFC6455\Handshake\RequestVerifier;
 use React\EventLoop\LoopInterface;
+use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Message;
 
 /**
@@ -86,7 +87,13 @@ class WsServer implements HttpServerInterface {
         $this->connections = new \SplObjectStorage;
 
         $this->closeFrameChecker   = new CloseFrameChecker;
-        $this->handshakeNegotiator = new ServerNegotiator(new RequestVerifier);
+
+        if (self::isRFC6455v03()) {
+            $this->handshakeNegotiator = new ServerNegotiator(new RequestVerifier);
+        } else {
+            $this->handshakeNegotiator = new ServerNegotiator(new RequestVerifier, new HttpFactory);
+        }
+
         $this->handshakeNegotiator->setStrictSubProtocolCheck(true);
 
         if ($component instanceof WsServerInterface) {
@@ -101,10 +108,16 @@ class WsServer implements HttpServerInterface {
         };
     }
 
+    private static function isRFC6455v03() {
+        $reflection = new \ReflectionClass('Ratchet\RFC6455\Handshake\ServerNegotiator');
+        return $reflection->getMethod('__construct')->getNumberOfRequiredParameters() === 1;
+    }
+
     /**
      * {@inheritdoc}
      */
-    public function onOpen(ConnectionInterface $conn, RequestInterface $request = null) {
+    #[HackSupportForPHP8] public function onOpen(ConnectionInterface $conn, ?RequestInterface $request = null) { /*
+    public function onOpen(ConnectionInterface $conn, RequestInterface $request = null) { /**/
         if (null === $request) {
             throw new \UnexpectedValueException('$request can not be null');
         }

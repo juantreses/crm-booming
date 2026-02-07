@@ -15,25 +15,27 @@ final class ListMultipartUploadsRequest extends Input
      * The name of the bucket to which the multipart upload was initiated.
      *
      * **Directory buckets** - When you use this operation with a directory bucket, you must use virtual-hosted-style
-     * requests in the format `*Bucket_name*.s3express-*az_id*.*region*.amazonaws.com`. Path-style requests are not
-     * supported. Directory bucket names must be unique in the chosen Availability Zone. Bucket names must follow the format
-     * `*bucket_base_name*--*az-id*--x-s3` (for example, `*DOC-EXAMPLE-BUCKET*--*usw2-az1*--x-s3`). For information about
-     * bucket naming restrictions, see Directory bucket naming rules [^1] in the *Amazon S3 User Guide*.
+     * requests in the format `*Bucket-name*.s3express-*zone-id*.*region-code*.amazonaws.com`. Path-style requests are not
+     * supported. Directory bucket names must be unique in the chosen Zone (Availability Zone or Local Zone). Bucket names
+     * must follow the format `*bucket-base-name*--*zone-id*--x-s3` (for example,
+     * `*amzn-s3-demo-bucket*--*usw2-az1*--x-s3`). For information about bucket naming restrictions, see Directory bucket
+     * naming rules [^1] in the *Amazon S3 User Guide*.
      *
-     * **Access points** - When you use this action with an access point, you must provide the alias of the access point in
-     * place of the bucket name or specify the access point ARN. When using the access point ARN, you must direct requests
-     * to the access point hostname. The access point hostname takes the form
+     * **Access points** - When you use this action with an access point for general purpose buckets, you must provide the
+     * alias of the access point in place of the bucket name or specify the access point ARN. When you use this action with
+     * an access point for directory buckets, you must provide the access point name in place of the bucket name. When using
+     * the access point ARN, you must direct requests to the access point hostname. The access point hostname takes the form
      * *AccessPointName*-*AccountId*.s3-accesspoint.*Region*.amazonaws.com. When using this action with an access point
      * through the Amazon Web Services SDKs, you provide the access point ARN in place of the bucket name. For more
      * information about access point ARNs, see Using access points [^2] in the *Amazon S3 User Guide*.
      *
-     * > Access points and Object Lambda access points are not supported by directory buckets.
+     * > Object Lambda access points are not supported by directory buckets.
      *
-     * **S3 on Outposts** - When you use this action with Amazon S3 on Outposts, you must direct requests to the S3 on
-     * Outposts hostname. The S3 on Outposts hostname takes the form
+     * **S3 on Outposts** - When you use this action with S3 on Outposts, you must direct requests to the S3 on Outposts
+     * hostname. The S3 on Outposts hostname takes the form
      * `*AccessPointName*-*AccountId*.*outpostID*.s3-outposts.*Region*.amazonaws.com`. When you use this action with S3 on
-     * Outposts through the Amazon Web Services SDKs, you provide the Outposts access point ARN in place of the bucket name.
-     * For more information about S3 on Outposts ARNs, see What is S3 on Outposts? [^3] in the *Amazon S3 User Guide*.
+     * Outposts, the destination bucket must be the Outposts access point ARN or the access point alias. For more
+     * information about S3 on Outposts, see What is S3 on Outposts? [^3] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/directory-bucket-naming-rules.html
      * [^2]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-access-points.html
@@ -52,6 +54,8 @@ final class ListMultipartUploadsRequest extends Input
      * after the prefix are grouped under a single result element, `CommonPrefixes`. If you don't specify the prefix
      * parameter, then the substring starts at the beginning of the key. The keys that are grouped under `CommonPrefixes`
      * result element are not returned elsewhere in the response.
+     *
+     * `CommonPrefixes` is filtered out from results if it is not lexicographically greater than the key-marker.
      *
      * > **Directory buckets** - For directory buckets, `/` is the only supported delimiter.
      *

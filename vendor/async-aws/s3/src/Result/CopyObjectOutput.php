@@ -20,7 +20,8 @@ class CopyObjectOutput extends Result
     /**
      * If the object expiration is configured, the response includes this header.
      *
-     * > This functionality is not supported for directory buckets.
+     * > Object expiration information is not returned in directory buckets and this header returns the value
+     * > "`NotImplemented`" in all responses for directory buckets.
      *
      * @var string|null
      */
@@ -45,8 +46,10 @@ class CopyObjectOutput extends Result
     private $versionId;
 
     /**
-     * The server-side encryption algorithm used when you store this object in Amazon S3 (for example, `AES256`, `aws:kms`,
-     * `aws:kms:dsse`).
+     * The server-side encryption algorithm used when you store this object in Amazon S3 or Amazon FSx.
+     *
+     * > When accessing data stored in Amazon FSx file systems using S3 access points, the only valid server side encryption
+     * > option is `aws:fsx`.
      *
      * @var ServerSideEncryption::*|null
      */
@@ -81,7 +84,7 @@ class CopyObjectOutput extends Result
 
     /**
      * If present, indicates the Amazon Web Services KMS Encryption Context to use for object encryption. The value of this
-     * header is a base64-encoded UTF-8 string holding JSON with the encryption context key-value pairs.
+     * header is a Base64 encoded UTF-8 string holding JSON with the encryption context key-value pairs.
      *
      * @var string|null
      */
@@ -207,8 +210,10 @@ class CopyObjectOutput extends Result
         return new CopyObjectResult([
             'ETag' => (null !== $v = $xml->ETag[0]) ? (string) $v : null,
             'LastModified' => (null !== $v = $xml->LastModified[0]) ? new \DateTimeImmutable((string) $v) : null,
+            'ChecksumType' => (null !== $v = $xml->ChecksumType[0]) ? (string) $v : null,
             'ChecksumCRC32' => (null !== $v = $xml->ChecksumCRC32[0]) ? (string) $v : null,
             'ChecksumCRC32C' => (null !== $v = $xml->ChecksumCRC32C[0]) ? (string) $v : null,
+            'ChecksumCRC64NVME' => (null !== $v = $xml->ChecksumCRC64NVME[0]) ? (string) $v : null,
             'ChecksumSHA1' => (null !== $v = $xml->ChecksumSHA1[0]) ? (string) $v : null,
             'ChecksumSHA256' => (null !== $v = $xml->ChecksumSHA256[0]) ? (string) $v : null,
         ]);

@@ -41,6 +41,8 @@ class Pool implements ArrayAccess
 
     protected $binary = PHP_BINARY;
 
+    protected $maxTaskPayloadInBytes = 100000;
+
     public function __construct()
     {
         if (static::isSupported()) {
@@ -109,6 +111,13 @@ class Pool implements ArrayAccess
         return $this;
     }
 
+    public function maxTaskPayload(int $maxSizeInBytes): self
+    {
+        $this->maxTaskPayloadInBytes = $maxSizeInBytes;
+
+        return $this;
+    }
+
     public function notify()
     {
         if (count($this->inProgress) >= $this->concurrency) {
@@ -140,7 +149,8 @@ class Pool implements ArrayAccess
             $process = ParentRuntime::createProcess(
                 $process,
                 $outputLength,
-                $this->binary
+                $this->binary,
+                $this->maxTaskPayloadInBytes
             );
         }
 
@@ -356,5 +366,15 @@ class Pool implements ArrayAccess
     public function stop()
     {
         $this->stopped = true;
+    }
+
+    public function clearFinished()
+    {
+        $this->finished = [];
+    }
+
+    public function clearResults()
+    {
+        $this->results = [];
     }
 }

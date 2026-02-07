@@ -3,6 +3,7 @@
 namespace AsyncAws\S3\ValueObject;
 
 use AsyncAws\S3\Enum\ChecksumAlgorithm;
+use AsyncAws\S3\Enum\ChecksumType;
 use AsyncAws\S3\Enum\StorageClass;
 
 /**
@@ -34,8 +35,8 @@ final class MultipartUpload
     /**
      * The class of storage used to store the object.
      *
-     * > **Directory buckets** - Only the S3 Express One Zone storage class is supported by directory buckets to store
-     * > objects.
+     * > **Directory buckets** - Directory buckets only support `EXPRESS_ONEZONE` (the S3 Express One Zone storage class) in
+     * > Availability Zones and `ONEZONE_IA` (the S3 One Zone-Infrequent Access storage class) in Dedicated Local Zones.
      *
      * @var StorageClass::*|null
      */
@@ -65,6 +66,16 @@ final class MultipartUpload
     private $checksumAlgorithm;
 
     /**
+     * The checksum type that is used to calculate the object’s checksum value. For more information, see Checking object
+     * integrity [^1] in the *Amazon S3 User Guide*.
+     *
+     * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+     *
+     * @var ChecksumType::*|null
+     */
+    private $checksumType;
+
+    /**
      * @param array{
      *   UploadId?: null|string,
      *   Key?: null|string,
@@ -73,6 +84,7 @@ final class MultipartUpload
      *   Owner?: null|Owner|array,
      *   Initiator?: null|Initiator|array,
      *   ChecksumAlgorithm?: null|ChecksumAlgorithm::*,
+     *   ChecksumType?: null|ChecksumType::*,
      * } $input
      */
     public function __construct(array $input)
@@ -84,6 +96,7 @@ final class MultipartUpload
         $this->owner = isset($input['Owner']) ? Owner::create($input['Owner']) : null;
         $this->initiator = isset($input['Initiator']) ? Initiator::create($input['Initiator']) : null;
         $this->checksumAlgorithm = $input['ChecksumAlgorithm'] ?? null;
+        $this->checksumType = $input['ChecksumType'] ?? null;
     }
 
     /**
@@ -95,6 +108,7 @@ final class MultipartUpload
      *   Owner?: null|Owner|array,
      *   Initiator?: null|Initiator|array,
      *   ChecksumAlgorithm?: null|ChecksumAlgorithm::*,
+     *   ChecksumType?: null|ChecksumType::*,
      * }|MultipartUpload $input
      */
     public static function create($input): self
@@ -108,6 +122,14 @@ final class MultipartUpload
     public function getChecksumAlgorithm(): ?string
     {
         return $this->checksumAlgorithm;
+    }
+
+    /**
+     * @return ChecksumType::*|null
+     */
+    public function getChecksumType(): ?string
+    {
+        return $this->checksumType;
     }
 
     public function getInitiated(): ?\DateTimeImmutable

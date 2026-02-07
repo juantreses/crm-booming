@@ -11,7 +11,7 @@ define("di", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78,407 +78,6 @@ define("di", ["exports"], function (_exports) {
   }
 });
 
-define("view", ["exports", "bullbone"], function (_exports, _bullbone) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module view */
-
-  /**
-   * A base view. All views should extend this class.
-   *
-   * @see https://docs.espocrm.com/development/view/
-   * @mixes Bull.Events
-   */
-  class View extends _bullbone.View {
-    /**
-     * @callback module:view~actionHandlerCallback
-     * @param {MouseEvent} event A DOM event.
-     * @param {HTMLElement} element A target element.
-     */
-
-    /**
-     * A helper.
-     *
-     * @name _helper
-     * @type {module:view-helper}
-     * @memberOf View.prototype
-     * @private
-     */
-
-    /**
-     * A model.
-     *
-     * @type {import('model').default}
-     */
-    model;
-
-    /**
-     * A collection.
-     *
-     * @type {import('collection').default}
-     */
-    collection;
-
-    /**
-     * @param {Record<string, *>} options
-     */
-    constructor() {
-      let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      super(options);
-      if (options.model) {
-        this.model = options.model;
-      }
-      if (options.collection) {
-        this.collection = options.collection;
-      }
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    /**
-     * When the view is ready. Can be useful to prevent race condition when re-initialization is needed
-     * in-between initialization and render.
-     *
-     * @return Promise
-     * @todo Move to Bull.View.
-     */
-    whenReady() {
-      if (this.isReady) {
-        return Promise.resolve();
-      }
-      return new Promise(resolve => {
-        this.once('ready', () => resolve());
-      });
-    }
-
-    /**
-     * Add a DOM click event handler for a target defined by `data-action="{name}"` attribute.
-     *
-     * @param {string} action An action name.
-     * @param {module:view~actionHandlerCallback} handler A handler.
-     */
-    addActionHandler(action, handler) {
-      // The key should be in sync with one in Utils.handleAction.
-      const fullAction = `click [data-action="${action}"]`;
-      this.events[fullAction] = e => {
-        // noinspection JSUnresolvedReference
-        handler.call(this, e.originalEvent, e.currentTarget);
-      };
-    }
-
-    /**
-     * Escape a string.
-     *
-     * @param {string} string
-     * @returns {string}
-     */
-    escapeString(string) {
-      return Handlebars.Utils.escapeExpression(string);
-    }
-
-    /**
-     * Show a notify-message.
-     *
-     * @deprecated Use `Espo.Ui.notify`.
-     * @param {string|false} label
-     * @param {string} [type]
-     * @param {number} [timeout]
-     * @param {string} [scope]
-     */
-    notify(label, type, timeout, scope) {
-      if (!label) {
-        Espo.Ui.notify(false);
-        return;
-      }
-      scope = scope || null;
-      timeout = timeout || 2000;
-      if (!type) {
-        timeout = void 0;
-      }
-      const text = this.getLanguage().translate(label, 'labels', scope);
-      Espo.Ui.notify(text, type, timeout);
-    }
-
-    /**
-     * Get a view-helper.
-     *
-     * @returns {module:view-helper}
-     */
-    getHelper() {
-      return this._helper;
-    }
-
-    /**
-     * Get a current user.
-     *
-     * @returns {module:models/user}
-     */
-    getUser() {
-      return this._helper.user;
-    }
-
-    /**
-     * Get the preferences.
-     *
-     * @returns {module:models/preferences}
-     */
-    getPreferences() {
-      return this._helper.preferences;
-    }
-
-    /**
-     * Get the config.
-     *
-     * @returns {module:models/settings}
-     */
-    getConfig() {
-      return this._helper.settings;
-    }
-
-    /**
-     * Get the ACL.
-     *
-     * @returns {module:acl-manager}
-     */
-    getAcl() {
-      return this._helper.acl;
-    }
-
-    /**
-     * Get the model factory.
-     *
-     * @returns {module:model-factory}
-     */
-    getModelFactory() {
-      return this._helper.modelFactory;
-    }
-
-    /**
-     * Get the collection factory.
-     *
-     * @returns {module:collection-factory}
-     */
-    getCollectionFactory() {
-      return this._helper.collectionFactory;
-    }
-
-    /**
-     * Get the router.
-     *
-     * @returns {module:router}
-     */
-    getRouter() {
-      return this._helper.router;
-    }
-
-    /**
-     * Get the storage-util.
-     *
-     * @returns {module:storage}
-     */
-    getStorage() {
-      return this._helper.storage;
-    }
-
-    /**
-     * Get the session-storage-util.
-     *
-     * @returns {module:session-storage}
-     */
-    getSessionStorage() {
-      return this._helper.sessionStorage;
-    }
-
-    /**
-     * Get the language-util.
-     *
-     * @returns {module:language}
-     */
-    getLanguage() {
-      return this._helper.language;
-    }
-
-    /**
-     * Get metadata.
-     *
-     * @returns {module:metadata}
-     */
-    getMetadata() {
-      return this._helper.metadata;
-    }
-
-    /**
-     * Get the cache-util.
-     *
-     * @returns {module:cache}
-     */
-    getCache() {
-      return this._helper.cache;
-    }
-
-    /**
-     * Get the date-time util.
-     *
-     * @returns {module:date-time}
-     */
-    getDateTime() {
-      return this._helper.dateTime;
-    }
-
-    /**
-     * Get the number-util.
-     *
-     * @returns {module:num-util}
-     */
-    getNumberUtil() {
-      return this._helper.numberUtil;
-    }
-
-    /**
-     * Get the field manager.
-     *
-     * @returns {module:field-manager}
-     */
-    getFieldManager() {
-      return this._helper.fieldManager;
-    }
-
-    /**
-     * Get the base-controller.
-     *
-     * @returns {module:controllers/base}
-     */
-    getBaseController() {
-      return this._helper.baseController;
-    }
-
-    /**
-     * Get the theme manager.
-     *
-     * @returns {module:theme-manager}
-     */
-    getThemeManager() {
-      return this._helper.themeManager;
-    }
-
-    /**
-     * Update a page title. Supposed to be overridden if needed.
-     */
-    updatePageTitle() {
-      const title = this.getConfig().get('applicationName') || 'EspoCRM';
-      this.setPageTitle(title);
-    }
-
-    /**
-     * Set a page title.
-     *
-     * @param {string} title A title.
-     */
-    setPageTitle(title) {
-      this.getHelper().pageTitle.setTitle(title);
-    }
-
-    /**
-     * Translate a label.
-     *
-     * @param {string} label Label.
-     * @param {string|'messages'|'labels'|'fields'|'links'|'scopeNames'|'scopeNamesPlural'} [category='labels'] Category.
-     * @param {string} [scope='Global'] Scope.
-     * @returns {string}
-     */
-    translate(label, category, scope) {
-      return this.getLanguage().translate(label, category, scope);
-    }
-
-    /**
-     * Get a base path.
-     *
-     * @returns {string}
-     */
-    getBasePath() {
-      return this._helper.basePath || '';
-    }
-
-    /**
-     * @typedef {Object} module:view~ConfirmOptions
-     *
-     * @property {string} message A message.
-     * @property {string} [confirmText] A confirm-button text.
-     * @property {string} [cancelText] A cancel-button text.
-     * @property {'danger'|'success'|'warning'|'default'} [confirmStyle='danger'] A confirm-button style.
-     * @property {'static'|boolean} [backdrop=false] A backdrop.
-     * @property {function():void} [cancelCallback] A cancel-callback.
-     */
-
-    /**
-     * Show a confirmation dialog.
-     *
-     * @param {string|module:view~ConfirmOptions} o A message or options.
-     * @param [callback] A callback. Deprecated, use a promise.
-     * @param [context] A context. Deprecated.
-     * @returns {Promise} To be resolved if confirmed.
-     */
-    confirm(o, callback, context) {
-      let message;
-      if (typeof o === 'string' || o instanceof String) {
-        message = o;
-        o = /** @type {module:view~ConfirmOptions} */{};
-      } else {
-        o = o || {};
-        message = o.message;
-      }
-      if (message) {
-        message = this.getHelper().transformMarkdownText(message, {
-          linksInNewTab: true
-        }).toString();
-      }
-      const confirmText = o.confirmText || this.translate('Yes');
-      const confirmStyle = o.confirmStyle || null;
-      const cancelText = o.cancelText || this.translate('Cancel');
-      return Espo.Ui.confirm(message, {
-        confirmText: confirmText,
-        cancelText: cancelText,
-        confirmStyle: confirmStyle,
-        backdrop: 'backdrop' in o ? o.backdrop : true,
-        isHtml: true,
-        cancelCallback: o.cancelCallback
-      }, callback, context);
-    }
-  }
-  var _default = _exports.default = View;
-});
-
 define("date-time", ["exports", "moment"], function (_exports, _moment) {
   "use strict";
 
@@ -492,7 +91,7 @@ define("date-time", ["exports", "moment"], function (_exports, _moment) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -913,20 +512,21 @@ define("date-time", ["exports", "moment"], function (_exports, _moment) {
   var _default = _exports.default = DateTime;
 });
 
-define("helpers/site/shortcut-manager", ["exports", "di"], function (_exports, _di) {
+define("helpers/model/default-value-provider", ["exports", "date-time", "di"], function (_exports, _dateTime, _di) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
   _exports.default = void 0;
-  var _temp;
-  let _initClass;
+  _dateTime = _interopRequireDefault(_dateTime);
+  var _staticBlock;
+  let _init_dateTime, _init_extra_dateTime;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -949,183 +549,58 @@ define("helpers/site/shortcut-manager", ["exports", "di"], function (_exports, _
    * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
   function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
-  /** @typedef {import('view').default} View */
-  /** @typedef {string|function(KeyboardEvent): void} Key */
-  let _ShortcutManager = _exports.default = void 0;
-  class ShortcutManager {
-    static #_ = (_temp = [_ShortcutManager, _initClass] = _applyDecs(this, [(0, _di.register)()], []).c, _exports.default = _ShortcutManager, _temp);
-    /**
-     * @private
-     * @type {number}
-     */
-    level = 0;
-
-    /**
-     * @private
-     * @type {{
-     *     view: View[],
-     *     keys: Record.<string, Key>,
-     *     level: number,
-     * }[]}
-     */
-    items;
+  const nowExpression = /return this\.dateTime\.getNow\(([0-9]+)\);/;
+  const shiftTodayExpression = /return this\.dateTime\.getDateShiftedFromToday\(([0-9]+), '([a-z]+)'\);/;
+  const shiftNowExpression = /return this\.dateTime\.getDateTimeShiftedFromNow\(([0-9]+), '([a-z]+)', ([0-9]+)\);/;
+  class DefaultValueProvider {
     constructor() {
-      this.items = [];
-      document.addEventListener('keydown', event => this.handle(event), {
-        capture: true
-      });
+      _init_extra_dateTime(this);
     }
+    /**
+     * @type {DateTime}
+     */
+    dateTime = _init_dateTime(this);
 
     /**
-     * Add a view and keys.
+     * Get a value.
      *
-     * @param {import('view').default} view
-     * @param {Record.<string, Key>} keys
-     * @param {{stack: boolean}} [options]
+     * @param {string} key
+     * @return {*}
      */
-    add(view, keys) {
-      let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      if (this.items.find(it => it.view === view)) {
-        return;
+    get(key) {
+      if (key === "return this.dateTime.getToday();") {
+        return this.dateTime.getToday();
       }
-      if (options.stack) {
-        this.level++;
+      const matchNow = key.match(nowExpression);
+      if (matchNow) {
+        const multiplicity = parseInt(matchNow[1]);
+        return this.dateTime.getNow(multiplicity);
       }
-      this.items.push({
-        view: view,
-        keys: keys,
-        level: this.level
-      });
+      const matchTodayShift = key.match(shiftTodayExpression);
+      if (matchTodayShift) {
+        const shift = parseInt(matchTodayShift[1]);
+        const unit = matchTodayShift[2];
+        return this.dateTime.getDateShiftedFromToday(shift, unit);
+      }
+      const matchNowShift = key.match(shiftNowExpression);
+      if (matchNowShift) {
+        const shift = parseInt(matchNowShift[1]);
+        const unit = matchNowShift[2];
+        const multiplicity = parseInt(matchNowShift[3]);
+        return this.dateTime.getDateTimeShiftedFromNow(shift, unit, multiplicity);
+      }
+      return undefined;
     }
-
-    /**
-     * Remove a view.
-     *
-     * @param {import('view').default} view
-     */
-    remove(view) {
-      const index = this.items.findIndex(it => it.view === view);
-      if (index < 0) {
-        return;
-      }
-      this.items.splice(index, 1);
-      let maxLevel = 0;
-      for (const item of this.items) {
-        if (item.level > maxLevel) {
-          maxLevel = item.level;
-        }
-      }
-      this.level = maxLevel;
-    }
-
-    /**
-     * Handle.
-     *
-     * @param {KeyboardEvent} event
-     */
-    handle(event) {
-      const items = this.items.filter(it => it.level === this.level);
-      if (items.length === 0) {
-        return;
-      }
-      const key = Espo.Utils.getKeyFromKeyEvent(event);
-      for (const item of items) {
-        const subject = item.keys[key];
-        if (!subject) {
-          continue;
-        }
-        if (typeof subject === 'function') {
-          subject.call(item.view, event);
-          break;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        const methodName = 'action' + Espo.Utils.upperCaseFirst(subject);
-        if (typeof item.view[methodName] === 'function') {
-          item.view[methodName]();
-          break;
-        }
-      }
-    }
-    static #_2 = _initClass();
+    static #_ = _staticBlock = () => [_init_dateTime, _init_extra_dateTime] = _applyDecs(this, [], [[(0, _di.inject)(_dateTime.default), 0, "dateTime"]]).e;
   }
-});
-
-define("helpers/site/modal-bar-provider", ["exports", "di"], function (_exports, _di) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  var _temp;
-  let _initClass;
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
-  function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
-  function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-  function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
-  function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
-  /**
-   * @internal
-   */
-  let _ModalBarProvider = _exports.default = void 0;
-  class ModalBarProvider {
-    static #_ = (_temp = [_ModalBarProvider, _initClass] = _applyDecs(this, [(0, _di.register)()], []).c, _exports.default = _ModalBarProvider, _temp);
-    /**
-     * @private
-     * @type {import('views/collapsed-modal-bar').default|null}
-     */
-    view = null;
-
-    /**
-     * @internal
-     * @return {import('views/collapsed-modal-bar').default|null}
-     */
-    get() {
-      return this.view;
-    }
-
-    /**
-     * @internal
-     * @param {import('views/collapsed-modal-bar').default|null} view
-     */
-    set(view) {
-      this.view = view;
-    }
-    static #_2 = _initClass();
-  }
+  _exports.default = DefaultValueProvider;
+  _staticBlock();
 });
 
 define("utils", ["exports"], function (_exports) {
@@ -1139,7 +614,7 @@ define("utils", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -1235,6 +710,7 @@ define("utils", ["exports"], function (_exports) {
       } else if (typeof view[method] === 'function') {
         if (view !== null && view !== void 0 && view.events[`click [data-action="${action}"]`]) {
           // Prevents from firing if a handler is already assigned. Important.
+          // Does not prevent if handled from a nested view. @todo
           return false;
         }
         view[method].call(view, data, event);
@@ -1747,6 +1223,2039 @@ define("utils", ["exports"], function (_exports) {
   var _default = _exports.default = Espo.Utils;
 });
 
+define("ui", ["exports", "marked", "dompurify", "jquery"], function (_exports, _marked, _dompurify, _jquery) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _dompurify = _interopRequireDefault(_dompurify);
+  _jquery = _interopRequireDefault(_jquery);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module ui */
+
+  /**
+   * Dialog parameters.
+   *
+   * @typedef {Object} module:ui.Dialog~Params
+   *
+   * @property {string} [className='dialog'] A class-name or multiple space separated.
+   * @property {'static'|true|false} [backdrop='static'] A backdrop.
+   * @property {boolean} [closeButton=true] A close button.
+   * @property {boolean} [collapseButton=false] A collapse button.
+   * @property {string|null} [header] A header HTML.
+   * @property {string} [body] A body HTML.
+   * @property {number|null} [width] A width.
+   * @property {boolean} [removeOnClose=true] To remove on close.
+   * @property {boolean} [draggable=false] Is draggable.
+   * @property {function(): void} [onRemove] An on-remove callback.
+   * @property {function(): void} [onClose] An on-close callback.
+   * @property {function(): void} [onBackdropClick] An on-backdrop-click callback.
+   * @property {string} [container='body'] A container selector.
+   * @property {boolean} [keyboard=true] Enable a keyboard control. The `Esc` key closes a dialog.
+   * @property {boolean} [footerAtTheTop=false] To display a footer at the top.
+   * @property {module:ui.Dialog~Button[]} [buttonList] Buttons.
+   * @property {Array<module:ui.Dialog~Button|false>} [dropdownItemList] Dropdown action items.
+   * @property {boolean} [fullHeight] Deprecated.
+   * @property {Number} [bodyDiffHeight]
+   * @property {Number} [screenWidthXs]
+   * @property {boolean} [maximizeButton] Is maximizable.
+   * @property {function()} [onMaximize] On maximize handler.
+   * @property {function()} [onMinimize] On minimize handler.
+   * @property {string} [backdropClassName] A backdrop class name. As of v9.1.0.
+   */
+
+  /**
+   * A button or dropdown action item.
+   *
+   * @typedef {Object} module:ui.Dialog~Button
+   *
+   * @property {string} name A name.
+   * @property {boolean} [pullLeft=false] Deprecated. Use the `position` property.
+   * @property {'left'|'right'} [position='left'] A position.
+   * @property {string} [html] HTML.
+   * @property {string} [text] A text.
+   * @property {boolean} [disabled=false] Disabled.
+   * @property {boolean} [hidden=false] Hidden.
+   * @property {'default'|'danger'|'success'|'warning'} [style='default'] A style.
+   * @property {function(Espo.Ui.Dialog, JQueryEventObject): void} [onClick] An on-click callback.
+   * @property {string} [className] An additional class name.
+   * @property {string} [title] A title.
+   */
+
+  /**
+   * @type {Espo.Ui.Dialog[]}
+   */
+  const shownDialogList = [];
+
+  /**
+   * @alias Espo.Ui.Dialog
+   */
+  class Dialog {
+    height;
+    fitHeight;
+    onRemove;
+    onClose;
+    onBackdropClick;
+    buttons;
+    screenWidthXs;
+    backdropClassName;
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    maximizeButton = false;
+
+    /**
+     * @private
+     * @type {HTMLAnchorElement}
+     */
+    maximizeButtonElement;
+
+    /**
+     * @private
+     * @type {HTMLAnchorElement}
+     */
+    minimizeButtonElement;
+
+    /**
+     * @private
+     * @type {function()}
+     */
+    onMaximize;
+
+    /**
+     * @private
+     * @type {function()}
+     */
+    onMinimize;
+
+    /**
+     * @param {module:ui.Dialog~Params} options Options.
+     */
+    constructor(options) {
+      options = options || {};
+
+      /** @private */
+      this.className = 'dialog-confirm';
+      /** @private */
+      this.backdrop = 'static';
+      /** @private */
+      this.closeButton = true;
+      /** @private */
+      this.collapseButton = false;
+      /** @private */
+      this.header = null;
+      /** @private */
+      this.body = '';
+      /** @private */
+      this.width = null;
+      /**
+       * @private
+       * @type {module:ui.Dialog~Button[]}
+       */
+      this.buttonList = [];
+      /**
+       * @private
+       * @type {Array<module:ui.Dialog~Button|false>}
+       */
+      this.dropdownItemList = [];
+      /** @private */
+      this.removeOnClose = true;
+      /** @private */
+      this.draggable = false;
+      /** @private */
+      this.container = 'body';
+      /** @private */
+      this.options = options;
+      /** @private */
+      this.keyboard = true;
+      this.activeElement = document.activeElement;
+      const params = ['className', 'backdrop', 'keyboard', 'closeButton', 'collapseButton', 'header', 'body', 'width', 'height', 'fitHeight', 'buttons', 'buttonList', 'dropdownItemList', 'removeOnClose', 'draggable', 'container', 'onRemove', 'onClose', 'onBackdropClick', 'maximizeButton', 'backdropClassName'];
+      params.forEach(param => {
+        if (param in options) {
+          this[param] = options[param];
+        }
+      });
+      if (options.onMaximize) {
+        this.onMaximize = options.onMaximize;
+      }
+      if (options.onMinimize) {
+        this.onMinimize = options.onMinimize;
+      }
+
+      /** @private */
+      this.onCloseIsCalled = false;
+      if (this.buttons && this.buttons.length) {
+        /**
+         * @private
+         * @type {module:ui.Dialog~Button[]}
+         */
+        this.buttonList = this.buttons;
+      }
+      this.id = 'dialog-' + Math.floor(Math.random() * 100000);
+      if (typeof this.backdrop === 'undefined') {
+        /** @private */
+        this.backdrop = 'static';
+      }
+      const $header = this.getHeader();
+      const $footer = this.getFooter();
+      const $body = (0, _jquery.default)('<div>').addClass('modal-body body').html(this.body);
+      const $content = (0, _jquery.default)('<div>').addClass('modal-content');
+      if ($header) {
+        $content.append($header);
+      }
+      if ($footer && this.options.footerAtTheTop) {
+        $content.append($footer);
+      }
+      $content.append($body);
+      if ($footer && !this.options.footerAtTheTop) {
+        $content.append($footer);
+      }
+      const $dialog = (0, _jquery.default)('<div>').addClass('modal-dialog').append($content);
+      const $container = (0, _jquery.default)(this.container);
+      (0, _jquery.default)('<div>').attr('id', this.id).attr('class', this.className + ' modal').attr('role', 'dialog').attr('tabindex', '-1').append($dialog).appendTo($container);
+
+      /**
+       * An element.
+       *
+       * @type {JQuery}
+       */
+      this.$el = (0, _jquery.default)('#' + this.id);
+
+      /**
+       * @private
+       * @type {Element}
+       */
+      this.el = this.$el.get(0);
+      this.$el.find('header a.close').on('click', () => {
+        //this.close();
+      });
+      this.initButtonEvents();
+      if (this.draggable) {
+        this.$el.find('header').css('cursor', 'pointer');
+
+        // noinspection JSUnresolvedReference
+        this.$el.draggable({
+          handle: 'header'
+        });
+      }
+      const modalContentEl = this.$el.find('.modal-content');
+      if (this.width) {
+        modalContentEl.css('width', this.width);
+        modalContentEl.css('margin-left', '-' + parseInt(this.width.replace('px', '')) / 5 + 'px');
+      }
+      if (this.removeOnClose) {
+        this.$el.on('hidden.bs.modal', e => {
+          if (this.$el.get(0) === e.target) {
+            if (!this.onCloseIsCalled) {
+              this.close();
+            }
+            if (this.skipRemove) {
+              return;
+            }
+            this.remove();
+          }
+        });
+      }
+      const $window = (0, _jquery.default)(window);
+      this.$el.on('shown.bs.modal', () => {
+        (0, _jquery.default)('.modal-backdrop').not('.stacked').addClass('stacked');
+        const headerHeight = this.$el.find('.modal-header').outerHeight() || 0;
+        const footerHeight = this.$el.find('.modal-footer').outerHeight() || 0;
+        let diffHeight = headerHeight + footerHeight;
+        if (!options.fullHeight) {
+          diffHeight = diffHeight + options.bodyDiffHeight;
+        }
+        if (this.fitHeight || options.fullHeight) {
+          const processResize = () => {
+            const windowHeight = window.innerHeight;
+            const windowWidth = $window.width();
+            if (!options.fullHeight && windowHeight < 512) {
+              this.$el.find('div.modal-body').css({
+                maxHeight: 'none',
+                overflow: 'auto',
+                height: 'none'
+              });
+              return;
+            }
+            const cssParams = {
+              overflow: 'auto'
+            };
+            if (options.fullHeight) {
+              cssParams.height = windowHeight - diffHeight + 'px';
+              this.$el.css('paddingRight', 0);
+            } else {
+              if (windowWidth <= options.screenWidthXs) {
+                cssParams.maxHeight = 'none';
+              } else {
+                cssParams.maxHeight = windowHeight - diffHeight + 'px';
+              }
+            }
+            this.$el.find('div.modal-body').css(cssParams);
+          };
+          $window.off('resize.modal-height');
+          $window.on('resize.modal-height', processResize);
+          processResize();
+        }
+      });
+      const $documentBody = (0, _jquery.default)(document.body);
+      this.$el.on('hidden.bs.modal', () => {
+        if ((0, _jquery.default)('.modal:visible').length > 0) {
+          $documentBody.addClass('modal-open');
+        }
+      });
+    }
+
+    /**
+     * Get a general container element.
+     *
+     * @return {HTMLDivElement}
+     * @since 9.1.0
+     */
+    getElement() {
+      return this.el;
+    }
+
+    /**
+     * Update the header text.
+     *
+     * @param {string} text
+     * @since 9.1.0
+     */
+    setHeaderText(text) {
+      const element = this.el.querySelector('.modal-header .modal-title');
+      if (!element) {
+        return;
+      }
+      element.textContent = text;
+    }
+
+    /** @private */
+    callOnClose() {
+      if (this.onClose) {
+        this.onClose();
+      }
+    }
+
+    /** @private */
+    callOnBackdropClick() {
+      if (this.onBackdropClick) {
+        this.onBackdropClick();
+      }
+    }
+
+    /** @private */
+    callOnRemove() {
+      if (this.onRemove) {
+        this.onRemove();
+      }
+    }
+
+    /**
+     * Set action items.
+     *
+     * @param {module:ui.Dialog~Button[]} buttonList
+     * @param {Array<module:ui.Dialog~Button|false>} dropdownItemList
+     */
+    setActionItems(buttonList, dropdownItemList) {
+      this.buttonList = buttonList;
+      this.dropdownItemList = dropdownItemList;
+    }
+
+    /**
+     * Init button events.
+     */
+    initButtonEvents() {
+      this.buttonList.forEach(o => {
+        if (typeof o.onClick === 'function') {
+          const $button = (0, _jquery.default)('#' + this.id + ' .modal-footer button[data-name="' + o.name + '"]');
+          $button.on('click', e => o.onClick(this, e));
+        }
+      });
+      this.dropdownItemList.forEach(o => {
+        if (o === false) {
+          return;
+        }
+        if (typeof o.onClick === 'function') {
+          const $button = (0, _jquery.default)('#' + this.id + ' .modal-footer a[data-name="' + o.name + '"]');
+          $button.on('click', e => o.onClick(this, e));
+        }
+      });
+    }
+
+    /**
+     * @private
+     * @return {JQuery|null}
+     */
+    getHeader() {
+      if (!this.header) {
+        return null;
+      }
+      const $header = (0, _jquery.default)('<header />').addClass('modal-header').addClass(this.options.fixedHeaderHeight ? 'fixed-height' : '').append((0, _jquery.default)('<h4 />').addClass('modal-title').append((0, _jquery.default)('<span />').addClass('modal-title-text').html(this.header)));
+      if (this.collapseButton) {
+        $header.prepend((0, _jquery.default)('<a>').addClass('collapse-button').attr('role', 'button').attr('tabindex', '-1').attr('data-action', 'collapseModal').append((0, _jquery.default)('<span />').addClass('fas fa-minus')));
+      }
+      if (this.maximizeButton) {
+        {
+          const a = document.createElement('a');
+          a.classList.add('maximize-button');
+          a.role = 'button';
+          a.tabIndex = -1;
+          a.setAttribute('data-action', 'maximizeModal');
+          const icon = document.createElement('span');
+          icon.classList.add('far', 'fa-window-maximize');
+          a.append(icon);
+          $header.prepend(a);
+          this.maximizeButtonElement = a;
+          a.addEventListener('click', () => {
+            this.maximizeButtonElement.classList.add('hidden');
+            this.minimizeButtonElement.classList.remove('hidden');
+            this.el.querySelector('.modal-dialog').classList.add('maximized');
+            if (this.onMaximize) {
+              this.onMaximize();
+            }
+            this.getElement().focus();
+          });
+        }
+        {
+          const a = document.createElement('a');
+          a.classList.add('minimize-button', 'hidden');
+          a.role = 'button';
+          a.tabIndex = -1;
+          a.setAttribute('data-action', 'minimizeModal');
+          const icon = document.createElement('span');
+          icon.classList.add('far', 'fa-window-minimize');
+          a.append(icon);
+          $header.prepend(a);
+          this.minimizeButtonElement = a;
+          a.addEventListener('click', () => {
+            this.minimizeButtonElement.classList.add('hidden');
+            this.maximizeButtonElement.classList.remove('hidden');
+            this.el.querySelector('.modal-dialog').classList.remove('maximized');
+            if (this.onMinimize) {
+              this.onMinimize();
+            }
+            this.getElement().focus();
+          });
+        }
+      }
+      if (this.closeButton) {
+        $header.prepend((0, _jquery.default)('<a>').addClass('close').attr('data-dismiss', 'modal').attr('role', 'button').attr('tabindex', '-1').append((0, _jquery.default)('<span />').attr('aria-hidden', 'true').html('&times;')));
+      }
+      return $header;
+    }
+
+    /**
+     * Get a footer.
+     *
+     * @return {JQuery|null}
+     */
+    getFooter() {
+      if (!this.buttonList.length && !this.dropdownItemList.length) {
+        return null;
+      }
+      const $footer = (0, _jquery.default)('<footer>').addClass('modal-footer');
+      const $main = (0, _jquery.default)('<div>').addClass('btn-group').addClass('main-btn-group');
+      const $additional = (0, _jquery.default)('<div>').addClass('btn-group').addClass('additional-btn-group');
+      this.buttonList.forEach(/** module:ui.Dialog~Button */o => {
+        const style = o.style || 'default';
+        const $button = (0, _jquery.default)('<button>').attr('type', 'button').attr('data-name', o.name).addClass('btn').addClass('btn-' + style).addClass(o.className || 'btn-xs-wide');
+        if (o.disabled) {
+          $button.attr('disabled', 'disabled');
+          $button.addClass('disabled');
+        }
+        if (o.hidden) {
+          $button.addClass('hidden');
+        }
+        if (o.title) {
+          $button.attr('title', o.title);
+        }
+        if (o.text) {
+          $button.text(o.text);
+        }
+        if (o.html) {
+          $button.html(o.html);
+        }
+        if (o.pullLeft || o.position === 'right') {
+          $additional.append($button);
+          return;
+        }
+        $main.append($button);
+      });
+      const allDdItemsHidden = this.dropdownItemList.filter(o => o && !o.hidden).length === 0;
+      const $dropdown = (0, _jquery.default)('<div>').addClass('btn-group').addClass(allDdItemsHidden ? 'hidden' : '').append((0, _jquery.default)('<button>').attr('type', 'button').addClass('btn btn-default dropdown-toggle').addClass(allDdItemsHidden ? 'hidden' : '').attr('data-toggle', 'dropdown').append((0, _jquery.default)('<span>').addClass('fas fa-ellipsis-h')));
+      const $ul = (0, _jquery.default)('<ul>').addClass('dropdown-menu pull-right');
+      $dropdown.append($ul);
+      this.dropdownItemList.forEach((o, i) => {
+        if (o === false) {
+          if (i === this.dropdownItemList.length - 1) {
+            return;
+          }
+          $ul.append(`<li class="divider"></li>`);
+          return;
+        }
+        const $a = (0, _jquery.default)('<a>').attr('role', 'button').attr('tabindex', '0').attr('data-name', o.name);
+        if (o.text) {
+          $a.text(o.text);
+        }
+        if (o.title) {
+          $a.attr('title', o.title);
+        }
+        if (o.html) {
+          $a.html(o.html);
+        }
+        const $li = (0, _jquery.default)('<li>').addClass(o.hidden ? ' hidden' : '').append($a);
+        $ul.append($li);
+      });
+      if ($ul.children().length) {
+        $main.append($dropdown);
+      }
+      if ($additional.children().length) {
+        $footer.append($additional);
+      }
+      $footer.append($main);
+      return $footer;
+    }
+
+    /**
+     * @internal
+     * @type {HTMLElement}
+     */
+    _backdropElement;
+
+    /**
+     * Show.
+     */
+    show() {
+      shownDialogList.push(this);
+
+      // noinspection JSUnresolvedReference,JSUnusedGlobalSymbols
+      this.$el.modal({
+        backdrop: this.backdrop,
+        keyboard: this.keyboard,
+        onBackdropCreate: element => {
+          this._backdropElement = element;
+          if (this.backdropClassName) {
+            this._backdropElement.classList.add(this.backdropClassName);
+          }
+        }
+      });
+      this.$el.find('.modal-content').removeClass('hidden');
+      for (const [i, dialog] of shownDialogList.entries()) {
+        if (i < shownDialogList.length - 1 && dialog.getElement() && dialog.getElement().parentElement) {
+          if (dialog._backdropElement) {
+            dialog._backdropElement.classList.add('hidden');
+          }
+          dialog.getElement().parentElement.classList.add('overlaid');
+        }
+      }
+      this.$el.off('click.dismiss.bs.modal');
+      this.$el.on('click.dismiss.bs.modal', '> div.modal-dialog > div.modal-content > header [data-dismiss="modal"]', () => this.close());
+      this.$el.on('mousedown', e => {
+        this.$mouseDownTarget = (0, _jquery.default)(e.target);
+      });
+      this.$el.on('click.dismiss.bs.modal', e => {
+        if (e.target !== e.currentTarget) {
+          return;
+        }
+        if (this.$mouseDownTarget && this.$mouseDownTarget.closest('.modal-content').length) {
+          return;
+        }
+        this.callOnBackdropClick();
+        if (this.backdrop === 'static') {
+          return;
+        }
+        this.close();
+      });
+      (0, _jquery.default)('body > .popover').addClass('hidden');
+    }
+
+    /**
+     * Hide.
+     *
+     * @todo Check usage. Deprecate?
+     */
+    hide() {
+      this.$el.find('.modal-content').addClass('hidden');
+    }
+
+    /**
+     * Hide with a backdrop.
+     */
+    hideWithBackdrop() {
+      if (this._backdropElement) {
+        this._backdropElement.classList.add('hidden');
+      }
+      this._hideInternal();
+      this.skipRemove = true;
+      setTimeout(() => this.skipRemove = false, 50);
+
+      // noinspection JSUnresolvedReference
+      this.$el.modal('hide');
+      this.$el.find('.modal-content').addClass('hidden');
+    }
+
+    /**
+     * @private
+     */
+    _hideInternal() {
+      const findIndex = shownDialogList.findIndex(it => it === this);
+      if (findIndex >= 0) {
+        shownDialogList.splice(findIndex, 1);
+      }
+      const last = shownDialogList[shownDialogList.length - 1];
+      if (last && last._backdropElement) {
+        last._backdropElement.classList.remove('hidden');
+      }
+      if (last && last.getElement() && last.getElement().parentElement) {
+        last.getElement().parentElement.classList.remove('overlaid');
+      }
+    }
+
+    /**
+     * @private
+     */
+    _close() {
+      this._hideInternal();
+    }
+
+    /**
+     * @private
+     * @param {Element} element
+     * @return {Element|null}
+     */
+    _findClosestFocusableElement(element) {
+      // noinspection JSUnresolvedReference
+      const isVisible = !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+      if (isVisible) {
+        // noinspection JSUnresolvedReference
+        element.focus({
+          preventScroll: true
+        });
+        return element;
+      }
+      const $element = (0, _jquery.default)(element);
+      if ($element.closest('.dropdown-menu').length) {
+        const $button = $element.closest('.btn-group').find(`[data-toggle="dropdown"]`);
+        if ($button.length) {
+          // noinspection JSUnresolvedReference
+          $button.get(0).focus({
+            preventScroll: true
+          });
+          return $button.get(0);
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Close.
+     */
+    close() {
+      if (!this.onCloseIsCalled) {
+        this.callOnClose();
+        this.onCloseIsCalled = true;
+        if (this.activeElement) {
+          setTimeout(() => {
+            const element = this._findClosestFocusableElement(this.activeElement);
+            if (element) {
+              // noinspection JSUnresolvedReference
+              element.focus({
+                preventScroll: true
+              });
+            }
+          }, 50);
+        }
+      }
+      this._close();
+      // noinspection JSUnresolvedReference
+      this.$el.modal('hide');
+      (0, _jquery.default)(this).trigger('dialog:close');
+    }
+
+    /**
+     * Remove.
+     */
+    remove() {
+      this.callOnRemove();
+
+      // Hack allowing multiple backdrops.
+      // `close` function may be called twice.
+      this._close();
+      this.$el.remove();
+      (0, _jquery.default)(this).off();
+      (0, _jquery.default)(window).off('resize.modal-height');
+    }
+  }
+
+  /**
+   * UI utils.
+   */
+  Espo.Ui = {
+    Dialog: Dialog,
+    /**
+     * @typedef {Object} Espo.Ui~ConfirmOptions
+     *
+     * @property {string} confirmText A confirm-button text.
+     * @property {string} cancelText A cancel-button text.
+     * @property {'danger'|'success'|'warning'|'default'} [confirmStyle='danger']
+     *   A confirm-button style.
+     * @property {'static'|boolean} [backdrop=false] A backdrop.
+     * @property {function():void} [cancelCallback] A cancel-callback.
+     * @property {boolean} [isHtml=false] Whether the message is HTML.
+     */
+
+    /**
+     * Show a confirmation dialog.
+     *
+     * @param {string} message A message.
+     * @param {Espo.Ui~ConfirmOptions|{}} o Options.
+     * @param {function} [callback] Deprecated. Use a promise.
+     * @param {Object} [context] Deprecated.
+     * @returns {Promise} Resolves if confirmed.
+     */
+    confirm: function (message, o, callback, context) {
+      o = o || {};
+      const confirmText = o.confirmText;
+      const cancelText = o.cancelText;
+      const confirmStyle = o.confirmStyle || 'danger';
+      let backdrop = o.backdrop;
+      if (typeof backdrop === 'undefined') {
+        backdrop = false;
+      }
+      let isResolved = false;
+      const processCancel = () => {
+        if (!o.cancelCallback) {
+          return;
+        }
+        if (context) {
+          o.cancelCallback.call(context);
+          return;
+        }
+        o.cancelCallback();
+      };
+      if (!o.isHtml) {
+        message = Handlebars.Utils.escapeExpression(message);
+      }
+      confirmCount++;
+      return new Promise(resolve => {
+        const dialog = new Dialog({
+          backdrop: backdrop,
+          header: null,
+          className: 'dialog-confirm',
+          backdropClassName: 'backdrop-confirm',
+          body: '<span class="confirm-message">' + message + '</a>',
+          buttonList: [{
+            text: ' ' + confirmText + ' ',
+            name: 'confirm',
+            className: 'btn-s-wide',
+            onClick: () => {
+              isResolved = true;
+              if (callback) {
+                if (context) {
+                  callback.call(context);
+                } else {
+                  callback();
+                }
+              }
+              resolve();
+              dialog.close();
+            },
+            style: confirmStyle,
+            position: 'right'
+          }, {
+            text: cancelText,
+            name: 'cancel',
+            className: 'btn-s-wide',
+            onClick: () => {
+              isResolved = true;
+              dialog.close();
+              processCancel();
+            },
+            position: 'left'
+          }],
+          onClose: () => {
+            confirmCount--;
+            if (isResolved) {
+              return;
+            }
+            processCancel();
+          }
+        });
+        dialog.show();
+        dialog.$el.find('button[data-name="confirm"]').focus();
+      });
+    },
+    /**
+     * Create a dialog.
+     *
+     * @param {module:ui.Dialog~Params} options Options.
+     * @returns {Dialog}
+     */
+    dialog: function (options) {
+      return new Dialog(options);
+    },
+    /**
+     * Popover options.
+     *
+     * @typedef {Object} Espo.Ui~PopoverOptions
+     *
+     * @property {'bottom'|'top'|'left'|'right'} [placement='bottom'] A placement.
+     * @property {string|JQuery} [container] A container selector.
+     * @property {string} [content] An HTML content.
+     * @property {string} [text] A text.
+     * @property {'manual'|'click'|'hover'|'focus'} [trigger='manual'] A trigger type.
+     * @property {boolean} [noToggleInit=false] Skip init toggle on click.
+     * @property {boolean} [preventDestroyOnRender=false] Don't destroy on re-render.
+     * @property {boolean} [noHideOnOutsideClick=false] Don't hide on clicking outside.
+     * @property {function(): void} [onShow] On-show callback.
+     * @property {function(): void} [onHide] On-hide callback.
+     * @property {string|function(): string} [title] A title text.
+     * @property {boolean} [keepElementTitle] Keep an original element's title.
+     */
+
+    /**
+     * Init a popover.
+     *
+     * @param {Element|JQuery} element An element.
+     * @param {Espo.Ui~PopoverOptions} o Options.
+     * @param {module:view} [view] A view.
+     * @return {{
+     *     hide: function(),
+     *     destroy: function(),
+     *     show: function(): string,
+     *     detach: function(),
+     * }}
+     */
+    popover: function (element, o, view) {
+      const $el = (0, _jquery.default)(element);
+      const $body = (0, _jquery.default)('body');
+      const content = o.content || Handlebars.Utils.escapeExpression(o.text || '');
+      let isShown = false;
+      let container = o.container;
+      if (!container) {
+        const $modalBody = $el.closest('.modal-body');
+        container = $modalBody.length ? $modalBody : 'body';
+      }
+
+      // noinspection JSUnresolvedReference
+      $el.popover({
+        placement: o.placement || 'bottom',
+        container: container,
+        viewport: container,
+        html: true,
+        content: content,
+        trigger: o.trigger || 'manual',
+        title: o.title,
+        keepElementTitle: o.keepElementTitle
+      }).on('shown.bs.popover', () => {
+        isShown = true;
+        if (!view) {
+          return;
+        }
+        if (view && !o.noHideOnOutsideClick) {
+          $body.off(`click.popover-${view.cid}`);
+          $body.on(`click.popover-${view.cid}`, e => {
+            if ((0, _jquery.default)(e.target).closest('.popover').get(0)) {
+              return;
+            }
+            if (_jquery.default.contains($el.get(0), e.target)) {
+              return;
+            }
+            if ($el.get(0) === e.target) {
+              return;
+            }
+            $body.off(`click.popover-${view.cid}`);
+            // noinspection JSUnresolvedReference
+            $el.popover('hide');
+          });
+        }
+        if (o.onShow) {
+          o.onShow();
+        }
+      }).on('hidden.bs.popover', () => {
+        isShown = false;
+        if (o.onHide) {
+          o.onHide();
+        }
+      });
+      if (!o.noToggleInit) {
+        $el.on('click', () => {
+          // noinspection JSUnresolvedReference
+          $el.popover('toggle');
+        });
+      }
+      let isDetached = false;
+      const detach = () => {
+        if (view) {
+          $body.off(`click.popover-${view.cid}`);
+          view.off('remove', destroy);
+          view.off('render', destroy);
+          view.off('render', hide);
+        }
+        isDetached = true;
+      };
+      const destroy = () => {
+        if (isDetached) {
+          return;
+        }
+
+        // noinspection JSUnresolvedReference
+        $el.popover('destroy');
+        detach();
+      };
+      const hide = () => {
+        if (!isShown) {
+          return;
+        }
+
+        // noinspection JSUnresolvedReference
+        $el.popover('hide');
+      };
+      const show = () => {
+        // noinspection JSUnresolvedReference
+        $el.popover('show');
+        return $el.attr('aria-describedby');
+      };
+      if (view) {
+        view.once('remove', destroy);
+        if (!o.preventDestroyOnRender) {
+          view.once('render', destroy);
+        }
+        if (o.preventDestroyOnRender) {
+          view.on('render', hide);
+        }
+      }
+      return {
+        hide: () => hide(),
+        destroy: () => destroy(),
+        show: () => show(),
+        detach: () => detach()
+      };
+    },
+    /**
+     * Notify options.
+     *
+     * @typedef {Object} Espo.Ui~NotifyOptions
+     * @property {boolean} [closeButton] A close button.
+     * @property {boolean} [suppress] Suppress other warning alerts while this is displayed.
+     */
+
+    /**
+     * Show the spinner.
+     *
+     * @since 9.1.0
+     */
+    notifyWait: function () {
+      Espo.Ui.notify(' ... ');
+    },
+    /**
+     * Show a notify-message.
+     *
+     * @param {string|false} [message=false] A message. False removes an already displayed message.
+     * @param {'warning'|'danger'|'success'|'info'} [type='warning'] A type.
+     * @param {number} [timeout] Microseconds. If empty, then won't be hidden.
+     *   Should be hidden manually or by displaying another message.
+     * @param {Espo.Ui~NotifyOptions} [options] Options.
+     */
+    notify: function (message, type, timeout, options) {
+      type = type || 'warning';
+      options = {
+        ...options
+      };
+      if (type === 'warning' && notifySuppressed) {
+        return;
+      }
+      (0, _jquery.default)('#notification').remove();
+      if (!message) {
+        return;
+      }
+      if (options.suppress && timeout) {
+        notifySuppressed = true;
+        setTimeout(() => notifySuppressed = false, timeout);
+      }
+      const parsedMessage = message.indexOf('\n') !== -1 ? _marked.marked.parse(message) : _marked.marked.parseInline(message);
+      let sanitizedMessage = _dompurify.default.sanitize(parsedMessage, {}).toString();
+      const closeButton = options.closeButton || false;
+      if (type === 'error') {
+        // For bc.
+        type = 'danger';
+      }
+      if (sanitizedMessage === ' ... ') {
+        sanitizedMessage = ' <span class="fas fa-spinner fa-spin"> ';
+      }
+      const additionalClassName = closeButton ? ' alert-closable' : '';
+      const $el = (0, _jquery.default)('<div>').addClass('alert alert-' + type + additionalClassName + ' fade in').attr('id', 'notification').css({
+        'position': 'fixed',
+        'top': '0',
+        'left': '50vw',
+        'transform': 'translate(-50%, 0)',
+        'z-index': 2000
+      }).append((0, _jquery.default)('<div>').addClass('message').html(sanitizedMessage));
+      if (closeButton) {
+        const $close = (0, _jquery.default)('<button>').attr('type', 'button').attr('data-dismiss', 'modal').attr('aria-hidden', 'true').addClass('close').html(`<span class="fas fa-times"></span>`);
+        $el.append((0, _jquery.default)('<div>').addClass('close-container').append($close));
+        $close.on('click', () => $el.alert('close'));
+      }
+      if (timeout) {
+        setTimeout(() => $el.alert('close'), timeout);
+      }
+      $el.appendTo('body');
+    },
+    /**
+     * Show a warning message.
+     *
+     * @param {string} message A message.
+     * @param {Espo.Ui~NotifyOptions} [options] Options.
+     */
+    warning: function (message, options) {
+      Espo.Ui.notify(message, 'warning', 2000, options);
+    },
+    /**
+     * Show a success message.
+     *
+     * @param {string} message A message.
+     * @param {Espo.Ui~NotifyOptions} [options] Options.
+     */
+    success: function (message, options) {
+      Espo.Ui.notify(message, 'success', 2000, options);
+    },
+    /**
+     * Show an error message.
+     *
+     * @param {string} message A message.
+     * @param {Espo.Ui~NotifyOptions|true} [options] Options. If true, then only closeButton option will be applied.
+     */
+    error: function (message, options) {
+      options = typeof options === 'boolean' ? {
+        closeButton: options
+      } : {
+        ...options
+      };
+      const timeout = options.closeButton ? 0 : 4000;
+      Espo.Ui.notify(message, 'danger', timeout, options);
+    },
+    /**
+     * Show an info message.
+     *
+     * @param {string} message A message.
+     * @param {Espo.Ui~NotifyOptions} [options] Options.
+     */
+    info: function (message, options) {
+      Espo.Ui.notify(message, 'info', 2000, options);
+    },
+    /**
+     * Get the number of opened confirmation dialogues.
+     *
+     * @return {number}
+     * @internal
+     */
+    getConfirmCount() {
+      return confirmCount;
+    }
+  };
+  let confirmCount = 0;
+  let notifySuppressed = false;
+
+  /**
+   * @deprecated Use `Espo.Ui`.
+   */
+  Espo.ui = Espo.Ui;
+  var _default = _exports.default = Espo.Ui;
+});
+
+define("model", ["exports", "bullbone", "underscore", "helpers/model/default-value-provider"], function (_exports, _bullbone, _underscore, _defaultValueProvider) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _underscore = _interopRequireDefault(_underscore);
+  _defaultValueProvider = _interopRequireDefault(_defaultValueProvider);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module model */
+
+  /**
+   * When attributes have changed.
+   *
+   * @event Model#change
+   * @param {Model} model A model.
+   * @param {Record.<string, *> & {action?: string|'ui'|'save'|'fetch'|'cancel-edit'}} o Options.
+   */
+
+  /**
+   * On sync with backend.
+   *
+   * @event Model#sync
+   * @param {Model} model A model.
+   * @param {Object} response Response from backend.
+   * @param {Record.<string, *> & {action?: 'fetch'|'save'|'destroy'}} o Options.
+   */
+
+  /**
+   * Definitions.
+   *
+   * @typedef module:model~defs
+   * @type {Object}
+   * @property {Object.<string, module:model~fieldDefs & Record>} [fields] Fields.
+   * @property {Object.<string, Object.<string, *>>} [links] Links.
+   */
+
+  /**
+   * Field definitions.
+   *
+   * @typedef module:model~fieldDefs
+   * @type {Object}
+   * @property {string} type A type.
+   */
+
+  /** @typedef {import('bullbone')} Bull */
+
+  /**
+   * A model.
+   *
+   * @mixes Bull.Events
+   */
+  class Model {
+    /**
+     * A root URL. An ID will be appended. Used for syncing with backend.
+     *
+     * @type {string|null}
+     */
+    urlRoot = null;
+
+    /**
+     * A URL. If not empty, then will be used for syncing instead of `urlRoot`.
+     *
+     * @type {string|null}
+     */
+    url = null;
+
+    /**
+     * A name.
+     *
+     * @type {string|null}
+     */
+    name = null;
+
+    /**
+     * An entity type.
+     *
+     * @type {string|null}
+     */
+    entityType = null;
+
+    /**
+     * A last request promise.
+     *
+     * @type {module:ajax.AjaxPromise|null}
+     */
+    lastSyncPromise = null;
+
+    /** @private */
+    _pending;
+    /** @private */
+    _changing;
+
+    /**
+     * @param {Object.<string, *>|Model} [attributes]
+     * @param {{
+     *     collection?: module:collection,
+     *     entityType?: string,
+     *     urlRoot?: string,
+     *     url?: string,
+     *     defs?: module:model~defs,
+     *     user?: module:models/user,
+     * }} [options]
+     */
+    constructor(attributes, options) {
+      options = options || {};
+
+      /**
+       * An ID attribute.
+       * @type {string}
+       */
+      this.idAttribute = 'id';
+
+      /**
+       * A record ID.
+       * @type {string|null}
+       */
+      this.id = null;
+
+      /**
+       * An instance ID.
+       * @type {string}
+       */
+      this.cid = _underscore.default.uniqueId('c');
+
+      /**
+       * Attribute values.
+       * @type {Object.<string, *>}
+       */
+      this.attributes = {};
+      if (options.collection) {
+        this.collection = options.collection;
+      }
+      this.set(attributes || {});
+
+      /**
+       * Definitions.
+       */
+      this.defs = options.defs || {};
+      if (!this.defs.fields) {
+        this.defs.fields = {};
+      }
+      if (options.entityType) {
+        this.entityType = options.entityType;
+        this.name = options.entityType;
+        this.urlRoot = options.entityType;
+      }
+      this.urlRoot = options.urlRoot || this.urlRoot;
+      this.url = options.url || this.url;
+
+      /** @private */
+      this.changed = {};
+      /** @private */
+      this._previousAttributes = null;
+    }
+
+    /**
+     * @protected
+     * @param {string} [method] HTTP method.
+     * @param {Model} model
+     * @param {Object.<string, *>} [options]
+     * @returns {module:ajax.AjaxPromise|Promise}
+     */
+    sync(method, model, options) {
+      const methodMap = {
+        'create': 'POST',
+        'update': 'PUT',
+        'patch': 'PUT',
+        'delete': 'DELETE',
+        'read': 'GET'
+      };
+      const httpMethod = methodMap[method];
+      if (!httpMethod) {
+        throw new Error(`Bad request method '${method}'.`);
+      }
+      options = options || {};
+      const url = this.composeSyncUrl();
+      if (!url) {
+        throw new Error(`No 'url'.`);
+      }
+      const data = model && ['create', 'update', 'patch'].includes(method) ? options.attributes || model.getClonedAttributes() : null;
+      const error = options.error;
+      options.error = (xhr, textStatus, errorThrown) => {
+        options.textStatus = textStatus;
+        options.errorThrown = errorThrown;
+        if (error) {
+          error.call(options.context, xhr, textStatus, errorThrown);
+        }
+      };
+      const stringData = data ? JSON.stringify(data) : null;
+      const ajaxPromise = !options.bypassRequest ? Espo.Ajax.request(url, httpMethod, stringData, options) : Promise.resolve();
+      options.xhr = ajaxPromise.xhr;
+      model.trigger('request', url, httpMethod, data, ajaxPromise, options);
+      return ajaxPromise;
+    }
+
+    /**
+     * Set an attribute value.
+     *
+     * @param {(string|Object)} attribute An attribute name or a {key => value} object.
+     * @param {*} [value] A value or options if the first argument is an object.
+     * @param {{silent?: boolean} & Object.<string, *>} [options] Options. `silent` won't trigger a `change` event.
+     * @returns {this}
+     * @fires Model#change Unless `{silent: true}`.
+     */
+    set(attribute, value, options) {
+      if (attribute == null) {
+        return this;
+      }
+      let attributes;
+      if (typeof attribute === 'object') {
+        return this.setMultiple(attribute, value);
+      }
+      attributes = {};
+      attributes[attribute] = value;
+      return this.setMultiple(attributes, options);
+    }
+
+    /**
+     * Set attributes values.
+     *
+     * @param {Object.<string, *>} attributes
+     * @param {{
+     *     silent?: boolean,
+     *     unset?: boolean,
+     *     sync?: boolean,
+     * } & Object.<string, *>} [options] Options. `silent` won't trigger a `change` event.
+     *     `sync` can be used to emulate syncing.
+     * @return {this}
+     * @fires Model#change Unless `{silent: true}`.
+     * @copyright Credits to Backbone.js.
+     */
+    setMultiple(attributes, options) {
+      if (this.idAttribute in attributes) {
+        this.id = attributes[this.idAttribute];
+      }
+      options = options || {};
+      if (options.ui && !options.action) {
+        options.action = 'ui';
+      }
+      if (!options.ui && options.action === 'ui') {
+        options.ui = true;
+      }
+      const changes = [];
+      const changing = this._changing;
+      this._changing = true;
+      if (!changing) {
+        this._previousAttributes = _underscore.default.clone(this.attributes);
+        this.changed = {};
+      }
+      const current = this.attributes;
+      const changed = this.changed;
+      const previous = this._previousAttributes;
+      for (const attribute in attributes) {
+        const value = attributes[attribute];
+        if (!_underscore.default.isEqual(current[attribute], value)) {
+          changes.push(attribute);
+        }
+        if (!_underscore.default.isEqual(previous[attribute], value)) {
+          changed[attribute] = value;
+        } else {
+          delete changed[attribute];
+        }
+        options.unset ? delete current[attribute] : current[attribute] = value;
+      }
+      if (!options.silent) {
+        if (changes.length) {
+          this._pending = options;
+        }
+        for (let i = 0; i < changes.length; i++) {
+          this.trigger('change:' + changes[i], this, current[changes[i]], options);
+        }
+      }
+      if (options.sync) {
+        if (this.collection) {
+          const modelSyncOptions = {
+            ...options,
+            action: 'set'
+          };
+          this.collection.trigger('model-sync', this, modelSyncOptions);
+        }
+      }
+      if (changing) {
+        return this;
+      }
+      if (!options.silent) {
+        // Changes can be recursively nested within `change` events.
+        while (this._pending) {
+          options = this._pending;
+          this._pending = false;
+          this.trigger('change', this, options);
+        }
+      }
+      this._pending = false;
+      this._changing = false;
+      return this;
+    }
+
+    /**
+     * Unset an attribute.
+     *
+     * @param {string} attribute An attribute.
+     * @param {{silent?: boolean} & Object.<string, *>} [options] Options.
+     * @return {Model}
+     */
+    unset(attribute, options) {
+      options = {
+        ...options,
+        unset: true
+      };
+      const attributes = {};
+      attributes[attribute] = null;
+      return this.setMultiple(attributes, options);
+    }
+
+    /**
+     * Get an attribute value.
+     *
+     * @param {string} attribute An attribute name.
+     * @returns {*}
+     */
+    get(attribute) {
+      if (attribute === this.idAttribute && this.id) {
+        return this.id;
+      }
+      return this.attributes[attribute];
+    }
+
+    /**
+     * Whether attribute is set.
+     *
+     * @param {string} attribute An attribute name.
+     * @returns {boolean}
+     */
+    has(attribute) {
+      const value = this.get(attribute);
+      return typeof value !== 'undefined';
+    }
+
+    /**
+     * Removes all attributes from the model.
+     * Fires a `change` event unless `silent` is passed as an option.
+     *
+     * @param {{silent?: boolean} & Object.<string, *>} [options] Options.
+     */
+    clear(options) {
+      const attributes = {};
+      for (const key in this.attributes) {
+        attributes[key] = void 0;
+      }
+      options = {
+        ...options,
+        unset: true
+      };
+      return this.set(attributes, options);
+    }
+
+    /**
+     * Whether is new.
+     *
+     * @returns {boolean}
+     */
+    isNew() {
+      return !this.id;
+    }
+
+    /**
+     * Whether an attribute changed. To be called only within a 'change' event handler.
+     *
+     * @param {string} [attribute]
+     * @return {boolean}
+     */
+    hasChanged(attribute) {
+      if (!attribute) {
+        return !_underscore.default.isEmpty(this.changed);
+      }
+      return _underscore.default.has(this.changed, attribute);
+    }
+
+    /**
+     * Get changed attribute values. To be called only within a 'change' event handler.
+     *
+     * @return {Object.<string, *>}
+     */
+    changedAttributes() {
+      return this.hasChanged() ? _underscore.default.clone(this.changed) : {};
+    }
+
+    /**
+     * Get previous attributes. To be called only within a 'change' event handler.
+     *
+     * @return {Object.<string, *>}
+     */
+    previousAttributes() {
+      return _underscore.default.clone(this._previousAttributes);
+    }
+
+    /**
+     * Get a previous attribute value. To be called only within a 'change' event handler.
+     *
+     * @param attribute
+     * @return {*}
+     */
+    previous(attribute) {
+      if (!this._previousAttributes) {
+        return null;
+      }
+      return this._previousAttributes[attribute];
+    }
+
+    /**
+     * Fetch values from the backend.
+     *
+     * @param {Object.<string, *>} [options] Options.
+     * @returns {Promise}
+     * @fires Model#sync
+     */
+    fetch(options) {
+      options = {
+        ...options
+      };
+      options.action = 'fetch';
+
+      // For bc.
+      const success = options.success;
+      options.success = response => {
+        const serverAttributes = this.prepareAttributes(response, options);
+        this.set(serverAttributes, options);
+        if (success) {
+          success.call(options.context, this, response, options);
+        }
+        this.trigger('sync', this, response, options);
+        if (this.collection) {
+          this.collection.trigger('model-sync', this, options);
+        }
+      };
+      this.lastSyncPromise = this.sync('read', this, options);
+      return this.lastSyncPromise;
+    }
+
+    /**
+     * Save values to the backend.
+     *
+     * @param {Object.<string, *>} [attributes] Attribute values.
+     * @param {{
+     *     patch?: boolean,
+     *     wait?: boolean,
+     * } & Object.<string, *>} [options] Options. Use `patch` to send a PATCH request. If `wait`, attributes will be
+     *     set only after the request is completed.
+     * @returns {Promise<Object.<string, *>> & module:ajax.AjaxPromise}
+     * @fires Model#sync
+     * @copyright Credits to Backbone.js.
+     */
+    save(attributes, options) {
+      options = {
+        ...options
+      };
+      if (attributes && !options.wait) {
+        this.setMultiple(attributes, options);
+      }
+      const success = options.success;
+      const setAttributes = this.attributes;
+      options.success = response => {
+        this.attributes = setAttributes;
+        let responseAttributes = this.prepareAttributes(response, options);
+        if (options.wait) {
+          responseAttributes = {
+            ...setAttributes,
+            ...responseAttributes
+          };
+        }
+        options.action = 'save';
+        if (responseAttributes) {
+          this.setMultiple(responseAttributes, options);
+        }
+        if (success) {
+          success.call(options.context, this, response, options);
+        }
+        this.trigger('sync', this, response, options);
+        if (this.collection) {
+          this.collection.trigger('model-sync', this, options);
+        }
+      };
+      const error = options.error;
+      options.error = response => {
+        if (error) {
+          error.call(options.context, this, response, options);
+        }
+        this.trigger('error', this, response, options);
+      };
+      if (attributes && options.wait) {
+        // Set temporary attributes to properly find new IDs.
+        this.attributes = {
+          ...setAttributes,
+          ...attributes
+        };
+      }
+      const method = this.isNew() ? 'create' : options.patch ? 'patch' : 'update';
+      if (method === 'patch') {
+        options.attributes = attributes;
+      }
+      const result = this.sync(method, this, options);
+      this.attributes = setAttributes;
+      return result;
+    }
+
+    /**
+     * Delete the record in the backend.
+     *
+     * @param {{wait?: boolean} & Object.<string, *>} [options] Options. If `wait`, unsubscribing and
+     *     removal from the collection will wait for a successful response.
+     * @returns {Promise}
+     * @fires Model#sync
+     * @copyright Credits to Backbone.js.
+     */
+    destroy() {
+      let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      options = {
+        ...options
+      };
+      const success = options.success;
+      const collection = this.collection;
+      const destroy = () => {
+        this.stopListening();
+        this.trigger('destroy', this, collection, options);
+      };
+      options.success = response => {
+        if (options.wait) {
+          destroy();
+        }
+        if (success) {
+          success.call(options.context, this, response, options);
+        }
+        if (!this.isNew()) {
+          const syncOptions = {
+            ...options
+          };
+          syncOptions.action = 'destroy';
+          this.trigger('sync', this, response, syncOptions);
+          if (collection) {
+            collection.trigger('model-sync', this, syncOptions);
+          }
+        }
+      };
+      if (this.isNew()) {
+        _underscore.default.defer(options.success);
+        if (!options.wait) {
+          destroy();
+        }
+        return Promise.resolve();
+      }
+      const error = options.error;
+      options.error = response => {
+        if (error) {
+          error.call(options.context, this, response, options);
+        }
+        this.trigger('error', this, response, options);
+      };
+      const result = this.sync('delete', this, options);
+      if (!options.wait) {
+        destroy();
+      }
+      return result;
+    }
+
+    /**
+     * Compose a URL for syncing.
+     *
+     * @protected
+     * @return {string}
+     */
+    composeSyncUrl() {
+      if (this.url) {
+        return this.url;
+      }
+      let urlRoot = this.urlRoot;
+      if (!urlRoot && this.collection) {
+        urlRoot = this.collection.urlRoot;
+      }
+      if (!urlRoot) {
+        throw new Error("No urlRoot.");
+      }
+      if (this.isNew()) {
+        return urlRoot;
+      }
+      const id = this.get(this.idAttribute);
+      return urlRoot.replace(/[^\/]$/, '$&/') + encodeURIComponent(id);
+    }
+
+    // noinspection JSUnusedLocalSymbols
+    /**
+     * Prepare attributes.
+     *
+     * @param {*} response A response from the backend.
+     * @param {Object.<string, *>} options Options.
+     * @return {*} Attributes.
+     * @internal
+     */
+    prepareAttributes(response, options) {
+      return response;
+    }
+
+    /**
+     * Clone.
+     *
+     * @return {Model}
+     */
+    clone() {
+      return new this.constructor(Espo.Utils.cloneDeep(this.attributes), {
+        entityType: this.entityType,
+        urlRoot: this.urlRoot,
+        url: this.url,
+        defs: this.defs
+      });
+    }
+
+    /**
+     * Set defs.
+     *
+     * @param {module:model~defs} defs
+     */
+    setDefs(defs) {
+      this.defs = defs || {};
+      if (!this.defs.fields) {
+        this.defs.fields = {};
+      }
+    }
+
+    /**
+     * Get cloned attribute values.
+     *
+     * @returns {Object.<string, *>}
+     */
+    getClonedAttributes() {
+      return Espo.Utils.cloneDeep(this.attributes);
+    }
+
+    /**
+     * Populate default values.
+     */
+    populateDefaults() {
+      let defaultHash = {};
+      const fieldDefs = this.defs.fields;
+      for (const field in fieldDefs) {
+        if (this.hasFieldParam(field, 'default')) {
+          try {
+            defaultHash[field] = this.parseDefaultValue(this.getFieldParam(field, 'default'));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        const defaultAttributes = this.getFieldParam(field, 'defaultAttributes');
+        if (defaultAttributes) {
+          for (const attribute in defaultAttributes) {
+            defaultHash[attribute] = defaultAttributes[attribute];
+          }
+        }
+      }
+      defaultHash = Espo.Utils.cloneDeep(defaultHash);
+      for (const attr in defaultHash) {
+        if (this.has(attr)) {
+          delete defaultHash[attr];
+        }
+      }
+      this.set(defaultHash, {
+        silent: true
+      });
+    }
+
+    /**
+     * @private
+     * @param {*} defaultValue
+     * @returns {*}
+     */
+    parseDefaultValue(defaultValue) {
+      if (typeof defaultValue === 'string' && defaultValue.indexOf('javascript:') === 0) {
+        const code = defaultValue.substring(11).trim();
+        const provider = new _defaultValueProvider.default();
+        defaultValue = provider.get(code);
+      }
+      return defaultValue;
+    }
+
+    /**
+     * Get a link multiple column value.
+     *
+     * @param {string} field
+     * @param {string} column
+     * @param {string} id
+     * @returns {*}
+     */
+    getLinkMultipleColumn(field, column, id) {
+      return ((this.get(field + 'Columns') || {})[id] || {})[column];
+    }
+
+    /**
+     * @typedef {Object} model:model~setRelateItem
+     * @property {string} link A link.
+     * @property {import('model').default} model A model.
+     */
+
+    /**
+     * Set relate data (when creating a related record).
+     *
+     * @param {model:model~setRelateItem | model:model~setRelateItem[]} data
+     */
+    setRelate(data) {
+      const setRelate = options => {
+        const link = options.link;
+        const model = /** @type {module:model} */options.model;
+        if (!link || !model) {
+          throw new Error('Bad related options');
+        }
+        const type = this.defs.links[link].type;
+        switch (type) {
+          case 'belongsToParent':
+            this.set(link + 'Id', model.id);
+            this.set(link + 'Type', model.entityType);
+            this.set(link + 'Name', model.get('name'));
+            break;
+          case 'belongsTo':
+            this.set(link + 'Id', model.id);
+            this.set(link + 'Name', model.get('name'));
+            break;
+          case 'hasMany':
+            const ids = [];
+            ids.push(model.id);
+            const names = {};
+            names[model.id] = model.get('name');
+            this.set(link + 'Ids', ids);
+            this.set(link + 'Names', names);
+            break;
+        }
+      };
+      if (Object.prototype.toString.call(data) === '[object Array]') {
+        data.forEach(options => {
+          setRelate(options);
+        });
+        return;
+      }
+      setRelate(data);
+    }
+
+    /**
+     * Get a field list.
+     *
+     * @return {string[]}
+     */
+    getFieldList() {
+      if (!this.defs || !this.defs.fields) {
+        return [];
+      }
+      return Object.keys(this.defs.fields);
+    }
+
+    /**
+     * Get a field type.
+     *
+     * @param {string} field
+     * @returns {string|null}
+     */
+    getFieldType(field) {
+      if (!this.defs || !this.defs.fields) {
+        return null;
+      }
+      if (field in this.defs.fields) {
+        return this.defs.fields[field].type || null;
+      }
+      return null;
+    }
+
+    /**
+     * Get a field param.
+     *
+     * @param {string} field
+     * @param {string} param
+     * @returns {*}
+     */
+    getFieldParam(field, param) {
+      if (!this.defs || !this.defs.fields) {
+        return null;
+      }
+      if (field in this.defs.fields) {
+        if (param in this.defs.fields[field]) {
+          return this.defs.fields[field][param];
+        }
+      }
+      return null;
+    }
+    hasFieldParam(field, param) {
+      if (!this.defs || !this.defs.fields) {
+        return false;
+      }
+      if (field in this.defs.fields) {
+        if (param in this.defs.fields[field]) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Get a link type.
+     *
+     * @param {string} link
+     * @returns {string|null}
+     */
+    getLinkType(link) {
+      if (!this.defs || !this.defs.links) {
+        return null;
+      }
+      if (link in this.defs.links) {
+        return this.defs.links[link].type || null;
+      }
+      return null;
+    }
+
+    /**
+     * Get a link param.
+     *
+     * @param {string} link A link.
+     * @param {string} param A param.
+     * @returns {*}
+     */
+    getLinkParam(link, param) {
+      if (!this.defs || !this.defs.links) {
+        return null;
+      }
+      if (link in this.defs.links) {
+        if (param in this.defs.links[link]) {
+          return this.defs.links[link][param];
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Is a field read-only.
+     *
+     * @param {string} field A field.
+     * @returns {bool}
+     */
+    isFieldReadOnly(field) {
+      return this.getFieldParam(field, 'readOnly') || false;
+    }
+
+    /**
+     * If a field required.
+     *
+     * @param {string} field A field.
+     * @returns {bool}
+     */
+    isRequired(field) {
+      return this.getFieldParam(field, 'required') || false;
+    }
+
+    /**
+     * Get IDs of a link-multiple field.
+     *
+     * @param {string} field A link-multiple field name.
+     * @returns {string[]}
+     */
+    getLinkMultipleIdList(field) {
+      return this.get(field + 'Ids') || [];
+    }
+
+    /**
+     * Get team IDs.
+     *
+     * @returns {string[]}
+     */
+    getTeamIdList() {
+      return this.get('teamsIds') || [];
+    }
+
+    /**
+     * Whether it has a field.
+     *
+     * @param {string} field A field.
+     * @returns {boolean}
+     */
+    hasField(field) {
+      return 'defs' in this && 'fields' in this.defs && field in this.defs.fields;
+    }
+
+    /**
+     * Has a link.
+     *
+     * @param {string} link A link.
+     * @returns {boolean}
+     */
+    hasLink(link) {
+      return 'defs' in this && 'links' in this.defs && link in this.defs.links;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    isEditable() {
+      return true;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    isRemovable() {
+      return true;
+    }
+
+    /**
+     * Get an entity type.
+     *
+     * @returns {string}
+     */
+    getEntityType() {
+      return this.name;
+    }
+
+    /**
+     * Abort the last fetch.
+     */
+    abortLastFetch() {
+      if (this.lastSyncPromise && this.lastSyncPromise.getReadyState() < 4) {
+        this.lastSyncPromise.abort();
+      }
+    }
+  }
+  Object.assign(Model.prototype, _bullbone.Events);
+  Model.extend = _bullbone.View.extend;
+  var _default = _exports.default = Model;
+});
+
 define("acl", ["exports", "bullbone"], function (_exports, _bullbone) {
   "use strict";
 
@@ -1758,7 +3267,7 @@ define("acl", ["exports", "bullbone"], function (_exports, _bullbone) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -2075,6 +3584,2453 @@ define("acl", ["exports", "bullbone"], function (_exports, _bullbone) {
   var _default = _exports.default = Acl;
 });
 
+define("view", ["exports", "bullbone"], function (_exports, _bullbone) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module view */
+
+  /**
+   * A base view. All views should extend this class.
+   *
+   * @see https://docs.espocrm.com/development/view/
+   * @mixes Bull.Events
+   */
+  class View extends _bullbone.View {
+    /**
+     * @callback module:view~actionHandlerCallback
+     * @param {MouseEvent} event A DOM event.
+     * @param {HTMLElement} element A target element.
+     */
+
+    /**
+     * A helper.
+     *
+     * @name _helper
+     * @type {module:view-helper}
+     * @memberOf View.prototype
+     * @private
+     */
+
+    /**
+     * A model.
+     *
+     * @type {import('model').default}
+     */
+    model;
+
+    /**
+     * A collection.
+     *
+     * @type {import('collection').default}
+     */
+    collection;
+
+    /**
+     * @param {Record<string, *>} options
+     */
+    constructor() {
+      let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      super(options);
+      if (options.model) {
+        this.model = options.model;
+      }
+      if (options.collection) {
+        this.collection = options.collection;
+      }
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    /**
+     * When the view is ready. Can be useful to prevent race condition when re-initialization is needed
+     * in-between initialization and render.
+     *
+     * @return Promise
+     * @todo Move to Bull.View.
+     */
+    whenReady() {
+      if (this.isReady) {
+        return Promise.resolve();
+      }
+      return new Promise(resolve => {
+        this.once('ready', () => resolve());
+      });
+    }
+
+    /**
+     * Add a DOM click event handler for a target defined by `data-action="{name}"` attribute.
+     *
+     * @param {string} action An action name.
+     * @param {module:view~actionHandlerCallback} handler A handler.
+     */
+    addActionHandler(action, handler) {
+      // The key should be in sync with one in Utils.handleAction.
+      const fullAction = `click [data-action="${action}"]`;
+      this.events[fullAction] = e => {
+        // noinspection JSUnresolvedReference
+        handler.call(this, e.originalEvent, e.currentTarget);
+      };
+    }
+
+    /**
+     * Escape a string.
+     *
+     * @param {string} string
+     * @returns {string}
+     */
+    escapeString(string) {
+      return Handlebars.Utils.escapeExpression(string);
+    }
+
+    /**
+     * Show a notify-message.
+     *
+     * @deprecated Use `Espo.Ui.notify`.
+     * @param {string|false} label
+     * @param {string} [type]
+     * @param {number} [timeout]
+     * @param {string} [scope]
+     */
+    notify(label, type, timeout, scope) {
+      if (!label) {
+        Espo.Ui.notify(false);
+        return;
+      }
+      scope = scope || null;
+      timeout = timeout || 2000;
+      if (!type) {
+        timeout = void 0;
+      }
+      const text = this.getLanguage().translate(label, 'labels', scope);
+      Espo.Ui.notify(text, type, timeout);
+    }
+
+    /**
+     * Get a view-helper.
+     *
+     * @returns {module:view-helper}
+     */
+    getHelper() {
+      return this._helper;
+    }
+
+    /**
+     * Get a current user.
+     *
+     * @returns {module:models/user}
+     */
+    getUser() {
+      return this._helper.user;
+    }
+
+    /**
+     * Get the preferences.
+     *
+     * @returns {module:models/preferences}
+     */
+    getPreferences() {
+      return this._helper.preferences;
+    }
+
+    /**
+     * Get the config.
+     *
+     * @returns {module:models/settings}
+     */
+    getConfig() {
+      return this._helper.settings;
+    }
+
+    /**
+     * Get the ACL.
+     *
+     * @returns {module:acl-manager}
+     */
+    getAcl() {
+      return this._helper.acl;
+    }
+
+    /**
+     * Get the model factory.
+     *
+     * @returns {module:model-factory}
+     */
+    getModelFactory() {
+      return this._helper.modelFactory;
+    }
+
+    /**
+     * Get the collection factory.
+     *
+     * @returns {module:collection-factory}
+     */
+    getCollectionFactory() {
+      return this._helper.collectionFactory;
+    }
+
+    /**
+     * Get the router.
+     *
+     * @returns {module:router}
+     */
+    getRouter() {
+      return this._helper.router;
+    }
+
+    /**
+     * Get the storage-util.
+     *
+     * @returns {module:storage}
+     */
+    getStorage() {
+      return this._helper.storage;
+    }
+
+    /**
+     * Get the session-storage-util.
+     *
+     * @returns {module:session-storage}
+     */
+    getSessionStorage() {
+      return this._helper.sessionStorage;
+    }
+
+    /**
+     * Get the language-util.
+     *
+     * @returns {module:language}
+     */
+    getLanguage() {
+      return this._helper.language;
+    }
+
+    /**
+     * Get metadata.
+     *
+     * @returns {module:metadata}
+     */
+    getMetadata() {
+      return this._helper.metadata;
+    }
+
+    /**
+     * Get the cache-util.
+     *
+     * @returns {module:cache}
+     */
+    getCache() {
+      return this._helper.cache;
+    }
+
+    /**
+     * Get the date-time util.
+     *
+     * @returns {module:date-time}
+     */
+    getDateTime() {
+      return this._helper.dateTime;
+    }
+
+    /**
+     * Get the number-util.
+     *
+     * @returns {module:num-util}
+     */
+    getNumberUtil() {
+      return this._helper.numberUtil;
+    }
+
+    /**
+     * Get the field manager.
+     *
+     * @returns {module:field-manager}
+     */
+    getFieldManager() {
+      return this._helper.fieldManager;
+    }
+
+    /**
+     * Get the base-controller.
+     *
+     * @returns {module:controllers/base}
+     */
+    getBaseController() {
+      return this._helper.baseController;
+    }
+
+    /**
+     * Get the theme manager.
+     *
+     * @returns {module:theme-manager}
+     */
+    getThemeManager() {
+      return this._helper.themeManager;
+    }
+
+    /**
+     * Update a page title. Supposed to be overridden if needed.
+     */
+    updatePageTitle() {
+      const title = this.getConfig().get('applicationName') || 'EspoCRM';
+      this.setPageTitle(title);
+    }
+
+    /**
+     * Set a page title.
+     *
+     * @param {string} title A title.
+     */
+    setPageTitle(title) {
+      this.getHelper().pageTitle.setTitle(title);
+    }
+
+    /**
+     * Translate a label.
+     *
+     * @param {string} label Label.
+     * @param {string|'messages'|'labels'|'fields'|'links'|'scopeNames'|'scopeNamesPlural'} [category='labels'] Category.
+     * @param {string} [scope='Global'] Scope.
+     * @returns {string}
+     */
+    translate(label, category, scope) {
+      return this.getLanguage().translate(label, category, scope);
+    }
+
+    /**
+     * Get a base path.
+     *
+     * @returns {string}
+     */
+    getBasePath() {
+      return this._helper.basePath || '';
+    }
+
+    /**
+     * @typedef {Object} module:view~ConfirmOptions
+     *
+     * @property {string} message A message.
+     * @property {string} [confirmText] A confirm-button text.
+     * @property {string} [cancelText] A cancel-button text.
+     * @property {'danger'|'success'|'warning'|'default'} [confirmStyle='danger'] A confirm-button style.
+     * @property {'static'|boolean} [backdrop=false] A backdrop.
+     * @property {function():void} [cancelCallback] A cancel-callback.
+     */
+
+    /**
+     * Show a confirmation dialog.
+     *
+     * @param {string|module:view~ConfirmOptions} o A message or options.
+     * @param [callback] A callback. Deprecated, use a promise.
+     * @param [context] A context. Deprecated.
+     * @returns {Promise} To be resolved if confirmed.
+     */
+    confirm(o, callback, context) {
+      let message;
+      if (typeof o === 'string' || o instanceof String) {
+        message = o;
+        o = /** @type {module:view~ConfirmOptions} */{};
+      } else {
+        o = o || {};
+        message = o.message;
+      }
+      if (message) {
+        message = this.getHelper().transformMarkdownText(message, {
+          linksInNewTab: true
+        }).toString();
+      }
+      const confirmText = o.confirmText || this.translate('Yes');
+      const confirmStyle = o.confirmStyle || null;
+      const cancelText = o.cancelText || this.translate('Cancel');
+      return Espo.Ui.confirm(message, {
+        confirmText: confirmText,
+        cancelText: cancelText,
+        confirmStyle: confirmStyle,
+        backdrop: 'backdrop' in o ? o.backdrop : true,
+        isHtml: true,
+        cancelCallback: o.cancelCallback
+      }, callback, context);
+    }
+  }
+  var _default = _exports.default = View;
+});
+
+define("view-helper", ["exports", "marked", "dompurify", "handlebars"], function (_exports, _marked, _dompurify, _handlebars) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _dompurify = _interopRequireDefault(_dompurify);
+  _handlebars = _interopRequireDefault(_handlebars);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module view-helper */
+
+  /**
+   * A view helper.
+   */
+  class ViewHelper {
+    constructor() {
+      this._registerHandlebarsHelpers();
+
+      /** @private */
+      this.mdBeforeList = [
+      /*{
+          regex: /```\n?([\s\S]*?)```/g,
+          value: (s, string) => {
+              return '```\n' + string.replace(/\\\>/g, '>') + '```';
+          },
+      },*/
+      {
+        // Also covers triple-backtick blocks.
+        regex: /`([\s\S]*?)`/g,
+        value: (s, string) => {
+          // noinspection RegExpRedundantEscape
+          return '`' + string.replace(/\\\</g, '<') + '`';
+        }
+      }];
+      _marked.marked.setOptions({
+        breaks: true,
+        tables: false,
+        headerIds: false
+      });
+
+      // @todo Review after updating the marked library.
+      _marked.marked.use({
+        tokenizer: {
+          tag(src) {
+            const cap = _marked.Lexer.rules.inline.tag.exec(src);
+            if (!cap) {
+              return;
+            }
+            return {
+              type: 'text',
+              raw: cap[0],
+              inLink: this.lexer.state.inLink,
+              inRawBlock: this.lexer.state.inRawBlock,
+              text: _handlebars.default.Utils.escapeExpression(cap[0])
+            };
+          },
+          html(src) {
+            const cap = _marked.Lexer.rules.block.html.exec(src);
+            if (!cap) {
+              return;
+            }
+            const token = {
+              type: 'paragraph',
+              raw: cap[0],
+              pre: cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style',
+              text: _handlebars.default.Utils.escapeExpression(cap[0])
+            };
+            token.tokens = [];
+            this.lexer.inline(token.text, token.tokens);
+            return token;
+          }
+        }
+      });
+      _dompurify.default.addHook('beforeSanitizeAttributes', function (node) {
+        if (node instanceof HTMLAnchorElement) {
+          if (node.getAttribute('target')) {
+            node.targetBlank = true;
+          } else {
+            node.targetBlank = false;
+          }
+        }
+        if (node instanceof HTMLOListElement && node.start && node.start > 99) {
+          node.removeAttribute('start');
+        }
+        if (node instanceof HTMLFormElement) {
+          if (node.action) {
+            node.removeAttribute('action');
+          }
+          if (node.hasAttribute('method')) {
+            node.removeAttribute('method');
+          }
+        }
+        if (node instanceof HTMLButtonElement) {
+          if (node.type === 'submit') {
+            node.type = 'button';
+          }
+        }
+      });
+      _dompurify.default.addHook('afterSanitizeAttributes', function (node) {
+        if (node instanceof HTMLAnchorElement) {
+          const href = node.getAttribute('href');
+          if (href && !href.startsWith('#')) {
+            node.setAttribute('rel', 'noopener noreferrer');
+          }
+          if (node.targetBlank) {
+            node.setAttribute('target', '_blank');
+            node.setAttribute('rel', 'noopener noreferrer');
+          }
+        }
+      });
+      _dompurify.default.addHook('uponSanitizeAttribute', (node, data) => {
+        if (data.attrName === 'style') {
+          const style = data.attrValue.split(';').map(s => s.trim()).filter(rule => {
+            const [property, value] = rule.split(':').map(s => s.trim().toLowerCase());
+            if (property === 'position' && ['absolute', 'fixed', 'sticky'].includes(value)) {
+              return false;
+            }
+            return true;
+          });
+          data.attrValue = style.join('; ');
+        }
+      });
+    }
+
+    /**
+     * A layout manager.
+     *
+     * @type {module:layout-manager}
+     */
+    layoutManager = null;
+
+    /**
+     * A config.
+     *
+     * @type {module:models/settings}
+     */
+    settings = null;
+
+    /**
+     * A config.
+     *
+     * @type {module:models/settings}
+     */
+    config = null;
+
+    /**
+     * A current user.
+     *
+     * @type {module:models/user}
+     */
+    user = null;
+
+    /**
+     * A preferences.
+     *
+     * @type {module:models/preferences}
+     */
+    preferences = null;
+
+    /**
+     * An ACL manager.
+     *
+     * @type {module:acl-manager}
+     */
+    acl = null;
+
+    /**
+     * A model factory.
+     *
+     * @type {module:model-factory}
+     */
+    modelFactory = null;
+
+    /**
+     * A collection factory.
+     *
+     * @type {module:collection-factory}
+     */
+    collectionFactory = null;
+
+    /**
+     * A router.
+     *
+     * @type {module:router}
+     */
+    router = null;
+
+    /**
+     * A storage.
+     *
+     * @type {module:storage}
+     */
+    storage = null;
+
+    /**
+     * A session storage.
+     *
+     * @type {module:session-storage}
+     */
+    sessionStorage = null;
+
+    /**
+     * A date-time util.
+     *
+     * @type {module:date-time}
+     */
+    dateTime = null;
+
+    /**
+     * A language.
+     *
+     * @type {module:language}
+     */
+    language = null;
+
+    /**
+     * A metadata.
+     *
+     * @type {module:metadata}
+     */
+    metadata = null;
+
+    /**
+     * A field-manager util.
+     *
+     * @type {module:field-manager}
+     */
+    fieldManager = null;
+
+    /**
+     * A cache.
+     *
+     * @type {module:cache}
+     */
+    cache = null;
+
+    /**
+     * A theme manager.
+     *
+     * @type {module:theme-manager}
+     */
+    themeManager = null;
+
+    /**
+     * A web-socket manager. Null if not enabled.
+     *
+     * @type {module:web-socket-manager|null}
+     */
+    webSocketManager = null;
+
+    /**
+     * A number util.
+     *
+     * @type {module:num-util}
+     */
+    numberUtil = null;
+
+    /**
+     * A page-title util.
+     *
+     * @type {module:page-title}
+     */
+    pageTitle = null;
+
+    /**
+     * A broadcast channel.
+     *
+     * @type {?module:broadcast-channel}
+     */
+    broadcastChannel = null;
+
+    /**
+     * A base path.
+     *
+     * @type {string}
+     */
+    basePath = '';
+
+    /**
+     * Application parameters.
+     *
+     * @type {import('app-params').default|null}
+     */
+    appParams = null;
+
+    /**
+     * @private
+     */
+    _registerHandlebarsHelpers() {
+      _handlebars.default.registerHelper('img', img => {
+        return new _handlebars.default.SafeString(`<img src="img/${img}" alt="img">`);
+      });
+      _handlebars.default.registerHelper('prop', (object, name) => {
+        if (object === undefined) {
+          console.warn(`Undefined value passed to 'prop' helper.`);
+          return undefined;
+        }
+        if (name in object) {
+          return object[name];
+        }
+        return undefined;
+      });
+      _handlebars.default.registerHelper('var', (name, context, options) => {
+        if (typeof context === 'undefined') {
+          return null;
+        }
+        let contents = context[name];
+        if (options.hash.trim) {
+          contents = contents.trim();
+        }
+        return new _handlebars.default.SafeString(contents);
+      });
+      _handlebars.default.registerHelper('concat', function (left, right) {
+        return left + right;
+      });
+      _handlebars.default.registerHelper('ifEqual', function (left, right, options) {
+        // noinspection EqualityComparisonWithCoercionJS
+        if (left == right) {
+          return options.fn(this);
+        }
+        return options.inverse(this);
+      });
+      _handlebars.default.registerHelper('ifNotEqual', function (left, right, options) {
+        // noinspection EqualityComparisonWithCoercionJS
+        if (left != right) {
+          return options.fn(this);
+        }
+        return options.inverse(this);
+      });
+      _handlebars.default.registerHelper('ifPropEquals', function (object, property, value, options) {
+        // noinspection EqualityComparisonWithCoercionJS
+        if (object[property] == value) {
+          return options.fn(this);
+        }
+        return options.inverse(this);
+      });
+      _handlebars.default.registerHelper('ifAttrEquals', function (model, attr, value, options) {
+        // noinspection EqualityComparisonWithCoercionJS
+        if (model.get(attr) == value) {
+          return options.fn(this);
+        }
+        return options.inverse(this);
+      });
+      _handlebars.default.registerHelper('ifAttrNotEmpty', function (model, attr, options) {
+        const value = model.get(attr);
+        if (value !== null && typeof value !== 'undefined') {
+          return options.fn(this);
+        }
+        return options.inverse(this);
+      });
+      _handlebars.default.registerHelper('get', (model, name) => model.get(name));
+      _handlebars.default.registerHelper('length', arr => arr.length);
+      _handlebars.default.registerHelper('translate', (name, options) => {
+        const scope = options.hash.scope || null;
+        const category = options.hash.category || null;
+        if (name === 'null') {
+          return '';
+        }
+        return this.language.translate(name, category, scope);
+      });
+      _handlebars.default.registerHelper('dropdownItem', (name, options) => {
+        const scope = options.hash.scope || null;
+        const label = options.hash.label;
+        const labelTranslation = options.hash.labelTranslation;
+        const data = options.hash.data;
+        const hidden = options.hash.hidden;
+        const disabled = options.hash.disabled;
+        const title = options.hash.title;
+        const link = options.hash.link;
+        const action = options.hash.action || name;
+        const iconHtml = options.hash.iconHtml;
+        const iconClass = options.hash.iconClass;
+        let html = options.hash.html || options.hash.text || (labelTranslation ? this.language.translatePath(labelTranslation) : this.language.translate(label, 'labels', scope));
+        if (!options.hash.html) {
+          html = this.escapeString(html);
+        }
+        if (iconHtml) {
+          html = iconHtml + ' ' + html;
+        } else if (iconClass) {
+          const iconHtml = $('<span>').addClass(iconClass).get(0).outerHTML;
+          html = iconHtml + ' ' + html;
+        }
+        const $li = $('<li>').addClass(hidden ? 'hidden' : '').addClass(disabled ? 'disabled' : '');
+        const $a = $('<a>').attr('role', 'button').attr('tabindex', '0').attr('data-name', name).addClass(options.hash.className || '').addClass('action').html(html);
+        if (action) {
+          $a.attr('data-action', action);
+        }
+        $li.append($a);
+        link ? $a.attr('href', link) : $a.attr('role', 'button');
+        if (data) {
+          for (const key in data) {
+            $a.attr('data-' + Espo.Utils.camelCaseToHyphen(key), data[key]);
+          }
+        }
+        if (disabled) {
+          $li.attr('disabled', 'disabled');
+        }
+        if (title) {
+          $a.attr('title', title);
+        }
+        return new _handlebars.default.SafeString($li.get(0).outerHTML);
+      });
+      _handlebars.default.registerHelper('button', (name, options) => {
+        const style = options.hash.style || 'default';
+        const scope = options.hash.scope || null;
+        const label = options.hash.label || name;
+        const labelTranslation = options.hash.labelTranslation;
+        const link = options.hash.link;
+        const iconHtml = options.hash.iconHtml;
+        const iconClass = options.hash.iconClass;
+        let html = options.hash.html || options.hash.text || (labelTranslation ? this.language.translatePath(labelTranslation) : this.language.translate(label, 'labels', scope));
+        if (!options.hash.html) {
+          html = this.escapeString(html);
+        }
+        if (iconHtml) {
+          html = iconHtml + ' ' + '<span>' + html + '</span>';
+        } else if (iconClass) {
+          const iconHtml = $('<span>').addClass(iconClass).get(0).outerHTML;
+          html = iconHtml + ' ' + '<span>' + html + '</span>';
+        }
+        const tag = link ? '<a>' : '<button>';
+        const $button = $(tag).addClass('btn action').addClass(options.hash.className || '').addClass(options.hash.hidden ? 'hidden' : '').addClass(options.hash.disabled ? 'disabled' : '').attr('data-action', name).attr('data-name', name).addClass('btn-' + style).html(html);
+        link ? $button.href(link) : $button.attr('type', 'button');
+        if (options.hash.disabled) {
+          $button.attr('disabled', 'disabled');
+        }
+        if (options.hash.title) {
+          $button.attr('title', options.hash.title);
+        }
+        return new _handlebars.default.SafeString($button.get(0).outerHTML);
+      });
+      _handlebars.default.registerHelper('hyphen', string => {
+        return Espo.Utils.convert(string, 'c-h');
+      });
+      _handlebars.default.registerHelper('toDom', string => {
+        return Espo.Utils.toDom(string);
+      });
+
+      // noinspection SpellCheckingInspection
+      _handlebars.default.registerHelper('breaklines', text => {
+        text = _handlebars.default.Utils.escapeExpression(text || '');
+        text = text.replace(/(\r\n|\n|\r)/gm, '<br>');
+        return new _handlebars.default.SafeString(text);
+      });
+      _handlebars.default.registerHelper('complexText', (text, options) => {
+        if (typeof text !== 'string' && !(text instanceof String)) {
+          return '';
+        }
+        return this.transformMarkdownText(text, options.hash);
+      });
+      _handlebars.default.registerHelper('translateOption', (name, options) => {
+        const scope = options.hash.scope || null;
+        const field = options.hash.field || null;
+        if (!field) {
+          return '';
+        }
+        let translationHash = options.hash.translatedOptions || null;
+        if (translationHash === null) {
+          translationHash = this.language.translate(/** @type {string} */field, 'options', scope) || {};
+          if (typeof translationHash !== 'object') {
+            translationHash = {};
+          }
+        }
+        if (name === null) {
+          name = '';
+        }
+        return translationHash[name] || name;
+      });
+      _handlebars.default.registerHelper('options', (/** any[] */list, value, options) => {
+        if (typeof value === 'undefined') {
+          value = false;
+        }
+        list = list || [];
+        let html = '';
+        const multiple = Object.prototype.toString.call(value) === '[object Array]';
+        const checkOption = name => {
+          if (multiple) {
+            return value.indexOf(name) !== -1;
+          }
+          return value === name || !value && !name && name !== 0;
+        };
+        options.hash = /** @type {Record} */options.hash || {};
+        const scope = options.hash.scope || false;
+        const category = options.hash.category || false;
+        const field = options.hash.field || false;
+        const styleMap = options.hash.styleMap || {};
+        if (!multiple && options.hash.includeMissingOption && (value || value === '')) {
+          if (!list.includes(value)) {
+            list = Espo.Utils.clone(list);
+            list.push(value);
+          }
+        }
+        let translationHash = options.hash.translationHash || options.hash.translatedOptions || null;
+        if (translationHash === null) {
+          translationHash = {};
+          if (!category && field) {
+            translationHash = this.language.translate(/** @type {string} */field, 'options', /** @type {string} */scope) || {};
+            if (typeof translationHash !== 'object') {
+              translationHash = {};
+            }
+          }
+        }
+        const translate = name => {
+          if (!category) {
+            return translationHash[name] || name;
+          }
+          return this.language.translate(name, category, /** @type {string} */scope);
+        };
+        for (const key in list) {
+          const value = list[key];
+          const label = translate(value);
+          const $option = $('<option>').attr('value', value).addClass(styleMap[value] ? 'text-' + styleMap[value] : '').text(label);
+          if (checkOption(list[key])) {
+            $option.attr('selected', 'selected');
+          }
+          html += $option.get(0).outerHTML;
+        }
+        return new _handlebars.default.SafeString(html);
+      });
+      _handlebars.default.registerHelper('basePath', () => {
+        return this.basePath || '';
+      });
+    }
+
+    /**
+     * Get an application parameter.
+     *
+     * @param {string} name
+     * @returns {*}
+     */
+    getAppParam(name) {
+      if (!this.appParams) {
+        return undefined;
+      }
+      return this.appParams.get(name);
+    }
+
+    /**
+     * Escape a string.
+     *
+     * @param {string} text A string.
+     * @returns {string}
+     */
+    escapeString(text) {
+      return _handlebars.default.Utils.escapeExpression(text);
+    }
+
+    /**
+     * Get a user avatar HTML.
+     *
+     * @param {string} id A user ID.
+     * @param {'small'|'medium'|'large'} [size='small'] A size.
+     * @param {int} [width=16]
+     * @param {string} [additionalClassName]  An additional class-name.
+     * @returns {string}
+     */
+    getAvatarHtml(id, size, width, additionalClassName) {
+      if (this.config.get('avatarsDisabled')) {
+        return '';
+      }
+      const t = this.cache ? this.cache.get('app', 'timestamp') : this.settings.get('cacheTimestamp');
+      const basePath = this.basePath || '';
+      size = size || 'small';
+      width = width || 16;
+      let className = 'avatar';
+      if (additionalClassName) {
+        className += ' ' + additionalClassName;
+      }
+
+      // noinspection RequiredAttributes,HtmlRequiredAltAttribute
+      return $(`<img>`).attr('src', `${basePath}?entryPoint=avatar&size=${size}&id=${id}&t=${t}`).attr('alt', 'avatar').addClass(className).attr('data-width', width.toString()).css('width', `var(--${width.toString()}px)`).attr('draggable', 'false').get(0).outerHTML;
+    }
+
+    /**
+     * A Markdown text to HTML (one-line).
+     *
+     * @param {string} text A text.
+     * @returns {Handlebars.SafeString} HTML.
+     */
+    transformMarkdownInlineText(text) {
+      return this.transformMarkdownText(text, {
+        inline: true
+      });
+    }
+
+    /**
+     * A Markdown text to HTML.
+     *
+     * @param {string} text A text.
+     * @param {{inline?: boolean, linksInNewTab?: boolean}} [options] Options.
+     * @returns {Handlebars.SafeString} HTML.
+     */
+    transformMarkdownText(text, options) {
+      text = text || '';
+      this.mdBeforeList.forEach(item => {
+        text = text.replace(item.regex, item.value);
+      });
+      options = options || {};
+      text = options.inline ? _marked.marked.parseInline(text) : _marked.marked.parse(text);
+      text = _dompurify.default.sanitize(text, {}).toString();
+      if (options.linksInNewTab) {
+        text = text.replace(/<a href=/gm, '<a target="_blank" rel="noopener noreferrer" href=');
+      }
+      text = text.replace(/<a href="mailto:([^"]*)"/gm, '<a role="button" class="selectable" data-email-address="$1" data-action="mailTo"');
+      return new _handlebars.default.SafeString(text);
+    }
+
+    /**
+     * Get a color-icon HTML for a scope.
+     *
+     * @param {string} scope A scope.
+     * @param {boolean} [noWhiteSpace=false] No white space.
+     * @param {string} [additionalClassName] An additional class-name.
+     * @returns {string}
+     */
+    getScopeColorIconHtml(scope, noWhiteSpace, additionalClassName) {
+      if (this.config.get('scopeColorsDisabled') || this.preferences.get('scopeColorsDisabled')) {
+        return '';
+      }
+      const color = this.metadata.get(['clientDefs', scope, 'color']);
+      let html = '';
+      if (color) {
+        const $span = $('<span class="color-icon fas fa-square">');
+        $span.css('color', color);
+        if (additionalClassName) {
+          $span.addClass(additionalClassName);
+        }
+        html = $span.get(0).outerHTML;
+      }
+      if (!noWhiteSpace) {
+        if (html) {
+          html += `<span style="user-select: none;">&nbsp;</span>`;
+        }
+      }
+      return html;
+    }
+
+    /**
+     * Sanitize HTML.
+     *
+     * @param {string} text HTML.
+     * @param {Object} [options] Options.
+     * @returns {string}
+     */
+    sanitizeHtml(text, options) {
+      return _dompurify.default.sanitize(text, options);
+    }
+
+    /**
+     * Moderately sanitize HTML.
+     *
+     * @param {string} value HTML.
+     * @returns {string}
+     */
+    moderateSanitizeHtml(value) {
+      value = value || '';
+      value = value.replace(/<\/?(base)[^><]*>/gi, '');
+      value = value.replace(/<\/?(object)[^><]*>/gi, '');
+      value = value.replace(/<\/?(embed)[^><]*>/gi, '');
+      value = value.replace(/<\/?(applet)[^><]*>/gi, '');
+      value = value.replace(/<\/?(iframe)[^><]*>/gi, '');
+      value = value.replace(/<\/?(script)[^><]*>/gi, '');
+      value = value.replace(/<[^><]*([^a-z]on[a-z]+)=[^><]*>/gi, function (match) {
+        return match.replace(/[^a-z]on[a-z]+=/gi, ' data-handler-stripped=');
+      });
+      value = this.stripEventHandlersInHtml(value);
+      value = value.replace(/href=" *javascript:(.*?)"/gi, () => {
+        return 'removed=""';
+      });
+      value = value.replace(/href=' *javascript:(.*?)'/gi, () => {
+        return 'removed=""';
+      });
+      value = value.replace(/src=" *javascript:(.*?)"/gi, () => {
+        return 'removed=""';
+      });
+      value = value.replace(/src=' *javascript:(.*?)'/gi, () => {
+        return 'removed=""';
+      });
+      return value;
+    }
+
+    /**
+     * Strip event handlers in HTML.
+     *
+     * @param {string} html HTML.
+     * @returns {string}
+     */
+    stripEventHandlersInHtml(html) {
+      let j; // @todo Revise.
+
+      function stripHTML() {
+        html = html.slice(0, strip) + html.slice(j);
+        j = strip;
+        strip = false;
+      }
+      function isValidTagChar(str) {
+        return str.match(/[a-z?\\\/!]/i);
+      }
+      let strip = false;
+      let lastQuote = false;
+      for (let i = 0; i < html.length; i++) {
+        if (html[i] === '<' && html[i + 1] && isValidTagChar(html[i + 1])) {
+          i++;
+          for (let j = i; j < html.length; j++) {
+            if (!lastQuote && html[j] === '>') {
+              if (strip) {
+                stripHTML();
+              }
+              i = j;
+              break;
+            }
+
+            // noinspection JSIncompatibleTypesComparison
+            if (lastQuote === html[j]) {
+              lastQuote = false;
+              continue;
+            }
+            if (!lastQuote && html[j - 1] === "=" && (html[j] === "'" || html[j] === '"')) {
+              lastQuote = html[j];
+            }
+            if (!lastQuote && html[j - 2] === " " && html[j - 1] === "o" && html[j] === "n") {
+              strip = j - 2;
+            }
+            if (strip && html[j] === " " && !lastQuote) {
+              stripHTML();
+            }
+          }
+        }
+      }
+      return html;
+    }
+
+    /**
+     * Calculate a content container height.
+     *
+     * @param {HTMLElement|JQuery} element An element.
+     * @returns {number}
+     */
+    calculateContentContainerHeight(element) {
+      const smallScreenWidth = this.themeManager.getParam('screenWidthXs');
+      const $window = $(window);
+      const footerHeight = $('#footer').height() || 26;
+      let top = 0;
+      element = $(element).get(0);
+      if (element) {
+        top = element.getBoundingClientRect().top;
+        if ($window.width() < smallScreenWidth) {
+          const $navbarCollapse = $('#navbar .navbar-body');
+          if ($navbarCollapse.hasClass('in') || $navbarCollapse.hasClass('collapsing')) {
+            top -= $navbarCollapse.height();
+          }
+        }
+      }
+      const spaceHeight = top + footerHeight;
+      return $window.height() - spaceHeight - 20;
+    }
+
+    /**
+     * Process view-setup-handlers.
+     *
+     * @param {module:view} view A view.
+     * @param {string} type A view-setup-handler type.
+     * @param {string} [scope] A scope.
+     * @return Promise
+     */
+    processSetupHandlers(view, type, scope) {
+      // noinspection JSUnresolvedReference
+      scope = scope || view.scope || view.entityType;
+      let handlerIdList = this.metadata.get(['clientDefs', 'Global', 'viewSetupHandlers', type]) || [];
+      if (scope) {
+        handlerIdList = handlerIdList.concat(this.metadata.get(['clientDefs', scope, 'viewSetupHandlers', type]) || []);
+      }
+      if (handlerIdList.length === 0) {
+        return Promise.resolve();
+      }
+
+      /**
+       * @interface
+       * @name ViewHelper~Handler
+       */
+
+      /**
+       * @function
+       * @name ViewHelper~Handler#process
+       * @param {module:view} [view] Deprecated.
+       */
+      const promiseList = [];
+      for (const id of handlerIdList) {
+        const promise = new Promise(resolve => {
+          Espo.loader.require(id, /** typeof ViewHelper~Handler */Handler => {
+            const result = new Handler(view).process(view);
+            if (result && Object.prototype.toString.call(result) === '[object Promise]') {
+              result.then(() => resolve());
+              return;
+            }
+            resolve();
+          });
+        });
+        promiseList.push(promise);
+      }
+      return Promise.all(promiseList);
+    }
+
+    /** @private */
+    _isXsScreen;
+
+    /**
+     * Is xs screen width.
+     *
+     * @return {boolean}
+     */
+    isXsScreen() {
+      if (this._isXsScreen == null) {
+        this._isXsScreen = window.innerWidth < this.themeManager.getParam('screenWidthXs');
+      }
+      return this._isXsScreen;
+    }
+  }
+  var _default = _exports.default = ViewHelper;
+});
+
+define("metadata", ["exports", "bullbone"], function (_exports, _bullbone) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module metadata */
+
+  /**
+   * Application metadata.
+   *
+   * @mixes Bull.Events
+   */
+  class Metadata {
+    /**
+     * Application metadata.
+     *
+     * @param {module:cache} [cache] A cache.
+     */
+    constructor(cache) {
+      /**
+       * @private
+       * @type {module:cache|null}
+       */
+      this.cache = cache || null;
+
+      /**
+       * @private
+       * @type {Object}
+       */
+      this.data = {};
+    }
+
+    /** @private */
+    url = 'Metadata';
+
+    /**
+     * Load from cache or the backend (if not yet cached).
+     *
+     * @param {Function|null} [callback] Deprecated. Use a promise.
+     * @param {boolean} [disableCache=false] Deprecated.
+     * @returns {Promise}
+     */
+    load(callback, disableCache) {
+      if (!disableCache) {
+        if (this.loadFromCache()) {
+          this.trigger('sync');
+          if (callback) {
+            callback();
+          }
+          return Promise.resolve();
+        }
+      }
+      return this.fetch().then(() => {
+        if (callback) {
+          callback();
+        }
+      });
+    }
+
+    /**
+     * Load from the server.
+     *
+     * @returns {Promise}
+     */
+    loadSkipCache() {
+      return this.load(null, true);
+    }
+
+    /**
+     * @private
+     * @returns {Promise}
+     */
+    fetch() {
+      return Espo.Ajax.getRequest(this.url).then(data => {
+        this.data = data;
+        this.storeToCache();
+        this.trigger('sync');
+      });
+    }
+
+    /**
+     * Get a value.
+     *
+     * @param {string[]|string} path A key path.
+     * @param {*} [defaultValue] A value to return if not set.
+     * @returns {*} Null if not set.
+     */
+    get(path, defaultValue) {
+      defaultValue = defaultValue || null;
+      let arr;
+      if (Array && Array.isArray && Array.isArray(path)) {
+        arr = path;
+      } else {
+        arr = path.split('.');
+      }
+      let pointer = this.data;
+      let result = defaultValue;
+      for (let i = 0; i < arr.length; i++) {
+        const key = arr[i];
+        if (pointer == null || !(key in pointer)) {
+          result = defaultValue;
+          break;
+        }
+        if (arr.length - 1 === i) {
+          result = pointer[key];
+        }
+        pointer = pointer[key];
+      }
+      return result;
+    }
+
+    /**
+     * @private
+     * @returns {boolean|null} True if success.
+     */
+    loadFromCache() {
+      if (this.cache) {
+        const cached = this.cache.get('app', 'metadata');
+        if (cached) {
+          this.data = cached;
+          return true;
+        }
+      }
+      return null;
+    }
+
+    /** @private */
+    storeToCache() {
+      if (this.cache) {
+        this.cache.set('app', 'metadata', this.data);
+      }
+    }
+
+    /**
+     * Clear cache.
+     */
+    clearCache() {
+      if (!this.cache) {
+        return;
+      }
+      this.cache.clear('app', 'metadata');
+    }
+
+    /**
+     * Get a scope list.
+     *
+     * @returns {string[]}
+     */
+    getScopeList() {
+      const scopes = this.get('scopes') || {};
+      const scopeList = [];
+      for (const scope in scopes) {
+        const d = scopes[scope];
+        if (d.disabled) {
+          continue;
+        }
+        scopeList.push(scope);
+      }
+      return scopeList;
+    }
+
+    /**
+     * Get an object-scope list. An object-scope represents a business entity.
+     *
+     * @returns {string[]}
+     */
+    getScopeObjectList() {
+      const scopes = this.get('scopes') || {};
+      const scopeList = [];
+      for (const scope in scopes) {
+        const d = scopes[scope];
+        if (d.disabled) {
+          continue;
+        }
+        if (!d.object) {
+          continue;
+        }
+        scopeList.push(scope);
+      }
+      return scopeList;
+    }
+
+    /**
+     * Get an entity-scope list. Scopes that represents entities.
+     *
+     * @returns {string[]}
+     */
+    getScopeEntityList() {
+      const scopes = this.get('scopes') || {};
+      const scopeList = [];
+      for (const scope in scopes) {
+        const d = scopes[scope];
+        if (d.disabled) {
+          continue;
+        }
+        if (!d.entity) {
+          continue;
+        }
+        scopeList.push(scope);
+      }
+      return scopeList;
+    }
+
+    /**
+     * Do not use.
+     *
+     * @internal
+     * @param {Record} data
+     */
+    setData(data) {
+      this.data = data;
+    }
+  }
+  Object.assign(Metadata.prototype, _bullbone.Events);
+  var _default = _exports.default = Metadata;
+});
+
+define("acl-manager", ["exports", "acl", "utils", "bullbone"], function (_exports, _acl, _utils, _bullbone) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _acl = _interopRequireDefault(_acl);
+  _utils = _interopRequireDefault(_utils);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module acl-manager */
+
+  /**
+   * An action.
+   *
+   * @typedef {'create'|'read'|'edit'|'delete'|'stream'} module:acl-manager~action
+   */
+
+  /**
+   * An access checking class for a specific scope.
+   */
+  class AclManager {
+    /** @protected */
+    data = null;
+    fieldLevelList = ['yes', 'no'];
+
+    /**
+     * @param {module:models/user} user A user.
+     * @param {Object} implementationClassMap `acl` implementations.
+     * @param {boolean} aclAllowDeleteCreated Allow a user to delete records they created regardless a
+     *   role access level.
+     */
+    constructor(user, implementationClassMap, aclAllowDeleteCreated) {
+      this.setEmpty();
+
+      /** @protected */
+      this.user = user || null;
+      this.implementationClassMap = implementationClassMap || {};
+      this.aclAllowDeleteCreated = aclAllowDeleteCreated;
+    }
+
+    /**
+     * @protected
+     */
+    setEmpty() {
+      this.data = {
+        table: {},
+        fieldTable: {},
+        fieldTableQuickAccess: {}
+      };
+      this.implementationHash = {};
+      this.forbiddenFieldsCache = {};
+      this.implementationClassMap = {};
+      this.forbiddenAttributesCache = {};
+    }
+
+    /**
+     * Get an `acl` implementation.
+     *
+     * @protected
+     * @param {string} scope A scope.
+     * @returns {module:acl}
+     */
+    getImplementation(scope) {
+      if (!(scope in this.implementationHash)) {
+        let implementationClass = _acl.default;
+        if (scope in this.implementationClassMap) {
+          implementationClass = this.implementationClassMap[scope];
+        }
+        const forbiddenFieldList = this.getScopeForbiddenFieldList(scope);
+        const params = {
+          aclAllowDeleteCreated: this.aclAllowDeleteCreated,
+          teamsFieldIsForbidden: forbiddenFieldList.includes('teams'),
+          forbiddenFieldList: forbiddenFieldList
+        };
+        this.implementationHash[scope] = new implementationClass(this.getUser(), scope, params, this);
+      }
+      return this.implementationHash[scope];
+    }
+
+    /**
+     * @return {import('models/user').default}
+     * @protected
+     */
+    getUser() {
+      return this.user;
+    }
+
+    /**
+     * @internal
+     */
+    set(data) {
+      data = data || {};
+      this.data = data;
+      this.data.table = this.data.table || {};
+      this.data.fieldTable = this.data.fieldTable || {};
+      this.data.attributeTable = this.data.attributeTable || {};
+    }
+
+    /**
+     * @deprecated Use `getPermissionLevel`.
+     *
+     * @returns {string|null}
+     */
+    get(name) {
+      return this.data[name] || null;
+    }
+
+    /**
+     * Get a permission level.
+     *
+     * @param {string} permission A permission name.
+     * @returns {'yes'|'all'|'team'|'no'}
+     */
+    getPermissionLevel(permission) {
+      let permissionKey = permission;
+      if (permission.slice(-10) !== 'Permission') {
+        permissionKey = permission + 'Permission';
+      }
+      return this.data[permissionKey] || 'no';
+    }
+
+    /**
+     * Get access level to a scope action.
+     *
+     * @param {string} scope A scope.
+     * @param {module:acl-manager~action} action An action.
+     * @returns {'yes'|'all'|'team'|'own'|'no'|null}
+     */
+    getLevel(scope, action) {
+      if (!(scope in this.data.table)) {
+        return null;
+      }
+      const scopeItem = this.data.table[scope];
+      if (typeof scopeItem !== 'object' || !(action in scopeItem)) {
+        return null;
+      }
+      return scopeItem[action];
+    }
+
+    /**
+     * Clear access data.
+     *
+     * @internal
+     */
+    clear() {
+      this.setEmpty();
+    }
+
+    /**
+     * Check whether a scope has ACL.
+     *
+     * @param {string} scope A scope.
+     * @returns {boolean}
+     */
+    checkScopeHasAcl(scope) {
+      const data = (this.data.table || {})[scope];
+      if (typeof data === 'undefined') {
+        return false;
+      }
+      return true;
+    }
+
+    /**
+     * Check access to a scope.
+     *
+     * @param {string} scope A scope.
+     * @param {module:acl-manager~action|null} [action=null] An action.
+     * @param {boolean} [precise=false] Deprecated. Not used.
+     * @returns {boolean} True if access allowed.
+     */
+    checkScope(scope, action, precise) {
+      let data = (this.data.table || {})[scope];
+      if (typeof data === 'undefined') {
+        data = null;
+      }
+      return this.getImplementation(scope).checkScope(data, action, precise);
+    }
+
+    /**
+     * Check access to a model.
+     *
+     * @param {module:model} model A model.
+     * @param {module:acl-manager~action|null} [action=null] An action.
+     * @param {boolean} [precise=false] To return `null` if not enough data is set in a model.
+     *   E.g. the `teams` field is not yet loaded.
+     * @returns {boolean|null} True if access allowed, null if not enough data to determine.
+     */
+    checkModel(model, action, precise) {
+      const scope = model.entityType;
+
+      // todo move this to custom acl
+      if (action === 'edit') {
+        if (!model.isEditable()) {
+          return false;
+        }
+      }
+      if (action === 'delete') {
+        if (!model.isRemovable()) {
+          return false;
+        }
+      }
+      let data = (this.data.table || {})[scope];
+      if (typeof data === 'undefined') {
+        data = null;
+      }
+      const impl = this.getImplementation(scope);
+      if (action) {
+        const methodName = 'checkModel' + _utils.default.upperCaseFirst(action);
+        if (methodName in impl) {
+          return impl[methodName](model, data, precise);
+        }
+      }
+      return impl.checkModel(model, data, action, precise);
+    }
+
+    /**
+     * Check access to a scope or a model.
+     *
+     * @param {string|module:model} subject What to check. A scope or a model.
+     * @param {module:acl-manager~action|null} [action=null] An action.
+     * @param {boolean} [precise=false]  To return `null` if not enough data is set in a model.
+     *   E.g. the `teams` field is not yet loaded.
+     * @returns {boolean|null} True if access allowed, null if not enough data to determine.
+     */
+    check(subject, action, precise) {
+      if (typeof subject === 'string') {
+        return this.checkScope(subject, action, precise);
+      }
+      return this.checkModel(subject, action, precise);
+    }
+
+    /**
+     * Check if a user is owner to a model.
+     *
+     * @param {module:model} model A model.
+     * @returns {boolean|null} True if owner, null if not clear.
+     */
+    checkIsOwner(model) {
+      return this.getImplementation(model.entityType).checkIsOwner(model);
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    /**
+     * Check if a user in a team of a model.
+     *
+     * @param {module:model} model A model.
+     * @returns {boolean|null} True if in a team, null if not clear.
+     */
+    checkInTeam(model) {
+      return this.getImplementation(model.entityType).checkInTeam(model);
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    /**
+     * Check if a record is shared with the user.
+     *
+     * @param {module:model} model A model.
+     * @returns {boolean|null} True if shared, null if not clear.
+     */
+    checkIsShared(model) {
+      return this.getImplementation(model.entityType).checkIsShared(model);
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    /**
+     * Check an assignment permission to a user.
+     *
+     * @param {module:models/user} user A user.
+     * @returns {boolean} True if access allowed.
+     */
+    checkAssignmentPermission(user) {
+      return this.checkPermission('assignmentPermission', user);
+    }
+
+    /**
+     * Check a user permission to a user.
+     *
+     * @param {module:models/user} user A user.
+     * @returns {boolean} True if access allowed.
+     */
+    checkUserPermission(user) {
+      return this.checkPermission('userPermission', user);
+    }
+
+    /**
+     * Check a specific permission to a user.
+     *
+     * @param {string} permission A permission name.
+     * @param {module:models/user} user A user.
+     * @returns {boolean|null} True if access allowed. Null if not enough data loaded to know for sure.
+     */
+    checkPermission(permission, user) {
+      if (this.getUser().isAdmin()) {
+        return true;
+      }
+      const level = this.getPermissionLevel(permission);
+      if (level === 'no') {
+        if (user.id === this.getUser().id) {
+          return true;
+        }
+        return false;
+      }
+      if (level === 'team') {
+        if (!user.has('teamsIds')) {
+          return null;
+        }
+        let result = false;
+        const teamsIds = user.get('teamsIds') || [];
+        teamsIds.forEach(id => {
+          if ((this.getUser().get('teamsIds') || []).includes(id)) {
+            result = true;
+          }
+        });
+        return result;
+      }
+      if (level === 'all') {
+        return true;
+      }
+      if (level === 'yes') {
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * Get a list of forbidden fields for an entity type.
+     *
+     * @param {string} scope An entity type.
+     * @param {'read'|'edit'} [action='read'] An action.
+     * @param {'yes'|'no'} [thresholdLevel='no'] A threshold level.
+     * @returns {string[]} A forbidden field list.
+     */
+    getScopeForbiddenFieldList(scope, action, thresholdLevel) {
+      action = action || 'read';
+      thresholdLevel = thresholdLevel || 'no';
+      const key = scope + '_' + action + '_' + thresholdLevel;
+      if (key in this.forbiddenFieldsCache) {
+        return _utils.default.clone(this.forbiddenFieldsCache[key]);
+      }
+      const levelList = this.fieldLevelList.slice(this.fieldLevelList.indexOf(thresholdLevel));
+      const fieldTableQuickAccess = this.data.fieldTableQuickAccess || {};
+      const scopeData = fieldTableQuickAccess[scope] || {};
+      const fieldsData = scopeData.fields || {};
+      const actionData = fieldsData[action] || {};
+      const fieldList = [];
+      levelList.forEach(level => {
+        const list = actionData[level] || [];
+        list.forEach(field => {
+          if (fieldList.includes(field)) {
+            return;
+          }
+          fieldList.push(field);
+        });
+      });
+      this.forbiddenFieldsCache[key] = fieldList;
+      return _utils.default.clone(fieldList);
+    }
+
+    /**
+     * Get a list of forbidden attributes for an entity type.
+     *
+     * @param {string} scope An entity type.
+     * @param {'read'|'edit'} [action='read'] An action.
+     * @param {'yes'|'no'} [thresholdLevel='no'] A threshold level.
+     * @returns {string[]} A forbidden attribute list.
+     */
+    getScopeForbiddenAttributeList(scope, action, thresholdLevel) {
+      action = action || 'read';
+      thresholdLevel = thresholdLevel || 'no';
+      const key = scope + '_' + action + '_' + thresholdLevel;
+      if (key in this.forbiddenAttributesCache) {
+        return _utils.default.clone(this.forbiddenAttributesCache[key]);
+      }
+      const levelList = this.fieldLevelList.slice(this.fieldLevelList.indexOf(thresholdLevel));
+      const fieldTableQuickAccess = this.data.fieldTableQuickAccess || {};
+      const scopeData = fieldTableQuickAccess[scope] || {};
+      const attributesData = scopeData.attributes || {};
+      const actionData = attributesData[action] || {};
+      const attributeList = [];
+      levelList.forEach(level => {
+        const list = actionData[level] || [];
+        list.forEach(attribute => {
+          if (attributeList.includes(attribute)) {
+            return;
+          }
+          attributeList.push(attribute);
+        });
+      });
+      this.forbiddenAttributesCache[key] = attributeList;
+      return _utils.default.clone(attributeList);
+    }
+
+    /**
+     * Check an assignment permission to a team.
+     *
+     * @param {string} teamId A team ID.
+     * @returns {boolean} True if access allowed.
+     */
+    checkTeamAssignmentPermission(teamId) {
+      if (this.getPermissionLevel('assignmentPermission') === 'all') {
+        return true;
+      }
+      return this.getUser().getLinkMultipleIdList('teams').includes(teamId);
+    }
+
+    /**
+     * Check access to a field.
+     * @param {string} scope An entity type.
+     * @param {string} field A field.
+     * @param {'read'|'edit'} [action='read'] An action.
+     * @returns {boolean} True if access allowed.
+     */
+    checkField(scope, field, action) {
+      return !this.getScopeForbiddenFieldList(scope, action).includes(field);
+    }
+  }
+  AclManager.extend = _bullbone.View.extend;
+  var _default = _exports.default = AclManager;
+});
+
+define("models/user", ["exports", "model"], function (_exports, _model) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _model = _interopRequireDefault(_model);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module models/user */
+
+  /**
+   * A user.
+   */
+  class User extends _model.default {
+    name = 'User';
+    entityType = 'User';
+    urlRoot = 'User';
+
+    /**
+     * Is admin.
+     *
+     * @returns {boolean}
+     */
+    isAdmin() {
+      return this.get('type') === 'admin' || this.isSuperAdmin();
+    }
+
+    /**
+     * Is portal.
+     *
+     * @returns {boolean}
+     */
+    isPortal() {
+      return this.get('type') === 'portal';
+    }
+
+    /**
+     * Is API.
+     *
+     * @returns {boolean}
+     */
+    isApi() {
+      return this.get('type') === 'api';
+    }
+
+    /**
+     * Is regular.
+     *
+     * @returns {boolean}
+     */
+    isRegular() {
+      return this.get('type') === 'regular';
+    }
+
+    /**
+     * Is system.
+     *
+     * @returns {boolean}
+     */
+    isSystem() {
+      return this.get('type') === 'system';
+    }
+
+    /**
+     * Is super-admin.
+     *
+     * @returns {boolean}
+     */
+    isSuperAdmin() {
+      return this.get('type') === 'super-admin';
+    }
+  }
+  var _default = _exports.default = User;
+});
+
+define("models/settings", ["exports", "model"], function (_exports, _model) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _model = _interopRequireDefault(_model);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module models/settings */
+
+  /**
+   * A config.
+   */
+  class Settings extends _model.default {
+    name = 'Settings';
+    entityType = 'Settings';
+    urlRoot = 'Settings';
+
+    /**
+     * Load.
+     *
+     * @returns {Promise}
+     */
+    load() {
+      return new Promise(resolve => {
+        this.fetch().then(() => resolve());
+      });
+    }
+
+    /**
+     * Get a value by a path.
+     *
+     * @param {string[]} path A path.
+     * @returns {*} Null if not set.
+     */
+    getByPath(path) {
+      if (!path.length) {
+        return null;
+      }
+      let p;
+      for (let i = 0; i < path.length; i++) {
+        const item = path[i];
+        if (i === 0) {
+          p = this.get(item);
+        } else {
+          if (item in p) {
+            p = p[item];
+          } else {
+            return null;
+          }
+        }
+        if (i === path.length - 1) {
+          return p;
+        }
+        if (p === null || typeof p !== 'object') {
+          return null;
+        }
+      }
+    }
+  }
+  var _default = _exports.default = Settings;
+});
+
+define("models/preferences", ["exports", "model"], function (_exports, _model) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _model = _interopRequireDefault(_model);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module models/preferences */
+
+  /**
+   * User preferences.
+   */
+  class Preferences extends _model.default {
+    name = 'Preferences';
+    entityType = 'Preferences';
+    urlRoot = 'Preferences';
+
+    /**
+     * @private
+     * @type {import('models/settings').default}
+     */
+    settings;
+
+    /**
+     * Get dashlet options.
+     *
+     * @param {string} id A dashlet ID.
+     * @returns {Object|null}
+     */
+    getDashletOptions(id) {
+      const value = this.get('dashletsOptions') || {};
+      return value[id] || null;
+    }
+
+    /**
+     * Whether a user is portal.
+     *
+     * @returns {boolean}
+     */
+    isPortal() {
+      return this.get('isPortalUser');
+    }
+
+    /**
+     * @internal
+     * @param {import('models/settings').default} settings
+     */
+    setSettings(settings) {
+      this.settings = settings;
+    }
+  }
+  var _default = _exports.default = Preferences;
+});
+
+define("helpers/site/shortcut-manager", ["exports", "di", "ui"], function (_exports, _di, _ui) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _ui = _interopRequireDefault(_ui);
+  var _staticBlock;
+  let _initClass;
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
+  function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+  function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
+  function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
+  /** @typedef {import('view').default} View */
+  /** @typedef {string|function(KeyboardEvent): void} Key */
+  let _ShortcutManager = _exports.default = void 0;
+  class ShortcutManager {
+    /**
+     * @private
+     * @type {number}
+     */
+    level = 0;
+
+    /**
+     * @private
+     * @type {{
+     *     view: View[],
+     *     keys: Record.<string, Key>,
+     *     level: number,
+     * }[]}
+     */
+    items;
+    constructor() {
+      this.items = [];
+      document.addEventListener('keydown', event => this.handle(event), {
+        capture: true
+      });
+    }
+
+    /**
+     * Add a view and keys.
+     *
+     * @param {import('view').default} view
+     * @param {Record.<string, Key>} keys
+     * @param {{stack: boolean}} [options]
+     */
+    add(view, keys) {
+      let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      if (this.items.find(it => it.view === view)) {
+        return;
+      }
+      if (options.stack) {
+        this.level++;
+      }
+      this.items.push({
+        view: view,
+        keys: keys,
+        level: this.level
+      });
+    }
+
+    /**
+     * Remove a view.
+     *
+     * @param {import('view').default} view
+     */
+    remove(view) {
+      const index = this.items.findIndex(it => it.view === view);
+      if (index < 0) {
+        return;
+      }
+      this.items.splice(index, 1);
+      let maxLevel = 0;
+      for (const item of this.items) {
+        if (item.level > maxLevel) {
+          maxLevel = item.level;
+        }
+      }
+      this.level = maxLevel;
+    }
+
+    /**
+     * Handle.
+     *
+     * @param {KeyboardEvent} event
+     */
+    handle(event) {
+      const items = this.items.filter(it => it.level === this.level);
+      if (items.length === 0) {
+        return;
+      }
+      if (_ui.default.getConfirmCount()) {
+        return;
+      }
+      const key = Espo.Utils.getKeyFromKeyEvent(event);
+      for (const item of items) {
+        const subject = item.keys[key];
+        if (!subject) {
+          continue;
+        }
+        if (typeof subject === 'function') {
+          subject.call(item.view, event);
+          break;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        const methodName = 'action' + Espo.Utils.upperCaseFirst(subject);
+        if (typeof item.view[methodName] === 'function') {
+          item.view[methodName]();
+          break;
+        }
+      }
+    }
+    static #_ = _staticBlock = () => ([_ShortcutManager, _initClass] = _applyDecs(this, [(0, _di.register)()], []).c, _exports.default = _ShortcutManager, _initClass());
+  }
+  _staticBlock();
+});
+
+define("helpers/site/modal-bar-provider", ["exports", "di"], function (_exports, _di) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  var _staticBlock;
+  let _initClass;
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
+  function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+  function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
+  function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
+  /**
+   * @internal
+   */
+  let _ModalBarProvider = _exports.default = void 0;
+  class ModalBarProvider {
+    /**
+     * @private
+     * @type {import('views/collapsed-modal-bar').default|null}
+     */
+    view = null;
+
+    /**
+     * @internal
+     * @return {import('views/collapsed-modal-bar').default|null}
+     */
+    get() {
+      return this.view;
+    }
+
+    /**
+     * @internal
+     * @param {import('views/collapsed-modal-bar').default|null} view
+     */
+    set(view) {
+      this.view = view;
+    }
+    static #_ = _staticBlock = () => ([_ModalBarProvider, _initClass] = _applyDecs(this, [(0, _di.register)()], []).c, _exports.default = _ModalBarProvider, _initClass());
+  }
+  _staticBlock();
+});
+
 define("views/modal", ["exports", "view", "di", "helpers/site/modal-bar-provider", "helpers/site/shortcut-manager"], function (_exports, _view, _di, _modalBarProvider, _shortcutManager) {
   "use strict";
 
@@ -2085,12 +6041,13 @@ define("views/modal", ["exports", "view", "di", "helpers/site/modal-bar-provider
   _view = _interopRequireDefault(_view);
   _modalBarProvider = _interopRequireDefault(_modalBarProvider);
   _shortcutManager = _interopRequireDefault(_shortcutManager);
+  var _staticBlock;
   let _init_modalBarProvider, _init_extra_modalBarProvider, _init_shortcutManager, _init_extra_shortcutManager;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -2115,7 +6072,7 @@ define("views/modal", ["exports", "view", "di", "helpers/site/modal-bar-provider
    ************************************************************************/
   /** @module views/modal */
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -2126,7 +6083,6 @@ define("views/modal", ["exports", "view", "di", "helpers/site/modal-bar-provider
    * @see https://docs.espocrm.com/development/modal/
    */
   class ModalView extends _view.default {
-    static #_ = [_init_modalBarProvider, _init_extra_modalBarProvider, _init_shortcutManager, _init_extra_shortcutManager] = _applyDecs(this, [], [[(0, _di.inject)(_modalBarProvider.default), 0, "modalBarProvider"], [(0, _di.inject)(_shortcutManager.default), 0, "shortcutManager"]], 0, void 0, _view.default).e;
     /**
      * A button or dropdown action item.
      *
@@ -3133,24 +7089,32 @@ define("views/modal", ["exports", "view", "di", "helpers/site/modal-bar-provider
      * @since 9.1.0
      */
     onMinimize() {}
+    static #_ = _staticBlock = () => [_init_modalBarProvider, _init_extra_modalBarProvider, _init_shortcutManager, _init_extra_shortcutManager] = _applyDecs(this, [], [[(0, _di.inject)(_modalBarProvider.default), 0, "modalBarProvider"], [(0, _di.inject)(_shortcutManager.default), 0, "shortcutManager"]], 0, void 0, _view.default).e;
   }
+  _staticBlock();
   var _default = _exports.default = ModalView;
 });
 
-define("helpers/model/default-value-provider", ["exports", "date-time", "di"], function (_exports, _dateTime, _di) {
+define("helpers/model/defaults-populator", ["exports", "di", "metadata", "view-helper", "models/settings", "models/user", "acl-manager", "models/preferences"], function (_exports, _di, _metadata, _viewHelper, _settings, _user, _aclManager, _preferences) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
   _exports.default = void 0;
-  _dateTime = _interopRequireDefault(_dateTime);
-  let _init_dateTime, _init_extra_dateTime;
+  _metadata = _interopRequireDefault(_metadata);
+  _viewHelper = _interopRequireDefault(_viewHelper);
+  _settings = _interopRequireDefault(_settings);
+  _user = _interopRequireDefault(_user);
+  _aclManager = _interopRequireDefault(_aclManager);
+  _preferences = _interopRequireDefault(_preferences);
+  var _staticBlock;
+  let _init_metadata, _init_extra_metadata, _init_viewHelper, _init_extra_viewHelper, _init_config, _init_extra_config, _init_user, _init_extra_user, _init_preferences, _init_extra_preferences, _init_acl, _init_extra_acl;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -3174,56 +7138,248 @@ define("helpers/model/default-value-provider", ["exports", "date-time", "di"], f
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
   function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
-  const nowExpression = /return this\.dateTime\.getNow\(([0-9]+)\);/;
-  const shiftTodayExpression = /return this\.dateTime\.getDateShiftedFromToday\(([0-9]+), '([a-z]+)'\);/;
-  const shiftNowExpression = /return this\.dateTime\.getDateTimeShiftedFromNow\(([0-9]+), '([a-z]+)', ([0-9]+)\);/;
-  class DefaultValueProvider {
-    static #_ = [_init_dateTime, _init_extra_dateTime] = _applyDecs(this, [], [[(0, _di.inject)(_dateTime.default), 0, "dateTime"]]).e;
+  /**
+   * Defaults populator.
+   */
+  class DefaultsPopulator {
     constructor() {
-      _init_extra_dateTime(this);
+      _init_extra_acl(this);
     }
     /**
-     * @type {DateTime}
+     * @private
+     * @type {Metadata}
      */
-    dateTime = _init_dateTime(this);
+    metadata = _init_metadata(this);
 
     /**
-     * Get a value.
-     *
-     * @param {string} key
-     * @return {*}
+     * @private
+     * @type {ViewHelper}
      */
-    get(key) {
-      if (key === "return this.dateTime.getToday();") {
-        return this.dateTime.getToday();
+    viewHelper = (_init_extra_metadata(this), _init_viewHelper(this));
+
+    /**
+     * @private
+     * @type {Settings}
+     */
+    config = (_init_extra_viewHelper(this), _init_config(this));
+
+    /**
+     * @private
+     * @type {User}
+     */
+    user = (_init_extra_config(this), _init_user(this));
+
+    /**
+     * @private
+     * @type {Preferences}
+     */
+    preferences = (_init_extra_user(this), _init_preferences(this));
+
+    /**
+     * @private
+     * @type {AclManager}
+     */
+    acl = (_init_extra_preferences(this), _init_acl(this));
+
+    /**
+     * Populate default values.
+     *
+     * @param {module:model} model A model.
+     * @return {Promise}
+     */
+    populate(model) {
+      model.populateDefaults();
+      const defaultHash = {};
+      if (!this.user.isPortal()) {
+        this.prepare(model, defaultHash);
       }
-      const matchNow = key.match(nowExpression);
-      if (matchNow) {
-        const multiplicity = parseInt(matchNow[1]);
-        return this.dateTime.getNow(multiplicity);
+      if (this.user.isPortal()) {
+        this.prepareForPortal(model, defaultHash);
       }
-      const matchTodayShift = key.match(shiftTodayExpression);
-      if (matchTodayShift) {
-        const shift = parseInt(matchTodayShift[1]);
-        const unit = matchTodayShift[2];
-        return this.dateTime.getDateShiftedFromToday(shift, unit);
+      this.prepareFields(model, defaultHash);
+      for (const attr in defaultHash) {
+        if (model.has(attr)) {
+          delete defaultHash[attr];
+        }
       }
-      const matchNowShift = key.match(shiftNowExpression);
-      if (matchNowShift) {
-        const shift = parseInt(matchNowShift[1]);
-        const unit = matchNowShift[2];
-        const multiplicity = parseInt(matchNowShift[3]);
-        return this.dateTime.getDateTimeShiftedFromNow(shift, unit, multiplicity);
+      model.set(defaultHash, {
+        silent: true
+      });
+      const preparatorClass = this.metadata.get(`clientDefs.${model.entityType}.modelDefaultsPreparator`);
+      if (!preparatorClass) {
+        return Promise.resolve();
       }
-      return undefined;
+      return Espo.loader.requirePromise(preparatorClass).then(Class => {
+        /** @type {import('handlers/model/defaults-preparator').default} */
+        const preparator = new Class(this.viewHelper);
+        return preparator.prepare(model);
+      }).then(attributes => {
+        model.set(attributes, {
+          silent: true
+        });
+      });
     }
+
+    /**
+     * @param {module:model} model
+     * @param {Object.<string, *>} defaultHash
+     * @private
+     */
+    prepare(model, defaultHash) {
+      const hasAssignedUsers = model.hasField('assignedUsers') && model.getLinkParam('assignedUsers', 'entity') === 'User';
+      if (model.hasField('assignedUser') || hasAssignedUsers) {
+        let assignedUserField = 'assignedUser';
+        if (hasAssignedUsers) {
+          assignedUserField = 'assignedUsers';
+        }
+        if (this.toFillAssignedUser(model, assignedUserField)) {
+          if (hasAssignedUsers) {
+            defaultHash['assignedUsersIds'] = [this.user.id];
+            defaultHash['assignedUsersNames'] = {};
+            defaultHash['assignedUsersNames'][this.user.id] = this.user.get('name');
+          } else {
+            defaultHash['assignedUserId'] = this.user.id;
+            defaultHash['assignedUserName'] = this.user.get('name');
+          }
+        }
+      }
+      const defaultTeamId = this.user.get('defaultTeamId');
+      if (defaultTeamId) {
+        if (model.hasField('teams') && !model.getFieldParam('teams', 'default') && Espo.Utils.lowerCaseFirst(model.getLinkParam('teams', 'relationName') || '') === 'entityTeam') {
+          defaultHash['teamsIds'] = [defaultTeamId];
+          defaultHash['teamsNames'] = {};
+          defaultHash['teamsNames'][defaultTeamId] = this.user.get('defaultTeamName');
+        }
+      }
+      const hasCollaborators = model.hasField('collaborators') && model.getLinkParam('collaborators', 'entity') === 'User' && this.metadata.get(`scopes.${model.entityType}.collaborators`);
+      if (hasCollaborators) {
+        defaultHash.collaboratorsIds = [this.user.id];
+        defaultHash.collaboratorsNames = {
+          [this.user.id]: this.user.attributes.name
+        };
+      }
+    }
+
+    /**
+     *
+     * @param {import('model').default} model
+     * @param {string} assignedUserField
+     */
+    toFillAssignedUser(model, assignedUserField) {
+      if (!this.preferences.get('doNotFillAssignedUserIfNotRequired')) {
+        return true;
+      }
+      if (model.getFieldParam(assignedUserField, 'required')) {
+        return true;
+      }
+      if (this.acl.getPermissionLevel('assignmentPermission') === 'no') {
+        return true;
+      }
+      if (this.acl.getPermissionLevel('assignmentPermission') === 'team' && !this.user.get('defaultTeamId')) {
+        return true;
+      }
+      if (this.acl.getLevel(model.entityType, 'read') === 'own') {
+        return true;
+      }
+      if (!this.acl.checkField(model.entityType, assignedUserField, 'edit')) {
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * @param {module:model} model
+     * @param {Object.<string, *>} defaultHash
+     * @private
+     */
+    prepareForPortal(model, defaultHash) {
+      const accountLink = this.metadata.get(`aclDefs.${model.entityType}.accountLink`);
+      const contactLink = this.metadata.get(`aclDefs.${model.entityType}.contactLink`);
+      if (accountLink && model.hasField(accountLink) && ['belongsTo', 'hasOne'].includes(model.getLinkType(accountLink)) && model.getLinkParam(accountLink, 'entity') === 'Account') {
+        if (this.user.attributes.accountId) {
+          defaultHash[accountLink + 'Id'] = this.user.attributes.accountId;
+          defaultHash[accountLink + 'Name'] = this.user.attributes.accuntName;
+        }
+      }
+      if (contactLink && model.hasField(contactLink) && ['belongsTo', 'hasOne'].includes(model.getLinkType(contactLink)) && model.getLinkParam(contactLink, 'entity') === 'Contact') {
+        if (this.user.attributes.contactId) {
+          defaultHash[contactLink + 'Id'] = this.user.attributes.contactId;
+          defaultHash[contactLink + 'Name'] = this.user.attributes.contactName;
+        }
+      }
+      if (accountLink && model.hasField(accountLink) && model.getLinkType(accountLink) === 'hasMany' && model.getLinkParam(accountLink, 'entity') === 'Account') {
+        if (this.user.attributes.accountsIds) {
+          defaultHash['accountsIds'] = [...this.user.attributes.accountsIds];
+          defaultHash['accountsNames'] = {
+            ...this.user.attributes.accountsNames
+          };
+        }
+      }
+      if (contactLink && model.hasField(contactLink) && model.getLinkType(contactLink) === 'hasMany' && model.getLinkParam(contactLink, 'entity') === 'Contact') {
+        if (this.user.attributes.contactId) {
+          defaultHash['contactsIds'] = [this.user.attributes.contactId];
+          defaultHash['contactsNames'] = {
+            [this.user.attributes.contactId]: this.user.attributes.contactName
+          };
+        }
+      }
+      if (model.hasField('parent') && model.getLinkType('parent') === 'belongsToParent') {
+        if (!this.config.get('b2cMode')) {
+          if (this.user.attributes.accountId && (model.getFieldParam('parent', 'entityList') || []).includes('Account')) {
+            defaultHash['parentId'] = this.user.attributes.accountId;
+            defaultHash['parentName'] = this.user.attributes.accountName;
+            defaultHash['parentType'] = 'Account';
+          }
+        } else {
+          if (this.user.attributes.contactId && (model.getFieldParam('parent', 'entityList') || []).includes('Contact')) {
+            defaultHash['parentId'] = this.user.attributes.contactId;
+            defaultHash['parentName'] = this.user.attributes.contactName;
+            defaultHash['parentType'] = 'Contact';
+          }
+        }
+      }
+    }
+
+    /**
+     * @param {module:model} model
+     * @param {Object.<string, *>} defaultHash
+     * @private
+     */
+    prepareFields(model, defaultHash) {
+      const set = (attribute, value) => {
+        if (attribute in defaultHash || model.has(attribute)) {
+          return;
+        }
+        defaultHash[attribute] = value;
+      };
+      model.getFieldList().forEach(field => {
+        const type = model.getFieldType(field);
+        if (!type) {
+          return;
+        }
+        if (model.getFieldParam(field, 'disabled') || model.getFieldParam(field, 'utility')) {
+          return;
+        }
+        if (type === 'enum') {
+          /** @type {string[]} */
+          const options = model.getFieldParam(field, 'options') || [];
+          let value = options[0] || '';
+          value = value !== '' ? value : null;
+          if (value) {
+            set(field, value);
+          }
+        }
+      });
+    }
+    static #_ = _staticBlock = () => [_init_metadata, _init_extra_metadata, _init_viewHelper, _init_extra_viewHelper, _init_config, _init_extra_config, _init_user, _init_extra_user, _init_preferences, _init_extra_preferences, _init_acl, _init_extra_acl] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_viewHelper.default), 0, "viewHelper"], [(0, _di.inject)(_settings.default), 0, "config"], [(0, _di.inject)(_user.default), 0, "user"], [(0, _di.inject)(_preferences.default), 0, "preferences"], [(0, _di.inject)(_aclManager.default), 0, "acl"]]).e;
   }
-  _exports.default = DefaultValueProvider;
+  _staticBlock();
+  var _default = _exports.default = DefaultsPopulator;
 });
 
 define("storage", ["exports"], function (_exports) {
@@ -3237,7 +7393,7 @@ define("storage", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -3422,7 +7578,7 @@ define("router", ["exports", "backbone"], function (_exports, _backbone) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -3858,7 +8014,9 @@ define("router", ["exports", "backbone"], function (_exports, _backbone) {
         return {};
       }
       if (string.indexOf('&') === -1 && string.indexOf('=') === -1) {
-        return string;
+        return {
+          [string]: true
+        };
       }
       const options = {};
       if (typeof string !== 'undefined') {
@@ -4060,1214 +8218,6 @@ define("router", ["exports", "backbone"], function (_exports, _backbone) {
   }
 });
 
-define("model", ["exports", "bullbone", "underscore", "helpers/model/default-value-provider"], function (_exports, _bullbone, _underscore, _defaultValueProvider) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _underscore = _interopRequireDefault(_underscore);
-  _defaultValueProvider = _interopRequireDefault(_defaultValueProvider);
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module model */
-
-  /**
-   * When attributes have changed.
-   *
-   * @event Model#change
-   * @param {Model} model A model.
-   * @param {Record.<string, *> & {action?: string|'ui'|'save'|'fetch'|'cancel-edit'}} o Options.
-   */
-
-  /**
-   * On sync with backend.
-   *
-   * @event Model#sync
-   * @param {Model} model A model.
-   * @param {Object} response Response from backend.
-   * @param {Record.<string, *> & {action?: 'fetch'|'save'|'destroy'}} o Options.
-   */
-
-  /**
-   * Definitions.
-   *
-   * @typedef module:model~defs
-   * @type {Object}
-   * @property {Object.<string, module:model~fieldDefs & Record>} [fields] Fields.
-   * @property {Object.<string, Object.<string, *>>} [links] Links.
-   */
-
-  /**
-   * Field definitions.
-   *
-   * @typedef module:model~fieldDefs
-   * @type {Object}
-   * @property {string} type A type.
-   */
-
-  /** @typedef {import('bullbone')} Bull */
-
-  /**
-   * A model.
-   *
-   * @mixes Bull.Events
-   */
-  class Model {
-    /**
-     * A root URL. An ID will be appended. Used for syncing with backend.
-     *
-     * @type {string|null}
-     */
-    urlRoot = null;
-
-    /**
-     * A URL. If not empty, then will be used for syncing instead of `urlRoot`.
-     *
-     * @type {string|null}
-     */
-    url = null;
-
-    /**
-     * A name.
-     *
-     * @type {string|null}
-     */
-    name = null;
-
-    /**
-     * An entity type.
-     *
-     * @type {string|null}
-     */
-    entityType = null;
-
-    /**
-     * A last request promise.
-     *
-     * @type {module:ajax.AjaxPromise|null}
-     */
-    lastSyncPromise = null;
-
-    /** @private */
-    _pending;
-    /** @private */
-    _changing;
-
-    /**
-     * @param {Object.<string, *>|Model} [attributes]
-     * @param {{
-     *     collection?: module:collection,
-     *     entityType?: string,
-     *     urlRoot?: string,
-     *     url?: string,
-     *     defs?: module:model~defs,
-     *     user?: module:models/user,
-     * }} [options]
-     */
-    constructor(attributes, options) {
-      options = options || {};
-
-      /**
-       * An ID attribute.
-       * @type {string}
-       */
-      this.idAttribute = 'id';
-
-      /**
-       * A record ID.
-       * @type {string|null}
-       */
-      this.id = null;
-
-      /**
-       * An instance ID.
-       * @type {string}
-       */
-      this.cid = _underscore.default.uniqueId('c');
-
-      /**
-       * Attribute values.
-       * @type {Object.<string, *>}
-       */
-      this.attributes = {};
-      if (options.collection) {
-        this.collection = options.collection;
-      }
-      this.set(attributes || {});
-
-      /**
-       * Definitions.
-       */
-      this.defs = options.defs || {};
-      if (!this.defs.fields) {
-        this.defs.fields = {};
-      }
-      if (options.entityType) {
-        this.entityType = options.entityType;
-        this.name = options.entityType;
-        this.urlRoot = options.entityType;
-      }
-      this.urlRoot = options.urlRoot || this.urlRoot;
-      this.url = options.url || this.url;
-
-      /** @private */
-      this.changed = {};
-      /** @private */
-      this._previousAttributes = null;
-    }
-
-    /**
-     * @protected
-     * @param {string} [method] HTTP method.
-     * @param {Model} model
-     * @param {Object.<string, *>} [options]
-     * @returns {module:ajax.AjaxPromise|Promise}
-     */
-    sync(method, model, options) {
-      const methodMap = {
-        'create': 'POST',
-        'update': 'PUT',
-        'patch': 'PUT',
-        'delete': 'DELETE',
-        'read': 'GET'
-      };
-      const httpMethod = methodMap[method];
-      if (!httpMethod) {
-        throw new Error(`Bad request method '${method}'.`);
-      }
-      options = options || {};
-      const url = this.composeSyncUrl();
-      if (!url) {
-        throw new Error(`No 'url'.`);
-      }
-      const data = model && ['create', 'update', 'patch'].includes(method) ? options.attributes || model.getClonedAttributes() : null;
-      const error = options.error;
-      options.error = (xhr, textStatus, errorThrown) => {
-        options.textStatus = textStatus;
-        options.errorThrown = errorThrown;
-        if (error) {
-          error.call(options.context, xhr, textStatus, errorThrown);
-        }
-      };
-      const stringData = data ? JSON.stringify(data) : null;
-      const ajaxPromise = !options.bypassRequest ? Espo.Ajax.request(url, httpMethod, stringData, options) : Promise.resolve();
-      options.xhr = ajaxPromise.xhr;
-      model.trigger('request', url, httpMethod, data, ajaxPromise, options);
-      return ajaxPromise;
-    }
-
-    /**
-     * Set an attribute value.
-     *
-     * @param {(string|Object)} attribute An attribute name or a {key => value} object.
-     * @param {*} [value] A value or options if the first argument is an object.
-     * @param {{silent?: boolean} & Object.<string, *>} [options] Options. `silent` won't trigger a `change` event.
-     * @returns {this}
-     * @fires Model#change Unless `{silent: true}`.
-     */
-    set(attribute, value, options) {
-      if (attribute == null) {
-        return this;
-      }
-      let attributes;
-      if (typeof attribute === 'object') {
-        return this.setMultiple(attribute, value);
-      }
-      attributes = {};
-      attributes[attribute] = value;
-      return this.setMultiple(attributes, options);
-    }
-
-    /**
-     * Set attributes values.
-     *
-     * @param {Object.<string, *>} attributes
-     * @param {{
-     *     silent?: boolean,
-     *     unset?: boolean,
-     *     sync?: boolean,
-     * } & Object.<string, *>} [options] Options. `silent` won't trigger a `change` event.
-     *     `sync` can be used to emulate syncing.
-     * @return {this}
-     * @fires Model#change Unless `{silent: true}`.
-     * @copyright Credits to Backbone.js.
-     */
-    setMultiple(attributes, options) {
-      if (this.idAttribute in attributes) {
-        this.id = attributes[this.idAttribute];
-      }
-      options = options || {};
-      if (options.ui && !options.action) {
-        options.action = 'ui';
-      }
-      if (!options.ui && options.action === 'ui') {
-        options.ui = true;
-      }
-      const changes = [];
-      const changing = this._changing;
-      this._changing = true;
-      if (!changing) {
-        this._previousAttributes = _underscore.default.clone(this.attributes);
-        this.changed = {};
-      }
-      const current = this.attributes;
-      const changed = this.changed;
-      const previous = this._previousAttributes;
-      for (const attribute in attributes) {
-        const value = attributes[attribute];
-        if (!_underscore.default.isEqual(current[attribute], value)) {
-          changes.push(attribute);
-        }
-        if (!_underscore.default.isEqual(previous[attribute], value)) {
-          changed[attribute] = value;
-        } else {
-          delete changed[attribute];
-        }
-        options.unset ? delete current[attribute] : current[attribute] = value;
-      }
-      if (!options.silent) {
-        if (changes.length) {
-          this._pending = options;
-        }
-        for (let i = 0; i < changes.length; i++) {
-          this.trigger('change:' + changes[i], this, current[changes[i]], options);
-        }
-      }
-      if (options.sync) {
-        if (this.collection) {
-          const modelSyncOptions = {
-            ...options,
-            action: 'set'
-          };
-          this.collection.trigger('model-sync', this, modelSyncOptions);
-        }
-      }
-      if (changing) {
-        return this;
-      }
-      if (!options.silent) {
-        // Changes can be recursively nested within `change` events.
-        while (this._pending) {
-          options = this._pending;
-          this._pending = false;
-          this.trigger('change', this, options);
-        }
-      }
-      this._pending = false;
-      this._changing = false;
-      return this;
-    }
-
-    /**
-     * Unset an attribute.
-     *
-     * @param {string} attribute An attribute.
-     * @param {{silent?: boolean} & Object.<string, *>} [options] Options.
-     * @return {Model}
-     */
-    unset(attribute, options) {
-      options = {
-        ...options,
-        unset: true
-      };
-      const attributes = {};
-      attributes[attribute] = null;
-      return this.setMultiple(attributes, options);
-    }
-
-    /**
-     * Get an attribute value.
-     *
-     * @param {string} attribute An attribute name.
-     * @returns {*}
-     */
-    get(attribute) {
-      if (attribute === this.idAttribute && this.id) {
-        return this.id;
-      }
-      return this.attributes[attribute];
-    }
-
-    /**
-     * Whether attribute is set.
-     *
-     * @param {string} attribute An attribute name.
-     * @returns {boolean}
-     */
-    has(attribute) {
-      const value = this.get(attribute);
-      return typeof value !== 'undefined';
-    }
-
-    /**
-     * Removes all attributes from the model.
-     * Fires a `change` event unless `silent` is passed as an option.
-     *
-     * @param {{silent?: boolean} & Object.<string, *>} [options] Options.
-     */
-    clear(options) {
-      const attributes = {};
-      for (const key in this.attributes) {
-        attributes[key] = void 0;
-      }
-      options = {
-        ...options,
-        unset: true
-      };
-      return this.set(attributes, options);
-    }
-
-    /**
-     * Whether is new.
-     *
-     * @returns {boolean}
-     */
-    isNew() {
-      return !this.id;
-    }
-
-    /**
-     * Whether an attribute changed. To be called only within a 'change' event handler.
-     *
-     * @param {string} [attribute]
-     * @return {boolean}
-     */
-    hasChanged(attribute) {
-      if (!attribute) {
-        return !_underscore.default.isEmpty(this.changed);
-      }
-      return _underscore.default.has(this.changed, attribute);
-    }
-
-    /**
-     * Get changed attribute values. To be called only within a 'change' event handler.
-     *
-     * @return {Object.<string, *>}
-     */
-    changedAttributes() {
-      return this.hasChanged() ? _underscore.default.clone(this.changed) : {};
-    }
-
-    /**
-     * Get previous attributes. To be called only within a 'change' event handler.
-     *
-     * @return {Object.<string, *>}
-     */
-    previousAttributes() {
-      return _underscore.default.clone(this._previousAttributes);
-    }
-
-    /**
-     * Get a previous attribute value. To be called only within a 'change' event handler.
-     *
-     * @param attribute
-     * @return {*}
-     */
-    previous(attribute) {
-      if (!this._previousAttributes) {
-        return null;
-      }
-      return this._previousAttributes[attribute];
-    }
-
-    /**
-     * Fetch values from the backend.
-     *
-     * @param {Object.<string, *>} [options] Options.
-     * @returns {Promise}
-     * @fires Model#sync
-     */
-    fetch(options) {
-      options = {
-        ...options
-      };
-      options.action = 'fetch';
-
-      // For bc.
-      const success = options.success;
-      options.success = response => {
-        const serverAttributes = this.prepareAttributes(response, options);
-        this.set(serverAttributes, options);
-        if (success) {
-          success.call(options.context, this, response, options);
-        }
-        this.trigger('sync', this, response, options);
-        if (this.collection) {
-          this.collection.trigger('model-sync', this, options);
-        }
-      };
-      this.lastSyncPromise = this.sync('read', this, options);
-      return this.lastSyncPromise;
-    }
-
-    /**
-     * Save values to the backend.
-     *
-     * @param {Object.<string, *>} [attributes] Attribute values.
-     * @param {{
-     *     patch?: boolean,
-     *     wait?: boolean,
-     * } & Object.<string, *>} [options] Options. Use `patch` to send a PATCH request. If `wait`, attributes will be
-     *     set only after the request is completed.
-     * @returns {Promise<Object.<string, *>> & module:ajax.AjaxPromise}
-     * @fires Model#sync
-     * @copyright Credits to Backbone.js.
-     */
-    save(attributes, options) {
-      options = {
-        ...options
-      };
-      if (attributes && !options.wait) {
-        this.setMultiple(attributes, options);
-      }
-      const success = options.success;
-      const setAttributes = this.attributes;
-      options.success = response => {
-        this.attributes = setAttributes;
-        let responseAttributes = this.prepareAttributes(response, options);
-        if (options.wait) {
-          responseAttributes = {
-            ...setAttributes,
-            ...responseAttributes
-          };
-        }
-        options.action = 'save';
-        if (responseAttributes) {
-          this.setMultiple(responseAttributes, options);
-        }
-        if (success) {
-          success.call(options.context, this, response, options);
-        }
-        this.trigger('sync', this, response, options);
-        if (this.collection) {
-          this.collection.trigger('model-sync', this, options);
-        }
-      };
-      const error = options.error;
-      options.error = response => {
-        if (error) {
-          error.call(options.context, this, response, options);
-        }
-        this.trigger('error', this, response, options);
-      };
-      if (attributes && options.wait) {
-        // Set temporary attributes to properly find new IDs.
-        this.attributes = {
-          ...setAttributes,
-          ...attributes
-        };
-      }
-      const method = this.isNew() ? 'create' : options.patch ? 'patch' : 'update';
-      if (method === 'patch') {
-        options.attributes = attributes;
-      }
-      const result = this.sync(method, this, options);
-      this.attributes = setAttributes;
-      return result;
-    }
-
-    /**
-     * Delete the record in the backend.
-     *
-     * @param {{wait?: boolean} & Object.<string, *>} [options] Options. If `wait`, unsubscribing and
-     *     removal from the collection will wait for a successful response.
-     * @returns {Promise}
-     * @fires Model#sync
-     * @copyright Credits to Backbone.js.
-     */
-    destroy() {
-      let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      options = {
-        ...options
-      };
-      const success = options.success;
-      const collection = this.collection;
-      const destroy = () => {
-        this.stopListening();
-        this.trigger('destroy', this, collection, options);
-      };
-      options.success = response => {
-        if (options.wait) {
-          destroy();
-        }
-        if (success) {
-          success.call(options.context, this, response, options);
-        }
-        if (!this.isNew()) {
-          const syncOptions = {
-            ...options
-          };
-          syncOptions.action = 'destroy';
-          this.trigger('sync', this, response, syncOptions);
-          if (collection) {
-            collection.trigger('model-sync', this, syncOptions);
-          }
-        }
-      };
-      if (this.isNew()) {
-        _underscore.default.defer(options.success);
-        if (!options.wait) {
-          destroy();
-        }
-        return Promise.resolve();
-      }
-      const error = options.error;
-      options.error = response => {
-        if (error) {
-          error.call(options.context, this, response, options);
-        }
-        this.trigger('error', this, response, options);
-      };
-      const result = this.sync('delete', this, options);
-      if (!options.wait) {
-        destroy();
-      }
-      return result;
-    }
-
-    /**
-     * Compose a URL for syncing.
-     *
-     * @protected
-     * @return {string}
-     */
-    composeSyncUrl() {
-      if (this.url) {
-        return this.url;
-      }
-      let urlRoot = this.urlRoot;
-      if (!urlRoot && this.collection) {
-        urlRoot = this.collection.urlRoot;
-      }
-      if (!urlRoot) {
-        throw new Error("No urlRoot.");
-      }
-      if (this.isNew()) {
-        return urlRoot;
-      }
-      const id = this.get(this.idAttribute);
-      return urlRoot.replace(/[^\/]$/, '$&/') + encodeURIComponent(id);
-    }
-
-    // noinspection JSUnusedLocalSymbols
-    /**
-     * Prepare attributes.
-     *
-     * @param {*} response A response from the backend.
-     * @param {Object.<string, *>} options Options.
-     * @return {*} Attributes.
-     * @internal
-     */
-    prepareAttributes(response, options) {
-      return response;
-    }
-
-    /**
-     * Clone.
-     *
-     * @return {Model}
-     */
-    clone() {
-      return new this.constructor(Espo.Utils.cloneDeep(this.attributes), {
-        entityType: this.entityType,
-        urlRoot: this.urlRoot,
-        url: this.url,
-        defs: this.defs
-      });
-    }
-
-    /**
-     * Set defs.
-     *
-     * @param {module:model~defs} defs
-     */
-    setDefs(defs) {
-      this.defs = defs || {};
-      if (!this.defs.fields) {
-        this.defs.fields = {};
-      }
-    }
-
-    /**
-     * Get cloned attribute values.
-     *
-     * @returns {Object.<string, *>}
-     */
-    getClonedAttributes() {
-      return Espo.Utils.cloneDeep(this.attributes);
-    }
-
-    /**
-     * Populate default values.
-     */
-    populateDefaults() {
-      let defaultHash = {};
-      const fieldDefs = this.defs.fields;
-      for (const field in fieldDefs) {
-        if (this.hasFieldParam(field, 'default')) {
-          try {
-            defaultHash[field] = this.parseDefaultValue(this.getFieldParam(field, 'default'));
-          } catch (e) {
-            console.error(e);
-          }
-        }
-        const defaultAttributes = this.getFieldParam(field, 'defaultAttributes');
-        if (defaultAttributes) {
-          for (const attribute in defaultAttributes) {
-            defaultHash[attribute] = defaultAttributes[attribute];
-          }
-        }
-      }
-      defaultHash = Espo.Utils.cloneDeep(defaultHash);
-      for (const attr in defaultHash) {
-        if (this.has(attr)) {
-          delete defaultHash[attr];
-        }
-      }
-      this.set(defaultHash, {
-        silent: true
-      });
-    }
-
-    /**
-     * @private
-     * @param {*} defaultValue
-     * @returns {*}
-     */
-    parseDefaultValue(defaultValue) {
-      if (typeof defaultValue === 'string' && defaultValue.indexOf('javascript:') === 0) {
-        const code = defaultValue.substring(11).trim();
-        const provider = new _defaultValueProvider.default();
-        defaultValue = provider.get(code);
-      }
-      return defaultValue;
-    }
-
-    /**
-     * Get a link multiple column value.
-     *
-     * @param {string} field
-     * @param {string} column
-     * @param {string} id
-     * @returns {*}
-     */
-    getLinkMultipleColumn(field, column, id) {
-      return ((this.get(field + 'Columns') || {})[id] || {})[column];
-    }
-
-    /**
-     * @typedef {Object} model:model~setRelateItem
-     * @property {string} link A link.
-     * @property {import('model').default} model A model.
-     */
-
-    /**
-     * Set relate data (when creating a related record).
-     *
-     * @param {model:model~setRelateItem | model:model~setRelateItem[]} data
-     */
-    setRelate(data) {
-      const setRelate = options => {
-        const link = options.link;
-        const model = /** @type {module:model} */options.model;
-        if (!link || !model) {
-          throw new Error('Bad related options');
-        }
-        const type = this.defs.links[link].type;
-        switch (type) {
-          case 'belongsToParent':
-            this.set(link + 'Id', model.id);
-            this.set(link + 'Type', model.entityType);
-            this.set(link + 'Name', model.get('name'));
-            break;
-          case 'belongsTo':
-            this.set(link + 'Id', model.id);
-            this.set(link + 'Name', model.get('name'));
-            break;
-          case 'hasMany':
-            const ids = [];
-            ids.push(model.id);
-            const names = {};
-            names[model.id] = model.get('name');
-            this.set(link + 'Ids', ids);
-            this.set(link + 'Names', names);
-            break;
-        }
-      };
-      if (Object.prototype.toString.call(data) === '[object Array]') {
-        data.forEach(options => {
-          setRelate(options);
-        });
-        return;
-      }
-      setRelate(data);
-    }
-
-    /**
-     * Get a field list.
-     *
-     * @return {string[]}
-     */
-    getFieldList() {
-      if (!this.defs || !this.defs.fields) {
-        return [];
-      }
-      return Object.keys(this.defs.fields);
-    }
-
-    /**
-     * Get a field type.
-     *
-     * @param {string} field
-     * @returns {string|null}
-     */
-    getFieldType(field) {
-      if (!this.defs || !this.defs.fields) {
-        return null;
-      }
-      if (field in this.defs.fields) {
-        return this.defs.fields[field].type || null;
-      }
-      return null;
-    }
-
-    /**
-     * Get a field param.
-     *
-     * @param {string} field
-     * @param {string} param
-     * @returns {*}
-     */
-    getFieldParam(field, param) {
-      if (!this.defs || !this.defs.fields) {
-        return null;
-      }
-      if (field in this.defs.fields) {
-        if (param in this.defs.fields[field]) {
-          return this.defs.fields[field][param];
-        }
-      }
-      return null;
-    }
-    hasFieldParam(field, param) {
-      if (!this.defs || !this.defs.fields) {
-        return false;
-      }
-      if (field in this.defs.fields) {
-        if (param in this.defs.fields[field]) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    /**
-     * Get a link type.
-     *
-     * @param {string} link
-     * @returns {string|null}
-     */
-    getLinkType(link) {
-      if (!this.defs || !this.defs.links) {
-        return null;
-      }
-      if (link in this.defs.links) {
-        return this.defs.links[link].type || null;
-      }
-      return null;
-    }
-
-    /**
-     * Get a link param.
-     *
-     * @param {string} link A link.
-     * @param {string} param A param.
-     * @returns {*}
-     */
-    getLinkParam(link, param) {
-      if (!this.defs || !this.defs.links) {
-        return null;
-      }
-      if (link in this.defs.links) {
-        if (param in this.defs.links[link]) {
-          return this.defs.links[link][param];
-        }
-      }
-      return null;
-    }
-
-    /**
-     * Is a field read-only.
-     *
-     * @param {string} field A field.
-     * @returns {bool}
-     */
-    isFieldReadOnly(field) {
-      return this.getFieldParam(field, 'readOnly') || false;
-    }
-
-    /**
-     * If a field required.
-     *
-     * @param {string} field A field.
-     * @returns {bool}
-     */
-    isRequired(field) {
-      return this.getFieldParam(field, 'required') || false;
-    }
-
-    /**
-     * Get IDs of a link-multiple field.
-     *
-     * @param {string} field A link-multiple field name.
-     * @returns {string[]}
-     */
-    getLinkMultipleIdList(field) {
-      return this.get(field + 'Ids') || [];
-    }
-
-    /**
-     * Get team IDs.
-     *
-     * @returns {string[]}
-     */
-    getTeamIdList() {
-      return this.get('teamsIds') || [];
-    }
-
-    /**
-     * Whether it has a field.
-     *
-     * @param {string} field A field.
-     * @returns {boolean}
-     */
-    hasField(field) {
-      return 'defs' in this && 'fields' in this.defs && field in this.defs.fields;
-    }
-
-    /**
-     * Has a link.
-     *
-     * @param {string} link A link.
-     * @returns {boolean}
-     */
-    hasLink(link) {
-      return 'defs' in this && 'links' in this.defs && link in this.defs.links;
-    }
-
-    /**
-     * @returns {boolean}
-     */
-    isEditable() {
-      return true;
-    }
-
-    /**
-     * @returns {boolean}
-     */
-    isRemovable() {
-      return true;
-    }
-
-    /**
-     * Get an entity type.
-     *
-     * @returns {string}
-     */
-    getEntityType() {
-      return this.name;
-    }
-
-    /**
-     * Abort the last fetch.
-     */
-    abortLastFetch() {
-      if (this.lastSyncPromise && this.lastSyncPromise.getReadyState() < 4) {
-        this.lastSyncPromise.abort();
-      }
-    }
-  }
-  Object.assign(Model.prototype, _bullbone.Events);
-  Model.extend = _bullbone.View.extend;
-  var _default = _exports.default = Model;
-});
-
-define("metadata", ["exports", "bullbone"], function (_exports, _bullbone) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module metadata */
-
-  /**
-   * Application metadata.
-   *
-   * @mixes Bull.Events
-   */
-  class Metadata {
-    /**
-     * Application metadata.
-     *
-     * @param {module:cache} [cache] A cache.
-     */
-    constructor(cache) {
-      /**
-       * @private
-       * @type {module:cache|null}
-       */
-      this.cache = cache || null;
-
-      /**
-       * @private
-       * @type {Object}
-       */
-      this.data = {};
-    }
-
-    /** @private */
-    url = 'Metadata';
-
-    /**
-     * Load from cache or the backend (if not yet cached).
-     *
-     * @param {Function|null} [callback] Deprecated. Use a promise.
-     * @param {boolean} [disableCache=false] Deprecated.
-     * @returns {Promise}
-     */
-    load(callback, disableCache) {
-      if (!disableCache) {
-        if (this.loadFromCache()) {
-          this.trigger('sync');
-          if (callback) {
-            callback();
-          }
-          return Promise.resolve();
-        }
-      }
-      return this.fetch().then(() => {
-        if (callback) {
-          callback();
-        }
-      });
-    }
-
-    /**
-     * Load from the server.
-     *
-     * @returns {Promise}
-     */
-    loadSkipCache() {
-      return this.load(null, true);
-    }
-
-    /**
-     * @private
-     * @returns {Promise}
-     */
-    fetch() {
-      return Espo.Ajax.getRequest(this.url).then(data => {
-        this.data = data;
-        this.storeToCache();
-        this.trigger('sync');
-      });
-    }
-
-    /**
-     * Get a value.
-     *
-     * @param {string[]|string} path A key path.
-     * @param {*} [defaultValue] A value to return if not set.
-     * @returns {*} Null if not set.
-     */
-    get(path, defaultValue) {
-      defaultValue = defaultValue || null;
-      let arr;
-      if (Array && Array.isArray && Array.isArray(path)) {
-        arr = path;
-      } else {
-        arr = path.split('.');
-      }
-      let pointer = this.data;
-      let result = defaultValue;
-      for (let i = 0; i < arr.length; i++) {
-        const key = arr[i];
-        if (pointer == null || !(key in pointer)) {
-          result = defaultValue;
-          break;
-        }
-        if (arr.length - 1 === i) {
-          result = pointer[key];
-        }
-        pointer = pointer[key];
-      }
-      return result;
-    }
-
-    /**
-     * @private
-     * @returns {boolean|null} True if success.
-     */
-    loadFromCache() {
-      if (this.cache) {
-        const cached = this.cache.get('app', 'metadata');
-        if (cached) {
-          this.data = cached;
-          return true;
-        }
-      }
-      return null;
-    }
-
-    /** @private */
-    storeToCache() {
-      if (this.cache) {
-        this.cache.set('app', 'metadata', this.data);
-      }
-    }
-
-    /**
-     * Clear cache.
-     */
-    clearCache() {
-      if (!this.cache) {
-        return;
-      }
-      this.cache.clear('app', 'metadata');
-    }
-
-    /**
-     * Get a scope list.
-     *
-     * @returns {string[]}
-     */
-    getScopeList() {
-      const scopes = this.get('scopes') || {};
-      const scopeList = [];
-      for (const scope in scopes) {
-        const d = scopes[scope];
-        if (d.disabled) {
-          continue;
-        }
-        scopeList.push(scope);
-      }
-      return scopeList;
-    }
-
-    /**
-     * Get an object-scope list. An object-scope represents a business entity.
-     *
-     * @returns {string[]}
-     */
-    getScopeObjectList() {
-      const scopes = this.get('scopes') || {};
-      const scopeList = [];
-      for (const scope in scopes) {
-        const d = scopes[scope];
-        if (d.disabled) {
-          continue;
-        }
-        if (!d.object) {
-          continue;
-        }
-        scopeList.push(scope);
-      }
-      return scopeList;
-    }
-
-    /**
-     * Get an entity-scope list. Scopes that represents entities.
-     *
-     * @returns {string[]}
-     */
-    getScopeEntityList() {
-      const scopes = this.get('scopes') || {};
-      const scopeList = [];
-      for (const scope in scopes) {
-        const d = scopes[scope];
-        if (d.disabled) {
-          continue;
-        }
-        if (!d.entity) {
-          continue;
-        }
-        scopeList.push(scope);
-      }
-      return scopeList;
-    }
-
-    /**
-     * Do not use.
-     *
-     * @internal
-     * @param {Record} data
-     */
-    setData(data) {
-      this.data = data;
-    }
-  }
-  Object.assign(Metadata.prototype, _bullbone.Events);
-  var _default = _exports.default = Metadata;
-});
-
 define("language", ["exports", "bullbone"], function (_exports, _bullbone) {
   "use strict";
 
@@ -5279,7 +8229,7 @@ define("language", ["exports", "bullbone"], function (_exports, _bullbone) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -5584,456 +8534,7 @@ define("language", ["exports", "bullbone"], function (_exports, _bullbone) {
   var _default = _exports.default = Language;
 });
 
-define("acl-manager", ["exports", "acl", "utils", "bullbone"], function (_exports, _acl, _utils, _bullbone) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _acl = _interopRequireDefault(_acl);
-  _utils = _interopRequireDefault(_utils);
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module acl-manager */
-
-  /**
-   * An action.
-   *
-   * @typedef {'create'|'read'|'edit'|'delete'|'stream'} module:acl-manager~action
-   */
-
-  /**
-   * An access checking class for a specific scope.
-   */
-  class AclManager {
-    /** @protected */
-    data = null;
-    fieldLevelList = ['yes', 'no'];
-
-    /**
-     * @param {module:models/user} user A user.
-     * @param {Object} implementationClassMap `acl` implementations.
-     * @param {boolean} aclAllowDeleteCreated Allow a user to delete records they created regardless a
-     *   role access level.
-     */
-    constructor(user, implementationClassMap, aclAllowDeleteCreated) {
-      this.setEmpty();
-
-      /** @protected */
-      this.user = user || null;
-      this.implementationClassMap = implementationClassMap || {};
-      this.aclAllowDeleteCreated = aclAllowDeleteCreated;
-    }
-
-    /**
-     * @protected
-     */
-    setEmpty() {
-      this.data = {
-        table: {},
-        fieldTable: {},
-        fieldTableQuickAccess: {}
-      };
-      this.implementationHash = {};
-      this.forbiddenFieldsCache = {};
-      this.implementationClassMap = {};
-      this.forbiddenAttributesCache = {};
-    }
-
-    /**
-     * Get an `acl` implementation.
-     *
-     * @protected
-     * @param {string} scope A scope.
-     * @returns {module:acl}
-     */
-    getImplementation(scope) {
-      if (!(scope in this.implementationHash)) {
-        let implementationClass = _acl.default;
-        if (scope in this.implementationClassMap) {
-          implementationClass = this.implementationClassMap[scope];
-        }
-        const forbiddenFieldList = this.getScopeForbiddenFieldList(scope);
-        const params = {
-          aclAllowDeleteCreated: this.aclAllowDeleteCreated,
-          teamsFieldIsForbidden: forbiddenFieldList.includes('teams'),
-          forbiddenFieldList: forbiddenFieldList
-        };
-        this.implementationHash[scope] = new implementationClass(this.getUser(), scope, params, this);
-      }
-      return this.implementationHash[scope];
-    }
-
-    /**
-     * @return {import('models/user').default}
-     * @protected
-     */
-    getUser() {
-      return this.user;
-    }
-
-    /**
-     * @internal
-     */
-    set(data) {
-      data = data || {};
-      this.data = data;
-      this.data.table = this.data.table || {};
-      this.data.fieldTable = this.data.fieldTable || {};
-      this.data.attributeTable = this.data.attributeTable || {};
-    }
-
-    /**
-     * @deprecated Use `getPermissionLevel`.
-     *
-     * @returns {string|null}
-     */
-    get(name) {
-      return this.data[name] || null;
-    }
-
-    /**
-     * Get a permission level.
-     *
-     * @param {string} permission A permission name.
-     * @returns {'yes'|'all'|'team'|'no'}
-     */
-    getPermissionLevel(permission) {
-      let permissionKey = permission;
-      if (permission.slice(-10) !== 'Permission') {
-        permissionKey = permission + 'Permission';
-      }
-      return this.data[permissionKey] || 'no';
-    }
-
-    /**
-     * Get access level to a scope action.
-     *
-     * @param {string} scope A scope.
-     * @param {module:acl-manager~action} action An action.
-     * @returns {'yes'|'all'|'team'|'own'|'no'|null}
-     */
-    getLevel(scope, action) {
-      if (!(scope in this.data.table)) {
-        return null;
-      }
-      const scopeItem = this.data.table[scope];
-      if (typeof scopeItem !== 'object' || !(action in scopeItem)) {
-        return null;
-      }
-      return scopeItem[action];
-    }
-
-    /**
-     * Clear access data.
-     *
-     * @internal
-     */
-    clear() {
-      this.setEmpty();
-    }
-
-    /**
-     * Check whether a scope has ACL.
-     *
-     * @param {string} scope A scope.
-     * @returns {boolean}
-     */
-    checkScopeHasAcl(scope) {
-      const data = (this.data.table || {})[scope];
-      if (typeof data === 'undefined') {
-        return false;
-      }
-      return true;
-    }
-
-    /**
-     * Check access to a scope.
-     *
-     * @param {string} scope A scope.
-     * @param {module:acl-manager~action|null} [action=null] An action.
-     * @param {boolean} [precise=false] Deprecated. Not used.
-     * @returns {boolean} True if access allowed.
-     */
-    checkScope(scope, action, precise) {
-      let data = (this.data.table || {})[scope];
-      if (typeof data === 'undefined') {
-        data = null;
-      }
-      return this.getImplementation(scope).checkScope(data, action, precise);
-    }
-
-    /**
-     * Check access to a model.
-     *
-     * @param {module:model} model A model.
-     * @param {module:acl-manager~action|null} [action=null] An action.
-     * @param {boolean} [precise=false] To return `null` if not enough data is set in a model.
-     *   E.g. the `teams` field is not yet loaded.
-     * @returns {boolean|null} True if access allowed, null if not enough data to determine.
-     */
-    checkModel(model, action, precise) {
-      const scope = model.entityType;
-
-      // todo move this to custom acl
-      if (action === 'edit') {
-        if (!model.isEditable()) {
-          return false;
-        }
-      }
-      if (action === 'delete') {
-        if (!model.isRemovable()) {
-          return false;
-        }
-      }
-      let data = (this.data.table || {})[scope];
-      if (typeof data === 'undefined') {
-        data = null;
-      }
-      const impl = this.getImplementation(scope);
-      if (action) {
-        const methodName = 'checkModel' + _utils.default.upperCaseFirst(action);
-        if (methodName in impl) {
-          return impl[methodName](model, data, precise);
-        }
-      }
-      return impl.checkModel(model, data, action, precise);
-    }
-
-    /**
-     * Check access to a scope or a model.
-     *
-     * @param {string|module:model} subject What to check. A scope or a model.
-     * @param {module:acl-manager~action|null} [action=null] An action.
-     * @param {boolean} [precise=false]  To return `null` if not enough data is set in a model.
-     *   E.g. the `teams` field is not yet loaded.
-     * @returns {boolean|null} True if access allowed, null if not enough data to determine.
-     */
-    check(subject, action, precise) {
-      if (typeof subject === 'string') {
-        return this.checkScope(subject, action, precise);
-      }
-      return this.checkModel(subject, action, precise);
-    }
-
-    /**
-     * Check if a user is owner to a model.
-     *
-     * @param {module:model} model A model.
-     * @returns {boolean|null} True if owner, null if not clear.
-     */
-    checkIsOwner(model) {
-      return this.getImplementation(model.entityType).checkIsOwner(model);
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    /**
-     * Check if a user in a team of a model.
-     *
-     * @param {module:model} model A model.
-     * @returns {boolean|null} True if in a team, null if not clear.
-     */
-    checkInTeam(model) {
-      return this.getImplementation(model.entityType).checkInTeam(model);
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    /**
-     * Check if a record is shared with the user.
-     *
-     * @param {module:model} model A model.
-     * @returns {boolean|null} True if shared, null if not clear.
-     */
-    checkIsShared(model) {
-      return this.getImplementation(model.entityType).checkIsShared(model);
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    /**
-     * Check an assignment permission to a user.
-     *
-     * @param {module:models/user} user A user.
-     * @returns {boolean} True if access allowed.
-     */
-    checkAssignmentPermission(user) {
-      return this.checkPermission('assignmentPermission', user);
-    }
-
-    /**
-     * Check a user permission to a user.
-     *
-     * @param {module:models/user} user A user.
-     * @returns {boolean} True if access allowed.
-     */
-    checkUserPermission(user) {
-      return this.checkPermission('userPermission', user);
-    }
-
-    /**
-     * Check a specific permission to a user.
-     *
-     * @param {string} permission A permission name.
-     * @param {module:models/user} user A user.
-     * @returns {boolean|null} True if access allowed. Null if not enough data loaded to know for sure.
-     */
-    checkPermission(permission, user) {
-      if (this.getUser().isAdmin()) {
-        return true;
-      }
-      const level = this.getPermissionLevel(permission);
-      if (level === 'no') {
-        if (user.id === this.getUser().id) {
-          return true;
-        }
-        return false;
-      }
-      if (level === 'team') {
-        if (!user.has('teamsIds')) {
-          return null;
-        }
-        let result = false;
-        const teamsIds = user.get('teamsIds') || [];
-        teamsIds.forEach(id => {
-          if ((this.getUser().get('teamsIds') || []).includes(id)) {
-            result = true;
-          }
-        });
-        return result;
-      }
-      if (level === 'all') {
-        return true;
-      }
-      if (level === 'yes') {
-        return true;
-      }
-      return false;
-    }
-
-    /**
-     * Get a list of forbidden fields for an entity type.
-     *
-     * @param {string} scope An entity type.
-     * @param {'read'|'edit'} [action='read'] An action.
-     * @param {'yes'|'no'} [thresholdLevel='no'] A threshold level.
-     * @returns {string[]} A forbidden field list.
-     */
-    getScopeForbiddenFieldList(scope, action, thresholdLevel) {
-      action = action || 'read';
-      thresholdLevel = thresholdLevel || 'no';
-      const key = scope + '_' + action + '_' + thresholdLevel;
-      if (key in this.forbiddenFieldsCache) {
-        return _utils.default.clone(this.forbiddenFieldsCache[key]);
-      }
-      const levelList = this.fieldLevelList.slice(this.fieldLevelList.indexOf(thresholdLevel));
-      const fieldTableQuickAccess = this.data.fieldTableQuickAccess || {};
-      const scopeData = fieldTableQuickAccess[scope] || {};
-      const fieldsData = scopeData.fields || {};
-      const actionData = fieldsData[action] || {};
-      const fieldList = [];
-      levelList.forEach(level => {
-        const list = actionData[level] || [];
-        list.forEach(field => {
-          if (fieldList.includes(field)) {
-            return;
-          }
-          fieldList.push(field);
-        });
-      });
-      this.forbiddenFieldsCache[key] = fieldList;
-      return _utils.default.clone(fieldList);
-    }
-
-    /**
-     * Get a list of forbidden attributes for an entity type.
-     *
-     * @param {string} scope An entity type.
-     * @param {'read'|'edit'} [action='read'] An action.
-     * @param {'yes'|'no'} [thresholdLevel='no'] A threshold level.
-     * @returns {string[]} A forbidden attribute list.
-     */
-    getScopeForbiddenAttributeList(scope, action, thresholdLevel) {
-      action = action || 'read';
-      thresholdLevel = thresholdLevel || 'no';
-      const key = scope + '_' + action + '_' + thresholdLevel;
-      if (key in this.forbiddenAttributesCache) {
-        return _utils.default.clone(this.forbiddenAttributesCache[key]);
-      }
-      const levelList = this.fieldLevelList.slice(this.fieldLevelList.indexOf(thresholdLevel));
-      const fieldTableQuickAccess = this.data.fieldTableQuickAccess || {};
-      const scopeData = fieldTableQuickAccess[scope] || {};
-      const attributesData = scopeData.attributes || {};
-      const actionData = attributesData[action] || {};
-      const attributeList = [];
-      levelList.forEach(level => {
-        const list = actionData[level] || [];
-        list.forEach(attribute => {
-          if (attributeList.includes(attribute)) {
-            return;
-          }
-          attributeList.push(attribute);
-        });
-      });
-      this.forbiddenAttributesCache[key] = attributeList;
-      return _utils.default.clone(attributeList);
-    }
-
-    /**
-     * Check an assignment permission to a team.
-     *
-     * @param {string} teamId A team ID.
-     * @returns {boolean} True if access allowed.
-     */
-    checkTeamAssignmentPermission(teamId) {
-      if (this.getPermissionLevel('assignmentPermission') === 'all') {
-        return true;
-      }
-      return this.getUser().getLinkMultipleIdList('teams').includes(teamId);
-    }
-
-    /**
-     * Check access to a field.
-     * @param {string} scope An entity type.
-     * @param {string} field A field.
-     * @param {'read'|'edit'} [action='read'] An action.
-     * @returns {boolean} True if access allowed.
-     */
-    checkField(scope, field, action) {
-      return !this.getScopeForbiddenFieldList(scope, action).includes(field);
-    }
-  }
-  AclManager.extend = _bullbone.View.extend;
-  var _default = _exports.default = AclManager;
-});
-
-define("views/modals/edit", ["exports", "views/modal", "backbone"], function (_exports, _modal, _backbone) {
+define("views/modals/edit", ["exports", "views/modal", "backbone", "helpers/model/defaults-populator"], function (_exports, _modal, _backbone, _defaultsPopulator) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -6042,12 +8543,13 @@ define("views/modals/edit", ["exports", "views/modal", "backbone"], function (_e
   _exports.default = void 0;
   _modal = _interopRequireDefault(_modal);
   _backbone = _interopRequireDefault(_backbone);
+  _defaultsPopulator = _interopRequireDefault(_defaultsPopulator);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -6136,22 +8638,26 @@ define("views/modals/edit", ["exports", "views/modal", "backbone"], function (_e
         this.actionSaveAndContinueEditing();
       },
       /** @this EditModalView */
-      'Escape': function (e) {
+      'Escape': async function (e) {
         if (this.saveDisabled) {
           return;
         }
         e.stopPropagation();
         e.preventDefault();
+
+        // Refactor the following code so that it can be easily re-used in other edit modals.
+
         const focusedFieldView = this.getRecordView().getFocusedFieldView();
         if (focusedFieldView) {
           this.model.set(focusedFieldView.fetch(), {
             skipReRender: true
           });
         }
-        if (this.getRecordView().isChanged) {
-          this.confirm(this.translate('confirmLeaveOutMessage', 'messages')).then(() => this.actionClose());
+        if (!this.getRecordView().isChanged) {
+          this.actionClose();
           return;
         }
+        await this.confirm(this.translate('confirmLeaveOutMessage', 'messages'));
         this.actionClose();
       },
       /** @this EditModalView */
@@ -6227,7 +8733,7 @@ define("views/modals/edit", ["exports", "views/modal", "backbone"], function (_e
       }
       this.sourceModel = this.model;
       this.waitForView('edit');
-      this.getModelFactory().create(this.entityType, model => {
+      this.getModelFactory().create(this.entityType, async model => {
         if (this.id) {
           if (this.sourceModel) {
             model = this.model = this.sourceModel.clone();
@@ -6235,21 +8741,23 @@ define("views/modals/edit", ["exports", "views/modal", "backbone"], function (_e
             this.model = model;
             model.id = this.id;
           }
-          model.fetch().then(() => {
-            if (!this.headerText) {
-              this.headerHtml = this.composeHeaderHtml();
-            }
-            this.createRecordView(model);
-          });
+          await this.setupLate();
+          await model.fetch();
+          if (!this.headerText) {
+            this.headerHtml = this.composeHeaderHtml();
+          }
+          this.createRecordView(model);
           return;
         }
         this.model = model;
+        await new _defaultsPopulator.default().populate(model);
         if (this.options.relate) {
           model.setRelate(this.options.relate);
         }
         if (this.options.attributes) {
           model.set(this.options.attributes);
         }
+        await this.setupLate();
         if (!this.headerText) {
           this.headerHtml = this.composeHeaderHtml();
         }
@@ -6261,6 +8769,14 @@ define("views/modals/edit", ["exports", "views/modal", "backbone"], function (_e
         }
       });
     }
+
+    /**
+     * Additional setup with the model ready.
+     *
+     * @protected
+     * @since 9.3.0
+     */
+    async setupLate() {}
 
     /**
      * @param {module:model} model
@@ -6340,37 +8856,48 @@ define("views/modals/edit", ["exports", "views/modal", "backbone"], function (_e
      * @protected
      * @param {{bypassClose?: boolean}} [data]
      */
-    actionSave() {
+    async actionSave() {
       let data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       const editView = this.getRecordView();
       const model = editView.model;
-      const $buttons = this.dialog.$el.find('.modal-footer button');
-      $buttons.addClass('disabled').attr('disabled', 'disabled');
-      editView.save().then(() => {
-        const wasNew = !this.id;
-        if (wasNew) {
-          this.id = model.id;
-        }
-        this.trigger('after:save', model, {
-          bypassClose: data.bypassClose
-        });
-        if (!data.bypassClose) {
-          this.dialog.close();
-          if (wasNew) {
-            const url = `#${this.scope}/view/${model.id}`;
-            const name = model.attributes[this.nameAttribute] || this.model.id;
-            const msg = this.translate('Created') + '\n' + `[${name}](${url})`;
-            Espo.Ui.notify(msg, 'success', 4000, {
-              suppress: true
-            });
-          }
+      const disabledButtons = [];
+      this.buttonList.forEach(it => {
+        if (!it.name || it.disabled) {
           return;
         }
-        $(this.containerElement).find('.modal-header .modal-title-text').html(this.composeHeaderHtml());
-        $buttons.removeClass('disabled').removeAttr('disabled');
-      }).catch(() => {
-        $buttons.removeClass('disabled').removeAttr('disabled');
+        this.disableButton(it.name);
+        disabledButtons.push(it.name);
       });
+      try {
+        await editView.save();
+      } catch (e) {
+        disabledButtons.forEach(it => this.enableButton(it));
+        return;
+      }
+      const wasNew = !this.id;
+      if (wasNew) {
+        this.id = model.id;
+      }
+      this.trigger('after:save', model, {
+        bypassClose: data.bypassClose
+      });
+      if (!data.bypassClose) {
+        this.dialog.close();
+        if (wasNew) {
+          const url = `#${this.scope}/view/${model.id}`;
+          let name = model.attributes[this.nameAttribute];
+          if (name === undefined) {
+            name = this.translate(this.scope, 'scopeNames');
+          }
+          const msg = this.translate('Created') + '\n' + `[${name}](${url})`;
+          Espo.Ui.notify(msg, 'success', 4000, {
+            suppress: true
+          });
+        }
+        return;
+      }
+      $(this.containerElement).find('.modal-header .modal-title-text').html(this.composeHeaderHtml());
+      disabledButtons.forEach(it => this.enableButton(it));
     }
     actionSaveAndContinueEditing() {
       this.actionSave({
@@ -6450,856 +8977,6 @@ define("views/modals/edit", ["exports", "views/modal", "backbone"], function (_e
   var _default = _exports.default = EditModalView;
 });
 
-define("view-helper", ["exports", "marked", "dompurify", "handlebars"], function (_exports, _marked, _dompurify, _handlebars) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _dompurify = _interopRequireDefault(_dompurify);
-  _handlebars = _interopRequireDefault(_handlebars);
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module view-helper */
-
-  /**
-   * A view helper.
-   */
-  class ViewHelper {
-    constructor() {
-      this._registerHandlebarsHelpers();
-
-      /** @private */
-      this.mdBeforeList = [
-      /*{
-          regex: /```\n?([\s\S]*?)```/g,
-          value: (s, string) => {
-              return '```\n' + string.replace(/\\\>/g, '>') + '```';
-          },
-      },*/
-      {
-        // Also covers triple-backtick blocks.
-        regex: /`([\s\S]*?)`/g,
-        value: (s, string) => {
-          // noinspection RegExpRedundantEscape
-          return '`' + string.replace(/\\\</g, '<') + '`';
-        }
-      }];
-      _marked.marked.setOptions({
-        breaks: true,
-        tables: false,
-        headerIds: false
-      });
-
-      // @todo Review after updating the marked library.
-      _marked.marked.use({
-        tokenizer: {
-          tag(src) {
-            const cap = _marked.Lexer.rules.inline.tag.exec(src);
-            if (!cap) {
-              return;
-            }
-            return {
-              type: 'text',
-              raw: cap[0],
-              inLink: this.lexer.state.inLink,
-              inRawBlock: this.lexer.state.inRawBlock,
-              text: _handlebars.default.Utils.escapeExpression(cap[0])
-            };
-          },
-          html(src) {
-            const cap = _marked.Lexer.rules.block.html.exec(src);
-            if (!cap) {
-              return;
-            }
-            const token = {
-              type: 'paragraph',
-              raw: cap[0],
-              pre: cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style',
-              text: _handlebars.default.Utils.escapeExpression(cap[0])
-            };
-            token.tokens = [];
-            this.lexer.inline(token.text, token.tokens);
-            return token;
-          }
-        }
-      });
-      _dompurify.default.addHook('beforeSanitizeAttributes', function (node) {
-        if (node instanceof HTMLAnchorElement) {
-          if (node.getAttribute('target')) {
-            node.targetBlank = true;
-          } else {
-            node.targetBlank = false;
-          }
-        }
-        if (node instanceof HTMLOListElement && node.start && node.start > 99) {
-          node.removeAttribute('start');
-        }
-        if (node instanceof HTMLFormElement) {
-          if (node.action) {
-            node.removeAttribute('action');
-          }
-          if (node.hasAttribute('method')) {
-            node.removeAttribute('method');
-          }
-        }
-        if (node instanceof HTMLButtonElement) {
-          if (node.type === 'submit') {
-            node.type = 'button';
-          }
-        }
-      });
-      _dompurify.default.addHook('afterSanitizeAttributes', function (node) {
-        if (node instanceof HTMLAnchorElement) {
-          const href = node.getAttribute('href');
-          if (href && !href.startsWith('#')) {
-            node.setAttribute('rel', 'noopener noreferrer');
-          }
-          if (node.targetBlank) {
-            node.setAttribute('target', '_blank');
-            node.setAttribute('rel', 'noopener noreferrer');
-          }
-        }
-      });
-      _dompurify.default.addHook('uponSanitizeAttribute', (node, data) => {
-        if (data.attrName === 'style') {
-          const style = data.attrValue.split(';').map(s => s.trim()).filter(rule => {
-            const [property, value] = rule.split(':').map(s => s.trim().toLowerCase());
-            if (property === 'position' && ['absolute', 'fixed', 'sticky'].includes(value)) {
-              return false;
-            }
-            return true;
-          });
-          data.attrValue = style.join('; ');
-        }
-      });
-    }
-
-    /**
-     * A layout manager.
-     *
-     * @type {module:layout-manager}
-     */
-    layoutManager = null;
-
-    /**
-     * A config.
-     *
-     * @type {module:models/settings}
-     */
-    settings = null;
-
-    /**
-     * A config.
-     *
-     * @type {module:models/settings}
-     */
-    config = null;
-
-    /**
-     * A current user.
-     *
-     * @type {module:models/user}
-     */
-    user = null;
-
-    /**
-     * A preferences.
-     *
-     * @type {module:models/preferences}
-     */
-    preferences = null;
-
-    /**
-     * An ACL manager.
-     *
-     * @type {module:acl-manager}
-     */
-    acl = null;
-
-    /**
-     * A model factory.
-     *
-     * @type {module:model-factory}
-     */
-    modelFactory = null;
-
-    /**
-     * A collection factory.
-     *
-     * @type {module:collection-factory}
-     */
-    collectionFactory = null;
-
-    /**
-     * A router.
-     *
-     * @type {module:router}
-     */
-    router = null;
-
-    /**
-     * A storage.
-     *
-     * @type {module:storage}
-     */
-    storage = null;
-
-    /**
-     * A session storage.
-     *
-     * @type {module:session-storage}
-     */
-    sessionStorage = null;
-
-    /**
-     * A date-time util.
-     *
-     * @type {module:date-time}
-     */
-    dateTime = null;
-
-    /**
-     * A language.
-     *
-     * @type {module:language}
-     */
-    language = null;
-
-    /**
-     * A metadata.
-     *
-     * @type {module:metadata}
-     */
-    metadata = null;
-
-    /**
-     * A field-manager util.
-     *
-     * @type {module:field-manager}
-     */
-    fieldManager = null;
-
-    /**
-     * A cache.
-     *
-     * @type {module:cache}
-     */
-    cache = null;
-
-    /**
-     * A theme manager.
-     *
-     * @type {module:theme-manager}
-     */
-    themeManager = null;
-
-    /**
-     * A web-socket manager. Null if not enabled.
-     *
-     * @type {module:web-socket-manager|null}
-     */
-    webSocketManager = null;
-
-    /**
-     * A number util.
-     *
-     * @type {module:num-util}
-     */
-    numberUtil = null;
-
-    /**
-     * A page-title util.
-     *
-     * @type {module:page-title}
-     */
-    pageTitle = null;
-
-    /**
-     * A broadcast channel.
-     *
-     * @type {?module:broadcast-channel}
-     */
-    broadcastChannel = null;
-
-    /**
-     * A base path.
-     *
-     * @type {string}
-     */
-    basePath = '';
-
-    /**
-     * Application parameters.
-     *
-     * @type {import('app-params').default|null}
-     */
-    appParams = null;
-
-    /**
-     * @private
-     */
-    _registerHandlebarsHelpers() {
-      _handlebars.default.registerHelper('img', img => {
-        return new _handlebars.default.SafeString(`<img src="img/${img}" alt="img">`);
-      });
-      _handlebars.default.registerHelper('prop', (object, name) => {
-        if (object === undefined) {
-          console.warn(`Undefined value passed to 'prop' helper.`);
-          return undefined;
-        }
-        if (name in object) {
-          return object[name];
-        }
-        return undefined;
-      });
-      _handlebars.default.registerHelper('var', (name, context, options) => {
-        if (typeof context === 'undefined') {
-          return null;
-        }
-        let contents = context[name];
-        if (options.hash.trim) {
-          contents = contents.trim();
-        }
-        return new _handlebars.default.SafeString(contents);
-      });
-      _handlebars.default.registerHelper('concat', function (left, right) {
-        return left + right;
-      });
-      _handlebars.default.registerHelper('ifEqual', function (left, right, options) {
-        // noinspection EqualityComparisonWithCoercionJS
-        if (left == right) {
-          return options.fn(this);
-        }
-        return options.inverse(this);
-      });
-      _handlebars.default.registerHelper('ifNotEqual', function (left, right, options) {
-        // noinspection EqualityComparisonWithCoercionJS
-        if (left != right) {
-          return options.fn(this);
-        }
-        return options.inverse(this);
-      });
-      _handlebars.default.registerHelper('ifPropEquals', function (object, property, value, options) {
-        // noinspection EqualityComparisonWithCoercionJS
-        if (object[property] == value) {
-          return options.fn(this);
-        }
-        return options.inverse(this);
-      });
-      _handlebars.default.registerHelper('ifAttrEquals', function (model, attr, value, options) {
-        // noinspection EqualityComparisonWithCoercionJS
-        if (model.get(attr) == value) {
-          return options.fn(this);
-        }
-        return options.inverse(this);
-      });
-      _handlebars.default.registerHelper('ifAttrNotEmpty', function (model, attr, options) {
-        const value = model.get(attr);
-        if (value !== null && typeof value !== 'undefined') {
-          return options.fn(this);
-        }
-        return options.inverse(this);
-      });
-      _handlebars.default.registerHelper('get', (model, name) => model.get(name));
-      _handlebars.default.registerHelper('length', arr => arr.length);
-      _handlebars.default.registerHelper('translate', (name, options) => {
-        const scope = options.hash.scope || null;
-        const category = options.hash.category || null;
-        if (name === 'null') {
-          return '';
-        }
-        return this.language.translate(name, category, scope);
-      });
-      _handlebars.default.registerHelper('dropdownItem', (name, options) => {
-        const scope = options.hash.scope || null;
-        const label = options.hash.label;
-        const labelTranslation = options.hash.labelTranslation;
-        const data = options.hash.data;
-        const hidden = options.hash.hidden;
-        const disabled = options.hash.disabled;
-        const title = options.hash.title;
-        const link = options.hash.link;
-        const action = options.hash.action || name;
-        const iconHtml = options.hash.iconHtml;
-        const iconClass = options.hash.iconClass;
-        let html = options.hash.html || options.hash.text || (labelTranslation ? this.language.translatePath(labelTranslation) : this.language.translate(label, 'labels', scope));
-        if (!options.hash.html) {
-          html = this.escapeString(html);
-        }
-        if (iconHtml) {
-          html = iconHtml + ' ' + html;
-        } else if (iconClass) {
-          const iconHtml = $('<span>').addClass(iconClass).get(0).outerHTML;
-          html = iconHtml + ' ' + html;
-        }
-        const $li = $('<li>').addClass(hidden ? 'hidden' : '').addClass(disabled ? 'disabled' : '');
-        const $a = $('<a>').attr('role', 'button').attr('tabindex', '0').attr('data-name', name).addClass(options.hash.className || '').addClass('action').html(html);
-        if (action) {
-          $a.attr('data-action', action);
-        }
-        $li.append($a);
-        link ? $a.attr('href', link) : $a.attr('role', 'button');
-        if (data) {
-          for (const key in data) {
-            $a.attr('data-' + Espo.Utils.camelCaseToHyphen(key), data[key]);
-          }
-        }
-        if (disabled) {
-          $li.attr('disabled', 'disabled');
-        }
-        if (title) {
-          $a.attr('title', title);
-        }
-        return new _handlebars.default.SafeString($li.get(0).outerHTML);
-      });
-      _handlebars.default.registerHelper('button', (name, options) => {
-        const style = options.hash.style || 'default';
-        const scope = options.hash.scope || null;
-        const label = options.hash.label || name;
-        const labelTranslation = options.hash.labelTranslation;
-        const link = options.hash.link;
-        const iconHtml = options.hash.iconHtml;
-        const iconClass = options.hash.iconClass;
-        let html = options.hash.html || options.hash.text || (labelTranslation ? this.language.translatePath(labelTranslation) : this.language.translate(label, 'labels', scope));
-        if (!options.hash.html) {
-          html = this.escapeString(html);
-        }
-        if (iconHtml) {
-          html = iconHtml + ' ' + '<span>' + html + '</span>';
-        } else if (iconClass) {
-          const iconHtml = $('<span>').addClass(iconClass).get(0).outerHTML;
-          html = iconHtml + ' ' + '<span>' + html + '</span>';
-        }
-        const tag = link ? '<a>' : '<button>';
-        const $button = $(tag).addClass('btn action').addClass(options.hash.className || '').addClass(options.hash.hidden ? 'hidden' : '').addClass(options.hash.disabled ? 'disabled' : '').attr('data-action', name).attr('data-name', name).addClass('btn-' + style).html(html);
-        link ? $button.href(link) : $button.attr('type', 'button');
-        if (options.hash.disabled) {
-          $button.attr('disabled', 'disabled');
-        }
-        if (options.hash.title) {
-          $button.attr('title', options.hash.title);
-        }
-        return new _handlebars.default.SafeString($button.get(0).outerHTML);
-      });
-      _handlebars.default.registerHelper('hyphen', string => {
-        return Espo.Utils.convert(string, 'c-h');
-      });
-      _handlebars.default.registerHelper('toDom', string => {
-        return Espo.Utils.toDom(string);
-      });
-
-      // noinspection SpellCheckingInspection
-      _handlebars.default.registerHelper('breaklines', text => {
-        text = _handlebars.default.Utils.escapeExpression(text || '');
-        text = text.replace(/(\r\n|\n|\r)/gm, '<br>');
-        return new _handlebars.default.SafeString(text);
-      });
-      _handlebars.default.registerHelper('complexText', (text, options) => {
-        if (typeof text !== 'string' && !(text instanceof String)) {
-          return '';
-        }
-        return this.transformMarkdownText(text, options.hash);
-      });
-      _handlebars.default.registerHelper('translateOption', (name, options) => {
-        const scope = options.hash.scope || null;
-        const field = options.hash.field || null;
-        if (!field) {
-          return '';
-        }
-        let translationHash = options.hash.translatedOptions || null;
-        if (translationHash === null) {
-          translationHash = this.language.translate(/** @type {string} */field, 'options', scope) || {};
-          if (typeof translationHash !== 'object') {
-            translationHash = {};
-          }
-        }
-        if (name === null) {
-          name = '';
-        }
-        return translationHash[name] || name;
-      });
-      _handlebars.default.registerHelper('options', (/** any[] */list, value, options) => {
-        if (typeof value === 'undefined') {
-          value = false;
-        }
-        list = list || [];
-        let html = '';
-        const multiple = Object.prototype.toString.call(value) === '[object Array]';
-        const checkOption = name => {
-          if (multiple) {
-            return value.indexOf(name) !== -1;
-          }
-          return value === name || !value && !name && name !== 0;
-        };
-        options.hash = /** @type {Record} */options.hash || {};
-        const scope = options.hash.scope || false;
-        const category = options.hash.category || false;
-        const field = options.hash.field || false;
-        const styleMap = options.hash.styleMap || {};
-        if (!multiple && options.hash.includeMissingOption && (value || value === '')) {
-          if (!list.includes(value)) {
-            list = Espo.Utils.clone(list);
-            list.push(value);
-          }
-        }
-        let translationHash = options.hash.translationHash || options.hash.translatedOptions || null;
-        if (translationHash === null) {
-          translationHash = {};
-          if (!category && field) {
-            translationHash = this.language.translate(/** @type {string} */field, 'options', /** @type {string} */scope) || {};
-            if (typeof translationHash !== 'object') {
-              translationHash = {};
-            }
-          }
-        }
-        const translate = name => {
-          if (!category) {
-            return translationHash[name] || name;
-          }
-          return this.language.translate(name, category, /** @type {string} */scope);
-        };
-        for (const key in list) {
-          const value = list[key];
-          const label = translate(value);
-          const $option = $('<option>').attr('value', value).addClass(styleMap[value] ? 'text-' + styleMap[value] : '').text(label);
-          if (checkOption(list[key])) {
-            $option.attr('selected', 'selected');
-          }
-          html += $option.get(0).outerHTML;
-        }
-        return new _handlebars.default.SafeString(html);
-      });
-      _handlebars.default.registerHelper('basePath', () => {
-        return this.basePath || '';
-      });
-    }
-
-    /**
-     * Get an application parameter.
-     *
-     * @param {string} name
-     * @returns {*}
-     */
-    getAppParam(name) {
-      if (!this.appParams) {
-        return undefined;
-      }
-      return this.appParams.get(name);
-    }
-
-    /**
-     * Escape a string.
-     *
-     * @param {string} text A string.
-     * @returns {string}
-     */
-    escapeString(text) {
-      return _handlebars.default.Utils.escapeExpression(text);
-    }
-
-    /**
-     * Get a user avatar HTML.
-     *
-     * @param {string} id A user ID.
-     * @param {'small'|'medium'|'large'} [size='small'] A size.
-     * @param {int} [width=16]
-     * @param {string} [additionalClassName]  An additional class-name.
-     * @returns {string}
-     */
-    getAvatarHtml(id, size, width, additionalClassName) {
-      if (this.config.get('avatarsDisabled')) {
-        return '';
-      }
-      const t = this.cache ? this.cache.get('app', 'timestamp') : this.settings.get('cacheTimestamp');
-      const basePath = this.basePath || '';
-      size = size || 'small';
-      width = width || 16;
-      let className = 'avatar';
-      if (additionalClassName) {
-        className += ' ' + additionalClassName;
-      }
-
-      // noinspection RequiredAttributes,HtmlRequiredAltAttribute
-      return $(`<img>`).attr('src', `${basePath}?entryPoint=avatar&size=${size}&id=${id}&t=${t}`).attr('alt', 'avatar').addClass(className).attr('data-width', width.toString()).css('width', `var(--${width.toString()}px)`).attr('draggable', 'false').get(0).outerHTML;
-    }
-
-    /**
-     * A Markdown text to HTML (one-line).
-     *
-     * @param {string} text A text.
-     * @returns {Handlebars.SafeString} HTML.
-     */
-    transformMarkdownInlineText(text) {
-      return this.transformMarkdownText(text, {
-        inline: true
-      });
-    }
-
-    /**
-     * A Markdown text to HTML.
-     *
-     * @param {string} text A text.
-     * @param {{inline?: boolean, linksInNewTab?: boolean}} [options] Options.
-     * @returns {Handlebars.SafeString} HTML.
-     */
-    transformMarkdownText(text, options) {
-      text = text || '';
-      this.mdBeforeList.forEach(item => {
-        text = text.replace(item.regex, item.value);
-      });
-      options = options || {};
-      text = options.inline ? _marked.marked.parseInline(text) : _marked.marked.parse(text);
-      text = _dompurify.default.sanitize(text, {}).toString();
-      if (options.linksInNewTab) {
-        text = text.replace(/<a href=/gm, '<a target="_blank" rel="noopener noreferrer" href=');
-      }
-      text = text.replace(/<a href="mailto:([^"]*)"/gm, '<a role="button" class="selectable" data-email-address="$1" data-action="mailTo"');
-      return new _handlebars.default.SafeString(text);
-    }
-
-    /**
-     * Get a color-icon HTML for a scope.
-     *
-     * @param {string} scope A scope.
-     * @param {boolean} [noWhiteSpace=false] No white space.
-     * @param {string} [additionalClassName] An additional class-name.
-     * @returns {string}
-     */
-    getScopeColorIconHtml(scope, noWhiteSpace, additionalClassName) {
-      if (this.config.get('scopeColorsDisabled') || this.preferences.get('scopeColorsDisabled')) {
-        return '';
-      }
-      const color = this.metadata.get(['clientDefs', scope, 'color']);
-      let html = '';
-      if (color) {
-        const $span = $('<span class="color-icon fas fa-square">');
-        $span.css('color', color);
-        if (additionalClassName) {
-          $span.addClass(additionalClassName);
-        }
-        html = $span.get(0).outerHTML;
-      }
-      if (!noWhiteSpace) {
-        if (html) {
-          html += `<span style="user-select: none;">&nbsp;</span>`;
-        }
-      }
-      return html;
-    }
-
-    /**
-     * Sanitize HTML.
-     *
-     * @param {string} text HTML.
-     * @param {Object} [options] Options.
-     * @returns {string}
-     */
-    sanitizeHtml(text, options) {
-      return _dompurify.default.sanitize(text, options);
-    }
-
-    /**
-     * Moderately sanitize HTML.
-     *
-     * @param {string} value HTML.
-     * @returns {string}
-     */
-    moderateSanitizeHtml(value) {
-      value = value || '';
-      value = value.replace(/<\/?(base)[^><]*>/gi, '');
-      value = value.replace(/<\/?(object)[^><]*>/gi, '');
-      value = value.replace(/<\/?(embed)[^><]*>/gi, '');
-      value = value.replace(/<\/?(applet)[^><]*>/gi, '');
-      value = value.replace(/<\/?(iframe)[^><]*>/gi, '');
-      value = value.replace(/<\/?(script)[^><]*>/gi, '');
-      value = value.replace(/<[^><]*([^a-z]on[a-z]+)=[^><]*>/gi, function (match) {
-        return match.replace(/[^a-z]on[a-z]+=/gi, ' data-handler-stripped=');
-      });
-      value = this.stripEventHandlersInHtml(value);
-      value = value.replace(/href=" *javascript:(.*?)"/gi, () => {
-        return 'removed=""';
-      });
-      value = value.replace(/href=' *javascript:(.*?)'/gi, () => {
-        return 'removed=""';
-      });
-      value = value.replace(/src=" *javascript:(.*?)"/gi, () => {
-        return 'removed=""';
-      });
-      value = value.replace(/src=' *javascript:(.*?)'/gi, () => {
-        return 'removed=""';
-      });
-      return value;
-    }
-
-    /**
-     * Strip event handlers in HTML.
-     *
-     * @param {string} html HTML.
-     * @returns {string}
-     */
-    stripEventHandlersInHtml(html) {
-      let j; // @todo Revise.
-
-      function stripHTML() {
-        html = html.slice(0, strip) + html.slice(j);
-        j = strip;
-        strip = false;
-      }
-      function isValidTagChar(str) {
-        return str.match(/[a-z?\\\/!]/i);
-      }
-      let strip = false;
-      let lastQuote = false;
-      for (let i = 0; i < html.length; i++) {
-        if (html[i] === '<' && html[i + 1] && isValidTagChar(html[i + 1])) {
-          i++;
-          for (let j = i; j < html.length; j++) {
-            if (!lastQuote && html[j] === '>') {
-              if (strip) {
-                stripHTML();
-              }
-              i = j;
-              break;
-            }
-
-            // noinspection JSIncompatibleTypesComparison
-            if (lastQuote === html[j]) {
-              lastQuote = false;
-              continue;
-            }
-            if (!lastQuote && html[j - 1] === "=" && (html[j] === "'" || html[j] === '"')) {
-              lastQuote = html[j];
-            }
-            if (!lastQuote && html[j - 2] === " " && html[j - 1] === "o" && html[j] === "n") {
-              strip = j - 2;
-            }
-            if (strip && html[j] === " " && !lastQuote) {
-              stripHTML();
-            }
-          }
-        }
-      }
-      return html;
-    }
-
-    /**
-     * Calculate a content container height.
-     *
-     * @param {HTMLElement|JQuery} element An element.
-     * @returns {number}
-     */
-    calculateContentContainerHeight(element) {
-      const smallScreenWidth = this.themeManager.getParam('screenWidthXs');
-      const $window = $(window);
-      const footerHeight = $('#footer').height() || 26;
-      let top = 0;
-      element = $(element).get(0);
-      if (element) {
-        top = element.getBoundingClientRect().top;
-        if ($window.width() < smallScreenWidth) {
-          const $navbarCollapse = $('#navbar .navbar-body');
-          if ($navbarCollapse.hasClass('in') || $navbarCollapse.hasClass('collapsing')) {
-            top -= $navbarCollapse.height();
-          }
-        }
-      }
-      const spaceHeight = top + footerHeight;
-      return $window.height() - spaceHeight - 20;
-    }
-
-    /**
-     * Process view-setup-handlers.
-     *
-     * @param {module:view} view A view.
-     * @param {string} type A view-setup-handler type.
-     * @param {string} [scope] A scope.
-     * @return Promise
-     */
-    processSetupHandlers(view, type, scope) {
-      // noinspection JSUnresolvedReference
-      scope = scope || view.scope || view.entityType;
-      let handlerIdList = this.metadata.get(['clientDefs', 'Global', 'viewSetupHandlers', type]) || [];
-      if (scope) {
-        handlerIdList = handlerIdList.concat(this.metadata.get(['clientDefs', scope, 'viewSetupHandlers', type]) || []);
-      }
-      if (handlerIdList.length === 0) {
-        return Promise.resolve();
-      }
-
-      /**
-       * @interface
-       * @name ViewHelper~Handler
-       */
-
-      /**
-       * @function
-       * @name ViewHelper~Handler#process
-       * @param {module:view} [view] Deprecated.
-       */
-      const promiseList = [];
-      for (const id of handlerIdList) {
-        const promise = new Promise(resolve => {
-          Espo.loader.require(id, /** typeof ViewHelper~Handler */Handler => {
-            const result = new Handler(view).process(view);
-            if (result && Object.prototype.toString.call(result) === '[object Promise]') {
-              result.then(() => resolve());
-              return;
-            }
-            resolve();
-          });
-        });
-        promiseList.push(promise);
-      }
-      return Promise.all(promiseList);
-    }
-
-    /** @private */
-    _isXsScreen;
-
-    /**
-     * Is xs screen width.
-     *
-     * @return {boolean}
-     */
-    isXsScreen() {
-      if (this._isXsScreen == null) {
-        this._isXsScreen = window.innerWidth < this.themeManager.getParam('screenWidthXs');
-      }
-      return this._isXsScreen;
-    }
-  }
-  var _default = _exports.default = ViewHelper;
-});
-
 define("search-manager", ["exports", "di", "date-time", "storage"], function (_exports, _di, _dateTime, _storage) {
   "use strict";
 
@@ -7309,12 +8986,13 @@ define("search-manager", ["exports", "di", "date-time", "storage"], function (_e
   _exports.default = void 0;
   _dateTime = _interopRequireDefault(_dateTime);
   _storage = _interopRequireDefault(_storage);
+  var _staticBlock;
   let _init_dateTime, _init_extra_dateTime, _init_storage, _init_extra_storage;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -7372,7 +9050,7 @@ define("search-manager", ["exports", "di", "date-time", "storage"], function (_e
    * @property {Object.<string, *>} [data] Additional data for UI.
    */
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -7381,7 +9059,6 @@ define("search-manager", ["exports", "di", "date-time", "storage"], function (_e
    * A search manager.
    */
   class SearchManager {
-    static #_ = [_init_dateTime, _init_extra_dateTime, _init_storage, _init_extra_storage] = _applyDecs(this, [], [[(0, _di.inject)(_dateTime.default), 0, "dateTime"], [(0, _di.inject)(_storage.default), 0, "storage"]]).e;
     /**
      * @type {string|null}
      * @private
@@ -7724,288 +9401,10 @@ define("search-manager", ["exports", "di", "date-time", "storage"], function (_e
     setTimeZone(timeZone) {
       this.timeZone = timeZone;
     }
+    static #_ = _staticBlock = () => [_init_dateTime, _init_extra_dateTime, _init_storage, _init_extra_storage] = _applyDecs(this, [], [[(0, _di.inject)(_dateTime.default), 0, "dateTime"], [(0, _di.inject)(_storage.default), 0, "storage"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = SearchManager;
-});
-
-define("models/user", ["exports", "model"], function (_exports, _model) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _model = _interopRequireDefault(_model);
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module models/user */
-
-  /**
-   * A user.
-   */
-  class User extends _model.default {
-    name = 'User';
-    entityType = 'User';
-    urlRoot = 'User';
-
-    /**
-     * Is admin.
-     *
-     * @returns {boolean}
-     */
-    isAdmin() {
-      return this.get('type') === 'admin' || this.isSuperAdmin();
-    }
-
-    /**
-     * Is portal.
-     *
-     * @returns {boolean}
-     */
-    isPortal() {
-      return this.get('type') === 'portal';
-    }
-
-    /**
-     * Is API.
-     *
-     * @returns {boolean}
-     */
-    isApi() {
-      return this.get('type') === 'api';
-    }
-
-    /**
-     * Is regular.
-     *
-     * @returns {boolean}
-     */
-    isRegular() {
-      return this.get('type') === 'regular';
-    }
-
-    /**
-     * Is system.
-     *
-     * @returns {boolean}
-     */
-    isSystem() {
-      return this.get('type') === 'system';
-    }
-
-    /**
-     * Is super-admin.
-     *
-     * @returns {boolean}
-     */
-    isSuperAdmin() {
-      return this.get('type') === 'super-admin';
-    }
-  }
-  var _default = _exports.default = User;
-});
-
-define("models/settings", ["exports", "model"], function (_exports, _model) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _model = _interopRequireDefault(_model);
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module models/settings */
-
-  /**
-   * A config.
-   */
-  class Settings extends _model.default {
-    name = 'Settings';
-    entityType = 'Settings';
-    urlRoot = 'Settings';
-
-    /**
-     * Load.
-     *
-     * @returns {Promise}
-     */
-    load() {
-      return new Promise(resolve => {
-        this.fetch().then(() => resolve());
-      });
-    }
-
-    /**
-     * Get a value by a path.
-     *
-     * @param {string[]} path A path.
-     * @returns {*} Null if not set.
-     */
-    getByPath(path) {
-      if (!path.length) {
-        return null;
-      }
-      let p;
-      for (let i = 0; i < path.length; i++) {
-        const item = path[i];
-        if (i === 0) {
-          p = this.get(item);
-        } else {
-          if (item in p) {
-            p = p[item];
-          } else {
-            return null;
-          }
-        }
-        if (i === path.length - 1) {
-          return p;
-        }
-        if (p === null || typeof p !== 'object') {
-          return null;
-        }
-      }
-    }
-  }
-  var _default = _exports.default = Settings;
-});
-
-define("models/preferences", ["exports", "model"], function (_exports, _model) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _model = _interopRequireDefault(_model);
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module models/preferences */
-
-  /**
-   * User preferences.
-   */
-  class Preferences extends _model.default {
-    name = 'Preferences';
-    entityType = 'Preferences';
-    urlRoot = 'Preferences';
-
-    /**
-     * @private
-     * @type {import('models/settings').default}
-     */
-    settings;
-
-    /**
-     * Get dashlet options.
-     *
-     * @param {string} id A dashlet ID.
-     * @returns {Object|null}
-     */
-    getDashletOptions(id) {
-      const value = this.get('dashletsOptions') || {};
-      return value[id] || null;
-    }
-
-    /**
-     * Whether a user is portal.
-     *
-     * @returns {boolean}
-     */
-    isPortal() {
-      return this.get('isPortalUser');
-    }
-
-    /**
-     * @internal
-     * @param {import('models/settings').default} settings
-     */
-    setSettings(settings) {
-      this.settings = settings;
-    }
-  }
-  var _default = _exports.default = Preferences;
 });
 
 define("helpers/record-modal", ["exports", "di", "metadata", "acl-manager", "router", "helpers/site/modal-bar-provider", "views/modals/edit", "language"], function (_exports, _di, _metadata, _aclManager, _router, _modalBarProvider, _edit, _language) {
@@ -8021,12 +9420,13 @@ define("helpers/record-modal", ["exports", "di", "metadata", "acl-manager", "rou
   _modalBarProvider = _interopRequireDefault(_modalBarProvider);
   _edit = _interopRequireDefault(_edit);
   _language = _interopRequireDefault(_language);
+  var _staticBlock;
   let _init_metadata, _init_extra_metadata, _init_acl, _init_extra_acl, _init_router, _init_extra_router, _init_language, _init_extra_language, _init_modalBarProvider, _init_extra_modalBarProvider;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -8050,7 +9450,7 @@ define("helpers/record-modal", ["exports", "di", "metadata", "acl-manager", "rou
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -8059,7 +9459,6 @@ define("helpers/record-modal", ["exports", "di", "metadata", "acl-manager", "rou
    * A record-modal helper. Use to render the quick view and quick edit modals.
    */
   class RecordModalHelper {
-    static #_ = [_init_metadata, _init_extra_metadata, _init_acl, _init_extra_acl, _init_router, _init_extra_router, _init_language, _init_extra_language, _init_modalBarProvider, _init_extra_modalBarProvider] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_aclManager.default), 0, "acl"], [(0, _di.inject)(_router.default), 0, "router"], [(0, _di.inject)(_language.default), 0, "language"], [(0, _di.inject)(_modalBarProvider.default), 0, "modalBarProvider"]]).e;
     constructor() {
       _init_extra_modalBarProvider(this);
     }
@@ -8338,7 +9737,9 @@ define("helpers/record-modal", ["exports", "di", "metadata", "acl-manager", "rou
       Espo.Ui.notify();
       return modalView;
     }
+    static #_ = _staticBlock = () => [_init_metadata, _init_extra_metadata, _init_acl, _init_extra_acl, _init_router, _init_extra_router, _init_language, _init_extra_language, _init_modalBarProvider, _init_extra_modalBarProvider] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_aclManager.default), 0, "acl"], [(0, _di.inject)(_router.default), 0, "router"], [(0, _di.inject)(_language.default), 0, "language"], [(0, _di.inject)(_modalBarProvider.default), 0, "modalBarProvider"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = RecordModalHelper;
 });
 
@@ -8353,7 +9754,7 @@ define("view-record-helper", ["exports", "bullbone"], function (_exports, _bullb
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -8594,7 +9995,7 @@ define("dynamic-logic", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -9092,7 +10493,7 @@ define("views/modals/select-records", ["exports", "views/modal", "search-manager
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -9562,291 +10963,6 @@ define("views/modals/select-records", ["exports", "views/modal", "search-manager
   var _default = _exports.default = SelectRecordsModalView;
 });
 
-define("helpers/model/defaults-populator", ["exports", "di", "metadata", "view-helper", "models/settings", "models/user", "acl-manager", "models/preferences"], function (_exports, _di, _metadata, _viewHelper, _settings, _user, _aclManager, _preferences) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _metadata = _interopRequireDefault(_metadata);
-  _viewHelper = _interopRequireDefault(_viewHelper);
-  _settings = _interopRequireDefault(_settings);
-  _user = _interopRequireDefault(_user);
-  _aclManager = _interopRequireDefault(_aclManager);
-  _preferences = _interopRequireDefault(_preferences);
-  let _init_metadata, _init_extra_metadata, _init_viewHelper, _init_extra_viewHelper, _init_config, _init_extra_config, _init_user, _init_extra_user, _init_preferences, _init_extra_preferences, _init_acl, _init_extra_acl;
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
-  function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
-  function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-  function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
-  function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
-  /**
-   * Defaults populator.
-   */
-  class DefaultsPopulator {
-    static #_ = [_init_metadata, _init_extra_metadata, _init_viewHelper, _init_extra_viewHelper, _init_config, _init_extra_config, _init_user, _init_extra_user, _init_preferences, _init_extra_preferences, _init_acl, _init_extra_acl] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_viewHelper.default), 0, "viewHelper"], [(0, _di.inject)(_settings.default), 0, "config"], [(0, _di.inject)(_user.default), 0, "user"], [(0, _di.inject)(_preferences.default), 0, "preferences"], [(0, _di.inject)(_aclManager.default), 0, "acl"]]).e;
-    constructor() {
-      _init_extra_acl(this);
-    }
-    /**
-     * @private
-     * @type {Metadata}
-     */
-    metadata = _init_metadata(this);
-
-    /**
-     * @private
-     * @type {ViewHelper}
-     */
-    viewHelper = (_init_extra_metadata(this), _init_viewHelper(this));
-
-    /**
-     * @private
-     * @type {Settings}
-     */
-    config = (_init_extra_viewHelper(this), _init_config(this));
-
-    /**
-     * @private
-     * @type {User}
-     */
-    user = (_init_extra_config(this), _init_user(this));
-
-    /**
-     * @private
-     * @type {Preferences}
-     */
-    preferences = (_init_extra_user(this), _init_preferences(this));
-
-    /**
-     * @private
-     * @type {AclManager}
-     */
-    acl = (_init_extra_preferences(this), _init_acl(this));
-
-    /**
-     * Populate default values.
-     *
-     * @param {module:model} model A model.
-     * @return {Promise|undefined}
-     */
-    populate(model) {
-      model.populateDefaults();
-      const defaultHash = {};
-      if (!this.user.isPortal()) {
-        this.prepare(model, defaultHash);
-      }
-      if (this.user.isPortal()) {
-        this.prepareForPortal(model, defaultHash);
-      }
-      this.prepareFields(model, defaultHash);
-      for (const attr in defaultHash) {
-        if (model.has(attr)) {
-          delete defaultHash[attr];
-        }
-      }
-      model.set(defaultHash, {
-        silent: true
-      });
-      const preparatorClass = this.metadata.get(`clientDefs.${model.entityType}.modelDefaultsPreparator`);
-      if (!preparatorClass) {
-        return undefined;
-      }
-      return Espo.loader.requirePromise(preparatorClass).then(Class => {
-        /** @type {import('handlers/model/defaults-preparator').default} */
-        const preparator = new Class(this.viewHelper);
-        return preparator.prepare(model);
-      }).then(attributes => {
-        model.set(attributes, {
-          silent: true
-        });
-      });
-    }
-
-    /**
-     * @param {module:model} model
-     * @param {Object.<string, *>} defaultHash
-     * @private
-     */
-    prepare(model, defaultHash) {
-      const hasAssignedUsers = model.hasField('assignedUsers') && model.getLinkParam('assignedUsers', 'entity') === 'User';
-      if (model.hasField('assignedUser') || hasAssignedUsers) {
-        let assignedUserField = 'assignedUser';
-        if (hasAssignedUsers) {
-          assignedUserField = 'assignedUsers';
-        }
-        if (this.toFillAssignedUser(model, assignedUserField)) {
-          if (hasAssignedUsers) {
-            defaultHash['assignedUsersIds'] = [this.user.id];
-            defaultHash['assignedUsersNames'] = {};
-            defaultHash['assignedUsersNames'][this.user.id] = this.user.get('name');
-          } else {
-            defaultHash['assignedUserId'] = this.user.id;
-            defaultHash['assignedUserName'] = this.user.get('name');
-          }
-        }
-      }
-      const defaultTeamId = this.user.get('defaultTeamId');
-      if (defaultTeamId) {
-        if (model.hasField('teams') && !model.getFieldParam('teams', 'default') && Espo.Utils.lowerCaseFirst(model.getLinkParam('teams', 'relationName') || '') === 'entityTeam') {
-          defaultHash['teamsIds'] = [defaultTeamId];
-          defaultHash['teamsNames'] = {};
-          defaultHash['teamsNames'][defaultTeamId] = this.user.get('defaultTeamName');
-        }
-      }
-      const hasCollaborators = model.hasField('collaborators') && model.getLinkParam('collaborators', 'entity') === 'User' && this.metadata.get(`scopes.${model.entityType}.collaborators`);
-      if (hasCollaborators) {
-        defaultHash.collaboratorsIds = [this.user.id];
-        defaultHash.collaboratorsNames = {
-          [this.user.id]: this.user.attributes.name
-        };
-      }
-    }
-
-    /**
-     *
-     * @param {import('model').default} model
-     * @param {string} assignedUserField
-     */
-    toFillAssignedUser(model, assignedUserField) {
-      if (!this.preferences.get('doNotFillAssignedUserIfNotRequired')) {
-        return true;
-      }
-      if (model.getFieldParam(assignedUserField, 'required')) {
-        return true;
-      }
-      if (this.acl.getPermissionLevel('assignmentPermission') === 'no') {
-        return true;
-      }
-      if (this.acl.getPermissionLevel('assignmentPermission') === 'team' && !this.user.get('defaultTeamId')) {
-        return true;
-      }
-      if (this.acl.getLevel(model.entityType, 'read') === 'own') {
-        return true;
-      }
-      if (!this.acl.checkField(model.entityType, assignedUserField, 'edit')) {
-        return true;
-      }
-      return false;
-    }
-
-    /**
-     * @param {module:model} model
-     * @param {Object.<string, *>} defaultHash
-     * @private
-     */
-    prepareForPortal(model, defaultHash) {
-      const accountLink = this.metadata.get(`aclDefs.${model.entityType}.accountLink`);
-      const contactLink = this.metadata.get(`aclDefs.${model.entityType}.contactLink`);
-      if (accountLink && model.hasField(accountLink) && ['belongsTo', 'hasOne'].includes(model.getLinkType(accountLink)) && model.getLinkParam(accountLink, 'entity') === 'Account') {
-        if (this.user.attributes.accountId) {
-          defaultHash[accountLink + 'Id'] = this.user.attributes.accountId;
-          defaultHash[accountLink + 'Name'] = this.user.attributes.accuntName;
-        }
-      }
-      if (contactLink && model.hasField(contactLink) && ['belongsTo', 'hasOne'].includes(model.getLinkType(contactLink)) && model.getLinkParam(contactLink, 'entity') === 'Contact') {
-        if (this.user.attributes.contactId) {
-          defaultHash[contactLink + 'Id'] = this.user.attributes.contactId;
-          defaultHash[contactLink + 'Name'] = this.user.attributes.contactName;
-        }
-      }
-      if (accountLink && model.hasField(accountLink) && model.getLinkType(accountLink) === 'hasMany' && model.getLinkParam(accountLink, 'entity') === 'Account') {
-        if (this.user.attributes.accountsIds) {
-          defaultHash['accountsIds'] = [...this.user.attributes.accountsIds];
-          defaultHash['accountsNames'] = {
-            ...this.user.attributes.accountsNames
-          };
-        }
-      }
-      if (contactLink && model.hasField(contactLink) && model.getLinkType(contactLink) === 'hasMany' && model.getLinkParam(contactLink, 'entity') === 'Contact') {
-        if (this.user.attributes.contactId) {
-          defaultHash['contactsIds'] = [this.user.attributes.contactId];
-          defaultHash['contactsNames'] = {
-            [this.user.attributes.contactId]: this.user.attributes.contactName
-          };
-        }
-      }
-      if (model.hasField('parent') && model.getLinkType('parent') === 'belongsToParent') {
-        if (!this.config.get('b2cMode')) {
-          if (this.user.attributes.accountId && (model.getFieldParam('parent', 'entityList') || []).includes('Account')) {
-            defaultHash['parentId'] = this.user.attributes.accountId;
-            defaultHash['parentName'] = this.user.attributes.accountName;
-            defaultHash['parentType'] = 'Account';
-          }
-        } else {
-          if (this.user.attributes.contactId && (model.getFieldParam('parent', 'entityList') || []).includes('Contact')) {
-            defaultHash['parentId'] = this.user.attributes.contactId;
-            defaultHash['parentName'] = this.user.attributes.contactName;
-            defaultHash['parentType'] = 'Contact';
-          }
-        }
-      }
-    }
-
-    /**
-     * @param {module:model} model
-     * @param {Object.<string, *>} defaultHash
-     * @private
-     */
-    prepareFields(model, defaultHash) {
-      const set = (attribute, value) => {
-        if (attribute in defaultHash || model.has(attribute)) {
-          return;
-        }
-        defaultHash[attribute] = value;
-      };
-      model.getFieldList().forEach(field => {
-        const type = model.getFieldType(field);
-        if (!type) {
-          return;
-        }
-        if (model.getFieldParam(field, 'disabled') || model.getFieldParam(field, 'utility')) {
-          return;
-        }
-        if (type === 'enum') {
-          /** @type {string[]} */
-          const options = model.getFieldParam(field, 'options') || [];
-          let value = options[0] || '';
-          value = value !== '' ? value : null;
-          if (value) {
-            set(field, value);
-          }
-        }
-      });
-    }
-  }
-  var _default = _exports.default = DefaultsPopulator;
-});
-
 define("web-socket-manager", ["exports", "js-base64"], function (_exports, _jsBase) {
   "use strict";
 
@@ -9860,7 +10976,7 @@ define("web-socket-manager", ["exports", "js-base64"], function (_exports, _jsBa
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -10249,7 +11365,7 @@ define("web-socket-manager", ["exports", "js-base64"], function (_exports, _jsBa
   var _default = _exports.default = WebSocketManager;
 });
 
-define("views/record/base", ["exports", "view", "view-record-helper", "dynamic-logic", "underscore", "jquery", "helpers/model/defaults-populator"], function (_exports, _view, _viewRecordHelper, _dynamicLogic, _underscore, _jquery, _defaultsPopulator) {
+define("views/record/base", ["exports", "view", "view-record-helper", "dynamic-logic", "underscore", "jquery"], function (_exports, _view, _viewRecordHelper, _dynamicLogic, _underscore, _jquery) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -10261,13 +11377,12 @@ define("views/record/base", ["exports", "view", "view-record-helper", "dynamic-l
   _dynamicLogic = _interopRequireDefault(_dynamicLogic);
   _underscore = _interopRequireDefault(_underscore);
   _jquery = _interopRequireDefault(_jquery);
-  _defaultsPopulator = _interopRequireDefault(_defaultsPopulator);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -11333,14 +12448,12 @@ define("views/record/base", ["exports", "view", "view-record-helper", "dynamic-l
     }
 
     /**
-     * Populate defaults.
-     *
      * @return {Promise|undefined}
+     *
+     * @deprecated As of v9.3.0.
+     * @todo Remove in v10.0.
      */
-    populateDefaults() {
-      const populator = new _defaultsPopulator.default();
-      return populator.populate(this.model);
-    }
+    populateDefaults() {}
 
     // noinspection JSUnusedGlobalSymbols
     /**
@@ -11528,7 +12641,7 @@ define("views/modals/select-template", ["exports", "views/modals/select-records"
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -11596,7 +12709,7 @@ define("ui/select", ["exports", "lib!selectize"], function (_exports, _libSelect
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -12108,12 +13221,13 @@ define("helpers/action-item-setup", ["exports", "di", "metadata", "view-helper",
   _viewHelper = _interopRequireDefault(_viewHelper);
   _aclManager = _interopRequireDefault(_aclManager);
   _language = _interopRequireDefault(_language);
+  var _staticBlock;
   let _init_metadata, _init_extra_metadata, _init_viewHelper, _init_extra_viewHelper, _init_acl, _init_extra_acl, _init_language, _init_extra_language;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -12137,7 +13251,7 @@ define("helpers/action-item-setup", ["exports", "di", "metadata", "view-helper",
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -12145,7 +13259,6 @@ define("helpers/action-item-setup", ["exports", "di", "metadata", "view-helper",
   /** @module helpers/action-item-setup */
 
   class ActionItemSetupHelper {
-    static #_ = [_init_metadata, _init_extra_metadata, _init_viewHelper, _init_extra_viewHelper, _init_acl, _init_extra_acl, _init_language, _init_extra_language] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_viewHelper.default), 0, "viewHelper"], [(0, _di.inject)(_aclManager.default), 0, "acl"], [(0, _di.inject)(_language.default), 0, "language"]]).e;
     constructor() {
       _init_extra_language(this);
     }
@@ -12264,7 +13377,9 @@ define("helpers/action-item-setup", ["exports", "di", "metadata", "view-helper",
       }
       view.listenTo(view.model, 'sync', () => onSync());
     }
+    static #_ = _staticBlock = () => [_init_metadata, _init_extra_metadata, _init_viewHelper, _init_extra_viewHelper, _init_acl, _init_extra_acl, _init_language, _init_extra_language] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_viewHelper.default), 0, "viewHelper"], [(0, _di.inject)(_aclManager.default), 0, "acl"], [(0, _di.inject)(_language.default), 0, "language"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = ActionItemSetupHelper;
 });
 
@@ -12279,7 +13394,7 @@ define("helpers/util/debounce", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -12434,7 +13549,7 @@ define("helpers/record/misc/sticky-bar", ["exports", "jquery"], function (_expor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -12561,12 +13676,13 @@ define("views/record/detail", ["exports", "views/record/base", "view-record-help
   _shortcutManager = _interopRequireDefault(_shortcutManager);
   _webSocketManager = _interopRequireDefault(_webSocketManager);
   _utils = _interopRequireDefault(_utils);
+  var _staticBlock;
   let _init_shortcutManager, _init_extra_shortcutManager, _init_webSocketManager, _init_extra_webSocketManager;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -12591,7 +13707,7 @@ define("views/record/detail", ["exports", "views/record/base", "view-record-help
    ************************************************************************/
   /** @module views/record/detail */
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -12600,7 +13716,6 @@ define("views/record/detail", ["exports", "views/record/base", "view-record-help
    * A detail record view.
    */
   class DetailRecordView extends _base.default {
-    static #_ = [_init_shortcutManager, _init_extra_shortcutManager, _init_webSocketManager, _init_extra_webSocketManager] = _applyDecs(this, [], [[(0, _di.inject)(_shortcutManager.default), 0, "shortcutManager"], [(0, _di.inject)(_webSocketManager.default), 0, "webSocketManager"]], 0, void 0, _base.default).e;
     /**
      * @typedef {Object} module:views/record/detail~options
      *
@@ -14339,7 +15454,7 @@ define("views/record/detail", ["exports", "views/record/base", "view-record-help
         }
         if (type === 'required') {
           const fieldView = this.getFieldView(field);
-          if (fieldView.validateRequired) {
+          if (fieldView && fieldView.validateRequired) {
             fieldView.suspendValidationMessage();
             try {
               if (!fieldView.validateRequired()) {
@@ -15945,7 +17060,9 @@ define("views/record/detail", ["exports", "views/record/base", "view-record-help
     setupReuse() {
       this.initShortcuts();
     }
+    static #_ = _staticBlock = () => [_init_shortcutManager, _init_extra_shortcutManager, _init_webSocketManager, _init_extra_webSocketManager] = _applyDecs(this, [], [[(0, _di.inject)(_shortcutManager.default), 0, "shortcutManager"], [(0, _di.inject)(_webSocketManager.default), 0, "webSocketManager"]], 0, void 0, _base.default).e;
   }
+  _staticBlock();
   var _default = _exports.default = DetailRecordView;
 });
 
@@ -15964,7 +17081,7 @@ define("views/fields/base", ["exports", "view", "ui/select", "jquery"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -17486,7 +18603,7 @@ define("ui/multi-select", ["exports", "lib!selectize"], function (_exports, _lib
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -17769,7 +18886,7 @@ define("ui/autocomplete", ["exports", "jquery", "handlebars"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -17995,12 +19112,13 @@ define("helpers/reg-exp-pattern", ["exports", "di", "metadata", "language"], fun
   _exports.default = void 0;
   _metadata = _interopRequireDefault(_metadata);
   _language = _interopRequireDefault(_language);
+  var _staticBlock;
   let _init_metadata, _init_extra_metadata, _init_language, _init_extra_language;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -18024,7 +19142,7 @@ define("helpers/reg-exp-pattern", ["exports", "di", "metadata", "language"], fun
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -18033,7 +19151,6 @@ define("helpers/reg-exp-pattern", ["exports", "di", "metadata", "language"], fun
    * A regular expression pattern helper.
    */
   class RegExpPatternHelper {
-    static #_ = [_init_metadata, _init_extra_metadata, _init_language, _init_extra_language] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_language.default), 0, "language"]]).e;
     constructor() {
       _init_extra_language(this);
     }
@@ -18082,7 +19199,9 @@ define("helpers/reg-exp-pattern", ["exports", "di", "metadata", "language"], fun
         message: message
       };
     }
+    static #_ = _staticBlock = () => [_init_metadata, _init_extra_metadata, _init_language, _init_extra_language] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_language.default), 0, "language"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = RegExpPatternHelper;
 });
 
@@ -18099,7 +19218,7 @@ define("views/record/edit", ["exports", "views/record/detail"], function (_expor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -18226,10 +19345,10 @@ define("views/record/edit", ["exports", "views/record/detail"], function (_expor
         // Attributes are yet not ready.
         super.setupBeforeFinal();
       }
+
+      // @todo To be removed.
       if (promise) {
         this.wait(promise);
-
-        // @todo Revise. Possible race condition issues.
         promise.then(() => {
           super.setupBeforeFinal();
           this.processDynamicLogic();
@@ -18304,7 +19423,7 @@ define("views/record/edit", ["exports", "views/record/detail"], function (_expor
       if (this.buttonsDisabled) {
         return;
       }
-      if (this.buttonList.findIndex(item => item.name === 'cancel' && !item.hidden) === -1) {
+      if (this.buttonList.findIndex(item => item.name === 'cancel' && !item.hidden && !item.disabled) === -1) {
         return;
       }
       e.preventDefault();
@@ -18371,7 +19490,7 @@ define("views/fields/varchar", ["exports", "views/fields/base", "helpers/reg-exp
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -18831,7 +19950,7 @@ define("layout-manager", ["exports", "bullbone"], function (_exports, _bullbone)
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -19082,7 +20201,7 @@ define("field-manager", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -19517,7 +20636,7 @@ define("views/record/edit-for-modal", ["exports", "views/record/edit"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -19572,7 +20691,7 @@ define("views/fields/enum", ["exports", "views/fields/base", "ui/multi-select", 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -20038,7 +21157,7 @@ define("views/fields/colorpicker", ["exports", "views/fields/varchar"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -20126,7 +21245,7 @@ define("views/wysiwyg/modals/edit-table", ["exports", "views/modal", "views/reco
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -20317,7 +21436,7 @@ define("views/wysiwyg/modals/edit-cell", ["exports", "views/modal", "views/recor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -20462,7 +21581,7 @@ define("views/record/list/settings", ["exports", "view"], function (_exports, _v
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -20618,12 +21737,12 @@ define("views/record/list/settings", ["exports", "view"], function (_exports, _v
     getDataList() {
       const list = this.layoutProvider() || [];
       const map = this.helper.getHiddenColumnMap() || {};
-      return list.filter(item => item.name && !item.link && !item.noLabel && !item.customLabel).map(item => {
+      return list.filter(item => item.name && !item.link && !item.noLabel && item.customLabel !== '').map(item => {
         const label = item.label || item.name;
         const hidden = item.name in map ? map[item.name] : !!item.hidden;
         return {
           name: item.name,
-          label: this.translate(label, 'fields', this.entityType),
+          label: item.customLabel ?? this.translate(label, 'fields', this.entityType),
           hidden: hidden,
           hiddenDefault: !!item.hidden
         };
@@ -20701,7 +21820,7 @@ define("views/modals/text-preview", ["exports", "views/modal"], function (_expor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -20759,12 +21878,13 @@ define("helpers/mass-action", ["exports", "di", "models/settings", "models/user"
   _exports.default = void 0;
   _settings = _interopRequireDefault(_settings);
   _user = _interopRequireDefault(_user);
+  var _staticBlock;
   let _init_config, _init_extra_config, _init_user, _init_extra_user;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -20788,7 +21908,7 @@ define("helpers/mass-action", ["exports", "di", "models/settings", "models/user"
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -20797,7 +21917,6 @@ define("helpers/mass-action", ["exports", "di", "models/settings", "models/user"
    * A mass-action helper.
    */
   class MassActionHelper {
-    static #_ = [_init_config, _init_extra_config, _init_user, _init_extra_user] = _applyDecs(this, [], [[(0, _di.inject)(_settings.default), 0, "config"], [(0, _di.inject)(_user.default), 0, "user"]]).e;
     /**
      * @private
      * @type {Settings}
@@ -20869,7 +21988,9 @@ define("helpers/mass-action", ["exports", "di", "models/settings", "models/user"
         });
       });
     }
+    static #_ = _staticBlock = () => [_init_config, _init_extra_config, _init_user, _init_extra_user] = _applyDecs(this, [], [[(0, _di.inject)(_settings.default), 0, "config"], [(0, _di.inject)(_user.default), 0, "user"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = MassActionHelper;
 });
 
@@ -20882,12 +22003,13 @@ define("helpers/export", ["exports", "di", "models/settings", "models/user"], fu
   _exports.default = void 0;
   _settings = _interopRequireDefault(_settings);
   _user = _interopRequireDefault(_user);
+  var _staticBlock;
   let _init_config, _init_extra_config, _init_user, _init_extra_user;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -20911,7 +22033,7 @@ define("helpers/export", ["exports", "di", "models/settings", "models/user"], fu
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -20920,7 +22042,6 @@ define("helpers/export", ["exports", "di", "models/settings", "models/user"], fu
    * An export helper.
    */
   class ExportHelper {
-    static #_ = [_init_config, _init_extra_config, _init_user, _init_extra_user] = _applyDecs(this, [], [[(0, _di.inject)(_settings.default), 0, "config"], [(0, _di.inject)(_user.default), 0, "user"]]).e;
     /**
      * @private
      * @type {Settings}
@@ -20985,7 +22106,9 @@ define("helpers/export", ["exports", "di", "models/settings", "models/user"], fu
         });
       });
     }
+    static #_ = _staticBlock = () => [_init_config, _init_extra_config, _init_user, _init_extra_user] = _applyDecs(this, [], [[(0, _di.inject)(_settings.default), 0, "config"], [(0, _di.inject)(_user.default), 0, "user"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = ExportHelper;
 });
 
@@ -21000,7 +22123,7 @@ define("helpers/record/list/column-width-control", ["exports"], function (_expor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -21197,7 +22320,7 @@ define("helpers/record/list/column-resize", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -21411,7 +22534,7 @@ define("helpers/misc/mailto", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -21539,7 +22662,7 @@ define("helpers/list/settings", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -21776,12 +22899,13 @@ define("helpers/list/select-provider", ["exports", "di", "layout-manager", "meta
   _layoutManager = _interopRequireDefault(_layoutManager);
   _metadata = _interopRequireDefault(_metadata);
   _fieldManager = _interopRequireDefault(_fieldManager);
+  var _staticBlock;
   let _init_layoutManager, _init_extra_layoutManager, _init_metadata, _init_extra_metadata, _init_fieldManager, _init_extra_fieldManager;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -21805,13 +22929,12 @@ define("helpers/list/select-provider", ["exports", "di", "layout-manager", "meta
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
   function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
   class SelectProvider {
-    static #_ = [_init_layoutManager, _init_extra_layoutManager, _init_metadata, _init_extra_metadata, _init_fieldManager, _init_extra_fieldManager] = _applyDecs(this, [], [[(0, _di.inject)(_layoutManager.default), 0, "layoutManager"], [(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_fieldManager.default), 0, "fieldManager"]]).e;
     constructor() {
       _init_extra_fieldManager(this);
     }
@@ -21866,6 +22989,9 @@ define("helpers/list/select-provider", ["exports", "di", "layout-manager", "meta
         if (settings !== null && settings !== void 0 && settings.isColumnHidden(item.name, item.hidden)) {
           return;
         }
+        if (!settings && item.hidden) {
+          return;
+        }
         const field = item.name;
         const type = this.metadata.get(`entityDefs.${entityType}.fields.${field}.type`);
         if (!type) {
@@ -21875,7 +23001,9 @@ define("helpers/list/select-provider", ["exports", "di", "layout-manager", "meta
       });
       return list;
     }
+    static #_ = _staticBlock = () => [_init_layoutManager, _init_extra_layoutManager, _init_metadata, _init_extra_metadata, _init_fieldManager, _init_extra_fieldManager] = _applyDecs(this, [], [[(0, _di.inject)(_layoutManager.default), 0, "layoutManager"], [(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_fieldManager.default), 0, "fieldManager"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = SelectProvider;
 });
 
@@ -21892,7 +23020,7 @@ define("helpers/list/misc/sticky-bar", ["exports", "jquery", "bullbone"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -22087,7 +23215,7 @@ define("model-factory", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -22174,7 +23302,7 @@ define("exceptions", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -22252,7 +23380,7 @@ define("views/record/list", ["exports", "view", "helpers/mass-action", "helpers/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -24780,7 +25908,7 @@ define("views/record/list", ["exports", "view", "helpers/mass-action", "helpers/
      * @param {function(module:view):void} [callback] A callback.
      */
     buildRow(i, model, callback) {
-      const key = model.id;
+      const key = model.id ?? i.toString();
       this.rowList.push(key);
       this.getInternalLayout(internalLayout => {
         internalLayout = Espo.Utils.cloneDeep(internalLayout);
@@ -25439,7 +26567,7 @@ define("views/fields/text", ["exports", "views/fields/base", "helpers/misc/mailt
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -26042,7 +27170,7 @@ define("views/fields/int", ["exports", "views/fields/base", "autonumeric"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -26411,12 +27539,13 @@ define("ui/datepicker", ["exports", "jquery", "language", "models/settings", "di
   _language = _interopRequireDefault(_language);
   _settings = _interopRequireDefault(_settings);
   _moment = _interopRequireDefault(_moment);
+  var _staticBlock;
   let _init_language, _init_extra_language, _init_config, _init_extra_config;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -26440,7 +27569,7 @@ define("ui/datepicker", ["exports", "jquery", "language", "models/settings", "di
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -26451,7 +27580,6 @@ define("ui/datepicker", ["exports", "jquery", "language", "models/settings", "di
    * @since 9.0.0
    */
   class Datepicker {
-    static #_ = [_init_language, _init_extra_language, _init_config, _init_extra_config] = _applyDecs(this, [], [[(0, _di.inject)(_language.default), 0, "language"], [(0, _di.inject)(_settings.default), 0, "config"]]).e;
     /**
      * @private
      * @type {Language}
@@ -26633,7 +27761,9 @@ define("ui/datepicker", ["exports", "jquery", "language", "models/settings", "di
       }
       picker.fill();
     }
+    static #_ = _staticBlock = () => [_init_language, _init_extra_language, _init_config, _init_extra_config] = _applyDecs(this, [], [[(0, _di.inject)(_language.default), 0, "language"], [(0, _di.inject)(_settings.default), 0, "config"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = Datepicker;
 });
 
@@ -26653,7 +27783,7 @@ define("helpers/misc/summernote-custom", ["exports", "jquery", "views/wysiwyg/mo
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -27418,12 +28548,13 @@ define("controller", ["exports", "exceptions", "bullbone", "di", "helpers/site/m
   _exports.default = void 0;
   _exceptions = _interopRequireDefault(_exceptions);
   _modalBarProvider = _interopRequireDefault(_modalBarProvider);
+  var _staticBlock;
   let _init_modalBarProvider, _init_extra_modalBarProvider;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -27448,7 +28579,7 @@ define("controller", ["exports", "exceptions", "bullbone", "di", "helpers/site/m
    ************************************************************************/
   /** @module controller */
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -27469,7 +28600,6 @@ define("controller", ["exports", "exceptions", "bullbone", "di", "helpers/site/m
    * @mixes Bull.Events
    */
   class Controller {
-    static #_ = [_init_modalBarProvider, _init_extra_modalBarProvider] = _applyDecs(this, [], [[(0, _di.inject)(_modalBarProvider.default), 0, "modalBarProvider"]]).e;
     /**
      * @internal
      * @param {Object.<string, *>} params
@@ -28096,7 +29226,9 @@ define("controller", ["exports", "exceptions", "bullbone", "di", "helpers/site/m
         callback(view);
       });
     }
+    static #_ = _staticBlock = () => [_init_modalBarProvider, _init_extra_modalBarProvider] = _applyDecs(this, [], [[(0, _di.inject)(_modalBarProvider.default), 0, "modalBarProvider"]]).e;
   }
+  _staticBlock();
   Object.assign(Controller.prototype, _bullbone.Events);
 
   /** For backward compatibility. */
@@ -28113,12 +29245,13 @@ define("views/main", ["exports", "view", "di", "helpers/site/shortcut-manager"],
   _exports.default = void 0;
   _view = _interopRequireDefault(_view);
   _shortcutManager = _interopRequireDefault(_shortcutManager);
+  var _staticBlock;
   let _init_shortcutManager, _init_extra_shortcutManager;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -28143,7 +29276,7 @@ define("views/main", ["exports", "view", "di", "helpers/site/shortcut-manager"],
    ************************************************************************/
   /** @module views/main */
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -28152,7 +29285,6 @@ define("views/main", ["exports", "view", "di", "helpers/site/shortcut-manager"],
    * A base main view. The detail, edit, list views to be extended from.
    */
   class MainView extends _view.default {
-    static #_ = [_init_shortcutManager, _init_extra_shortcutManager] = _applyDecs(this, [], [[(0, _di.inject)(_shortcutManager.default), 0, "shortcutManager"]], 0, void 0, _view.default).e;
     /**
      * A scope name.
      *
@@ -28774,7 +29906,9 @@ define("views/main", ["exports", "view", "di", "helpers/site/shortcut-manager"],
     setupReuse(params) {
       this.initShortcuts();
     }
+    static #_ = _staticBlock = () => [_init_shortcutManager, _init_extra_shortcutManager] = _applyDecs(this, [], [[(0, _di.inject)(_shortcutManager.default), 0, "shortcutManager"]], 0, void 0, _view.default).e;
   }
+  _staticBlock();
   var _default = _exports.default = MainView;
 });
 
@@ -28791,7 +29925,7 @@ define("views/collapsed-modal", ["exports", "view"], function (_exports, _view) 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -28891,7 +30025,7 @@ define("views/base", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -28933,6 +30067,115 @@ define("views/base", ["exports", "view"], function (_exports, _view) {
   var _default = _exports.default = BaseView;
 });
 
+define("views/search/filter", ["exports", "view"], function (_exports, _view) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _view = _interopRequireDefault(_view);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module views/search/filter */
+
+  class FilterView extends _view.default {
+    template = 'search/filter';
+    data() {
+      return {
+        name: this.name,
+        scope: this.model.entityType,
+        notRemovable: this.options.notRemovable
+      };
+    }
+
+    /**
+     * @param {{
+     *     name: string,
+     *     viewName?: string|null,
+     *     params?: Record|null,
+     *     notRemovable?: boolean,
+     *     model: import('model').default,
+     * }} options Field view is supported as of v9.3.
+     */
+    constructor(options) {
+      super(options);
+      this.options = options;
+    }
+    setup() {
+      const name = this.name = this.options.name;
+      let viewName = this.options.viewName;
+      if (!viewName) {
+        let type = this.model.getFieldType(name);
+        if (!type && name === 'id') {
+          type = 'id';
+        }
+        if (type) {
+          viewName = this.model.getFieldParam(name, 'view') || this.getFieldManager().getViewName(type);
+        }
+      }
+      if (!viewName) {
+        return;
+      }
+      this.createView('field', viewName, {
+        mode: 'search',
+        model: this.model,
+        selector: '.field',
+        name: name,
+        searchParams: this.options.params
+      }, view => {
+        this.listenTo(view, 'change', () => this.trigger('change'));
+        this.listenTo(view, 'search', () => this.trigger('search'));
+      });
+    }
+
+    /**
+     * @return {import('views/fields/base').default|null}
+     */
+    getFieldView() {
+      return this.getView('field');
+    }
+    populateDefaults() {
+      const view = this.getFieldView();
+      if (!view) {
+        return;
+      }
+      if (!('populateSearchDefaults' in view)) {
+        return;
+      }
+      view.populateSearchDefaults();
+    }
+  }
+  var _default = _exports.default = FilterView;
+});
+
 define("views/record/panels-container", ["exports", "view"], function (_exports, _view) {
   "use strict";
 
@@ -28946,7 +30189,7 @@ define("views/record/panels-container", ["exports", "view"], function (_exports,
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -29883,7 +31126,7 @@ define("views/record/list-expanded", ["exports", "views/record/list"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -30084,7 +31327,7 @@ define("views/record/panels/bottom", ["exports", "view"], function (_exports, _v
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -30427,7 +31670,7 @@ define("views/fields/wysiwyg", ["exports", "views/fields/text", "helpers/misc/su
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -31204,7 +32447,7 @@ define("views/fields/link", ["exports", "views/fields/base", "helpers/record-mod
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -32371,7 +33614,7 @@ define("views/fields/float", ["exports", "views/fields/int"], function (_exports
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -32554,7 +33797,7 @@ define("views/fields/date", ["exports", "views/fields/base", "moment", "ui/datep
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -33079,7 +34322,7 @@ define("views/detail/modes", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -33219,12 +34462,13 @@ define("helpers/file-upload", ["exports", "di", "models/settings"], function (_e
   });
   _exports.default = void 0;
   _settings = _interopRequireDefault(_settings);
+  var _staticBlock;
   let _init_config, _init_extra_config;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -33249,7 +34493,7 @@ define("helpers/file-upload", ["exports", "di", "models/settings"], function (_e
    ************************************************************************/
   /** @module helpers/file-upload */
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -33258,7 +34502,6 @@ define("helpers/file-upload", ["exports", "di", "models/settings"], function (_e
    * A file-upload helper.
    */
   class FileUploadExport {
-    static #_ = [_init_config, _init_extra_config] = _applyDecs(this, [], [[(0, _di.inject)(_settings.default), 0, "config"]]).e;
     constructor() {
       _init_extra_config(this);
     }
@@ -33375,7 +34618,9 @@ define("helpers/file-upload", ["exports", "di", "models/settings"], function (_e
     _getChunkSize() {
       return (this.config.get('attachmentUploadChunkSize') || 0) * 1024 * 1024;
     }
+    static #_ = _staticBlock = () => [_init_config, _init_extra_config] = _applyDecs(this, [], [[(0, _di.inject)(_settings.default), 0, "config"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = FileUploadExport;
 });
 
@@ -33387,12 +34632,13 @@ define("helpers/record/select-related", ["exports", "di", "metadata"], function 
   });
   _exports.default = void 0;
   _metadata = _interopRequireDefault(_metadata);
+  var _staticBlock;
   let _init_metadata, _init_extra_metadata;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -33416,7 +34662,7 @@ define("helpers/record/select-related", ["exports", "di", "metadata"], function 
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -33425,7 +34671,6 @@ define("helpers/record/select-related", ["exports", "di", "metadata"], function 
    * @internal
    */
   class SelectRelatedHelper {
-    static #_ = [_init_metadata, _init_extra_metadata] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"]]).e;
     /**
      * @private
      * @type {Metadata}
@@ -33569,7 +34814,9 @@ define("helpers/record/select-related", ["exports", "di", "metadata"], function 
         });
       });
     }
+    static #_ = _staticBlock = () => [_init_metadata, _init_extra_metadata] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = SelectRelatedHelper;
 });
 
@@ -33582,12 +34829,13 @@ define("helpers/record/create-related", ["exports", "di", "metadata", "helpers/r
   _exports.default = void 0;
   _metadata = _interopRequireDefault(_metadata);
   _recordModal = _interopRequireDefault(_recordModal);
+  var _staticBlock;
   let _init_metadata, _init_extra_metadata;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -33611,7 +34859,7 @@ define("helpers/record/create-related", ["exports", "di", "metadata", "helpers/r
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -33620,7 +34868,6 @@ define("helpers/record/create-related", ["exports", "di", "metadata", "helpers/r
    * @internal
    */
   class CreateRelatedHelper {
-    static #_ = [_init_metadata, _init_extra_metadata] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"]]).e;
     /**
      * @private
      * @type {Metadata}
@@ -33682,7 +34929,9 @@ define("helpers/record/create-related", ["exports", "di", "metadata", "helpers/r
         }
       });
     }
+    static #_ = _staticBlock = () => [_init_metadata, _init_extra_metadata] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = CreateRelatedHelper;
 });
 
@@ -33697,7 +34946,7 @@ define("helpers/misc/stored-text-search", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -33833,7 +35082,7 @@ define("helpers/misc/foreign-field", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -33922,12 +35171,13 @@ define("helpers/misc/attachment-insert-from-source", ["exports", "di", "metadata
   _exports.default = void 0;
   _metadata = _interopRequireDefault(_metadata);
   _modelFactory = _interopRequireDefault(_modelFactory);
+  var _staticBlock;
   let _init_metadata, _init_extra_metadata, _init_modelFactory, _init_extra_modelFactory;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -33951,7 +35201,7 @@ define("helpers/misc/attachment-insert-from-source", ["exports", "di", "metadata
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -33960,7 +35210,6 @@ define("helpers/misc/attachment-insert-from-source", ["exports", "di", "metadata
    * @internal
    */
   class AttachmentInsertSourceFromHelper {
-    static #_ = [_init_metadata, _init_extra_metadata, _init_modelFactory, _init_extra_modelFactory] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_modelFactory.default), 0, "modelFactory"]]).e;
     /**
      * @param {import('views/fields/attachment-multiple').default|import('views/fields/file').default} view
      */
@@ -34062,1068 +35311,10 @@ define("helpers/misc/attachment-insert-from-source", ["exports", "di", "metadata
         Espo.Ui.notify();
       });
     }
+    static #_ = _staticBlock = () => [_init_metadata, _init_extra_metadata, _init_modelFactory, _init_extra_modelFactory] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"], [(0, _di.inject)(_modelFactory.default), 0, "modelFactory"]]).e;
   }
   _exports.default = AttachmentInsertSourceFromHelper;
-});
-
-define("ui", ["exports", "marked", "dompurify", "jquery"], function (_exports, _marked, _dompurify, _jquery) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _dompurify = _interopRequireDefault(_dompurify);
-  _jquery = _interopRequireDefault(_jquery);
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module ui */
-
-  /**
-   * Dialog parameters.
-   *
-   * @typedef {Object} module:ui.Dialog~Params
-   *
-   * @property {string} [className='dialog'] A class-name or multiple space separated.
-   * @property {'static'|true|false} [backdrop='static'] A backdrop.
-   * @property {boolean} [closeButton=true] A close button.
-   * @property {boolean} [collapseButton=false] A collapse button.
-   * @property {string|null} [header] A header HTML.
-   * @property {string} [body] A body HTML.
-   * @property {number|null} [width] A width.
-   * @property {boolean} [removeOnClose=true] To remove on close.
-   * @property {boolean} [draggable=false] Is draggable.
-   * @property {function(): void} [onRemove] An on-remove callback.
-   * @property {function(): void} [onClose] An on-close callback.
-   * @property {function(): void} [onBackdropClick] An on-backdrop-click callback.
-   * @property {string} [container='body'] A container selector.
-   * @property {boolean} [keyboard=true] Enable a keyboard control. The `Esc` key closes a dialog.
-   * @property {boolean} [footerAtTheTop=false] To display a footer at the top.
-   * @property {module:ui.Dialog~Button[]} [buttonList] Buttons.
-   * @property {Array<module:ui.Dialog~Button|false>} [dropdownItemList] Dropdown action items.
-   * @property {boolean} [fullHeight] Deprecated.
-   * @property {Number} [bodyDiffHeight]
-   * @property {Number} [screenWidthXs]
-   * @property {boolean} [maximizeButton] Is maximizable.
-   * @property {function()} [onMaximize] On maximize handler.
-   * @property {function()} [onMinimize] On minimize handler.
-   * @property {string} [backdropClassName] A backdrop class name. As of v9.1.0.
-   */
-
-  /**
-   * A button or dropdown action item.
-   *
-   * @typedef {Object} module:ui.Dialog~Button
-   *
-   * @property {string} name A name.
-   * @property {boolean} [pullLeft=false] Deprecated. Use the `position` property.
-   * @property {'left'|'right'} [position='left'] A position.
-   * @property {string} [html] HTML.
-   * @property {string} [text] A text.
-   * @property {boolean} [disabled=false] Disabled.
-   * @property {boolean} [hidden=false] Hidden.
-   * @property {'default'|'danger'|'success'|'warning'} [style='default'] A style.
-   * @property {function(Espo.Ui.Dialog, JQueryEventObject): void} [onClick] An on-click callback.
-   * @property {string} [className] An additional class name.
-   * @property {string} [title] A title.
-   */
-
-  /**
-   * @type {Espo.Ui.Dialog[]}
-   */
-  const shownDialogList = [];
-
-  /**
-   * @alias Espo.Ui.Dialog
-   */
-  class Dialog {
-    height;
-    fitHeight;
-    onRemove;
-    onClose;
-    onBackdropClick;
-    buttons;
-    screenWidthXs;
-    backdropClassName;
-
-    /**
-     * @private
-     * @type {boolean}
-     */
-    maximizeButton = false;
-
-    /**
-     * @private
-     * @type {HTMLAnchorElement}
-     */
-    maximizeButtonElement;
-
-    /**
-     * @private
-     * @type {HTMLAnchorElement}
-     */
-    minimizeButtonElement;
-
-    /**
-     * @private
-     * @type {function()}
-     */
-    onMaximize;
-
-    /**
-     * @private
-     * @type {function()}
-     */
-    onMinimize;
-
-    /**
-     * @param {module:ui.Dialog~Params} options Options.
-     */
-    constructor(options) {
-      options = options || {};
-
-      /** @private */
-      this.className = 'dialog-confirm';
-      /** @private */
-      this.backdrop = 'static';
-      /** @private */
-      this.closeButton = true;
-      /** @private */
-      this.collapseButton = false;
-      /** @private */
-      this.header = null;
-      /** @private */
-      this.body = '';
-      /** @private */
-      this.width = null;
-      /**
-       * @private
-       * @type {module:ui.Dialog~Button[]}
-       */
-      this.buttonList = [];
-      /**
-       * @private
-       * @type {Array<module:ui.Dialog~Button|false>}
-       */
-      this.dropdownItemList = [];
-      /** @private */
-      this.removeOnClose = true;
-      /** @private */
-      this.draggable = false;
-      /** @private */
-      this.container = 'body';
-      /** @private */
-      this.options = options;
-      /** @private */
-      this.keyboard = true;
-      this.activeElement = document.activeElement;
-      const params = ['className', 'backdrop', 'keyboard', 'closeButton', 'collapseButton', 'header', 'body', 'width', 'height', 'fitHeight', 'buttons', 'buttonList', 'dropdownItemList', 'removeOnClose', 'draggable', 'container', 'onRemove', 'onClose', 'onBackdropClick', 'maximizeButton', 'backdropClassName'];
-      params.forEach(param => {
-        if (param in options) {
-          this[param] = options[param];
-        }
-      });
-      if (options.onMaximize) {
-        this.onMaximize = options.onMaximize;
-      }
-      if (options.onMinimize) {
-        this.onMinimize = options.onMinimize;
-      }
-
-      /** @private */
-      this.onCloseIsCalled = false;
-      if (this.buttons && this.buttons.length) {
-        /**
-         * @private
-         * @type {module:ui.Dialog~Button[]}
-         */
-        this.buttonList = this.buttons;
-      }
-      this.id = 'dialog-' + Math.floor(Math.random() * 100000);
-      if (typeof this.backdrop === 'undefined') {
-        /** @private */
-        this.backdrop = 'static';
-      }
-      const $header = this.getHeader();
-      const $footer = this.getFooter();
-      const $body = (0, _jquery.default)('<div>').addClass('modal-body body').html(this.body);
-      const $content = (0, _jquery.default)('<div>').addClass('modal-content');
-      if ($header) {
-        $content.append($header);
-      }
-      if ($footer && this.options.footerAtTheTop) {
-        $content.append($footer);
-      }
-      $content.append($body);
-      if ($footer && !this.options.footerAtTheTop) {
-        $content.append($footer);
-      }
-      const $dialog = (0, _jquery.default)('<div>').addClass('modal-dialog').append($content);
-      const $container = (0, _jquery.default)(this.container);
-      (0, _jquery.default)('<div>').attr('id', this.id).attr('class', this.className + ' modal').attr('role', 'dialog').attr('tabindex', '-1').append($dialog).appendTo($container);
-
-      /**
-       * An element.
-       *
-       * @type {JQuery}
-       */
-      this.$el = (0, _jquery.default)('#' + this.id);
-
-      /**
-       * @private
-       * @type {Element}
-       */
-      this.el = this.$el.get(0);
-      this.$el.find('header a.close').on('click', () => {
-        //this.close();
-      });
-      this.initButtonEvents();
-      if (this.draggable) {
-        this.$el.find('header').css('cursor', 'pointer');
-
-        // noinspection JSUnresolvedReference
-        this.$el.draggable({
-          handle: 'header'
-        });
-      }
-      const modalContentEl = this.$el.find('.modal-content');
-      if (this.width) {
-        modalContentEl.css('width', this.width);
-        modalContentEl.css('margin-left', '-' + parseInt(this.width.replace('px', '')) / 5 + 'px');
-      }
-      if (this.removeOnClose) {
-        this.$el.on('hidden.bs.modal', e => {
-          if (this.$el.get(0) === e.target) {
-            if (!this.onCloseIsCalled) {
-              this.close();
-            }
-            if (this.skipRemove) {
-              return;
-            }
-            this.remove();
-          }
-        });
-      }
-      const $window = (0, _jquery.default)(window);
-      this.$el.on('shown.bs.modal', () => {
-        (0, _jquery.default)('.modal-backdrop').not('.stacked').addClass('stacked');
-        const headerHeight = this.$el.find('.modal-header').outerHeight() || 0;
-        const footerHeight = this.$el.find('.modal-footer').outerHeight() || 0;
-        let diffHeight = headerHeight + footerHeight;
-        if (!options.fullHeight) {
-          diffHeight = diffHeight + options.bodyDiffHeight;
-        }
-        if (this.fitHeight || options.fullHeight) {
-          const processResize = () => {
-            const windowHeight = window.innerHeight;
-            const windowWidth = $window.width();
-            if (!options.fullHeight && windowHeight < 512) {
-              this.$el.find('div.modal-body').css({
-                maxHeight: 'none',
-                overflow: 'auto',
-                height: 'none'
-              });
-              return;
-            }
-            const cssParams = {
-              overflow: 'auto'
-            };
-            if (options.fullHeight) {
-              cssParams.height = windowHeight - diffHeight + 'px';
-              this.$el.css('paddingRight', 0);
-            } else {
-              if (windowWidth <= options.screenWidthXs) {
-                cssParams.maxHeight = 'none';
-              } else {
-                cssParams.maxHeight = windowHeight - diffHeight + 'px';
-              }
-            }
-            this.$el.find('div.modal-body').css(cssParams);
-          };
-          $window.off('resize.modal-height');
-          $window.on('resize.modal-height', processResize);
-          processResize();
-        }
-      });
-      const $documentBody = (0, _jquery.default)(document.body);
-      this.$el.on('hidden.bs.modal', () => {
-        if ((0, _jquery.default)('.modal:visible').length > 0) {
-          $documentBody.addClass('modal-open');
-        }
-      });
-    }
-
-    /**
-     * Get a general container element.
-     *
-     * @return {HTMLDivElement}
-     * @since 9.1.0
-     */
-    getElement() {
-      return this.el;
-    }
-
-    /**
-     * Update the header text.
-     *
-     * @param {string} text
-     * @since 9.1.0
-     */
-    setHeaderText(text) {
-      const element = this.el.querySelector('.modal-header .modal-title');
-      if (!element) {
-        return;
-      }
-      element.textContent = text;
-    }
-
-    /** @private */
-    callOnClose() {
-      if (this.onClose) {
-        this.onClose();
-      }
-    }
-
-    /** @private */
-    callOnBackdropClick() {
-      if (this.onBackdropClick) {
-        this.onBackdropClick();
-      }
-    }
-
-    /** @private */
-    callOnRemove() {
-      if (this.onRemove) {
-        this.onRemove();
-      }
-    }
-
-    /**
-     * Set action items.
-     *
-     * @param {module:ui.Dialog~Button[]} buttonList
-     * @param {Array<module:ui.Dialog~Button|false>} dropdownItemList
-     */
-    setActionItems(buttonList, dropdownItemList) {
-      this.buttonList = buttonList;
-      this.dropdownItemList = dropdownItemList;
-    }
-
-    /**
-     * Init button events.
-     */
-    initButtonEvents() {
-      this.buttonList.forEach(o => {
-        if (typeof o.onClick === 'function') {
-          const $button = (0, _jquery.default)('#' + this.id + ' .modal-footer button[data-name="' + o.name + '"]');
-          $button.on('click', e => o.onClick(this, e));
-        }
-      });
-      this.dropdownItemList.forEach(o => {
-        if (o === false) {
-          return;
-        }
-        if (typeof o.onClick === 'function') {
-          const $button = (0, _jquery.default)('#' + this.id + ' .modal-footer a[data-name="' + o.name + '"]');
-          $button.on('click', e => o.onClick(this, e));
-        }
-      });
-    }
-
-    /**
-     * @private
-     * @return {JQuery|null}
-     */
-    getHeader() {
-      if (!this.header) {
-        return null;
-      }
-      const $header = (0, _jquery.default)('<header />').addClass('modal-header').addClass(this.options.fixedHeaderHeight ? 'fixed-height' : '').append((0, _jquery.default)('<h4 />').addClass('modal-title').append((0, _jquery.default)('<span />').addClass('modal-title-text').html(this.header)));
-      if (this.collapseButton) {
-        $header.prepend((0, _jquery.default)('<a>').addClass('collapse-button').attr('role', 'button').attr('tabindex', '-1').attr('data-action', 'collapseModal').append((0, _jquery.default)('<span />').addClass('fas fa-minus')));
-      }
-      if (this.maximizeButton) {
-        {
-          const a = document.createElement('a');
-          a.classList.add('maximize-button');
-          a.role = 'button';
-          a.tabIndex = -1;
-          a.setAttribute('data-action', 'maximizeModal');
-          const icon = document.createElement('span');
-          icon.classList.add('far', 'fa-window-maximize');
-          a.append(icon);
-          $header.prepend(a);
-          this.maximizeButtonElement = a;
-          a.addEventListener('click', () => {
-            this.maximizeButtonElement.classList.add('hidden');
-            this.minimizeButtonElement.classList.remove('hidden');
-            this.el.querySelector('.modal-dialog').classList.add('maximized');
-            if (this.onMaximize) {
-              this.onMaximize();
-            }
-            this.getElement().focus();
-          });
-        }
-        {
-          const a = document.createElement('a');
-          a.classList.add('minimize-button', 'hidden');
-          a.role = 'button';
-          a.tabIndex = -1;
-          a.setAttribute('data-action', 'minimizeModal');
-          const icon = document.createElement('span');
-          icon.classList.add('far', 'fa-window-minimize');
-          a.append(icon);
-          $header.prepend(a);
-          this.minimizeButtonElement = a;
-          a.addEventListener('click', () => {
-            this.minimizeButtonElement.classList.add('hidden');
-            this.maximizeButtonElement.classList.remove('hidden');
-            this.el.querySelector('.modal-dialog').classList.remove('maximized');
-            if (this.onMinimize) {
-              this.onMinimize();
-            }
-            this.getElement().focus();
-          });
-        }
-      }
-      if (this.closeButton) {
-        $header.prepend((0, _jquery.default)('<a>').addClass('close').attr('data-dismiss', 'modal').attr('role', 'button').attr('tabindex', '-1').append((0, _jquery.default)('<span />').attr('aria-hidden', 'true').html('&times;')));
-      }
-      return $header;
-    }
-
-    /**
-     * Get a footer.
-     *
-     * @return {JQuery|null}
-     */
-    getFooter() {
-      if (!this.buttonList.length && !this.dropdownItemList.length) {
-        return null;
-      }
-      const $footer = (0, _jquery.default)('<footer>').addClass('modal-footer');
-      const $main = (0, _jquery.default)('<div>').addClass('btn-group').addClass('main-btn-group');
-      const $additional = (0, _jquery.default)('<div>').addClass('btn-group').addClass('additional-btn-group');
-      this.buttonList.forEach(/** module:ui.Dialog~Button */o => {
-        const style = o.style || 'default';
-        const $button = (0, _jquery.default)('<button>').attr('type', 'button').attr('data-name', o.name).addClass('btn').addClass('btn-' + style).addClass(o.className || 'btn-xs-wide');
-        if (o.disabled) {
-          $button.attr('disabled', 'disabled');
-          $button.addClass('disabled');
-        }
-        if (o.hidden) {
-          $button.addClass('hidden');
-        }
-        if (o.title) {
-          $button.attr('title', o.title);
-        }
-        if (o.text) {
-          $button.text(o.text);
-        }
-        if (o.html) {
-          $button.html(o.html);
-        }
-        if (o.pullLeft || o.position === 'right') {
-          $additional.append($button);
-          return;
-        }
-        $main.append($button);
-      });
-      const allDdItemsHidden = this.dropdownItemList.filter(o => o && !o.hidden).length === 0;
-      const $dropdown = (0, _jquery.default)('<div>').addClass('btn-group').addClass(allDdItemsHidden ? 'hidden' : '').append((0, _jquery.default)('<button>').attr('type', 'button').addClass('btn btn-default dropdown-toggle').addClass(allDdItemsHidden ? 'hidden' : '').attr('data-toggle', 'dropdown').append((0, _jquery.default)('<span>').addClass('fas fa-ellipsis-h')));
-      const $ul = (0, _jquery.default)('<ul>').addClass('dropdown-menu pull-right');
-      $dropdown.append($ul);
-      this.dropdownItemList.forEach((o, i) => {
-        if (o === false) {
-          if (i === this.dropdownItemList.length - 1) {
-            return;
-          }
-          $ul.append(`<li class="divider"></li>`);
-          return;
-        }
-        const $a = (0, _jquery.default)('<a>').attr('role', 'button').attr('tabindex', '0').attr('data-name', o.name);
-        if (o.text) {
-          $a.text(o.text);
-        }
-        if (o.title) {
-          $a.attr('title', o.title);
-        }
-        if (o.html) {
-          $a.html(o.html);
-        }
-        const $li = (0, _jquery.default)('<li>').addClass(o.hidden ? ' hidden' : '').append($a);
-        $ul.append($li);
-      });
-      if ($ul.children().length) {
-        $main.append($dropdown);
-      }
-      if ($additional.children().length) {
-        $footer.append($additional);
-      }
-      $footer.append($main);
-      return $footer;
-    }
-
-    /**
-     * @internal
-     * @type {HTMLElement}
-     */
-    _backdropElement;
-
-    /**
-     * Show.
-     */
-    show() {
-      shownDialogList.push(this);
-
-      // noinspection JSUnresolvedReference,JSUnusedGlobalSymbols
-      this.$el.modal({
-        backdrop: this.backdrop,
-        keyboard: this.keyboard,
-        onBackdropCreate: element => {
-          this._backdropElement = element;
-          if (this.backdropClassName) {
-            this._backdropElement.classList.add(this.backdropClassName);
-          }
-        }
-      });
-      this.$el.find('.modal-content').removeClass('hidden');
-      for (const [i, dialog] of shownDialogList.entries()) {
-        if (i < shownDialogList.length - 1 && dialog.getElement() && dialog.getElement().parentElement) {
-          if (dialog._backdropElement) {
-            dialog._backdropElement.classList.add('hidden');
-          }
-          dialog.getElement().parentElement.classList.add('overlaid');
-        }
-      }
-      this.$el.off('click.dismiss.bs.modal');
-      this.$el.on('click.dismiss.bs.modal', '> div.modal-dialog > div.modal-content > header [data-dismiss="modal"]', () => this.close());
-      this.$el.on('mousedown', e => {
-        this.$mouseDownTarget = (0, _jquery.default)(e.target);
-      });
-      this.$el.on('click.dismiss.bs.modal', e => {
-        if (e.target !== e.currentTarget) {
-          return;
-        }
-        if (this.$mouseDownTarget && this.$mouseDownTarget.closest('.modal-content').length) {
-          return;
-        }
-        this.callOnBackdropClick();
-        if (this.backdrop === 'static') {
-          return;
-        }
-        this.close();
-      });
-      (0, _jquery.default)('body > .popover').addClass('hidden');
-    }
-
-    /**
-     * Hide.
-     *
-     * @todo Check usage. Deprecate?
-     */
-    hide() {
-      this.$el.find('.modal-content').addClass('hidden');
-    }
-
-    /**
-     * Hide with a backdrop.
-     */
-    hideWithBackdrop() {
-      if (this._backdropElement) {
-        this._backdropElement.classList.add('hidden');
-      }
-      this._hideInternal();
-      this.skipRemove = true;
-      setTimeout(() => this.skipRemove = false, 50);
-
-      // noinspection JSUnresolvedReference
-      this.$el.modal('hide');
-      this.$el.find('.modal-content').addClass('hidden');
-    }
-
-    /**
-     * @private
-     */
-    _hideInternal() {
-      const findIndex = shownDialogList.findIndex(it => it === this);
-      if (findIndex >= 0) {
-        shownDialogList.splice(findIndex, 1);
-      }
-      const last = shownDialogList[shownDialogList.length - 1];
-      if (last && last._backdropElement) {
-        last._backdropElement.classList.remove('hidden');
-      }
-      if (last && last.getElement() && last.getElement().parentElement) {
-        last.getElement().parentElement.classList.remove('overlaid');
-      }
-    }
-
-    /**
-     * @private
-     */
-    _close() {
-      this._hideInternal();
-    }
-
-    /**
-     * @private
-     * @param {Element} element
-     * @return {Element|null}
-     */
-    _findClosestFocusableElement(element) {
-      // noinspection JSUnresolvedReference
-      const isVisible = !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
-      if (isVisible) {
-        // noinspection JSUnresolvedReference
-        element.focus({
-          preventScroll: true
-        });
-        return element;
-      }
-      const $element = (0, _jquery.default)(element);
-      if ($element.closest('.dropdown-menu').length) {
-        const $button = $element.closest('.btn-group').find(`[data-toggle="dropdown"]`);
-        if ($button.length) {
-          // noinspection JSUnresolvedReference
-          $button.get(0).focus({
-            preventScroll: true
-          });
-          return $button.get(0);
-        }
-      }
-      return null;
-    }
-
-    /**
-     * Close.
-     */
-    close() {
-      if (!this.onCloseIsCalled) {
-        this.callOnClose();
-        this.onCloseIsCalled = true;
-        if (this.activeElement) {
-          setTimeout(() => {
-            const element = this._findClosestFocusableElement(this.activeElement);
-            if (element) {
-              // noinspection JSUnresolvedReference
-              element.focus({
-                preventScroll: true
-              });
-            }
-          }, 50);
-        }
-      }
-      this._close();
-      // noinspection JSUnresolvedReference
-      this.$el.modal('hide');
-      (0, _jquery.default)(this).trigger('dialog:close');
-    }
-
-    /**
-     * Remove.
-     */
-    remove() {
-      this.callOnRemove();
-
-      // Hack allowing multiple backdrops.
-      // `close` function may be called twice.
-      this._close();
-      this.$el.remove();
-      (0, _jquery.default)(this).off();
-      (0, _jquery.default)(window).off('resize.modal-height');
-    }
-  }
-
-  /**
-   * UI utils.
-   */
-  Espo.Ui = {
-    Dialog: Dialog,
-    /**
-     * @typedef {Object} Espo.Ui~ConfirmOptions
-     *
-     * @property {string} confirmText A confirm-button text.
-     * @property {string} cancelText A cancel-button text.
-     * @property {'danger'|'success'|'warning'|'default'} [confirmStyle='danger']
-     *   A confirm-button style.
-     * @property {'static'|boolean} [backdrop=false] A backdrop.
-     * @property {function():void} [cancelCallback] A cancel-callback.
-     * @property {boolean} [isHtml=false] Whether the message is HTML.
-     */
-
-    /**
-     * Show a confirmation dialog.
-     *
-     * @param {string} message A message.
-     * @param {Espo.Ui~ConfirmOptions|{}} o Options.
-     * @param {function} [callback] Deprecated. Use a promise.
-     * @param {Object} [context] Deprecated.
-     * @returns {Promise} Resolves if confirmed.
-     */
-    confirm: function (message, o, callback, context) {
-      o = o || {};
-      const confirmText = o.confirmText;
-      const cancelText = o.cancelText;
-      const confirmStyle = o.confirmStyle || 'danger';
-      let backdrop = o.backdrop;
-      if (typeof backdrop === 'undefined') {
-        backdrop = false;
-      }
-      let isResolved = false;
-      const processCancel = () => {
-        if (!o.cancelCallback) {
-          return;
-        }
-        if (context) {
-          o.cancelCallback.call(context);
-          return;
-        }
-        o.cancelCallback();
-      };
-      if (!o.isHtml) {
-        message = Handlebars.Utils.escapeExpression(message);
-      }
-      return new Promise(resolve => {
-        const dialog = new Dialog({
-          backdrop: backdrop,
-          header: null,
-          className: 'dialog-confirm',
-          backdropClassName: 'backdrop-confirm',
-          body: '<span class="confirm-message">' + message + '</a>',
-          buttonList: [{
-            text: ' ' + confirmText + ' ',
-            name: 'confirm',
-            className: 'btn-s-wide',
-            onClick: () => {
-              isResolved = true;
-              if (callback) {
-                if (context) {
-                  callback.call(context);
-                } else {
-                  callback();
-                }
-              }
-              resolve();
-              dialog.close();
-            },
-            style: confirmStyle,
-            position: 'right'
-          }, {
-            text: cancelText,
-            name: 'cancel',
-            className: 'btn-s-wide',
-            onClick: () => {
-              isResolved = true;
-              dialog.close();
-              processCancel();
-            },
-            position: 'left'
-          }],
-          onClose: () => {
-            if (isResolved) {
-              return;
-            }
-            processCancel();
-          }
-        });
-        dialog.show();
-        dialog.$el.find('button[data-name="confirm"]').focus();
-      });
-    },
-    /**
-     * Create a dialog.
-     *
-     * @param {module:ui.Dialog~Params} options Options.
-     * @returns {Dialog}
-     */
-    dialog: function (options) {
-      return new Dialog(options);
-    },
-    /**
-     * Popover options.
-     *
-     * @typedef {Object} Espo.Ui~PopoverOptions
-     *
-     * @property {'bottom'|'top'|'left'|'right'} [placement='bottom'] A placement.
-     * @property {string|JQuery} [container] A container selector.
-     * @property {string} [content] An HTML content.
-     * @property {string} [text] A text.
-     * @property {'manual'|'click'|'hover'|'focus'} [trigger='manual'] A trigger type.
-     * @property {boolean} [noToggleInit=false] Skip init toggle on click.
-     * @property {boolean} [preventDestroyOnRender=false] Don't destroy on re-render.
-     * @property {boolean} [noHideOnOutsideClick=false] Don't hide on clicking outside.
-     * @property {function(): void} [onShow] On-show callback.
-     * @property {function(): void} [onHide] On-hide callback.
-     * @property {string|function(): string} [title] A title text.
-     * @property {boolean} [keepElementTitle] Keep an original element's title.
-     */
-
-    /**
-     * Init a popover.
-     *
-     * @param {Element|JQuery} element An element.
-     * @param {Espo.Ui~PopoverOptions} o Options.
-     * @param {module:view} [view] A view.
-     * @return {{
-     *     hide: function(),
-     *     destroy: function(),
-     *     show: function(): string,
-     *     detach: function(),
-     * }}
-     */
-    popover: function (element, o, view) {
-      const $el = (0, _jquery.default)(element);
-      const $body = (0, _jquery.default)('body');
-      const content = o.content || Handlebars.Utils.escapeExpression(o.text || '');
-      let isShown = false;
-      let container = o.container;
-      if (!container) {
-        const $modalBody = $el.closest('.modal-body');
-        container = $modalBody.length ? $modalBody : 'body';
-      }
-
-      // noinspection JSUnresolvedReference
-      $el.popover({
-        placement: o.placement || 'bottom',
-        container: container,
-        viewport: container,
-        html: true,
-        content: content,
-        trigger: o.trigger || 'manual',
-        title: o.title,
-        keepElementTitle: o.keepElementTitle
-      }).on('shown.bs.popover', () => {
-        isShown = true;
-        if (!view) {
-          return;
-        }
-        if (view && !o.noHideOnOutsideClick) {
-          $body.off(`click.popover-${view.cid}`);
-          $body.on(`click.popover-${view.cid}`, e => {
-            if ((0, _jquery.default)(e.target).closest('.popover').get(0)) {
-              return;
-            }
-            if (_jquery.default.contains($el.get(0), e.target)) {
-              return;
-            }
-            if ($el.get(0) === e.target) {
-              return;
-            }
-            $body.off(`click.popover-${view.cid}`);
-            // noinspection JSUnresolvedReference
-            $el.popover('hide');
-          });
-        }
-        if (o.onShow) {
-          o.onShow();
-        }
-      }).on('hidden.bs.popover', () => {
-        isShown = false;
-        if (o.onHide) {
-          o.onHide();
-        }
-      });
-      if (!o.noToggleInit) {
-        $el.on('click', () => {
-          // noinspection JSUnresolvedReference
-          $el.popover('toggle');
-        });
-      }
-      let isDetached = false;
-      const detach = () => {
-        if (view) {
-          $body.off(`click.popover-${view.cid}`);
-          view.off('remove', destroy);
-          view.off('render', destroy);
-          view.off('render', hide);
-        }
-        isDetached = true;
-      };
-      const destroy = () => {
-        if (isDetached) {
-          return;
-        }
-
-        // noinspection JSUnresolvedReference
-        $el.popover('destroy');
-        detach();
-      };
-      const hide = () => {
-        if (!isShown) {
-          return;
-        }
-
-        // noinspection JSUnresolvedReference
-        $el.popover('hide');
-      };
-      const show = () => {
-        // noinspection JSUnresolvedReference
-        $el.popover('show');
-        return $el.attr('aria-describedby');
-      };
-      if (view) {
-        view.once('remove', destroy);
-        if (!o.preventDestroyOnRender) {
-          view.once('render', destroy);
-        }
-        if (o.preventDestroyOnRender) {
-          view.on('render', hide);
-        }
-      }
-      return {
-        hide: () => hide(),
-        destroy: () => destroy(),
-        show: () => show(),
-        detach: () => detach()
-      };
-    },
-    /**
-     * Notify options.
-     *
-     * @typedef {Object} Espo.Ui~NotifyOptions
-     * @property {boolean} [closeButton] A close button.
-     * @property {boolean} [suppress] Suppress other warning alerts while this is displayed.
-     */
-
-    /**
-     * Show the spinner.
-     *
-     * @since 9.1.0
-     */
-    notifyWait: function () {
-      Espo.Ui.notify(' ... ');
-    },
-    /**
-     * Show a notify-message.
-     *
-     * @param {string|false} [message=false] A message. False removes an already displayed message.
-     * @param {'warning'|'danger'|'success'|'info'} [type='warning'] A type.
-     * @param {number} [timeout] Microseconds. If empty, then won't be hidden.
-     *   Should be hidden manually or by displaying another message.
-     * @param {Espo.Ui~NotifyOptions} [options] Options.
-     */
-    notify: function (message, type, timeout, options) {
-      type = type || 'warning';
-      options = {
-        ...options
-      };
-      if (type === 'warning' && notifySuppressed) {
-        return;
-      }
-      (0, _jquery.default)('#notification').remove();
-      if (!message) {
-        return;
-      }
-      if (options.suppress && timeout) {
-        notifySuppressed = true;
-        setTimeout(() => notifySuppressed = false, timeout);
-      }
-      const parsedMessage = message.indexOf('\n') !== -1 ? _marked.marked.parse(message) : _marked.marked.parseInline(message);
-      let sanitizedMessage = _dompurify.default.sanitize(parsedMessage, {}).toString();
-      const closeButton = options.closeButton || false;
-      if (type === 'error') {
-        // For bc.
-        type = 'danger';
-      }
-      if (sanitizedMessage === ' ... ') {
-        sanitizedMessage = ' <span class="fas fa-spinner fa-spin"> ';
-      }
-      const additionalClassName = closeButton ? ' alert-closable' : '';
-      const $el = (0, _jquery.default)('<div>').addClass('alert alert-' + type + additionalClassName + ' fade in').attr('id', 'notification').css({
-        'position': 'fixed',
-        'top': '0',
-        'left': '50vw',
-        'transform': 'translate(-50%, 0)',
-        'z-index': 2000
-      }).append((0, _jquery.default)('<div>').addClass('message').html(sanitizedMessage));
-      if (closeButton) {
-        const $close = (0, _jquery.default)('<button>').attr('type', 'button').attr('data-dismiss', 'modal').attr('aria-hidden', 'true').addClass('close').html(`<span class="fas fa-times"></span>`);
-        $el.append((0, _jquery.default)('<div>').addClass('close-container').append($close));
-        $close.on('click', () => $el.alert('close'));
-      }
-      if (timeout) {
-        setTimeout(() => $el.alert('close'), timeout);
-      }
-      $el.appendTo('body');
-    },
-    /**
-     * Show a warning message.
-     *
-     * @param {string} message A message.
-     * @param {Espo.Ui~NotifyOptions} [options] Options.
-     */
-    warning: function (message, options) {
-      Espo.Ui.notify(message, 'warning', 2000, options);
-    },
-    /**
-     * Show a success message.
-     *
-     * @param {string} message A message.
-     * @param {Espo.Ui~NotifyOptions} [options] Options.
-     */
-    success: function (message, options) {
-      Espo.Ui.notify(message, 'success', 2000, options);
-    },
-    /**
-     * Show an error message.
-     *
-     * @param {string} message A message.
-     * @param {Espo.Ui~NotifyOptions|true} [options] Options. If true, then only closeButton option will be applied.
-     */
-    error: function (message, options) {
-      options = typeof options === 'boolean' ? {
-        closeButton: options
-      } : {
-        ...options
-      };
-      const timeout = options.closeButton ? 0 : 4000;
-      Espo.Ui.notify(message, 'danger', timeout, options);
-    },
-    /**
-     * Show an info message.
-     *
-     * @param {string} message A message.
-     * @param {Espo.Ui~NotifyOptions} [options] Options.
-     */
-    info: function (message, options) {
-      Espo.Ui.notify(message, 'info', 2000, options);
-    }
-  };
-  let notifySuppressed = false;
-
-  /**
-   * @deprecated Use `Espo.Ui`.
-   */
-  Espo.ui = Espo.Ui;
-  var _default = _exports.default = Espo.Ui;
+  _staticBlock();
 });
 
 define("theme-manager", ["exports"], function (_exports) {
@@ -35137,7 +35328,7 @@ define("theme-manager", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -35421,7 +35612,7 @@ define("session-storage", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -35543,7 +35734,7 @@ define("page-title", ["exports", "jquery"], function (_exports, _jquery) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -35648,7 +35839,7 @@ define("number-util", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -35850,12 +36041,13 @@ define("email-helper", ["exports", "di", "language", "models/user", "date-time",
   _user = _interopRequireDefault(_user);
   _dateTime = _interopRequireDefault(_dateTime);
   _aclManager = _interopRequireDefault(_aclManager);
+  var _staticBlock;
   let _init_language, _init_extra_language, _init_user, _init_extra_user, _init_dateTime, _init_extra_dateTime, _init_acl, _init_extra_acl;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -35880,7 +36072,7 @@ define("email-helper", ["exports", "di", "language", "models/user", "date-time",
    ************************************************************************/
   /** @module email-helper */
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -35889,7 +36081,6 @@ define("email-helper", ["exports", "di", "language", "models/user", "date-time",
    * An email helper.
    */
   class EmailHelper {
-    static #_ = [_init_language, _init_extra_language, _init_user, _init_extra_user, _init_dateTime, _init_extra_dateTime, _init_acl, _init_extra_acl] = _applyDecs(this, [], [[(0, _di.inject)(_language.default), 0, "language"], [(0, _di.inject)(_user.default), 0, "user"], [(0, _di.inject)(_dateTime.default), 0, "dateTime"], [(0, _di.inject)(_aclManager.default), 0, "acl"]]).e;
     /**
      * @private
      * @type {Language}
@@ -36237,7 +36428,9 @@ define("email-helper", ["exports", "di", "language", "models/user", "date-time",
       attributes['body'] = bodyPlain;
       attributes['bodyPlain'] = bodyPlain;
     }
+    static #_ = _staticBlock = () => [_init_language, _init_extra_language, _init_user, _init_extra_user, _init_dateTime, _init_extra_dateTime, _init_acl, _init_extra_acl] = _applyDecs(this, [], [[(0, _di.inject)(_language.default), 0, "language"], [(0, _di.inject)(_user.default), 0, "user"], [(0, _di.inject)(_dateTime.default), 0, "dateTime"], [(0, _di.inject)(_aclManager.default), 0, "acl"]]).e;
   }
+  _staticBlock();
   var _default = _exports.default = EmailHelper;
 });
 
@@ -36255,7 +36448,7 @@ define("collection", ["exports", "model", "bullbone", "underscore"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -37314,7 +37507,7 @@ define("collection-factory", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -37407,7 +37600,7 @@ define("cache", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -37610,7 +37803,7 @@ define("broadcast-channel", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -37688,7 +37881,7 @@ define("app-params", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -37752,8 +37945,8 @@ define("app-params", ["exports"], function (_exports) {
      */
     async load() {
       /** @type {module:app~UserData} */
-      const data = await Espo.Ajax.getRequest('App/user');
-      this.params = data.appParams;
+      const data = await Espo.Ajax.getRequest('App/appParams');
+      this.params = data;
     }
   }
   _exports.default = AppParams;
@@ -37773,7 +37966,7 @@ define("ajax", ["exports", "jquery", "utils"], function (_exports, _jquery, _uti
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -38102,12 +38295,13 @@ define("acl-portal", ["exports", "acl", "di", "metadata"], function (_exports, _
   _exports.default = void 0;
   _acl = _interopRequireDefault(_acl);
   _metadata = _interopRequireDefault(_metadata);
+  var _staticBlock;
   let _init_metadata, _init_extra_metadata;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -38132,7 +38326,7 @@ define("acl-portal", ["exports", "acl", "di", "metadata"], function (_exports, _
    ************************************************************************/
   /** @module acl-portal */
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -38142,7 +38336,6 @@ define("acl-portal", ["exports", "acl", "di", "metadata"], function (_exports, _
    * for a specific scope.
    */
   class AclPortal extends _acl.default {
-    static #_ = [_init_metadata, _init_extra_metadata] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"]], 0, void 0, _acl.default).e;
     constructor() {
       super(...arguments);
       _init_extra_metadata(this);
@@ -38408,7 +38601,9 @@ define("acl-portal", ["exports", "acl", "di", "metadata"], function (_exports, _
       }
       return result;
     }
+    static #_ = _staticBlock = () => [_init_metadata, _init_extra_metadata] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"]], 0, void 0, _acl.default).e;
   }
+  _staticBlock();
   var _default = _exports.default = AclPortal;
 });
 
@@ -38428,7 +38623,7 @@ define("views/list", ["exports", "views/main", "search-manager", "helpers/record
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -39305,7 +39500,7 @@ define("views/detail", ["exports", "views/main", "views/detail/modes"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -39971,7 +40166,7 @@ define("views/collapsed-modal-bar", ["exports", "view", "views/collapsed-modal"]
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -40177,7 +40372,7 @@ define("views/stream/note", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -40397,7 +40592,7 @@ define("views/stream/record/list", ["exports", "views/record/list-expanded"], fu
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -40658,7 +40853,7 @@ define("views/stream/record/row-actions/reactions/reactions", ["exports", "view"
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -40724,7 +40919,7 @@ define("views/stream/record/row-actions/reactions/reactions", ["exports", "view"
   _exports.default = ReactionsRowActionView;
 });
 
-define("views/record/search", ["exports", "view", "helpers/misc/stored-text-search", "ui/autocomplete"], function (_exports, _view, _storedTextSearch, _autocomplete) {
+define("views/record/search", ["exports", "view", "helpers/misc/stored-text-search", "ui/autocomplete", "views/search/filter"], function (_exports, _view, _storedTextSearch, _autocomplete, _filter) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -40734,12 +40929,13 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
   _view = _interopRequireDefault(_view);
   _storedTextSearch = _interopRequireDefault(_storedTextSearch);
   _autocomplete = _interopRequireDefault(_autocomplete);
+  _filter = _interopRequireDefault(_filter);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -40767,6 +40963,7 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
 
   /**
    * @typedef {Object} module:views/record/search~boolFilterDefs
+   * @property {string} [name]
    * @property {boolean} [inPortalDisabled]
    * @property {boolean} [isPortalOnly]
    * @property {boolean} [aux]
@@ -40855,7 +41052,10 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
       this.addReadyCondition(() => {
         return this.fieldFilterList !== null;
       });
-      this.boolFilterList = Espo.Utils.clone(this.getMetadata().get(['clientDefs', this.scope, 'boolFilterList']) || []).filter(/** module:views/record/search~boolFilterDefs|string */item => {
+
+      /** @type {Array<module:views/record/search~boolFilterDefs|string>} */
+      const boolFilterList = this.getMetadata().get(['clientDefs', this.scope, 'boolFilterList']) ?? [];
+      this.boolFilterList = boolFilterList.filter(item => {
         if (typeof item === 'string') {
           return true;
         }
@@ -40879,7 +41079,7 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
         if (typeof item === 'string') {
           return item;
         }
-        item = item || {};
+        item = item ?? {};
         return item.name;
       });
       this.fieldFilterTranslations = {};
@@ -41553,44 +41753,41 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
      * @param {SearchView~createFilterCallback} callback
      * @param {boolean} [noRender]
      */
-    createFilter(name, params, callback, noRender) {
+    async createFilter(name, params, callback, noRender) {
       params = params || {};
       let rendered = false;
       if (this.isRendered()) {
         rendered = true;
-        this.$advancedFiltersPanel.append('<div data-name="' + name + '" class="filter filter-' + name + '" />');
+        this.$advancedFiltersPanel.append(`<div data-name="${name}" class="filter filter-${name}" />`);
       }
-      this.createView('filter-' + name, 'views/search/filter', {
+      const view = new _filter.default({
         name: name,
         model: this.model,
-        params: params,
-        selector: '.filter[data-name="' + name + '"]'
-      }, view => {
-        if (typeof callback === 'function') {
-          view.once('after:render', () => {
-            callback(view);
-          });
-        }
-        if (rendered && !noRender) {
-          view.render();
-        }
-        this.listenTo(view, 'change', () => {
-          let toShowApply = this.isSearchedWithAdvancedFilter;
-          if (!toShowApply) {
-            const data = view.getView('field').fetchSearch();
-            if (data) {
-              toShowApply = true;
-            }
+        params: params
+      });
+      await this.assignView(`filter-${name}`, view, `.filter[data-name="${name}"]`);
+      if (typeof callback === 'function') {
+        view.once('after:render', () => callback(view));
+      }
+      if (rendered && !noRender) {
+        view.render().then(() => {});
+      }
+      this.listenTo(view, 'change', () => {
+        let toShowApply = this.isSearchedWithAdvancedFilter;
+        if (!toShowApply) {
+          const data = view.getFieldView().fetchSearch();
+          if (data) {
+            toShowApply = true;
           }
-          if (!toShowApply) {
-            return;
-          }
-          this.showApplyFiltersButton();
-        });
-        this.listenTo(view, 'search', () => {
-          this.search();
-          this.hideApplyFiltersButton();
-        });
+        }
+        if (!toShowApply) {
+          return;
+        }
+        this.showApplyFiltersButton();
+      });
+      this.listenTo(view, 'search', () => {
+        this.search();
+        this.hideApplyFiltersButton();
       });
     }
     fetch() {
@@ -41751,7 +41948,7 @@ define("views/record/detail-side", ["exports", "views/record/panels-container"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -41990,7 +42187,7 @@ define("views/record/row-actions/default", ["exports", "view"], function (_expor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -42275,7 +42472,7 @@ define("views/record/panels/side", ["exports", "view"], function (_exports, _vie
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -42656,12 +42853,13 @@ define("views/record/panels/relationship", ["exports", "views/record/panels/bott
   _createRelated = _interopRequireDefault(_createRelated);
   _selectRelated = _interopRequireDefault(_selectRelated);
   _webSocketManager = _interopRequireDefault(_webSocketManager);
+  var _staticBlock;
   let _init_webSocketManager, _init_extra_webSocketManager;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -42686,7 +42884,7 @@ define("views/record/panels/relationship", ["exports", "views/record/panels/bott
    ************************************************************************/
   /** @module views/record/panels/relationship */
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -42697,7 +42895,6 @@ define("views/record/panels/relationship", ["exports", "views/record/panels/bott
    * @property {Object} defs
    */
   class RelationshipPanelView extends _bottom.default {
-    static #_ = [_init_webSocketManager, _init_extra_webSocketManager] = _applyDecs(this, [], [[(0, _di.inject)(_webSocketManager.default), 0, "webSocketManager"]], 0, void 0, _bottom.default).e;
     constructor() {
       super(...arguments);
       _init_extra_webSocketManager(this);
@@ -42849,6 +43046,7 @@ define("views/record/panels/relationship", ["exports", "views/record/panels/bott
       if (this.defs.viewDisabled) {
         this.defs.view = false;
       }
+      const unlinkDisabled = this.defs.unlinkDisabled || this.model.getLinkParam(this.link, 'readOnly');
       let hasCreate = false;
       if (this.defs.create) {
         if (this.getAcl().check(this.entityType, 'create') && !~this.noCreateScopeList.indexOf(this.entityType)) {
@@ -42949,8 +43147,9 @@ define("views/record/panels/relationship", ["exports", "views/record/panels/bott
         const viewName = this.defs.recordListView || this.getMetadata().get(['clientDefs', this.entityType, 'recordViews', 'listRelated']) || this.getMetadata().get(['clientDefs', this.entityType, 'recordViews', 'list']) || 'views/record/list';
         this.listViewName = viewName;
         this.rowActionsView = this.defs.readOnly ? false : this.defs.rowActionsView || this.rowActionsView;
-        this.once('after:render', () => {
-          this.createView('list', viewName, {
+        this.once('after:render', async () => {
+          const view = /** @type {import('views/record/list').default} */
+          await this.createView('list', viewName, {
             collection: collection,
             layoutName: layoutName,
             listLayout: listLayout,
@@ -42960,31 +43159,29 @@ define("views/record/panels/relationship", ["exports", "views/record/panels/bott
             selector: '.list-container',
             skipBuildRows: true,
             rowActionsOptions: {
-              unlinkDisabled: this.defs.unlinkDisabled,
+              unlinkDisabled: unlinkDisabled,
               editDisabled: this.defs.editDisabled,
               removeDisabled: this.defs.removeDisabled
             },
             displayTotalCount: false,
             additionalRowActionList: this.defs.rowActionList
-          }, view => {
-            view.getSelectAttributeList(selectAttributeList => {
-              if (selectAttributeList) {
-                if (this.defs.mandatoryAttributeList) {
-                  selectAttributeList = [...selectAttributeList, ...this.defs.mandatoryAttributeList];
-                  selectAttributeList = selectAttributeList.filter((it, i) => selectAttributeList.indexOf(it) === i);
-                }
-                collection.data.select = selectAttributeList.join(',');
-              }
-              if (!this.defs.hidden) {
-                collection.fetch();
-                return;
-              }
-              this.once('show', () => collection.fetch());
-            });
-            if (this.defs.syncBackWithModel) {
-              this.listenTo(view, 'after:save after:delete', () => this.processSyncBack());
-            }
           });
+          let selectAttributeList = await view.getSelectAttributeList();
+          if (selectAttributeList) {
+            if (this.defs.mandatoryAttributeList) {
+              selectAttributeList = [...selectAttributeList, ...this.defs.mandatoryAttributeList];
+              selectAttributeList = selectAttributeList.filter((it, i) => selectAttributeList.indexOf(it) === i);
+            }
+            collection.data.select = selectAttributeList.join(',');
+          }
+          if (!this.defs.hidden) {
+            collection.fetch();
+            return;
+          }
+          this.once('show', () => collection.fetch());
+          if (this.defs.syncBackWithModel) {
+            this.listenTo(view, 'after:save after:delete', () => this.processSyncBack());
+          }
         });
         this.wait(false);
       });
@@ -43451,7 +43648,9 @@ define("views/record/panels/relationship", ["exports", "views/record/panels/bott
       }
       this.defs.create = false;
     }
+    static #_ = _staticBlock = () => [_init_webSocketManager, _init_extra_webSocketManager] = _applyDecs(this, [], [[(0, _di.inject)(_webSocketManager.default), 0, "webSocketManager"]], 0, void 0, _bottom.default).e;
   }
+  _staticBlock();
   var _default = _exports.default = RelationshipPanelView;
 });
 
@@ -43468,7 +43667,7 @@ define("views/note/fields/post", ["exports", "views/fields/text", "@textcomplete
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -43749,7 +43948,7 @@ define("views/fields/user", ["exports", "views/fields/link", "ui/autocomplete"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -43934,7 +44133,7 @@ define("views/fields/range-int", ["exports", "views/fields/base", "views/fields/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -44162,7 +44361,7 @@ define("views/fields/link-multiple", ["exports", "views/fields/base", "helpers/r
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -45260,7 +45459,7 @@ define("views/fields/foreign-enum", ["exports", "views/fields/enum", "helpers/mi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -45342,7 +45541,7 @@ define("views/fields/file", ["exports", "views/fields/link", "helpers/file-uploa
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -45897,7 +46096,7 @@ define("views/fields/datetime", ["exports", "views/fields/date", "moment"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -46169,7 +46368,7 @@ define("views/fields/currency", ["exports", "views/fields/float", "ui/select"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -46447,7 +46646,7 @@ define("views/fields/bool", ["exports", "views/fields/base", "ui/select"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -46528,8 +46727,9 @@ define("views/fields/bool", ["exports", "views/fields/base", "ui/select"], funct
       }
     }
     fetch() {
-      // noinspection JSUnresolvedReference
-      const value = this.$element.get(0).checked;
+      const element = /** @type {HTMLInputElement|null} */
+      this.mainInputElement;
+      const value = element === null || element === void 0 ? void 0 : element.checked;
       const data = {};
       data[this.name] = value;
       return data;
@@ -46583,7 +46783,7 @@ define("views/fields/attachment-multiple", ["exports", "views/fields/base", "hel
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -47324,7 +47524,7 @@ define("views/fields/array", ["exports", "views/fields/base", "helpers/reg-exp-p
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -48234,7 +48434,7 @@ define("views/email/record/detail", ["exports", "views/record/detail"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -48848,7 +49048,7 @@ define("views/email/fields/email-address", ["exports", "views/fields/base", "ui/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -48971,7 +49171,7 @@ define("views/email/fields/body", ["exports", "views/fields/wysiwyg"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -49193,7 +49393,7 @@ define("views/dashlets/abstract/base", ["exports", "view"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -49499,7 +49699,7 @@ define("views/attachment/modals/select-one", ["exports", "views/modal"], functio
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -49580,7 +49780,7 @@ define("ui/app-init", ["exports", "jquery"], function (_exports, _jquery) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -49730,7 +49930,7 @@ define("helpers/site/tabs", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -49928,12 +50128,13 @@ define("helpers/misc/reactions", ["exports", "di", "models/settings", "metadata"
   _exports.default = void 0;
   _settings = _interopRequireDefault(_settings);
   _metadata = _interopRequireDefault(_metadata);
+  var _staticBlock;
   let _initClass, _init_config, _init_extra_config, _init_metadata, _init_extra_metadata;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -49957,17 +50158,13 @@ define("helpers/misc/reactions", ["exports", "di", "models/settings", "metadata"
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
   function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
   let _ReactionsHelper;
   class ReactionsHelper {
-    static #_ = {
-      e: [_init_config, _init_extra_config, _init_metadata, _init_extra_metadata],
-      c: [_ReactionsHelper, _initClass]
-    } = _applyDecs(this, [(0, _di.register)()], [[(0, _di.inject)(_settings.default), 0, "config"], [(0, _di.inject)(_metadata.default), 0, "metadata"]]);
     /**
      * @type Settings
      */
@@ -50018,8 +50215,12 @@ define("helpers/misc/reactions", ["exports", "di", "models/settings", "metadata"
       }
       return item.iconClass;
     }
-    static #_2 = _initClass();
+    static #_ = _staticBlock = () => ({
+      e: [_init_config, _init_extra_config, _init_metadata, _init_extra_metadata],
+      c: [_ReactionsHelper, _initClass]
+    } = _applyDecs(this, [(0, _di.register)()], [[(0, _di.inject)(_settings.default), 0, "config"], [(0, _di.inject)(_metadata.default), 0, "metadata"]]), _initClass());
   }
+  _staticBlock();
   var _default = _exports.default = _ReactionsHelper;
 });
 
@@ -50037,7 +50238,7 @@ define("controllers/base", ["exports", "controller", "views/base"], function (_e
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -50256,7 +50457,7 @@ define("dynamic-handler", ["exports", "bullbone"], function (_exports, _bullbone
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -50380,7 +50581,7 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -50835,6 +51036,7 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
       await promise;
       this.acl.implementationClassMap = aclImplementationClassMap;
       this.initRouter();
+      this.webSocketManager.subscribe('appParamsUpdate', () => this.appParams.load());
     }
 
     /**
@@ -51456,6 +51658,8 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
       if (!label) {
         if (xhr.status === 0) {
           msg += this.language.translate('Network error');
+        } else if (xhr.status === 500) {
+          msg += this.language.translate('Internal server error') + '\n\n' + this.language.translate('checkLogsForDetails', 'messages');
         } else {
           msg += this.language.translate('Error') + ' ' + xhr.status;
         }
@@ -51657,7 +51861,7 @@ define("action-handler", ["exports", "bullbone"], function (_exports, _bullbone)
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -51715,7 +51919,7 @@ define("acl-portal-manager", ["exports", "acl-manager", "acl-portal"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -51805,7 +52009,7 @@ define("views/list-with-categories", ["exports", "views/list"], function (_expor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -51887,7 +52091,7 @@ define("views/list-with-categories", ["exports", "views/list"], function (_expor
       if (isCollapsedByDefault) {
         this.isExpanded = false;
       }
-      this.categoriesDisabled = this.categoriesDisabled || this.getMetadata().get(['scopes', this.categoryScope, 'disabled']) || !this.getAcl().checkScope(this.categoryScope);
+      this.categoriesDisabled = this.categoriesDisabled || this.getMetadata().get(['scopes', this.categoryScope, 'disabled']) || !this.getAcl().checkScope(this.categoryScope, 'read');
       if (this.categoriesDisabled) {
         this.isExpanded = true;
         this.hasExpandedToggler = false;
@@ -52422,12 +52626,19 @@ define("views/list-with-categories", ["exports", "views/list"], function (_expor
         const filterPart = this.getHelper().escapeString(this._primaryFilter);
         rootUrl += `/list/primaryFilter=${filterPart}`;
       }
-      const root = document.createElement('a');
-      root.href = rootUrl;
-      root.textContent = this.translate(this.scope, 'scopeNamesPlural');
-      root.dataset.action = 'openCategory';
-      root.classList.add('action');
+      const root = document.createElement('span');
       root.style.userSelect = 'none';
+      const a = document.createElement('a');
+      a.href = rootUrl;
+      a.textContent = this.translate(this.scope, 'scopeNamesPlural');
+      a.dataset.action = 'openCategory';
+      a.classList.add('action');
+      a.style.userSelect = 'none';
+      root.append(a);
+      const iconHtml = this.getHeaderIconHtml();
+      if (iconHtml) {
+        root.insertAdjacentHTML('afterbegin', iconHtml);
+      }
 
       /** @type {*[]} */
       const list = [root];
@@ -52555,7 +52766,7 @@ define("views/global-stream", ["exports", "view", "views/stream/record/list", "v
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -52673,7 +52884,7 @@ define("views/edit", ["exports", "views/main"], function (_exports, _main) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -52893,7 +53104,7 @@ define("views/user/record/detail", ["exports", "views/record/detail"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -53291,7 +53502,7 @@ define("views/user/record/detail-side", ["exports", "views/record/detail-side"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -53370,7 +53581,7 @@ define("views/user/modals/select-position", ["exports", "views/modal", "model", 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -53482,7 +53693,7 @@ define("views/stream/reactions", ["exports", "view", "views/record/list", "helpe
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -53668,7 +53879,7 @@ define("views/stream/panel", ["exports", "views/record/panels/relationship", "un
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -54510,7 +54721,7 @@ define("views/stream/record/row-actions/default", ["exports", "views/record/row-
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -54707,7 +54918,7 @@ define("views/stream/notes/relate", ["exports", "views/stream/note"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -54775,7 +54986,7 @@ define("views/stream/notes/email-received", ["exports", "views/stream/note", "vi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -55001,7 +55212,7 @@ define("views/stream/modals/view-audit-log", ["exports", "views/modal", "views/s
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -55080,7 +55291,7 @@ define("views/site/navbar", ["exports", "view", "jquery", "helpers/site/tabs"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -56217,12 +56428,13 @@ define("views/site/master", ["exports", "view", "jquery", "views/collapsed-modal
   _jquery = _interopRequireDefault(_jquery);
   _collapsedModalBar = _interopRequireDefault(_collapsedModalBar);
   _shortcutManager = _interopRequireDefault(_shortcutManager);
+  var _staticBlock;
   let _init_shortcutManager, _init_extra_shortcutManager;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -56247,13 +56459,12 @@ define("views/site/master", ["exports", "view", "jquery", "views/collapsed-modal
    ************************************************************************/
   /** @module views/site/master */
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
   function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
   class MasterSiteView extends _view.default {
-    static #_ = [_init_shortcutManager, _init_extra_shortcutManager] = _applyDecs(this, [], [[(0, _di.inject)(_shortcutManager.default), 0, "shortcutManager"]], 0, void 0, _view.default).e;
     constructor() {
       super(...arguments);
       _init_extra_shortcutManager(this);
@@ -56430,7 +56641,9 @@ define("views/site/master", ["exports", "view", "jquery", "views/collapsed-modal
       });
       dialog.show();
     }
+    static #_ = _staticBlock = () => [_init_shortcutManager, _init_extra_shortcutManager] = _applyDecs(this, [], [[(0, _di.inject)(_shortcutManager.default), 0, "shortcutManager"]], 0, void 0, _view.default).e;
   }
+  _staticBlock();
   var _default = _exports.default = MasterSiteView;
 });
 
@@ -56447,7 +56660,7 @@ define("views/site/header", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -56503,7 +56716,7 @@ define("views/site/navbar/item", ["exports", "view"], function (_exports, _view)
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -56558,7 +56771,7 @@ define("views/record/detail-bottom", ["exports", "views/record/panels-container"
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -56800,7 +57013,7 @@ define("views/record/row-actions/relationship", ["exports", "views/record/row-ac
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -56886,7 +57099,7 @@ define("views/record/panels/default-side", ["exports", "views/record/panels/side
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -57053,7 +57266,7 @@ define("views/notification/record/list", ["exports", "views/record/list-expanded
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -57155,7 +57368,7 @@ define("views/notification/items/base", ["exports", "view"], function (_exports,
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -57255,6 +57468,29 @@ define("views/notification/items/base", ["exports", "view"], function (_exports,
       const language = this.getPreferences().get('language') || this.getConfig().get('language');
       return ['de_DE', 'nl_NL'].includes(language);
     }
+
+    /**
+     * @protected
+     * @param entityType
+     * @param id
+     * @return {string|null}
+     */
+    getIconHtml(entityType, id) {
+      const iconClass = this.getMetadata().get(`clientDefs.${entityType}.iconClass`);
+      const color = this.getMetadata().get(`clientDefs.${entityType}.color`);
+      if (!iconClass) {
+        return null;
+      }
+      const span = document.createElement('span');
+      span.className = `action text-muted icon ${iconClass}`;
+      span.style.cursor = 'pointer';
+      span.style.color = color ? color : '';
+      span.title = this.translate('View');
+      span.dataset.action = 'quickView';
+      span.dataset.id = id;
+      span.dataset.scope = entityType;
+      return span.outerHTML;
+    }
   }
   var _default = _exports.default = BaseNotificationItemView;
 });
@@ -57277,7 +57513,7 @@ define("views/modals/related-list", ["exports", "views/modal", "search-manager",
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -57780,7 +58016,7 @@ define("views/modals/related-list", ["exports", "views/modal", "search-manager",
       if (this.createDisabled) {
         return;
       }
-      if (this.buttonList.findIndex(item => item.name === 'createRelated' && !item.hidden) === -1) {
+      if (this.buttonList.findIndex(item => item.name === 'createRelated' && !item.hidden && !item.disabled) === -1) {
         return;
       }
       e.preventDefault();
@@ -57848,7 +58084,7 @@ define("views/modals/mass-update", ["exports", "views/modal", "helpers/mass-acti
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -57931,7 +58167,7 @@ define("views/modals/mass-update", ["exports", "views/modal", "helpers/mass-acti
           layout = layout || [];
           this.fieldList = [];
           layout.forEach(field => {
-            if (forbiddenList.includes(field)) {
+            if (forbiddenList.includes(field) || this.getMetadata().get(`entityDefs.${this.entityType}.fields.${field}.disabled`)) {
               return;
             }
             if (this.model.hasField(field)) {
@@ -58112,7 +58348,7 @@ define("views/modals/mass-convert-currency", ["exports", "views/modal", "model",
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -58179,7 +58415,7 @@ define("views/modals/mass-convert-currency", ["exports", "views/modal", "model",
         labelText: this.translate('baseCurrency', 'fields', 'Settings'),
         readOnly: true
       });
-      this.createView('currencyRates', 'views/settings/fields/currency-rates', {
+      this.createView('currencyRates', 'views/currency/fields/currency-rates', {
         model: model,
         name: 'currencyRates',
         selector: '.field[data-name="currencyRates"]',
@@ -58263,7 +58499,7 @@ define("views/modals/detail", ["exports", "views/modal", "helpers/action-item-se
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -58422,7 +58658,7 @@ define("views/modals/detail", ["exports", "views/modal", "helpers/action-item-se
       }
       this.waitForView('record');
       this.sourceModel = this.model;
-      this.getModelFactory().create(this.entityType).then(model => {
+      this.getModelFactory().create(this.entityType).then(async model => {
         if (!this.sourceModel) {
           this.model = model;
           this.model.id = this.id;
@@ -58435,7 +58671,8 @@ define("views/modals/detail", ["exports", "views/modal", "helpers/action-item-se
             this.setupActionItems();
             this.createRecordView();
           });
-          this.model.fetch();
+          await this.setupLate();
+          await this.model.fetch();
           return;
         }
         this.model = this.sourceModel.clone();
@@ -58465,6 +58702,14 @@ define("views/modals/detail", ["exports", "views/modal", "helpers/action-item-se
         });
       }
     }
+
+    /**
+     * Additional setup with the model ready.
+     *
+     * @protected
+     * @since 9.3.0
+     */
+    async setupLate() {}
 
     /** @private */
     setupActionItems() {
@@ -58895,7 +59140,7 @@ define("views/lead-capture/form", ["exports", "view", "views/record/edit", "mode
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -59181,7 +59426,7 @@ define("views/fields/user-with-avatar", ["exports", "views/fields/user"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -59295,7 +59540,7 @@ define("views/fields/url", ["exports", "views/fields/varchar"], function (_expor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -59505,7 +59750,7 @@ define("views/fields/url-multiple", ["exports", "views/fields/array"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -59619,7 +59864,7 @@ define("views/fields/range-float", ["exports", "views/fields/range-int", "views/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -59702,7 +59947,7 @@ define("views/fields/phone", ["exports", "views/fields/varchar", "ui/select", "i
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -60381,7 +60626,7 @@ define("views/fields/person-name", ["exports", "views/fields/varchar", "ui/selec
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -60420,6 +60665,13 @@ define("views/fields/person-name", ["exports", "views/fields/varchar", "ui/selec
 
     /** @inheritDoc */
     validations = ['required', 'pattern'];
+
+    /**
+     * @protected
+     * @type {string}
+     * @since 9.3.0
+     */
+    salutationField;
     data() {
       const data = super.data();
       data.ucName = Espo.Utils.upperCaseFirst(this.name);
@@ -60428,6 +60680,7 @@ define("views/fields/person-name", ["exports", "views/fields/varchar", "ui/selec
       data.lastValue = this.model.get(this.lastField);
       data.middleValue = this.model.get(this.middleField);
       data.salutationOptions = this.salutationOptions;
+      data.salutationField = this.salutationField;
       if (this.isEditMode()) {
         data.firstMaxLength = this.model.getFieldParam(this.firstField, 'maxLength');
         data.lastMaxLength = this.model.getFieldParam(this.lastField, 'maxLength');
@@ -60620,7 +60873,7 @@ define("views/fields/password", ["exports", "views/fields/base"], function (_exp
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -60708,7 +60961,7 @@ define("views/fields/multi-enum", ["exports", "views/fields/array", "helpers/reg
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -60969,7 +61222,7 @@ define("views/fields/link-parent", ["exports", "views/fields/base", "helpers/rec
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -61651,7 +61904,7 @@ define("views/fields/link-multiple-with-role", ["exports", "views/fields/link-mu
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -61945,7 +62198,7 @@ define("views/fields/link-multiple-with-primary", ["exports", "views/fields/link
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -62156,7 +62409,7 @@ define("views/fields/link-multiple-with-columns", ["exports", "views/fields/link
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -62584,7 +62837,7 @@ define("views/fields/image", ["exports", "views/fields/file"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -62633,7 +62886,7 @@ define("views/fields/foreign-array", ["exports", "views/fields/array", "views/fi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -62694,7 +62947,7 @@ define("views/fields/enum-int", ["exports", "views/fields/enum"], function (_exp
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -62757,7 +63010,7 @@ define("views/fields/entity-type", ["exports", "views/fields/enum"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -62833,7 +63086,7 @@ define("views/fields/email", ["exports", "views/fields/varchar", "helpers/misc/m
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -63391,6 +63644,236 @@ define("views/fields/email", ["exports", "views/fields/varchar", "helpers/misc/m
   var _default = _exports.default = EmailFieldView;
 });
 
+define("views/fields/decimal", ["exports", "views/fields/int"], function (_exports, _int) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _int = _interopRequireDefault(_int);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /** @module views/fields/decimal */
+
+  /**
+   * A decimal field.
+   *
+   * @extends IntFieldView<module:views/fields/decimal~params>
+   */
+  class DecimalFieldView extends _int.default {
+    /**
+     * @typedef {Object} module:views/fields/decimal~options
+     * @property {
+     *     module:views/fields/decimal~params &
+     *     module:views/fields/base~params &
+     *     Record
+     * } [params] Parameters.
+     */
+
+    /**
+     * @typedef {Object} module:views/fields/decimal~params
+     * @property {string} [min] A max value.
+     * @property {string} [max] A max value.
+     * @property {boolean} [required] Required.
+     * @property {boolean} [disableFormatting] Disable formatting.
+     * @property {number|null} [decimalPlaces] A number of decimal places.
+     */
+
+    /**
+     * @param {
+     *     module:views/fields/float~options &
+     *     module:views/fields/base~options
+     * } options Options.
+     */
+    constructor(options) {
+      super(options);
+    }
+    type = 'decimal';
+    editTemplate = 'fields/float/edit';
+    decimalMark = '.';
+    decimalPlacesRawValue = 10;
+
+    /**
+     * @inheritDoc
+     * @type {Array<(function (): boolean)|string>}
+     */
+    validations = ['required', 'range'];
+
+    /**
+     * @private
+     * @type {number|null}
+     */
+    decimalPlaces;
+    setup() {
+      super.setup();
+      if (this.getPreferences().has('decimalMark')) {
+        this.decimalMark = this.getPreferences().get('decimalMark');
+      } else if (this.getConfig().has('decimalMark')) {
+        this.decimalMark = this.getConfig().get('decimalMark');
+      }
+      if (!this.decimalMark) {
+        this.decimalMark = '.';
+      }
+      if (this.decimalMark === this.thousandSeparator) {
+        this.thousandSeparator = '';
+      }
+      this.decimalPlaces = this.params.decimalPlaces ?? null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    setupAutoNumericOptions() {
+      // noinspection JSValidateTypes
+      this.autoNumericOptions = {
+        digitGroupSeparator: this.thousandSeparator || '',
+        decimalCharacter: this.decimalMark,
+        modifyValueOnWheel: false,
+        selectOnFocus: false,
+        decimalPlaces: this.decimalPlaces,
+        decimalPlacesRawValue: this.decimalPlacesRawValue,
+        allowDecimalPadding: true,
+        showWarnings: false,
+        formulaMode: true
+      };
+      if (this.decimalPlaces === null) {
+        this.autoNumericOptions.decimalPlaces = this.decimalPlacesRawValue;
+        this.autoNumericOptions.decimalPlacesRawValue = this.decimalPlacesRawValue;
+        this.autoNumericOptions.allowDecimalPadding = false;
+      }
+    }
+    getValueForDisplay() {
+      const value = isNaN(this.model.get(this.name)) ? null : this.model.get(this.name);
+      return this.formatNumber(value);
+    }
+    formatNumber(value) {
+      if (this.disableFormatting) {
+        return value;
+      }
+      return this.formatNumberDetail(value);
+    }
+
+    /**
+     *
+     * @param {string|null} value
+     * @return {string}
+     */
+    formatNumberDetail(value) {
+      if (value === null) {
+        return '';
+      }
+      const decimalPlaces = this.decimalPlaces;
+      const parts = value.toString().split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, this.thousandSeparator);
+      if (decimalPlaces === 0) {
+        return parts[0];
+      }
+      if (decimalPlaces) {
+        let decimalPartLength = 0;
+        if (parts.length > 1) {
+          parts[1] = parts[1].replace(/0+$/, '');
+          decimalPartLength = parts[1].length;
+        } else {
+          parts[1] = '';
+        }
+        if (decimalPlaces && decimalPartLength < decimalPlaces) {
+          const limit = decimalPlaces - decimalPartLength;
+          for (let i = 0; i < limit; i++) {
+            parts[1] += '0';
+          }
+        }
+      }
+      return parts.join(this.decimalMark);
+    }
+
+    /**
+     * @param {string|null} value
+     * @return {string|null}
+     */
+    parse(value) {
+      value = value !== '' ? value : null;
+      if (value === null) {
+        return null;
+      }
+      value = value.split(this.thousandSeparator).join('').split(this.decimalMark).join('.');
+      return value;
+    }
+
+    /**
+     * @return {Record}
+     */
+    fetch() {
+      var _this$mainInputElemen;
+      const rawValue = ((_this$mainInputElemen = this.mainInputElement) === null || _this$mainInputElemen === void 0 ? void 0 : _this$mainInputElemen.value) ?? null;
+      const value = this.parse(rawValue);
+      return {
+        [this.name]: value
+      };
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    validateRange() {
+      const value = this.model.get(this.name);
+      if (value === null) {
+        return false;
+      }
+      const minValue = this.params.min;
+      const maxValue = this.params.max;
+      if (minValue !== null && maxValue !== null) {
+        if (Number(value) < Number(minValue) || Number(value) > Number(maxValue)) {
+          const msg = this.translate('fieldShouldBeBetween', 'messages').replace('{field}', this.getLabelText()).replace('{min}', minValue).replace('{max}', maxValue);
+          this.showValidationMessage(msg);
+          return true;
+        }
+      } else {
+        if (minValue !== null) {
+          if (Number(value) < Number(minValue)) {
+            const msg = this.translate('fieldShouldBeGreater', 'messages').replace('{field}', this.getLabelText()).replace('{value}', minValue);
+            this.showValidationMessage(msg);
+            return true;
+          }
+        } else if (maxValue !== null) {
+          if (Number(value) > Number(maxValue)) {
+            const msg = this.translate('fieldShouldBeLess', 'messages').replace('{field}', this.getLabelText()).replace('{value}', maxValue);
+            this.showValidationMessage(msg);
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+  }
+  var _default = _exports.default = DecimalFieldView;
+});
+
 define("views/fields/datetime-short", ["exports", "views/fields/datetime", "moment"], function (_exports, _datetime, _moment) {
   "use strict";
 
@@ -63405,7 +63888,7 @@ define("views/fields/datetime-short", ["exports", "views/fields/datetime", "mome
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -63506,7 +63989,7 @@ define("views/fields/currency-converted", ["exports", "views/fields/currency"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -63555,7 +64038,7 @@ define("views/fields/checklist", ["exports", "views/fields/array"], function (_e
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -63684,7 +64167,7 @@ define("views/email-template/record/detail", ["exports", "views/record/detail"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -63761,7 +64244,7 @@ define("views/email/detail", ["exports", "views/detail", "email-helper", "helper
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -64254,7 +64737,7 @@ define("views/email/record/list", ["exports", "views/record/list", "helpers/mass
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -64812,7 +65295,7 @@ define("views/email/record/edit", ["exports", "views/record/edit", "views/email/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -64949,7 +65432,7 @@ define("views/email/modals/schedule-send", ["exports", "views/modal", "model", "
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -65087,7 +65570,7 @@ define("views/email/modals/import-eml", ["exports", "views/modal", "views/record
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -65181,7 +65664,7 @@ define("views/email/fields/person-string-data", ["exports", "views/fields/varcha
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -65235,7 +65718,7 @@ define("views/email/fields/from-address-varchar", ["exports", "views/fields/base
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -65643,7 +66126,7 @@ define("views/dashlets/options/base", ["exports", "views/modal", "model", "views
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -65873,7 +66356,7 @@ define("views/dashlets/fields/records/expanded-layout/modals/edit-item", ["expor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -65996,7 +66479,7 @@ define("views/dashlets/abstract/record-list", ["exports", "views/dashlets/abstra
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -66233,7 +66716,7 @@ define("ui/timepicker", ["exports", "jquery"], function (_exports, _jquery) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -66341,7 +66824,7 @@ define("helpers/misc/field-language", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -66444,12 +66927,13 @@ define("helpers/list/misc/list-tree-draggable", ["exports", "@shopify/draggable"
   });
   _exports.default = void 0;
   _language = _interopRequireDefault(_language);
+  var _staticBlock;
   let _init_language, _init_extra_language;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -66473,7 +66957,7 @@ define("helpers/list/misc/list-tree-draggable", ["exports", "@shopify/draggable"
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -66482,7 +66966,6 @@ define("helpers/list/misc/list-tree-draggable", ["exports", "@shopify/draggable"
    * @internal
    */
   class ListTreeDraggableHelper {
-    static #_ = [_init_language, _init_extra_language] = _applyDecs(this, [], [[(0, _di.inject)(_language.default), 0, "language"]]).e;
     /**
      * @type {Language}
      */
@@ -66727,8 +67210,10 @@ define("helpers/list/misc/list-tree-draggable", ["exports", "@shopify/draggable"
         await this.updateAfter(subView.getChildrenView(), movedId);
       }
     }
+    static #_ = _staticBlock = () => [_init_language, _init_extra_language] = _applyDecs(this, [], [[(0, _di.inject)(_language.default), 0, "language"]]).e;
   }
   _exports.default = ListTreeDraggableHelper;
+  _staticBlock();
 });
 
 define("handlers/select-related", ["exports"], function (_exports) {
@@ -66742,7 +67227,7 @@ define("handlers/select-related", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -66822,7 +67307,7 @@ define("handlers/row-action", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -66896,7 +67381,7 @@ define("handlers/login", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -66973,7 +67458,7 @@ define("handlers/create-related", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -67026,6 +67511,69 @@ define("handlers/create-related", ["exports"], function (_exports) {
   var _default = _exports.default = CreateRelatedHandler;
 });
 
+define("handlers/model/defaults-preparator", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /**
+   * @abstract
+   */
+  class DefaultsPreparator {
+    /**
+     * @param {import('view-helper').default} viewHelper
+     */
+    constructor(viewHelper) {
+      /** @protected */
+      this.viewHelper = viewHelper;
+    }
+
+    // noinspection JSUnusedLocalSymbols
+    /**
+     * Prepare default attributes.
+     *
+     * @param {import('model').default} model A model.
+     * @return {Promise<Object.<string, *>>}
+     */
+    prepare(model) {
+      return Promise.resolve({});
+    }
+  }
+
+  // noinspection JSUnusedGlobalSymbols
+  var _default = _exports.default = DefaultsPreparator;
+});
+
 define("handlers/map/renderer", ["exports"], function (_exports) {
   "use strict";
 
@@ -67037,7 +67585,7 @@ define("handlers/map/renderer", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -67096,7 +67644,7 @@ define("handlers/map/renderer", ["exports"], function (_exports) {
   var _default = _exports.default = MapRenderer;
 });
 
-define("controllers/record", ["exports", "controller"], function (_exports, _controller) {
+define("controllers/record", ["exports", "controller", "helpers/model/defaults-populator"], function (_exports, _controller, _defaultsPopulator) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -67104,12 +67652,13 @@ define("controllers/record", ["exports", "controller"], function (_exports, _con
   });
   _exports.default = void 0;
   _controller = _interopRequireDefault(_controller);
+  _defaultsPopulator = _interopRequireDefault(_defaultsPopulator);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -67377,6 +67926,7 @@ define("controllers/record", ["exports", "controller"], function (_exports, _con
       for (const k in optionsOptions) {
         o[k] = optionsOptions[k];
       }
+      await new _defaultsPopulator.default().populate(model);
       if (options.attributes) {
         model.set(options.attributes);
       }
@@ -67605,7 +68155,7 @@ define("collections/tree", ["exports", "collection"], function (_exports, _colle
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -67745,7 +68295,7 @@ define("views/settings/fields/theme", ["exports", "views/fields/enum", "theme-ma
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -67919,7 +68469,7 @@ define("views/settings/fields/tab-list", ["exports", "views/fields/array"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -68183,7 +68733,7 @@ define("multi-collection", ["exports", "collection"], function (_exports, _colle
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -68269,7 +68819,7 @@ define("app-portal", ["exports", "app", "acl-portal-manager"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -68321,7 +68871,7 @@ define("views/stream", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -68512,7 +69062,7 @@ define("views/popup-notification", ["exports", "view", "jquery"], function (_exp
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -68659,7 +69209,7 @@ define("views/merge", ["exports", "views/main"], function (_exports, _main) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -68731,7 +69281,7 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -69128,7 +69678,7 @@ define("views/login-second-step", ["exports", "view", "js-base64", "jquery"], fu
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -69365,7 +69915,7 @@ define("views/list-tree", ["exports", "views/list"], function (_exports, _list) 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -69415,7 +69965,7 @@ define("views/list-related", ["exports", "views/main", "search-manager", "helper
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -70171,7 +70721,7 @@ define("views/home", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -70220,7 +70770,7 @@ define("views/header", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -70411,7 +70961,7 @@ define("views/deleted-detail", ["exports", "views/detail"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -70466,7 +71016,7 @@ define("views/dashlet", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -70694,7 +71244,7 @@ define("views/dashboard", ["exports", "view", "gridstack", "underscore"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -71287,7 +71837,7 @@ define("views/clear-cache", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -71358,7 +71908,7 @@ define("views/about", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -71413,7 +71963,7 @@ define("views/wysiwyg/modals/insert-link", ["exports", "views/modal"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -71526,7 +72076,7 @@ define("views/wysiwyg/modals/insert-image", ["exports", "views/modal"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -71623,7 +72173,7 @@ define("views/working-time-range/fields/users", ["exports", "views/fields/link-m
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -71669,7 +72219,7 @@ define("views/working-time-range/fields/date-end", ["exports", "views/fields/dat
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -71728,7 +72278,7 @@ define("views/working-time-calendar/fields/time-ranges", ["exports", "views/fiel
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -72012,7 +72562,7 @@ define("views/working-time-calendar/fields/time-ranges/item-edit", ["exports", "
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -72212,7 +72762,7 @@ define("views/working-time-calendar/fields/time-ranges/item-detail", ["exports",
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -72278,7 +72828,7 @@ define("views/webhook/record/list", ["exports", "views/record/list"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -72321,7 +72871,7 @@ define("views/webhook/fields/user", ["exports", "views/fields/link"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -72364,7 +72914,7 @@ define("views/webhook/fields/event", ["exports", "views/fields/varchar"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -72417,7 +72967,7 @@ define("views/user-security/modals/two-factor-sms", ["exports", "views/modal", "
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -72572,7 +73122,7 @@ define("views/user-security/modals/two-factor-email", ["exports", "views/modal",
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -72727,7 +73277,7 @@ define("views/user-security/modals/totp", ["exports", "views/modal", "model"], f
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -72863,7 +73413,7 @@ define("views/user/password-change-request", ["exports", "view", "model"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -72999,7 +73549,7 @@ define("views/user/list", ["exports", "views/list"], function (_exports, _list) 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73042,7 +73592,7 @@ define("views/user/detail", ["exports", "views/detail"], function (_exports, _de
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73160,7 +73710,7 @@ define("views/user/record/list", ["exports", "views/record/list"], function (_ex
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73230,7 +73780,7 @@ define("views/user/record/edit", ["exports", "views/record/edit", "views/user/re
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73530,7 +74080,7 @@ define("views/user/record/edit-quick", ["exports", "views/record/edit", "views/u
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73584,7 +74134,7 @@ define("views/user/record/detail-quick", ["exports", "views/record/detail", "vie
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73639,7 +74189,7 @@ define("views/user/record/detail-quick-side", ["exports", "views/record/detail-s
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73685,7 +74235,7 @@ define("views/user/record/detail-bottom", ["exports", "views/record/detail-botto
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73751,7 +74301,7 @@ define("views/user/record/row-actions/relationship-followers", ["exports", "view
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73816,7 +74366,7 @@ define("views/user/record/row-actions/default", ["exports", "views/record/row-ac
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73889,7 +74439,7 @@ define("views/user/record/panels/stream", ["exports", "views/stream/panel"], fun
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -73975,7 +74525,7 @@ define("views/user/record/panels/default-side", ["exports", "views/record/panels
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74019,7 +74569,7 @@ define("views/user/modals/select-followers", ["exports", "views/modals/select-re
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74069,7 +74619,7 @@ define("views/user/modals/security", ["exports", "views/modal", "model"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74270,7 +74820,7 @@ define("views/user/modals/password", ["exports", "views/modal", "model"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74368,7 +74918,7 @@ define("views/user/modals/mass-update", ["exports", "views/modals/mass-update"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74418,7 +74968,7 @@ define("views/user/modals/login-as", ["exports", "views/modal"], function (_expo
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74473,7 +75023,7 @@ define("views/user/modals/detail", ["exports", "views/modals/detail"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74523,7 +75073,7 @@ define("views/user/modals/access", ["exports", "views/modal"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74628,7 +75178,7 @@ define("views/user/fields/user-name", ["exports", "views/fields/varchar"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74704,7 +75254,7 @@ define("views/user/fields/teams", ["exports", "views/fields/link-multiple-with-r
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74825,7 +75375,7 @@ define("views/user/fields/record-access-level", ["exports", "views/fields/bool"]
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -74873,7 +75423,7 @@ define("views/user/fields/password", ["exports", "views/fields/password"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -75028,7 +75578,7 @@ define("views/user/fields/name", ["exports", "views/fields/person-name"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -75086,7 +75636,7 @@ define("views/user/fields/generate-password", ["exports", "views/fields/base"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -75244,7 +75794,7 @@ define("views/user/fields/default-team", ["exports", "views/fields/link"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -75316,7 +75866,7 @@ define("views/user/fields/contact", ["exports", "views/fields/link"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -75381,7 +75931,7 @@ define("views/user/fields/avatar", ["exports", "views/fields/image", "model", "v
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -75569,7 +76119,7 @@ define("views/user/fields/auto-follow-entity-type-list", ["exports", "views/fiel
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -75620,7 +76170,7 @@ define("views/template/record/edit", ["exports", "views/record/edit"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -75737,7 +76287,7 @@ define("views/template/record/detail", ["exports", "views/record/detail"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -75787,7 +76337,7 @@ define("views/template/fields/variables", ["exports", "views/fields/base", "ui/s
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76099,7 +76649,7 @@ define("views/template/fields/style", ["exports", "views/fields/text"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76244,7 +76794,7 @@ define("views/template/fields/font-face", ["exports", "views/fields/enum"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76294,7 +76844,7 @@ define("views/template/fields/entity-type", ["exports", "views/fields/entity-typ
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76346,7 +76896,7 @@ define("views/template/fields/body", ["exports", "views/fields/wysiwyg"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76393,7 +76943,7 @@ define("views/team/record/list", ["exports", "views/record/list"], function (_ex
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76438,7 +76988,7 @@ define("views/team/record/edit", ["exports", "views/record/edit"], function (_ex
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76479,7 +77029,7 @@ define("views/team/record/detail", ["exports", "views/record/detail"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76520,7 +77070,7 @@ define("views/team/modals/detail", ["exports", "views/modals/detail"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76563,7 +77113,7 @@ define("views/stream/message", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76658,7 +77208,7 @@ define("views/stream/record/edit", ["exports", "views/record/base"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -76737,37 +77287,9 @@ define("views/stream/record/edit", ["exports", "views/record/base"], function (_
         }]
       }
     };
-    data() {
-      const data = super.data();
-      data.interactiveMode = this.options.interactiveMode;
-      return data;
-    }
     setup() {
       super.setup();
       this.seed = this.model.clone();
-      if (this.options.interactiveMode) {
-        this.events['focus textarea[data-name="post"]'] = () => {
-          this.enablePostingMode();
-        };
-        this.addHandler('keydown', 'textarea[data-name="post"]', /** KeyboardEvent */e => {
-          if (Espo.Utils.getKeyFromKeyEvent(e) === 'Control+Enter') {
-            e.stopPropagation();
-            e.preventDefault();
-            this.post();
-          }
-
-          // Don't hide to be able to focus on the upload button.
-          /*if (e.code === 'Tab') {
-              let $text = $(e.currentTarget);
-                if ($text.val() === '') {
-                  this.disablePostingMode();
-              }
-          }*/
-        });
-        this.events['click button.post'] = () => {
-          this.post();
-        };
-      }
       const optionList = ['self'];
       this.model.set('type', 'Post');
       this.model.set('targetType', 'self');
@@ -76863,14 +77385,6 @@ define("views/stream/record/edit", ["exports", "views/record/base"], function (_
     }
     afterSave() {
       Espo.Ui.success(this.translate('Posted'));
-      if (this.options.interactiveMode) {
-        this.model.clear();
-        this.model.set('targetType', 'self');
-        this.model.set('type', 'Post');
-        this.disablePostingMode();
-        this.enablePostButton();
-        this.getFieldView('post').$element.prop('rows', 1);
-      }
     }
     afterNotValid() {
       this.enablePostButton();
@@ -76900,7 +77414,7 @@ define("views/stream/record/row-actions/update", ["exports", "views/stream/recor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -77014,7 +77528,7 @@ define("views/stream/record/row-actions/detached", ["exports", "views/stream/rec
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -77058,7 +77572,7 @@ define("views/stream/notes/update", ["exports", "views/stream/note"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -77236,7 +77750,7 @@ define("views/stream/notes/unrelate", ["exports", "views/stream/notes/relate"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -77280,7 +77794,7 @@ define("views/stream/notes/status", ["exports", "views/stream/note"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -77357,7 +77871,7 @@ define("views/stream/notes/post", ["exports", "views/stream/note", "views/stream
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -77608,7 +78122,7 @@ define("views/stream/notes/mention-in-post", ["exports", "views/stream/note"], f
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -77730,7 +78244,7 @@ define("views/stream/notes/email-sent", ["exports", "views/stream/notes/email-re
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -77777,7 +78291,7 @@ define("views/stream/notes/create", ["exports", "views/stream/note"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -77935,7 +78449,7 @@ define("views/stream/notes/create-related", ["exports", "views/stream/note"], fu
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78001,7 +78515,7 @@ define("views/stream/notes/assign", ["exports", "views/stream/note"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78157,7 +78671,7 @@ define("views/stream/modals/create-post", ["exports", "views/modal"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78182,7 +78696,9 @@ define("views/stream/modals/create-post", ["exports", "views/modal"], function (
    ************************************************************************/
 
   class CreatePostModalView extends _modal.default {
-    templateContent = '<div class="record">{{{record}}}</div>';
+    templateContent = `
+        <div class="record no-side-margin">{{{record}}}</div>
+    `;
     shortcutKeys = {
       'Control+Enter': 'post'
     };
@@ -78244,7 +78760,7 @@ define("views/stream/fields/post", ["exports", "views/fields/text"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78342,7 +78858,7 @@ define("views/stream/fields/attachment-multiple", ["exports", "views/fields/atta
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78386,7 +78902,7 @@ define("views/site-portal/navbar", ["exports", "views/site/navbar"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78442,7 +78958,7 @@ define("views/site-portal/master", ["exports", "views/site/master"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78504,7 +79020,7 @@ define("views/site-portal/header", ["exports", "views/site/header"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78548,7 +79064,7 @@ define("views/site/footer", ["exports", "view"], function (_exports, _view) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78592,7 +79108,7 @@ define("views/site/navbar/quick-create", ["exports", "view", "helpers/record-mod
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78695,101 +79211,6 @@ define("views/site/navbar/quick-create", ["exports", "view", "helpers/record-mod
   var _default = _exports.default = QuickCreateNavbarView;
 });
 
-define("views/search/filter", ["exports", "view"], function (_exports, _view) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _view = _interopRequireDefault(_view);
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module views/search/filter */
-
-  class FilterView extends _view.default {
-    template = 'search/filter';
-    data() {
-      return {
-        name: this.name,
-        scope: this.model.entityType,
-        notRemovable: this.options.notRemovable
-      };
-    }
-    setup() {
-      const name = this.name = this.options.name;
-      let type = this.model.getFieldType(name);
-      if (!type && name === 'id') {
-        type = 'id';
-      }
-      if (type) {
-        const viewName = this.model.getFieldParam(name, 'view') || this.getFieldManager().getViewName(type);
-        this.createView('field', viewName, {
-          mode: 'search',
-          model: this.model,
-          selector: '.field',
-          defs: {
-            name: name
-          },
-          searchParams: this.options.params
-        }, view => {
-          this.listenTo(view, 'change', () => {
-            this.trigger('change');
-          });
-          this.listenTo(view, 'search', () => {
-            this.trigger('search');
-          });
-        });
-      }
-    }
-
-    /**
-     * @return {module:views/fields/base}
-     */
-    getFieldView() {
-      return this.getView('field');
-    }
-    populateDefaults() {
-      const view = this.getView('field');
-      if (!view) {
-        return;
-      }
-      if (!('populateSearchDefaults' in view)) {
-        return;
-      }
-      view.populateSearchDefaults();
-    }
-  }
-  var _default = _exports.default = FilterView;
-});
-
 define("views/record/panel-actions", ["exports", "view"], function (_exports, _view) {
   "use strict";
 
@@ -78803,7 +79224,7 @@ define("views/record/panel-actions", ["exports", "view"], function (_exports, _v
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -78881,7 +79302,7 @@ define("views/record/merge", ["exports", "view", "jquery"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -79112,7 +79533,7 @@ define("views/record/list-tree", ["exports", "views/record/list", "helpers/recor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -79458,7 +79879,7 @@ define("views/record/list-tree-item", ["exports", "view"], function (_exports, _
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -79803,7 +80224,7 @@ define("views/record/list-pagination", ["exports", "view"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -79936,7 +80357,7 @@ define("views/record/list-nested-categories", ["exports", "view", "helpers/recor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -80090,7 +80511,7 @@ define("views/record/list-nested-categories", ["exports", "view", "helpers/recor
       this.showCreate = this.getAcl().check(this.categoryEntityType, 'create');
       this.listenTo(this.collection, 'sync', () => this.reRender());
       this.listenTo(this.itemCollection, 'sync', () => this.reRender());
-      this.addActionHandler('createCategory', () => this.actionCreateCategory());
+      this.addActionHandler('createCategory', event => this.handleCreateCategory(event));
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -80103,9 +80524,11 @@ define("views/record/list-nested-categories", ["exports", "view", "helpers/recor
     }
 
     /**
+     * @param {MouseEvent} event
      * @private
      */
-    async actionCreateCategory() {
+    async handleCreateCategory(event) {
+      event.preventDefault();
       const categoryData = this.collection.categoryData || {};
       const view = await new _recordModal.default().showCreate(this, {
         entityType: this.categoryEntityType,
@@ -80140,7 +80563,7 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -80220,6 +80643,12 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
      * @type {import('collection').default}
      */
     seedCollection;
+
+    /**
+     * @private
+     * @type {Record.<string, string>}
+     */
+    styleMap;
 
     /**
      * Layout item definitions.
@@ -80445,10 +80874,7 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
           this.orderDisabled = true;
         }
       }
-      this.statusField = this.options.statusField || this.getMetadata().get(['scopes', this.scope, 'statusField']);
-      if (!this.statusField) {
-        throw new Error(`No status field for entity type '${this.scope}'.`);
-      }
+      this.setupStatusField();
       this.seedCollection = this.collection.clone();
       this.seedCollection.reset();
       this.seedCollection.url = this.scope;
@@ -80493,6 +80919,24 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
        * @type {boolean}
        */
       this.hasStars = this.getMetadata().get(`scopes.${this.entityType}.stars`) || false;
+    }
+
+    /**
+     * @private
+     */
+    setupStatusField() {
+      this.statusField = this.options.statusField || this.getMetadata().get(['scopes', this.scope, 'statusField']);
+      if (!this.statusField) {
+        throw new Error(`No status field for entity type '${this.scope}'.`);
+      }
+      this.styleMap = /** @type {Record.<string, string>} */
+      this.getMetadata().get(`entityDefs.${this.scope}.fields.${this.statusField}.style`) ?? {};
+      const optionsReference = this.getMetadata().get(`entityDefs.${this.scope}.fields.${this.statusField}.optionsReference`);
+      if (optionsReference) {
+        const [entityType, field] = optionsReference.split('.');
+        this.styleMap = /** @type {Record.<string, string>} */
+        this.getMetadata().get(`entityDefs.${entityType}.fields.${field}.style`) ?? {};
+      }
     }
     afterRender() {
       const $window = $(window);
@@ -80879,7 +81323,7 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
               id: model.id
             });
           });
-          const style = item.style || this.getMetadata().get(`entityDefs.${this.scope}.fields.${this.statusField}.style.${item.name}`);
+          const style = item.style || this.styleMap[item.name];
           const label = item.label || this.getLanguage().translateOption(item.name, this.statusField, this.scope);
           const o = {
             name: item.name,
@@ -80987,6 +81431,9 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
      * @param {Record} o Options.
      */
     onChangeGroup(model, value, o) {
+      if (o.action === 'fetch') {
+        return;
+      }
       const id = model.id;
       const group = model.get(this.statusField);
       this.subCollectionList.forEach(collection => {
@@ -81307,7 +81754,7 @@ define("views/record/kanban-item", ["exports", "view"], function (_exports, _vie
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -81409,7 +81856,7 @@ define("views/record/edit-small", ["exports", "views/record/edit"], function (_e
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -81455,7 +81902,7 @@ define("views/record/edit-side", ["exports", "views/record/detail-side"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -81517,7 +81964,7 @@ define("views/record/edit-bottom", ["exports", "views/record/detail-bottom"], fu
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -81562,7 +82009,7 @@ define("views/record/detail-small", ["exports", "views/record/detail"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -81608,7 +82055,7 @@ define("views/record/detail-middle", ["exports", "view"], function (_exports, _v
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -81832,7 +82279,7 @@ define("views/record/deleted-detail", ["exports", "views/record/detail"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -81897,7 +82344,7 @@ define("views/record/deleted-detail-side", ["exports", "views/record/detail-side
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -81942,7 +82389,7 @@ define("views/record/row-actions/view-only", ["exports", "views/record/row-actio
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -81995,7 +82442,7 @@ define("views/record/row-actions/view-and-remove", ["exports", "views/record/row
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82060,7 +82507,7 @@ define("views/record/row-actions/view-and-edit", ["exports", "views/record/row-a
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82126,7 +82573,7 @@ define("views/record/row-actions/remove-only", ["exports", "views/record/row-act
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82181,7 +82628,7 @@ define("views/record/row-actions/relationship-view-only", ["exports", "views/rec
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82234,7 +82681,7 @@ define("views/record/row-actions/relationship-view-and-unlink", ["exports", "vie
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82298,7 +82745,7 @@ define("views/record/row-actions/relationship-view-and-edit", ["exports", "views
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82363,7 +82810,7 @@ define("views/record/row-actions/relationship-unlink-only", ["exports", "views/r
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82420,7 +82867,7 @@ define("views/record/row-actions/relationship-remove-only", ["exports", "views/r
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82477,7 +82924,7 @@ define("views/record/row-actions/relationship-no-unlink", ["exports", "views/rec
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82554,7 +83001,7 @@ define("views/record/row-actions/relationship-no-remove", ["exports", "views/rec
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82631,7 +83078,7 @@ define("views/record/row-actions/relationship-edit-and-remove", ["exports", "vie
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82697,7 +83144,7 @@ define("views/record/row-actions/empty", ["exports", "views/record/row-actions/d
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82742,7 +83189,7 @@ define("views/record/row-actions/edit-and-remove", ["exports", "views/record/row
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82809,7 +83256,7 @@ define("views/record/row-actions/default-kanban", ["exports", "views/record/row-
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82895,7 +83342,7 @@ define("views/preferences/edit", ["exports", "views/edit"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82952,7 +83399,7 @@ define("views/preferences/record/edit", ["exports", "views/record/edit"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -82987,27 +83434,8 @@ define("views/preferences/record/edit", ["exports", "views/record/edit"], functi
       name: 'cancel',
       label: 'Cancel'
     }];
-    dynamicLogicDefs = {
-      fields: {
-        'tabList': {
-          visible: {
-            conditionGroup: [{
-              type: 'isTrue',
-              attribute: 'useCustomTabList'
-            }]
-          }
-        },
-        'addCustomTabs': {
-          visible: {
-            conditionGroup: [{
-              type: 'isTrue',
-              attribute: 'useCustomTabList'
-            }]
-          }
-        }
-      }
-    };
     setup() {
+      this.dynamicLogicDefs = Espo.Utils.cloneDeep(this.getMetadata().get(`logicDefs.Preferences`));
       super.setup();
       const model = /** @type {import('models/preferences').default} */this.model;
       this.addDropdownItem({
@@ -83046,17 +83474,13 @@ define("views/preferences/record/edit", ["exports", "views/record/edit"], functi
       this.listenTo(this.model, 'change:scopeColorsDisabled', () => this.controlColorsField());
       let hideNotificationPanel = true;
       if (!this.getConfig().get('assignmentEmailNotifications') || model.isPortal()) {
-        this.hideField('receiveAssignmentEmailNotifications');
-        this.hideField('assignmentEmailNotificationsIgnoreEntityTypeList');
+        this.hideField('receiveAssignmentEmailNotifications', true);
+        this.hideField('assignmentEmailNotificationsIgnoreEntityTypeList', true);
       } else {
         hideNotificationPanel = false;
-        this.controlAssignmentEmailNotificationsVisibility();
-        this.listenTo(this.model, 'change:receiveAssignmentEmailNotifications', () => {
-          this.controlAssignmentEmailNotificationsVisibility();
-        });
       }
       if ((this.getConfig().get('assignmentEmailNotificationsEntityList') || []).length === 0) {
-        this.hideField('assignmentEmailNotificationsIgnoreEntityTypeList');
+        this.hideField('assignmentEmailNotificationsIgnoreEntityTypeList', true);
       }
       if ((this.getConfig().get('assignmentNotificationsEntityList') || []).length === 0 || model.isPortal()) {
         this.hideField('assignmentNotificationsIgnoreEntityTypeList');
@@ -83103,13 +83527,6 @@ define("views/preferences/record/edit", ["exports", "views/record/edit"], functi
         this.hideField('tabColorsDisabled');
       } else {
         this.showField('tabColorsDisabled');
-      }
-    }
-    controlAssignmentEmailNotificationsVisibility() {
-      if (this.model.get('receiveAssignmentEmailNotifications')) {
-        this.showField('assignmentEmailNotificationsIgnoreEntityTypeList');
-      } else {
-        this.hideField('assignmentEmailNotificationsIgnoreEntityTypeList');
       }
     }
     actionReset() {
@@ -83176,7 +83593,7 @@ define("views/preferences/fields/week-start", ["exports", "views/fields/enum-int
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83227,7 +83644,7 @@ define("views/preferences/fields/time-zone", ["exports", "views/fields/enum"], f
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83282,7 +83699,7 @@ define("views/preferences/fields/time-format", ["exports", "views/fields/enum"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83330,7 +83747,7 @@ define("views/preferences/fields/theme", ["exports", "views/settings/fields/them
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83394,7 +83811,7 @@ define("views/preferences/fields/tab-list", ["exports", "views/settings/fields/t
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83459,7 +83876,7 @@ define("views/preferences/fields/signature", ["exports", "views/fields/wysiwyg"]
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83507,7 +83924,7 @@ define("views/preferences/fields/language", ["exports", "views/fields/enum"], fu
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83558,7 +83975,7 @@ define("views/preferences/fields/default-currency", ["exports", "views/fields/en
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83606,7 +84023,7 @@ define("views/preferences/fields/date-format", ["exports", "views/fields/enum"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83654,7 +84071,7 @@ define("views/preferences/fields/dashboard-tab-list", ["exports", "views/fields/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83751,7 +84168,7 @@ define("views/preferences/fields/calendar-slot-duration", ["exports", "views/fie
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83800,7 +84217,7 @@ define("views/preferences/fields/calendar-scroll-hour", ["exports", "views/field
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83858,7 +84275,7 @@ define("views/preferences/fields/auto-follow-entity-type-list", ["exports", "vie
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83912,7 +84329,7 @@ define("views/preferences/fields/assignment-notifications-ignore-entity-type-lis
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -83959,7 +84376,7 @@ define("views/preferences/fields/assignment-email-notifications-ignore-entity-ty
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -84006,7 +84423,7 @@ define("views/portal-user/list", ["exports", "views/list"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -84114,7 +84531,7 @@ define("views/o-auth-provider/fields/authorization-params", ["exports", "views/f
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -84301,7 +84718,7 @@ define("views/o-auth-account/records/panels/connection", ["exports", "views/reco
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -84563,7 +84980,7 @@ define("views/notification/panel", ["exports", "view"], function (_exports, _vie
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -84712,7 +85129,7 @@ define("views/notification/list", ["exports", "view"], function (_exports, _view
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -84818,12 +85235,13 @@ define("views/notification/badge", ["exports", "view", "di", "web-socket-manager
   _exports.default = void 0;
   _view = _interopRequireDefault(_view);
   _webSocketManager = _interopRequireDefault(_webSocketManager);
+  var _staticBlock;
   let _init_webSocketManager, _init_extra_webSocketManager;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -84847,13 +85265,12 @@ define("views/notification/badge", ["exports", "view", "di", "web-socket-manager
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
   function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
   class NotificationBadgeView extends _view.default {
-    static #_ = [_init_webSocketManager, _init_extra_webSocketManager] = _applyDecs(this, [], [[(0, _di.inject)(_webSocketManager.default), 0, "webSocketManager"]], 0, void 0, _view.default).e;
     constructor() {
       super(...arguments);
       _init_extra_webSocketManager(this);
@@ -85265,7 +85682,9 @@ define("views/notification/badge", ["exports", "view", "di", "web-socket-manager
       }
       $document.off('mouseup.notification');
     }
+    static #_ = _staticBlock = () => [_init_webSocketManager, _init_extra_webSocketManager] = _applyDecs(this, [], [[(0, _di.inject)(_webSocketManager.default), 0, "webSocketManager"]], 0, void 0, _view.default).e;
   }
+  _staticBlock();
   var _default = _exports.default = NotificationBadgeView;
 });
 
@@ -85283,7 +85702,7 @@ define("views/notification/items/user-reaction", ["exports", "views/notification
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -85406,7 +85825,7 @@ define("views/notification/items/system", ["exports", "views/notification/items/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -85460,7 +85879,7 @@ define("views/notification/items/message", ["exports", "views/notification/items
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -85521,7 +85940,7 @@ define("views/notification/items/entity-removed", ["exports", "views/notificatio
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -85573,7 +85992,7 @@ define("views/notification/items/email-received", ["exports", "views/notificatio
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -85638,7 +86057,7 @@ define("views/notification/items/email-inbox", ["exports", "views/notification/i
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -85707,6 +86126,86 @@ define("views/notification/items/email-inbox", ["exports", "views/notification/i
   var _default = _exports.default = EmailInboxNotificationItemView;
 });
 
+define("views/notification/items/collaborating", ["exports", "views/notification/items/base"], function (_exports, _base) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _base = _interopRequireDefault(_base);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  // noinspection JSUnusedGlobalSymbols
+  class CollaboratingNotificationItemView extends _base.default {
+    // language=Handlebars
+    templateContent = `
+        <div class="stream-head-container">
+            <div class="pull-left">
+                {{{avatar}}}
+            </div>
+            <div class="stream-head-text-container text-muted">
+                {{#if iconHtml}}{{{iconHtml}}}{{/if}}<span class="message"">{{{message}}}</span>
+            </div>
+        </div>
+
+        <div class="stream-date-container">
+            <span class="text-muted small">{{{createdAt}}}</span>
+        </div>
+    `;
+    messageName = 'addedToCollaborators';
+    data() {
+      const iconHtml = this.model.attributes.relatedType && this.model.attributes.relatedId ? this.getIconHtml(this.model.attributes.relatedType, this.model.attributes.relatedId) : null;
+      return {
+        ...super.data(),
+        iconHtml: iconHtml
+      };
+    }
+    setup() {
+      this.userId = this.model.attributes.createdById;
+      this.messageData['user'] = (() => {
+        const element = document.createElement('a');
+        element.href = `#User/view/${this.model.attributes.createdById}`;
+        element.dataset.id = this.model.attributes.createdById;
+        element.dataset.scope = 'User';
+        element.textContent = this.model.attributes.createdByName;
+        return element;
+      })();
+      this.messageData['entityType'] = this.translateEntityType(this.model.attributes.relatedType);
+      this.messageData['entity'] = 'field:related';
+      this.createMessage();
+    }
+  }
+  _exports.default = CollaboratingNotificationItemView;
+});
+
 define("views/notification/items/assign", ["exports", "views/notification/items/base"], function (_exports, _base) {
   "use strict";
 
@@ -85720,7 +86219,7 @@ define("views/notification/items/assign", ["exports", "views/notification/items/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -85772,7 +86271,7 @@ define("views/notification/fields/read", ["exports", "views/fields/base"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -85823,7 +86322,7 @@ define("views/notification/fields/read-with-menu", ["exports", "views/fields/bas
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -85875,7 +86374,7 @@ define("views/notification/fields/container", ["exports", "views/fields/base", "
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -85903,7 +86402,12 @@ define("views/notification/fields/container", ["exports", "views/fields/base", "
     type = 'notification';
     listTemplate = 'notification/fields/container';
     detailTemplate = 'notification/fields/container';
-    types = ['Assign', 'EmailReceived', 'EntityRemoved', 'Message', 'System', 'UserReaction'];
+
+    /**
+     * @private
+     * @type {string[]}
+     */
+    types = ['Assign', 'EmailReceived', 'EntityRemoved', 'Message', 'System', 'UserReaction', 'Collaborating'];
     inlineEditDisabled = true;
 
     /**
@@ -86062,12 +86566,13 @@ define("views/note/detail", ["exports", "views/main", "helpers/util/debounce", "
   _main = _interopRequireDefault(_main);
   _debounce = _interopRequireDefault(_debounce);
   _webSocketManager = _interopRequireDefault(_webSocketManager);
+  var _staticBlock;
   let _init_webSocketManager, _init_extra_webSocketManager;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -86091,13 +86596,12 @@ define("views/note/detail", ["exports", "views/main", "helpers/util/debounce", "
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
   function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
   class NoteDetailView extends _main.default {
-    static #_ = [_init_webSocketManager, _init_extra_webSocketManager] = _applyDecs(this, [], [[(0, _di.inject)(_webSocketManager.default), 0, "webSocketManager"]], 0, void 0, _main.default).e;
     constructor() {
       super(...arguments);
       _init_extra_webSocketManager(this);
@@ -86232,8 +86736,10 @@ define("views/note/detail", ["exports", "views/main", "helpers/util/debounce", "
         highlight: true
       });
     }
+    static #_ = _staticBlock = () => [_init_webSocketManager, _init_extra_webSocketManager] = _applyDecs(this, [], [[(0, _di.inject)(_webSocketManager.default), 0, "webSocketManager"]], 0, void 0, _main.default).e;
   }
   _exports.default = NoteDetailView;
+  _staticBlock();
 });
 
 define("views/note/record/edit", ["exports", "views/record/edit"], function (_exports, _edit) {
@@ -86249,7 +86755,7 @@ define("views/note/record/edit", ["exports", "views/record/edit"], function (_ex
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -86307,7 +86813,7 @@ define("views/note/modals/edit", ["exports", "views/modals/edit"], function (_ex
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -86370,7 +86876,7 @@ define("views/note/fields/users", ["exports", "views/fields/link-multiple"], fun
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -86456,7 +86962,7 @@ define("views/note/fields/type", ["exports", "views/fields/enum"], function (_ex
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -86499,7 +87005,7 @@ define("views/note/fields/related", ["exports", "views/fields/link-parent"], fun
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -86551,7 +87057,7 @@ define("views/note/fields/parent", ["exports", "views/fields/link-parent"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -86603,7 +87109,7 @@ define("views/modals/view-map", ["exports", "views/modal"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -86660,7 +87166,7 @@ define("views/modals/select-records-with-categories", ["exports", "views/modals/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -86881,7 +87387,7 @@ define("views/modals/select-category-tree-records", ["exports", "views/modals/se
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -87020,7 +87526,7 @@ define("views/modals/save-filters", ["exports", "views/modal", "model"], functio
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -87111,7 +87617,7 @@ define("views/modals/resolve-save-conflict", ["exports", "views/modal", "ui/sele
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -87297,7 +87803,7 @@ define("views/modals/password-change-request", ["exports", "views/modal"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -87452,7 +87958,7 @@ define("views/modals/mass-action", ["exports", "views/modal", "model"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -87574,7 +88080,7 @@ define("views/modals/last-viewed", ["exports", "views/modal"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -87663,7 +88169,7 @@ define("views/modals/kanban-move-over", ["exports", "views/modal"], function (_e
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -87769,7 +88275,7 @@ define("views/modals/image-preview", ["exports", "views/modal"], function (_expo
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -88075,7 +88581,7 @@ define("views/modals/image-crop", ["exports", "views/modal"], function (_exports
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -88167,7 +88673,7 @@ define("views/modals/followers-list", ["exports", "views/modals/related-list", "
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -88232,7 +88738,7 @@ define("views/modals/edit-dashboard", ["exports", "views/modal", "model"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -88385,7 +88891,7 @@ define("views/modals/duplicate", ["exports", "views/modal"], function (_exports,
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -88479,7 +88985,7 @@ define("views/modals/convert-currency", ["exports", "views/modals/mass-convert-c
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -88549,7 +89055,7 @@ define("views/modals/compose-email", ["exports", "views/modals/edit", "helpers/m
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -88592,7 +89098,7 @@ define("views/modals/compose-email", ["exports", "views/modals/edit", "helpers/m
       },
       /** @this ComposeEmailModalView */
       'Control+KeyS': function (e) {
-        if (this.buttonList.findIndex(item => item.name === 'saveDraft' && !item.hidden) === -1) {
+        if (this.buttonList.findIndex(item => item.name === 'saveDraft' && !item.hidden && !item.disabled) === -1) {
           return;
         }
         e.preventDefault();
@@ -88636,17 +89142,18 @@ define("views/modals/compose-email", ["exports", "views/modals/edit", "helpers/m
       });
       this.$header = $('<a>').attr('role', 'button').attr('tabindex', '0').attr('data-action', 'fullFormDraft').text(this.getLanguage().translate('Compose Email'));
       this.events['click a[data-action="fullFormDraft"]'] = () => this.actionFullFormDraft();
+      this.once('remove', () => {
+        this.dialogIsHidden = false;
+      });
       const helper = new _mailto.default(this.getConfig(), this.getPreferences(), this.getAcl());
       if (helper.toUse()) {
         this.once('after:render', () => this.actionClose());
         this.getRouter().confirmLeaveOut = false;
         const attributes = this.options.attributes || {};
         this.once('after:render', () => document.location.href = helper.composeLink(attributes));
-        return;
       }
-      this.once('remove', () => {
-        this.dialogIsHidden = false;
-      });
+    }
+    async setupLate() {
       this.listenTo(this.model, 'change', (m, o) => {
         if (o.ui) {
           this.wasModified = true;
@@ -88820,7 +89327,7 @@ define("views/modals/change-password", ["exports", "views/modal"], function (_ex
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -88943,7 +89450,7 @@ define("views/modals/auth2fa-required", ["exports", "views/modal"], function (_e
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89019,7 +89526,7 @@ define("views/modals/array-field-add", ["exports", "views/modal"], function (_ex
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89172,7 +89679,7 @@ define("views/modals/add-dashlet", ["exports", "views/modal"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89313,7 +89820,7 @@ define("views/modals/action-history", ["exports", "views/modal", "search-manager
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89414,7 +89921,7 @@ define("views/lead-capture/opt-in-confirmation-success", ["exports", "view", "mo
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89477,7 +89984,7 @@ define("views/lead-capture/opt-in-confirmation-expired", ["exports", "view"], fu
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89528,7 +90035,7 @@ define("views/lead-capture/record/list", ["exports", "views/record/list"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89571,7 +90078,7 @@ define("views/lead-capture/record/detail", ["exports", "views/record/detail"], f
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89644,7 +90151,7 @@ define("views/lead-capture/record/panels/request", ["exports", "views/record/pan
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89687,7 +90194,7 @@ define("views/lead-capture/record/panels/form", ["exports", "views/record/panels
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89730,7 +90237,7 @@ define("views/lead-capture/fields/smtp-account", ["exports", "views/fields/enum"
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89767,7 +90274,6 @@ define("views/lead-capture/fields/smtp-account", ["exports", "views/fields/enum"
       const data = super.data();
       data.valueIsSet = this.model.has('inboundEmailId');
       data.isNotEmpty = this.model.has('inboundEmailId');
-      ;
       data.value = this.getValueForDisplay();
       data.valueTranslated = data.value != null ? this.translatedOptions[data.value] : undefined;
       return data;
@@ -89861,7 +90367,7 @@ define("views/lead-capture/fields/phone-number-country", ["exports", "views/fiel
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89912,7 +90418,7 @@ define("views/lead-capture/fields/form-theme", ["exports", "views/fields/enum"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -89963,7 +90469,7 @@ define("views/lead-capture/fields/field-list", ["exports", "views/fields/array"]
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -90172,7 +90678,7 @@ define("views/last-viewed/list", ["exports", "views/list"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -90220,7 +90726,7 @@ define("views/last-viewed/record/list", ["exports", "views/record/list"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -90266,7 +90772,7 @@ define("views/global-search/status-field", ["exports", "views/fields/base"], fun
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -90332,7 +90838,7 @@ define("views/global-search/scope-badge", ["exports", "view"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -90382,7 +90888,7 @@ define("views/global-search/panel", ["exports", "view"], function (_exports, _vi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -90501,7 +91007,7 @@ define("views/global-search/name-field", ["exports", "views/fields/base", "helpe
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -90576,7 +91082,7 @@ define("views/global-search/global-search", ["exports", "ui/autocomplete", "help
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -90965,7 +91471,7 @@ define("views/fields/varchar-column", ["exports", "views/fields/varchar"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91057,7 +91563,7 @@ define("views/fields/users", ["exports", "views/fields/link-multiple"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91114,7 +91620,7 @@ define("views/fields/teams", ["exports", "views/fields/link-multiple"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91185,7 +91691,7 @@ define("views/fields/range-currency", ["exports", "views/fields/range-float", "v
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91308,7 +91814,7 @@ define("views/fields/number", ["exports", "views/fields/varchar"], function (_ex
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91365,7 +91871,7 @@ define("views/fields/map", ["exports", "views/fields/base"], function (_exports,
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91496,7 +92002,7 @@ define("views/fields/link-one", ["exports", "views/fields/link"], function (_exp
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91597,7 +92103,7 @@ define("views/fields/link-multiple-with-status", ["exports", "views/fields/link-
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91681,7 +92187,7 @@ define("views/fields/link-multiple-with-columns-with-primary", ["exports", "view
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91847,7 +92353,7 @@ define("views/fields/link-multiple-category-tree", ["exports", "views/fields/lin
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91896,7 +92402,7 @@ define("views/fields/link-category-tree", ["exports", "views/fields/link"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -91953,7 +92459,7 @@ define("views/fields/json-object", ["exports", "views/fields/base"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92011,7 +92517,7 @@ define("views/fields/id", ["exports", "views/fields/varchar"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92054,7 +92560,7 @@ define("views/fields/formula", ["exports", "views/fields/text"], function (_expo
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92410,7 +92916,7 @@ define("views/fields/foreign", ["exports", "views/fields/base"], function (_expo
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92454,7 +92960,7 @@ define("views/fields/foreign-varchar", ["exports", "views/fields/varchar", "help
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92506,7 +93012,7 @@ define("views/fields/foreign-url", ["exports", "views/fields/url", "helpers/misc
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92559,7 +93065,7 @@ define("views/fields/foreign-url-multiple", ["exports", "views/fields/url-multip
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92612,7 +93118,7 @@ define("views/fields/foreign-text", ["exports", "views/fields/text", "helpers/mi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92663,7 +93169,7 @@ define("views/fields/foreign-phone", ["exports", "views/fields/phone"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92715,7 +93221,7 @@ define("views/fields/foreign-multi-enum", ["exports", "views/fields/multi-enum",
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92777,7 +93283,7 @@ define("views/fields/foreign-int", ["exports", "views/fields/int", "helpers/misc
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92830,7 +93336,7 @@ define("views/fields/foreign-float", ["exports", "views/fields/float", "helpers/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92881,7 +93387,7 @@ define("views/fields/foreign-email", ["exports", "views/fields/email"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92926,7 +93432,7 @@ define("views/fields/foreign-datetime", ["exports", "views/fields/datetime", "he
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -92978,7 +93484,7 @@ define("views/fields/foreign-date", ["exports", "views/fields/date", "helpers/mi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -93029,7 +93535,7 @@ define("views/fields/foreign-currency-converted", ["exports", "views/fields/curr
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -93074,7 +93580,7 @@ define("views/fields/foreign-checklist", ["exports", "views/fields/checklist", "
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -93136,7 +93642,7 @@ define("views/fields/foreign-bool", ["exports", "views/fields/bool", "helpers/mi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -93187,7 +93693,7 @@ define("views/fields/followers", ["exports", "views/fields/link-multiple"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -93319,7 +93825,7 @@ define("views/fields/enum-styled", ["exports", "views/fields/enum"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -93362,7 +93868,7 @@ define("views/fields/enum-float", ["exports", "views/fields/enum-int"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -93420,7 +93926,7 @@ define("views/fields/enum-column", ["exports", "views/fields/enum"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -93516,7 +94022,7 @@ define("views/fields/entity-type-list", ["exports", "views/fields/multi-enum"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -93581,7 +94087,7 @@ define("views/fields/email-address", ["exports", "views/fields/varchar"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -93642,7 +94148,7 @@ define("views/fields/duration", ["exports", "views/fields/enum", "ui/select", "m
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -94025,7 +94531,7 @@ define("views/fields/datetime-optional", ["exports", "views/fields/datetime", "m
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -94243,7 +94749,7 @@ define("views/fields/currency-list", ["exports", "views/fields/enum"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -94291,7 +94797,7 @@ define("views/fields/complex-expression", ["exports", "views/fields/text"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -94564,7 +95070,7 @@ define("views/fields/complex-created", ["exports", "views/fields/base"], functio
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -94664,7 +95170,7 @@ define("views/fields/collaborators", ["exports", "views/fields/link-multiple"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -94758,7 +95264,7 @@ define("views/fields/barcode", ["exports", "views/fields/varchar"], function (_e
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -94967,7 +95473,7 @@ define("views/fields/autoincrement", ["exports", "views/fields/int"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -95024,7 +95530,7 @@ define("views/fields/assigned-users", ["exports", "views/fields/link-multiple"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -95118,7 +95624,7 @@ define("views/fields/assigned-user", ["exports", "views/fields/user-with-avatar"
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -95186,7 +95692,7 @@ define("views/fields/array-int", ["exports", "views/fields/array"], function (_e
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -95260,7 +95766,7 @@ define("views/fields/address", ["exports", "views/fields/base", "views/fields/va
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -95790,7 +96296,7 @@ define("views/fields/address-state", ["exports", "views/fields/varchar"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -95838,7 +96344,7 @@ define("views/fields/address-country", ["exports", "views/fields/varchar"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -95923,7 +96429,7 @@ define("views/fields/address-city", ["exports", "views/fields/varchar"], functio
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -95971,7 +96477,7 @@ define("views/export/record/record", ["exports", "views/record/edit-for-modal"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -96204,7 +96710,7 @@ define("views/export/modals/idle", ["exports", "views/modal", "model"], function
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -96346,7 +96852,7 @@ define("views/export/modals/export", ["exports", "views/modal", "model"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -96482,7 +96988,7 @@ define("views/event/fields/name-for-history", ["exports", "views/fields/varchar"
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -96532,7 +97038,7 @@ define("views/email-template/list", ["exports", "views/list-with-categories"], f
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -96576,7 +97082,7 @@ define("views/email-template/record/edit", ["exports", "views/record/edit", "vie
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -96624,7 +97130,7 @@ define("views/email-template/record/edit-quick", ["exports", "views/record/edit"
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -96670,7 +97176,7 @@ define("views/email-template/record/panels/information", ["exports", "views/reco
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -96738,7 +97244,7 @@ define("views/email-template/fields/insert-field", ["exports", "views/fields/bas
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97025,7 +97531,7 @@ define("views/email-template/fields/body", ["exports", "views/fields/wysiwyg"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97070,7 +97576,7 @@ define("views/email-folder/list", ["exports", "views/list"], function (_exports,
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97119,7 +97625,7 @@ define("views/email-folder/list-side", ["exports", "view"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97325,7 +97831,7 @@ define("views/email-folder/record/list", ["exports", "views/record/list"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97406,7 +97912,7 @@ define("views/email-folder/record/edit-small", ["exports", "views/record/edit"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97452,7 +97958,7 @@ define("views/email-folder/record/row-actions/default", ["exports", "views/recor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97514,7 +98020,7 @@ define("views/email-folder/modals/select-folder", ["exports", "views/modal"], fu
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97643,7 +98149,7 @@ define("views/email-filter/record/list", ["exports", "views/record/list"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97686,7 +98192,7 @@ define("views/email-filter/modals/edit", ["exports", "views/modals/edit"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97730,7 +98236,7 @@ define("views/email-filter/fields/parent", ["exports", "views/fields/link-parent
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97781,7 +98287,7 @@ define("views/email-filter/fields/email-folder", ["exports", "views/fields/link"
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -97840,7 +98346,7 @@ define("views/email/list", ["exports", "views/list", "utils"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -98428,7 +98934,7 @@ define("views/email/record/list-related", ["exports", "views/record/list"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -98472,7 +98978,7 @@ define("views/email/record/list-expanded", ["exports", "views/record/list-expand
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -98528,7 +99034,7 @@ define("views/email/record/edit-quick", ["exports", "views/email/record/edit"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -98572,7 +99078,7 @@ define("views/email/record/detail-side", ["exports", "views/record/detail-side"]
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -98613,7 +99119,7 @@ define("views/email/record/detail-quick", ["exports", "views/email/record/detail
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -98658,7 +99164,7 @@ define("views/email/record/compose", ["exports", "views/record/edit", "views/ema
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -98908,7 +99414,7 @@ define("views/email/record/row-actions/default", ["exports", "views/record/row-a
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -99080,7 +99586,7 @@ define("views/email/record/row-actions/dashlet", ["exports", "views/record/row-a
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -99201,7 +99707,7 @@ define("views/email/record/panels/event", ["exports", "views/record/panels/side"
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -99287,7 +99793,7 @@ define("views/email/record/panels/default-side", ["exports", "views/record/panel
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -99367,7 +99873,7 @@ define("views/email/modals/insert-field", ["exports", "views/modal", "helpers/mi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -99563,7 +100069,7 @@ define("views/email/modals/detail", ["exports", "views/modals/detail", "views/em
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -99635,7 +100141,7 @@ define("views/email/modals/body-plain", ["exports", "views/modal"], function (_e
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -99706,7 +100212,7 @@ define("views/email/modals/attachments", ["exports", "views/modal"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -99770,7 +100276,7 @@ define("views/email/fields/subject", ["exports", "views/fields/varchar"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -99879,7 +100385,7 @@ define("views/email/fields/select-template", ["exports", "views/fields/link"], f
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -99963,7 +100469,7 @@ define("views/email/fields/replies", ["exports", "views/fields/link-multiple"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -100016,7 +100522,7 @@ define("views/email/fields/replied", ["exports", "views/fields/link"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -100067,7 +100573,7 @@ define("views/email/fields/person-string-data-for-expanded", ["exports", "views/
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -100111,7 +100617,7 @@ define("views/email/fields/icon", ["exports", "views/fields/base"], function (_e
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -100155,7 +100661,7 @@ define("views/email/fields/has-attachment", ["exports", "views/fields/base"], fu
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -100224,7 +100730,7 @@ define("views/email/fields/from-email-address", ["exports", "views/fields/link"]
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -100268,7 +100774,7 @@ define("views/email/fields/folder-string", ["exports", "views/fields/base"], fun
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -100391,7 +100897,7 @@ define("views/email/fields/email-address-varchar", ["exports", "views/fields/bas
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -100872,7 +101378,7 @@ define("views/email/fields/date-sent", ["exports", "views/fields/datetime-short"
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -100915,7 +101421,7 @@ define("views/email/fields/created-event", ["exports", "views/fields/link-parent
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -100975,7 +101481,7 @@ define("views/email/fields/create-event", ["exports", "views/fields/base", "help
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101093,7 +101599,7 @@ define("views/email/fields/compose-from-address", ["exports", "views/fields/base
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101186,7 +101692,7 @@ define("views/dashlets/stream", ["exports", "views/dashlets/abstract/base"], fun
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101316,7 +101822,7 @@ define("views/dashlets/records", ["exports", "views/dashlets/abstract/record-lis
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101390,7 +101896,7 @@ define("views/dashlets/memo", ["exports", "views/dashlets/abstract/base"], funct
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101446,7 +101952,7 @@ define("views/dashlets/iframe", ["exports", "views/dashlets/abstract/base"], fun
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101539,7 +102045,7 @@ define("views/dashlets/emails", ["exports", "views/dashlets/abstract/record-list
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101624,7 +102130,7 @@ define("views/dashlets/options/record-list", ["exports", "views/dashlets/options
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101679,7 +102185,7 @@ define("views/dashlets/fields/records/sort-direction", ["exports", "views/fields
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101729,7 +102235,7 @@ define("views/dashlets/fields/records/sort-by", ["exports", "views/fields/enum"]
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101803,7 +102309,7 @@ define("views/dashlets/fields/records/primary-filter", ["exports", "views/fields
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -101881,7 +102387,7 @@ define("views/dashlets/fields/records/expanded-layout", ["exports", "views/field
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102189,7 +102695,7 @@ define("views/dashlets/fields/records/entity-type", ["exports", "views/fields/en
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102285,7 +102791,7 @@ define("views/dashlets/fields/records/bool-filter-list", ["exports", "views/fiel
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102363,7 +102869,7 @@ define("views/dashlets/fields/emails/folder", ["exports", "views/fields/enum"], 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102428,7 +102934,7 @@ define("views/dashboard-template/detail", ["exports", "views/detail"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102487,7 +102993,7 @@ define("views/dashboard-template/record/list", ["exports", "views/record/list"],
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102531,7 +103037,7 @@ define("views/dashboard-template/modals/deploy-to-users", ["exports", "views/mod
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102641,7 +103147,7 @@ define("views/dashboard-template/modals/deploy-to-team", ["exports", "views/moda
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102736,6 +103242,297 @@ define("views/dashboard-template/modals/deploy-to-team", ["exports", "views/moda
   _exports.default = _default;
 });
 
+define("views/currency-record-rate/fields/rate", ["exports", "views/fields/decimal"], function (_exports, _decimal) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _decimal = _interopRequireDefault(_decimal);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class CurrencyRecordRateRateFieldView extends _decimal.default {
+    // language=Handlebars
+    listTemplateContent = `
+        {{#if isNotEmpty~}}
+            <span class="text-soft">{{targetCode}} = </span>
+            <span class="numeric-text">{{value}}</span>
+            <span class="text-soft">{{baseCode}}</span>
+        {{~/if~}}
+    `;
+
+    // language=Handlebars
+    detailTemplateContent = `
+        {{~#if isNotEmpty~}}
+            <span class="text-soft">{{targetCode}} = </span>
+            <span class="numeric-text">{{value}}</span>
+            <span class="text-soft">{{baseCode}}</span>
+        {{~else~}}
+            {{~#if valueIsSet~}}
+                <span class="none-value">{{translate 'None'}}</span>
+            {{~else~}}<span class="loading-value"></span>
+            {{~/if}}
+        {{~/if~}}
+    `;
+
+    // language=Handlebars
+    editTemplateContent = `
+            <div class="input-group">
+            <span class="input-group-addon radius-left" style="width: 24%">1 {{targetCode}} = </span>
+            <span class="input-group-item">
+                <input
+                    type="text"
+                    class="main-element form-control numeric-text"
+                    data-name="{{name}}"
+                    value="{{value}}"
+                    autocomplete="espo-{{name}}"
+                    pattern="[\\-]?[0-9]*"
+                    style="text-align: end;"
+                >
+            </span>
+            <span class="input-group-addon radius-right" style="width: 21%">{{baseCode}}</span>
+        </div>
+    `;
+    getAttributeList() {
+      return [...super.getAttributeList(), 'baseCode', 'recordName'];
+    }
+    data() {
+      let baseCode = this.model.attributes.baseCode;
+      let targetCode = this.model.attributes.recordName;
+      if (this.model.entityType === 'CurrencyRecord') {
+        baseCode = this.getConfig().get('baseCurrency');
+        targetCode = this.model.attributes.code;
+      }
+      return {
+        ...super.data(),
+        baseCode,
+        targetCode
+      };
+    }
+  }
+  _exports.default = CurrencyRecordRateRateFieldView;
+});
+
+define("views/currency-record/list", ["exports", "views/list"], function (_exports, _list) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _list = _interopRequireDefault(_list);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class _default extends _list.default {
+    keepCurrentRootUrl = true;
+  }
+  _exports.default = _default;
+});
+
+define("views/currency-record/record/panels/rates", ["exports", "views/record/panels/relationship"], function (_exports, _relationship) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _relationship = _interopRequireDefault(_relationship);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class RatesPanelView extends _relationship.default {
+    setup() {
+      if (this.model.attributes.code === this.getConfig().get('baseCurrency')) {
+        this.defs.createDisabled = true;
+      }
+      super.setup();
+    }
+  }
+  _exports.default = RatesPanelView;
+});
+
+define("views/currency/fields/currency-rates", ["exports", "views/fields/base"], function (_exports, _base) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _base = _interopRequireDefault(_base);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class _default extends _base.default {
+    editTemplateContent = `
+        {{#each rateValues}}
+            <div class="input-group">
+                <span class="input-group-addon radius-left" style="width: 25%">1 {{@key}} = </span>
+                <span class="input-group-item">
+                    <input
+                        class="form-control"
+                        type="text"
+                        data-currency="{{@key}}"
+                        value="{{./this}}"
+                        style="text-align: right;"
+                    >
+                </span>
+                <span class="input-group-addon radius-right" style="width: 22%">{{../baseCurrency}}</span>
+            </div>
+        {{/each}}
+    `;
+    data() {
+      const baseCurrency = this.model.get('baseCurrency');
+      const currencyRates = this.model.get('currencyRates') || {};
+      const rateValues = {};
+      (this.model.get('currencyList') || []).forEach(currency => {
+        if (currency !== baseCurrency) {
+          rateValues[currency] = currencyRates[currency];
+          if (!rateValues[currency]) {
+            if (currencyRates[baseCurrency]) {
+              rateValues[currency] = Math.round(1 / currencyRates[baseCurrency] * 1000) / 1000;
+            }
+            if (!rateValues[currency]) {
+              rateValues[currency] = 1.00;
+            }
+          }
+        }
+      });
+      return {
+        rateValues: rateValues,
+        baseCurrency: baseCurrency
+      };
+    }
+    fetch() {
+      const data = {};
+      const currencyRates = {};
+      const baseCurrency = this.model.get('baseCurrency');
+      const currencyList = this.model.get('currencyList') || [];
+      currencyList.forEach(currency => {
+        if (currency !== baseCurrency) {
+          const value = this.$el.find(`input[data-currency="${currency}"]`).val() || '1';
+          currencyRates[currency] = parseFloat(value);
+        }
+      });
+      delete currencyRates[baseCurrency];
+      for (const c in currencyRates) {
+        if (!~currencyList.indexOf(c)) {
+          delete currencyRates[c];
+        }
+      }
+      data[this.name] = currencyRates;
+      return data;
+    }
+  }
+  _exports.default = _default;
+});
+
 define("views/attachment/record/list", ["exports", "views/record/list"], function (_exports, _list) {
   "use strict";
 
@@ -102749,7 +103546,7 @@ define("views/attachment/record/list", ["exports", "views/record/list"], functio
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102793,7 +103590,7 @@ define("views/attachment/record/detail", ["exports", "views/record/detail"], fun
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102836,7 +103633,7 @@ define("views/attachment/modals/detail", ["exports", "views/modals/detail"], fun
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102879,7 +103676,7 @@ define("views/attachment/fields/parent", ["exports", "views/fields/link-parent"]
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102940,7 +103737,7 @@ define("views/attachment/fields/name", ["exports", "views/fields/varchar"], func
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -102994,7 +103791,7 @@ define("views/attachment/fields/name-for-stream", ["exports", "model", "views/fi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103057,7 +103854,7 @@ define("views/address-map/view", ["exports", "views/main"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103145,7 +103942,7 @@ define("views/action-history-record/record/list", ["exports", "views/record/list
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103189,7 +103986,7 @@ define("views/action-history-record/modals/detail", ["exports", "views/modals/de
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103234,7 +104031,7 @@ define("views/action-history-record/fields/target", ["exports", "views/fields/li
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103295,7 +104092,7 @@ define("views/action-history-record/fields/target-type", ["exports", "views/fiel
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103339,7 +104136,7 @@ define("helpers/misc/list-select-attributes", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103472,12 +104269,13 @@ define("helpers/misc/foreign-field-params", ["exports", "di", "metadata"], funct
   });
   _exports.default = void 0;
   _metadata = _interopRequireDefault(_metadata);
+  var _staticBlock;
   let _init_metadata, _init_extra_metadata;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103501,7 +104299,7 @@ define("helpers/misc/foreign-field-params", ["exports", "di", "metadata"], funct
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
@@ -103511,7 +104309,6 @@ define("helpers/misc/foreign-field-params", ["exports", "di", "metadata"], funct
    * @internal For future use.
    */
   class _Class {
-    static #_ = [_init_metadata, _init_extra_metadata] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"]]).e;
     constructor() {
       _init_extra_metadata(this);
     }
@@ -103542,8 +104339,10 @@ define("helpers/misc/foreign-field-params", ["exports", "di", "metadata"], funct
       }
       return this.metadata.get(`entityDefs.${foreignEntityType}.links.${foreignField}`);
     }
+    static #_ = _staticBlock = () => [_init_metadata, _init_extra_metadata] = _applyDecs(this, [], [[(0, _di.inject)(_metadata.default), 0, "metadata"]]).e;
   }
   _exports.default = _Class;
+  _staticBlock();
 });
 
 define("helpers/misc/authentication-provider", ["exports"], function (_exports) {
@@ -103557,7 +104356,7 @@ define("helpers/misc/authentication-provider", ["exports"], function (_exports) 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103761,7 +104560,7 @@ define("handlers/working-time-range", ["exports", "bullbone"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103819,7 +104618,7 @@ define("handlers/navbar-menu", ["exports", "action-handler"], function (_exports
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103873,7 +104672,7 @@ define("handlers/import", ["exports", "action-handler"], function (_exports, _ac
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -103926,7 +104725,7 @@ define("handlers/email-filter", ["exports", "dynamic-handler"], function (_expor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -104037,7 +104836,7 @@ define("handlers/user/select-contact", ["exports", "handlers/select-related"], f
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -104102,7 +104901,7 @@ define("handlers/user/change-team-position-row-action", ["exports", "handlers/ro
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -104196,7 +104995,7 @@ define("handlers/select-related/same-account", ["exports", "handlers/select-rela
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -104271,7 +105070,7 @@ define("handlers/select-related/same-account-many", ["exports", "handlers/select
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -104347,7 +105146,7 @@ define("handlers/record/view-user-access", ["exports", "views/modals/related-lis
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -104456,7 +105255,7 @@ define("handlers/record/view-audit-log", ["exports", "views/stream/modals/view-a
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -104525,7 +105324,7 @@ define("handlers/note/record-detail-setup", ["exports"], function (_exports) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -104572,69 +105371,6 @@ define("handlers/note/record-detail-setup", ["exports"], function (_exports) {
   _exports.default = _default;
 });
 
-define("handlers/model/defaults-preparator", ["exports"], function (_exports) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /**
-   * @abstract
-   */
-  class DefaultsPreparator {
-    /**
-     * @param {import('view-helper').default} viewHelper
-     */
-    constructor(viewHelper) {
-      /** @protected */
-      this.viewHelper = viewHelper;
-    }
-
-    // noinspection JSUnusedLocalSymbols
-    /**
-     * Prepare default attributes.
-     *
-     * @param {import('model').default} model A model.
-     * @return {Promise<Record>}
-     */
-    prepare(model) {
-      return Promise.resolve({});
-    }
-  }
-
-  // noinspection JSUnusedGlobalSymbols
-  var _default = _exports.default = DefaultsPreparator;
-});
-
 define("handlers/map/google-maps-renderer", ["exports", "handlers/map/renderer"], function (_exports, _renderer) {
   "use strict";
 
@@ -104648,7 +105384,7 @@ define("handlers/map/google-maps-renderer", ["exports", "handlers/map/renderer"]
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -104801,7 +105537,7 @@ define("handlers/login/oidc", ["exports", "handlers/login", "js-base64"], functi
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -104994,7 +105730,7 @@ define("handlers/email/select-user", ["exports", "handlers/select-related"], fun
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105056,7 +105792,7 @@ define("handlers/email/list-actions", ["exports", "action-handler", "views/email
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105100,21 +105836,22 @@ define("handlers/email/list-actions", ["exports", "action-handler", "views/email
   var _default = _exports.default = EmailListActionsHandler;
 });
 
-define("handlers/create-related/set-parent", ["exports", "handlers/create-related", "di", "model-factory"], function (_exports, _createRelated, _di, _modelFactory) {
+define("handlers/currency-record-rate/default-preparator", ["exports", "handlers/model/defaults-preparator", "di", "models/settings"], function (_exports, _defaultsPreparator, _di, _settings) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
   _exports.default = void 0;
-  _createRelated = _interopRequireDefault(_createRelated);
-  _modelFactory = _interopRequireDefault(_modelFactory);
-  let _init_modelFactory, _init_extra_modelFactory;
+  _defaultsPreparator = _interopRequireDefault(_defaultsPreparator);
+  _settings = _interopRequireDefault(_settings);
+  var _staticBlock;
+  let _init_config, _init_extra_config;
   /************************************************************************
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105138,13 +105875,179 @@ define("handlers/create-related/set-parent", ["exports", "handlers/create-relate
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 != (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
+  function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+  function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
+  function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
+  // noinspection JSUnusedGlobalSymbols
+  class _Class extends _defaultsPreparator.default {
+    constructor() {
+      super(...arguments);
+      _init_extra_config(this);
+    }
+    /**
+     * @private
+     * @type {Settings}
+     */
+    config = _init_config(this);
+    async prepare(model) {
+      return {
+        baseCode: this.config.get('baseCurrency')
+      };
+    }
+    static #_ = _staticBlock = () => [_init_config, _init_extra_config] = _applyDecs(this, [], [[(0, _di.inject)(_settings.default), 0, "config"]], 0, void 0, _defaultsPreparator.default).e;
+  }
+  _exports.default = _Class;
+  _staticBlock();
+});
+
+define("handlers/currency-record/record-detail", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class CurrencyRecordRecordDetailHandler {
+    /**
+     * @param {import('views/record/detail').default} view
+     */
+    constructor(view) {
+      this.view = view;
+    }
+    process() {
+      const model = this.view.model;
+      this.view.listenTo(model, 'after:relate:rates after:unrelate:rates after:related-change:rates', () => {
+        model.fetch();
+      });
+    }
+  }
+  _exports.default = CurrencyRecordRecordDetailHandler;
+});
+
+define("handlers/currency-record/menu-action-settings", ["exports", "action-handler"], function (_exports, _actionHandler) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _actionHandler = _interopRequireDefault(_actionHandler);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class CurrencyRecordMenuActionSettingsHandler extends _actionHandler.default {
+    // noinspection JSUnusedGlobalSymbols
+    isVisible() {
+      var _this$view$options;
+      /** @type {Record} */
+      const params = ((_this$view$options = this.view.options) === null || _this$view$options === void 0 ? void 0 : _this$view$options.params) ?? {};
+      return params.fromSettings ?? false;
+    }
+  }
+  _exports.default = CurrencyRecordMenuActionSettingsHandler;
+});
+
+define("handlers/create-related/set-parent", ["exports", "handlers/create-related", "di", "model-factory"], function (_exports, _createRelated, _di, _modelFactory) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _createRelated = _interopRequireDefault(_createRelated);
+  _modelFactory = _interopRequireDefault(_modelFactory);
+  var _staticBlock;
+  let _init_modelFactory, _init_extra_modelFactory;
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
   function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
   function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
   function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
   function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
   class SetParentHandler extends _createRelated.default {
-    static #_ = [_init_modelFactory, _init_extra_modelFactory] = _applyDecs(this, [], [[(0, _di.inject)(_modelFactory.default), 0, "modelFactory"]], 0, void 0, _createRelated.default).e;
     constructor() {
       super(...arguments);
       _init_extra_modelFactory(this);
@@ -105172,8 +106075,10 @@ define("handlers/create-related/set-parent", ["exports", "handlers/create-relate
         parentType: model.entityType
       };
     }
+    static #_ = _staticBlock = () => [_init_modelFactory, _init_extra_modelFactory] = _applyDecs(this, [], [[(0, _di.inject)(_modelFactory.default), 0, "modelFactory"]], 0, void 0, _createRelated.default).e;
   }
   _exports.default = SetParentHandler;
+  _staticBlock();
 });
 
 define("handlers/admin/address-country/populate-defaults", ["exports", "action-handler"], function (_exports, _actionHandler) {
@@ -105189,7 +106094,7 @@ define("handlers/admin/address-country/populate-defaults", ["exports", "action-h
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105241,7 +106146,7 @@ define("controllers/user", ["exports", "controllers/record"], function (_exports
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105318,7 +106223,7 @@ define("controllers/team", ["exports", "controllers/record"], function (_exports
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105369,7 +106274,7 @@ define("controllers/stream", ["exports", "controller"], function (_exports, _con
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105460,7 +106365,7 @@ define("controllers/record-tree", ["exports", "controllers/record", "collections
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105554,7 +106459,7 @@ define("controllers/preferences", ["exports", "controllers/record", "models/pref
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105620,7 +106525,7 @@ define("controllers/portal-user", ["exports", "controllers/record"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105705,7 +106610,7 @@ define("controllers/password-change-request", ["exports", "controller"], functio
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105761,7 +106666,7 @@ define("controllers/notification", ["exports", "controller"], function (_exports
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105811,7 +106716,7 @@ define("controllers/note", ["exports", "controller"], function (_exports, _contr
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105878,7 +106783,7 @@ define("controllers/login-as", ["exports", "controller"], function (_exports, _c
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -105941,7 +106846,7 @@ define("controllers/lead-capture-opt-in-confirmation", ["exports", "controller"]
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106005,7 +106910,7 @@ define("controllers/lead-capture-form", ["exports", "controller", "views/lead-ca
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106070,7 +106975,7 @@ define("controllers/layout-set", ["exports", "controllers/record"], function (_e
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106127,7 +107032,7 @@ define("controllers/last-viewed", ["exports", "controllers/record"], function (_
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106175,7 +107080,7 @@ define("controllers/inbound-email", ["exports", "controllers/record"], function 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106223,7 +107128,7 @@ define("controllers/import", ["exports", "controllers/record"], function (_expor
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106325,7 +107230,7 @@ define("controllers/home", ["exports", "controller"], function (_exports, _contr
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106372,7 +107277,7 @@ define("controllers/global-stream", ["exports", "controller", "views/global-stre
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106427,7 +107332,7 @@ define("controllers/external-account", ["exports", "controller"], function (_exp
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106497,7 +107402,7 @@ define("controllers/email", ["exports", "controllers/record"], function (_export
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106549,7 +107454,7 @@ define("controllers/email-filter", ["exports", "controllers/record"], function (
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106602,7 +107507,7 @@ define("controllers/dashboard", ["exports", "controller"], function (_exports, _
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106654,7 +107559,7 @@ define("controllers/api-user", ["exports", "controllers/record"], function (_exp
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106733,7 +107638,7 @@ define("controllers/address-map", ["exports", "controller"], function (_exports,
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106798,7 +107703,7 @@ define("controllers/about", ["exports", "controller"], function (_exports, _cont
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106848,7 +107753,7 @@ define("collections/note", ["exports", "collection"], function (_exports, _colle
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -106974,7 +107879,7 @@ define("acl-portal/preferences", ["exports", "acl-portal"], function (_exports, 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -107022,7 +107927,7 @@ define("acl-portal/notification", ["exports", "acl-portal"], function (_exports,
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -107070,7 +107975,7 @@ define("acl-portal/email", ["exports", "acl-portal"], function (_exports, _aclPo
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -107134,7 +108039,7 @@ define("acl/user", ["exports", "acl"], function (_exports, _acl) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -107186,7 +108091,7 @@ define("acl/team", ["exports", "acl"], function (_exports, _acl) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -107232,7 +108137,7 @@ define("acl/preferences", ["exports", "acl"], function (_exports, _acl) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -107280,7 +108185,7 @@ define("acl/notification", ["exports", "acl"], function (_exports, _acl) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -107328,7 +108233,7 @@ define("acl/import", ["exports", "acl"], function (_exports, _acl) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -107387,7 +108292,7 @@ define("acl/foreign", ["exports", "acl"], function (_exports, _acl) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -107438,7 +108343,7 @@ define("acl/email", ["exports", "acl"], function (_exports, _acl) {
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -107528,6 +108433,54 @@ define("acl/email", ["exports", "acl"], function (_exports, _acl) {
   var _default = _exports.default = EmailAcl;
 });
 
+define("acl/currency-record-rate", ["exports", "acl"], function (_exports, _acl) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _acl = _interopRequireDefault(_acl);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class _default extends _acl.default {
+    checkScope(data, action, precise, entityAccessData) {
+      if (action === 'create' || action === 'delete') {
+        action = 'edit';
+      }
+      return super.checkScope(data, action, precise, entityAccessData);
+    }
+  }
+  _exports.default = _default;
+});
+
 Espo.loader.mapBundleFile('admin', 'client/lib/espo-admin.js');
 Espo.loader.mapBundleFile('extra', 'client/lib/espo-extra.js');
 Espo.loader.mapBundleFile('crm', 'client/lib/espo-crm.js');
@@ -107537,6 +108490,6 @@ Espo.loader.mapBundleDependencies('calendar', ["fullcalendar"]);
 Espo.loader.mapBundleFile('calendar', 'client/lib/espo-calendar.js');
 Espo.loader.mapBundleDependencies('timeline', ["vis-data","vis-timeline"]);
 Espo.loader.mapBundleFile('timeline', 'client/lib/espo-timeline.js');
-Espo.loader.addBundleMapping({"views/admin/layouts/base":"admin","views/admin/layouts/rows":"admin","views/admin/layouts/side-panels-detail":"admin","views/admin/dynamic-logic/conditions-string/item-base":"admin","views/admin/link-manager/modals/edit-params":"admin","views/admin/layouts/grid":"admin","views/admin/layouts/default-page":"admin","views/admin/layouts/bottom-panels-detail":"admin","views/admin/layouts/modals/create":"admin","views/admin/field-manager/detail-fields/attributes":"admin","views/admin/dynamic-logic/conditions-string/item-operator-only-base":"admin","views/admin/dynamic-logic/conditions/field-types/base":"admin","views/settings/edit":"admin","views/settings/record/edit":"admin","views/settings/fields/quick-create-list":"admin","views/role/record/table":"admin","views/role/record/list":"admin","views/role/record/edit":"admin","views/role/record/detail":"admin","views/inbound-email/record/detail":"admin","views/admin/index":"admin","views/admin/link-manager/index":"admin","views/admin/layouts/list":"admin","views/admin/layouts/index":"admin","views/admin/layouts/detail":"admin","views/admin/layouts/bottom-panels-edit":"admin","views/admin/integrations/edit":"admin","views/admin/field-manager/modals/view-details":"admin","views/admin/field-manager/fields/options":"admin","views/admin/entity-manager/record/edit-formula":"admin","views/admin/entity-manager/modals/export":"admin","views/admin/entity-manager/fields/primary-filters":"admin","views/admin/entity-manager/fields/acl-contact-link":"admin","views/admin/dynamic-logic/conditions-string/item-operator-only-date":"admin","views/admin/dynamic-logic/conditions-string/group-base":"admin","views/admin/dynamic-logic/conditions/group-base":"admin","views/admin/dynamic-logic/conditions/field-types/link-multiple":"admin","views/email-account/fields/test-send":"admin","views/email-account/fields/test-connection":"admin","views/email-account/fields/folders":"admin","views/email-account/fields/folder":"admin","views/templates/event/record/detail":"admin","views/settings/modals/tab-list-field-add":"admin","views/settings/modals/edit-tab-url":"admin","views/settings/modals/edit-tab-group":"admin","views/settings/modals/edit-tab-divider":"admin","views/settings/fields/time-zone":"admin","views/settings/fields/time-format":"admin","views/settings/fields/thousand-separator":"admin","views/settings/fields/tab-url":"admin","views/settings/fields/stream-email-with-content-entity-type-list":"admin","views/settings/fields/stream-email-notifications-entity-list":"admin","views/settings/fields/sms-provider":"admin","views/settings/fields/phone-number-preferred-country-list":"admin","views/settings/fields/pdf-engine":"admin","views/settings/fields/outbound-email-from-address":"admin","views/settings/fields/oidc-teams":"admin","views/settings/fields/oidc-redirect-uri":"admin","views/settings/fields/language":"admin","views/settings/fields/history-entity-list":"admin","views/settings/fields/group-tab-list":"admin","views/settings/fields/global-search-entity-list":"admin","views/settings/fields/fiscal-year-shift":"admin","views/settings/fields/email-address-lookup-entity-type-list":"admin","views/settings/fields/default-currency":"admin","views/settings/fields/date-format":"admin","views/settings/fields/dashboard-layout":"admin","views/settings/fields/currency-rates":"admin","views/settings/fields/currency-list":"admin","views/settings/fields/calendar-entity-list":"admin","views/settings/fields/busy-ranges-entity-list":"admin","views/settings/fields/baseline-role":"admin","views/settings/fields/available-reactions":"admin","views/settings/fields/authentication-method":"admin","views/settings/fields/auth-two-fa-method-list":"admin","views/settings/fields/assignment-notifications-entity-list":"admin","views/settings/fields/assignment-email-notifications-entity-list":"admin","views/settings/fields/address-preview":"admin","views/settings/fields/activities-entity-list":"admin","views/scheduled-job/list":"admin","views/scheduled-job/record/list":"admin","views/scheduled-job/record/detail":"admin","views/scheduled-job/record/panels/log":"admin","views/scheduled-job/fields/scheduling":"admin","views/scheduled-job/fields/job":"admin","views/role/list":"admin","views/role/record/detail-side":"admin","views/role/record/panels/side":"admin","views/role/modals/add-field":"admin","views/role/fields/permission":"admin","views/role/fields/info":"admin","views/portal-role/list":"admin","views/portal-role/record/table":"admin","views/portal-role/record/list":"admin","views/portal-role/record/edit":"admin","views/portal-role/record/detail":"admin","views/portal/record/list":"admin","views/portal/fields/tab-list":"admin","views/portal/fields/quick-create-list":"admin","views/portal/fields/custom-id":"admin","views/lead-capture-log-record/modals/detail":"admin","views/layout-set/layouts":"admin","views/layout-set/record/list":"admin","views/layout-set/fields/layout-list":"admin","views/layout-set/fields/edit":"admin","views/inbound-email/record/list":"admin","views/inbound-email/record/edit":"admin","views/inbound-email/fields/test-send":"admin","views/inbound-email/fields/test-connection":"admin","views/inbound-email/fields/target-user-position":"admin","views/inbound-email/fields/name":"admin","views/inbound-email/fields/folders":"admin","views/inbound-email/fields/folder":"admin","views/inbound-email/fields/email-address":"admin","views/extension/record/row-actions":"admin","views/extension/record/list":"admin","views/authentication-provider/record/edit":"admin","views/authentication-provider/record/detail":"admin","views/authentication-provider/fields/method":"admin","views/api-user/list":"admin","views/admin/user-interface":"admin","views/admin/sms":"admin","views/admin/settings":"admin","views/admin/outbound-emails":"admin","views/admin/notifications":"admin","views/admin/jobs-settings":"admin","views/admin/inbound-emails":"admin","views/admin/currency":"admin","views/admin/authentication":"admin","views/admin/upgrade/ready":"admin","views/admin/upgrade/index":"admin","views/admin/upgrade/done":"admin","views/admin/template-manager/index":"admin","views/admin/template-manager/edit":"admin","views/admin/template-manager/fields/body":"admin","views/admin/system-requirements/index":"admin","views/admin/panels/notifications":"admin","views/admin/link-manager/modals/edit":"admin","views/admin/link-manager/fields/foreign-link-entity-type-list":"admin","views/admin/layouts/side-panels-edit":"admin","views/admin/layouts/side-panels-edit-small":"admin","views/admin/layouts/side-panels-detail-small":"admin","views/admin/layouts/mass-update":"admin","views/admin/layouts/list-small":"admin","views/admin/layouts/kanban":"admin","views/admin/layouts/filters":"admin","views/admin/layouts/detail-small":"admin","views/admin/layouts/detail-convert":"admin","views/admin/layouts/default-side-panel":"admin","views/admin/layouts/bottom-panels-edit-small":"admin","views/admin/layouts/bottom-panels-detail-small":"admin","views/admin/layouts/record/edit-attributes":"admin","views/admin/layouts/modals/panel-attributes":"admin","views/admin/layouts/modals/edit-attributes":"admin","views/admin/layouts/fields/width-complex":"admin","views/admin/label-manager/index":"admin","views/admin/label-manager/edit":"admin","views/admin/label-manager/category":"admin","views/admin/job/list":"admin","views/admin/job/record/list":"admin","views/admin/job/record/detail-small":"admin","views/admin/job/modals/detail":"admin","views/admin/job/fields/name":"admin","views/admin/integrations/oauth2":"admin","views/admin/integrations/index":"admin","views/admin/integrations/google-maps":"admin","views/admin/formula-sandbox/index":"admin","views/admin/formula-sandbox/record/edit":"admin","views/admin/formula/modals/add-function":"admin","views/admin/formula/modals/add-attribute":"admin","views/admin/formula/fields/attribute":"admin","views/admin/field-manager/list":"admin","views/admin/field-manager/index":"admin","views/admin/field-manager/header":"admin","views/admin/field-manager/edit":"admin","views/admin/field-manager/modals/add-field":"admin","views/admin/field-manager/fields/source-list":"admin","views/admin/field-manager/fields/pattern":"admin","views/admin/field-manager/fields/options-with-style":"admin","views/admin/field-manager/fields/options-reference":"admin","views/admin/field-manager/fields/not-actual-options":"admin","views/admin/field-manager/fields/entity-list":"admin","views/admin/field-manager/fields/dynamic-logic-options":"admin","views/admin/field-manager/fields/dynamic-logic-conditions":"admin","views/admin/field-manager/fields/currency-default":"admin","views/admin/field-manager/fields/text/attachment-field":"admin","views/admin/field-manager/fields/phone/default":"admin","views/admin/field-manager/fields/options/default":"admin","views/admin/field-manager/fields/options/default-multi":"admin","views/admin/field-manager/fields/link-multiple/default":"admin","views/admin/field-manager/fields/link/default":"admin","views/admin/field-manager/fields/int/max":"admin","views/admin/field-manager/fields/foreign/link":"admin","views/admin/field-manager/fields/foreign/field":"admin","views/admin/field-manager/fields/date/default":"admin","views/admin/field-manager/fields/date/after-before":"admin","views/admin/extensions/ready":"admin","views/admin/extensions/index":"admin","views/admin/extensions/done":"admin","views/admin/entity-manager/scope":"admin","views/admin/entity-manager/index":"admin","views/admin/entity-manager/formula":"admin","views/admin/entity-manager/edit":"admin","views/admin/entity-manager/record/edit":"admin","views/admin/entity-manager/modals/select-icon":"admin","views/admin/entity-manager/modals/select-formula":"admin","views/admin/entity-manager/fields/icon-class":"admin","views/admin/entity-manager/fields/duplicate-check-field-list":"admin","views/admin/entity-manager/fields/acl-account-link":"admin","views/admin/dynamic-logic/modals/edit":"admin","views/admin/dynamic-logic/modals/add-field":"admin","views/admin/dynamic-logic/fields/user-id":"admin","views/admin/dynamic-logic/fields/field":"admin","views/admin/dynamic-logic/conditions-string/item-value-varchar":"admin","views/admin/dynamic-logic/conditions-string/item-value-link":"admin","views/admin/dynamic-logic/conditions-string/item-value-enum":"admin","views/admin/dynamic-logic/conditions-string/item-multiple-values-base":"admin","views/admin/dynamic-logic/conditions-string/item-is-today":"admin","views/admin/dynamic-logic/conditions-string/item-in-past":"admin","views/admin/dynamic-logic/conditions-string/item-in-future":"admin","views/admin/dynamic-logic/conditions-string/group-not":"admin","views/admin/dynamic-logic/conditions/or":"admin","views/admin/dynamic-logic/conditions/not":"admin","views/admin/dynamic-logic/conditions/and":"admin","views/admin/dynamic-logic/conditions/field-types/multi-enum":"admin","views/admin/dynamic-logic/conditions/field-types/link":"admin","views/admin/dynamic-logic/conditions/field-types/link-parent":"admin","views/admin/dynamic-logic/conditions/field-types/enum":"admin","views/admin/dynamic-logic/conditions/field-types/date":"admin","views/admin/dynamic-logic/conditions/field-types/current-user":"admin","views/admin/dynamic-logic/conditions/field-types/current-user-teams":"admin","views/admin/complex-expression/modals/add-function":"admin","views/admin/authentication/fields/test-connection":"admin","views/admin/auth-token/list":"admin","views/admin/auth-token/record/list":"admin","views/admin/auth-token/record/detail":"admin","views/admin/auth-token/record/detail-small":"admin","views/admin/auth-token/record/row-actions/default":"admin","views/admin/auth-token/modals/detail":"admin","views/admin/auth-log-record/list":"admin","views/admin/auth-log-record/record/list":"admin","views/admin/auth-log-record/record/detail":"admin","views/admin/auth-log-record/record/detail-small":"admin","views/admin/auth-log-record/modals/detail":"admin","views/admin/auth-log-record/fields/authentication-method":"admin","views/admin/app-secret/fields/value":"admin","views/admin/app-log-record/record/list":"admin","controllers/role":"admin","controllers/portal-role":"admin","controllers/admin":"admin","views/import/record/panels/imported":"extra","views/email-account/record/detail":"extra","views/personal-data/record/record":"extra","views/personal-data/modals/personal-data":"extra","views/outbound-email/modals/test-send":"extra","views/import-error/fields/validation-failures":"extra","views/import-error/fields/line-number":"extra","views/import/step2":"extra","views/import/step1":"extra","views/import/list":"extra","views/import/index":"extra","views/import/detail":"extra","views/import/record/list":"extra","views/import/record/detail":"extra","views/import/record/row-actions/duplicates":"extra","views/import/record/panels/updated":"extra","views/import/record/panels/duplicates":"extra","views/group-email-folder/list":"extra","views/group-email-folder/record/list":"extra","views/group-email-folder/record/edit-small":"extra","views/group-email-folder/record/row-actions/default":"extra","views/external-account/oauth2":"extra","views/external-account/index":"extra","views/email-account/list":"extra","views/email-account/record/list":"extra","views/email-account/record/edit":"extra","views/email-account/modals/select-folder":"extra","views/email-account/fields/email-folder":"extra","views/email-account/fields/email-address":"extra","modules/crm/views/meeting/fields/attendees":"crm","modules/crm/views/calendar/fields/teams":"crm","modules/crm/knowledge-base-helper":"crm","modules/crm/views/task/record/list":"crm","modules/crm/views/record/panels/tasks":"crm","modules/crm/views/record/panels/activities":"crm","modules/crm/views/meeting/detail":"crm","modules/crm/views/meeting/record/list":"crm","modules/crm/views/mass-email/record/edit":"crm","modules/crm/views/mass-email/modals/send-test":"crm","modules/crm/views/dashlets/options/chart":"crm","modules/crm/views/contact/record/detail":"crm","modules/crm/views/call/record/list":"crm","modules/crm/views/call/fields/contacts":"crm","modules/crm/views/calendar/modals/edit-view":"crm","modules/crm/views/calendar/fields/users":"crm","modules/crm/acl/meeting":"crm","modules/crm/views/user/record/panels/tasks":"crm","modules/crm/views/task/list":"crm","modules/crm/views/task/detail":"crm","modules/crm/views/task/record/list-expanded":"crm","modules/crm/views/task/record/detail":"crm","modules/crm/views/task/record/row-actions/default":"crm","modules/crm/views/task/record/row-actions/dashlet":"crm","modules/crm/views/task/modals/detail":"crm","modules/crm/views/task/fields/tasks":"crm","modules/crm/views/task/fields/priority-for-dashlet":"crm","modules/crm/views/task/fields/is-overdue":"crm","modules/crm/views/task/fields/date-end":"crm","modules/crm/views/target-list/record/detail":"crm","modules/crm/views/target-list/record/row-actions/opted-out":"crm","modules/crm/views/target-list/record/row-actions/default":"crm","modules/crm/views/target-list/record/panels/relationship":"crm","modules/crm/views/target-list/record/panels/opted-out":"crm","modules/crm/views/target-list/fields/target-status":"crm","modules/crm/views/target-list/fields/including-action-list":"crm","modules/crm/views/stream/notes/event-confirmation":"crm","modules/crm/views/record/list-activities-dashlet":"crm","modules/crm/views/record/row-actions/tasks":"crm","modules/crm/views/record/row-actions/relationship-target":"crm","modules/crm/views/record/row-actions/history":"crm","modules/crm/views/record/row-actions/activities":"crm","modules/crm/views/record/row-actions/activities-dashlet":"crm","modules/crm/views/record/panels/target-lists":"crm","modules/crm/views/record/panels/history":"crm","modules/crm/views/opportunity/detail":"crm","modules/crm/views/opportunity/record/list":"crm","modules/crm/views/opportunity/record/kanban":"crm","modules/crm/views/opportunity/record/edit":"crm","modules/crm/views/opportunity/record/edit-small":"crm","modules/crm/views/opportunity/record/panels/activities":"crm","modules/crm/views/opportunity/fields/stage":"crm","modules/crm/views/opportunity/fields/lead-source":"crm","modules/crm/views/opportunity/fields/last-stage":"crm","modules/crm/views/opportunity/fields/contacts":"crm","modules/crm/views/opportunity/fields/contact-role":"crm","modules/crm/views/opportunity/admin/field-manager/fields/probability-map":"crm","modules/crm/views/notification/items/event-attendee":"crm","modules/crm/views/meeting/popup-notification":"crm","modules/crm/views/meeting/record/list-expanded":"crm","modules/crm/views/meeting/record/edit-small":"crm","modules/crm/views/meeting/record/detail":"crm","modules/crm/views/meeting/record/row-actions/default":"crm","modules/crm/views/meeting/record/row-actions/dashlet":"crm","modules/crm/views/meeting/record/panels/scheduler":"crm","modules/crm/views/meeting/record/panels/attendees":"crm","modules/crm/views/meeting/modals/send-invitations":"crm","modules/crm/views/meeting/modals/send-cancellation":"crm","modules/crm/views/meeting/modals/detail":"crm","modules/crm/views/meeting/modals/acceptance-status":"crm","modules/crm/views/meeting/fields/users":"crm","modules/crm/views/meeting/fields/reminders":"crm","modules/crm/views/meeting/fields/date-start":"crm","modules/crm/views/meeting/fields/date-end":"crm","modules/crm/views/meeting/fields/contacts":"crm","modules/crm/views/meeting/fields/acceptance-status":"crm","modules/crm/views/mass-email/detail":"crm","modules/crm/views/mass-email/record/list-for-campaign":"crm","modules/crm/views/mass-email/record/edit-small":"crm","modules/crm/views/mass-email/record/detail":"crm","modules/crm/views/mass-email/record/detail-bottom":"crm","modules/crm/views/mass-email/record/row-actions/for-campaign":"crm","modules/crm/views/mass-email/fields/smtp-account":"crm","modules/crm/views/mass-email/fields/from-address":"crm","modules/crm/views/mass-email/fields/email-template":"crm","modules/crm/views/lead/detail":"crm","modules/crm/views/lead/convert":"crm","modules/crm/views/lead/record/detail":"crm","modules/crm/views/lead/record/detail-side":"crm","modules/crm/views/lead/record/panels/converted-to":"crm","modules/crm/views/lead/fields/industry":"crm","modules/crm/views/lead/fields/created-opportunity":"crm","modules/crm/views/lead/fields/created-contact":"crm","modules/crm/views/lead/fields/acceptance-status":"crm","modules/crm/views/knowledge-base-article/list":"crm","modules/crm/views/knowledge-base-article/record/list":"crm","modules/crm/views/knowledge-base-article/record/edit":"crm","modules/crm/views/knowledge-base-article/record/edit-quick":"crm","modules/crm/views/knowledge-base-article/record/detail":"crm","modules/crm/views/knowledge-base-article/record/detail-quick":"crm","modules/crm/views/knowledge-base-article/modals/select-records":"crm","modules/crm/views/knowledge-base-article/fields/status":"crm","modules/crm/views/knowledge-base-article/fields/language":"crm","modules/crm/views/fields/ico":"crm","modules/crm/views/event-confirmation/confirmation":"crm","modules/crm/views/email-queue-item/list":"crm","modules/crm/views/email-queue-item/record/list":"crm","modules/crm/views/document/list":"crm","modules/crm/views/document/modals/select-records":"crm","modules/crm/views/document/fields/name":"crm","modules/crm/views/document/fields/file":"crm","modules/crm/views/dashlets/tasks":"crm","modules/crm/views/dashlets/meetings":"crm","modules/crm/views/dashlets/calls":"crm","modules/crm/views/dashlets/calendar":"crm","modules/crm/views/dashlets/activities":"crm","modules/crm/views/dashlets/options/sales-pipeline":"crm","modules/crm/views/dashlets/options/calendar":"crm","modules/crm/views/dashlets/options/activities":"crm","modules/crm/views/dashlets/options/sales-pipeline/fields/team":"crm","modules/crm/views/contact/detail":"crm","modules/crm/views/contact/record/detail-small":"crm","modules/crm/views/contact/modals/select-for-portal-user":"crm","modules/crm/views/contact/fields/title":"crm","modules/crm/views/contact/fields/opportunity-role":"crm","modules/crm/views/contact/fields/name-for-account":"crm","modules/crm/views/contact/fields/accounts":"crm","modules/crm/views/contact/fields/account":"crm","modules/crm/views/contact/fields/account-role":"crm","modules/crm/views/case/record/detail":"crm","modules/crm/views/case/record/panels/activities":"crm","modules/crm/views/campaign-tracking-url/record/edit":"crm","modules/crm/views/campaign-tracking-url/record/edit-small":"crm","modules/crm/views/campaign-log-record/fields/data":"crm","modules/crm/views/campaign/unsubscribe":"crm","modules/crm/views/campaign/tracking-url":"crm","modules/crm/views/campaign/detail":"crm","modules/crm/views/campaign/record/detail":"crm","modules/crm/views/campaign/record/panels/campaign-stats":"crm","modules/crm/views/campaign/record/panels/campaign-log-records":"crm","modules/crm/views/campaign/modals/mail-merge-pdf":"crm","modules/crm/views/campaign/fields/template":"crm","modules/crm/views/campaign/fields/int-with-percentage":"crm","modules/crm/views/call/detail":"crm","modules/crm/views/call/record/list-expanded":"crm","modules/crm/views/call/record/edit-small":"crm","modules/crm/views/call/record/detail":"crm","modules/crm/views/call/record/row-actions/default":"crm","modules/crm/views/call/record/row-actions/dashlet":"crm","modules/crm/views/call/fields/leads":"crm","modules/crm/views/call/fields/date-start":"crm","modules/crm/views/calendar/mode-buttons":"crm","modules/crm/views/calendar/calendar-page":"crm","modules/crm/views/calendar/modals/shared-options":"crm","modules/crm/views/calendar/modals/edit":"crm","modules/crm/views/admin/entity-manager/fields/status-list":"crm","modules/crm/views/activities/list":"crm","modules/crm/views/account/detail":"crm","modules/crm/views/account/fields/shipping-address":"crm","modules/crm/view-setup-handlers/document/record-list-drag-n-drop":"crm","modules/crm/handlers/task/reminders-handler":"crm","modules/crm/handlers/task/menu":"crm","modules/crm/handlers/task/detail-actions":"crm","modules/crm/handlers/opportunity/defaults-preparator":"crm","modules/crm/handlers/opportunity/contacts-create":"crm","modules/crm/handlers/knowledge-base-article/send-in-email":"crm","modules/crm/handlers/knowledge-base-article/move":"crm","modules/crm/handlers/event/reminders-handler":"crm","modules/crm/handlers/case/detail-actions":"crm","modules/crm/handlers/campaign/mass-emails-create":"crm","modules/crm/controllers/unsubscribe":"crm","modules/crm/controllers/tracking-url":"crm","modules/crm/controllers/task":"crm","modules/crm/controllers/lead":"crm","modules/crm/controllers/event-confirmation":"crm","modules/crm/controllers/calendar":"crm","modules/crm/controllers/activities":"crm","modules/crm/acl-portal/document":"crm","modules/crm/acl-portal/contact":"crm","modules/crm/acl-portal/account":"crm","modules/crm/acl/mass-email":"crm","modules/crm/acl/campaign-tracking-url":"crm","modules/crm/acl/call":"crm","modules/crm/views/dashlets/abstract/chart":"chart","modules/crm/views/dashlets/sales-pipeline":"chart","modules/crm/views/dashlets/sales-by-month":"chart","modules/crm/views/dashlets/opportunities-by-stage":"chart","modules/crm/views/dashlets/opportunities-by-lead-source":"chart","modules/crm/views/calendar/calendar":"calendar","modules/crm/views/scheduler/scheduler":"timeline","modules/crm/views/calendar/timeline":"timeline"});
+Espo.loader.addBundleMapping({"views/admin/layouts/base":"admin","views/admin/layouts/rows":"admin","views/admin/layouts/side-panels-detail":"admin","views/admin/dynamic-logic/conditions-string/item-base":"admin","views/admin/link-manager/modals/edit-params":"admin","views/admin/layouts/grid":"admin","views/admin/layouts/default-page":"admin","views/admin/layouts/bottom-panels-detail":"admin","views/admin/layouts/modals/create":"admin","views/admin/field-manager/detail-fields/attributes":"admin","views/admin/dynamic-logic/conditions-string/item-operator-only-base":"admin","views/admin/dynamic-logic/conditions/field-types/base":"admin","views/settings/record/edit":"admin","views/settings/fields/quick-create-list":"admin","views/role/record/table":"admin","views/role/record/list":"admin","views/role/record/edit":"admin","views/role/record/detail":"admin","views/inbound-email/record/detail":"admin","views/admin/index":"admin","views/admin/link-manager/index":"admin","views/admin/layouts/list":"admin","views/admin/layouts/index":"admin","views/admin/layouts/detail":"admin","views/admin/layouts/bottom-panels-edit":"admin","views/admin/integrations/edit":"admin","views/admin/field-manager/modals/view-details":"admin","views/admin/field-manager/fields/options":"admin","views/admin/entity-manager/record/edit-formula":"admin","views/admin/entity-manager/modals/export":"admin","views/admin/entity-manager/fields/primary-filters":"admin","views/admin/entity-manager/fields/acl-contact-link":"admin","views/admin/dynamic-logic/conditions-string/item-operator-only-date":"admin","views/admin/dynamic-logic/conditions-string/group-base":"admin","views/admin/dynamic-logic/conditions/group-base":"admin","views/admin/dynamic-logic/conditions/field-types/link-multiple":"admin","views/email-account/fields/test-send":"admin","views/email-account/fields/test-connection":"admin","views/email-account/fields/folders":"admin","views/email-account/fields/folder":"admin","views/templates/event/record/detail":"admin","views/settings/edit":"admin","views/settings/modals/tab-list-field-add":"admin","views/settings/modals/edit-tab-url":"admin","views/settings/modals/edit-tab-group":"admin","views/settings/modals/edit-tab-divider":"admin","views/settings/fields/time-zone":"admin","views/settings/fields/time-format":"admin","views/settings/fields/thousand-separator":"admin","views/settings/fields/tab-url":"admin","views/settings/fields/stream-email-with-content-entity-type-list":"admin","views/settings/fields/stream-email-notifications-entity-list":"admin","views/settings/fields/sms-provider":"admin","views/settings/fields/phone-number-preferred-country-list":"admin","views/settings/fields/pdf-engine":"admin","views/settings/fields/outbound-email-from-address":"admin","views/settings/fields/oidc-teams":"admin","views/settings/fields/oidc-redirect-uri":"admin","views/settings/fields/language":"admin","views/settings/fields/history-entity-list":"admin","views/settings/fields/group-tab-list":"admin","views/settings/fields/global-search-entity-list":"admin","views/settings/fields/fiscal-year-shift":"admin","views/settings/fields/email-address-lookup-entity-type-list":"admin","views/settings/fields/default-currency":"admin","views/settings/fields/date-format":"admin","views/settings/fields/dashboard-layout":"admin","views/settings/fields/currency-list":"admin","views/settings/fields/calendar-entity-list":"admin","views/settings/fields/busy-ranges-entity-list":"admin","views/settings/fields/baseline-role":"admin","views/settings/fields/available-reactions":"admin","views/settings/fields/authentication-method":"admin","views/settings/fields/auth-two-fa-method-list":"admin","views/settings/fields/assignment-notifications-entity-list":"admin","views/settings/fields/assignment-email-notifications-entity-list":"admin","views/settings/fields/address-preview":"admin","views/settings/fields/activities-entity-list":"admin","views/scheduled-job/list":"admin","views/scheduled-job/record/list":"admin","views/scheduled-job/record/detail":"admin","views/scheduled-job/record/panels/log":"admin","views/scheduled-job/fields/scheduling":"admin","views/scheduled-job/fields/job":"admin","views/role/list":"admin","views/role/record/detail-side":"admin","views/role/record/panels/side":"admin","views/role/modals/add-field":"admin","views/role/fields/permission":"admin","views/role/fields/info":"admin","views/portal-role/list":"admin","views/portal-role/record/table":"admin","views/portal-role/record/list":"admin","views/portal-role/record/edit":"admin","views/portal-role/record/detail":"admin","views/portal/record/list":"admin","views/portal/fields/tab-list":"admin","views/portal/fields/quick-create-list":"admin","views/portal/fields/custom-id":"admin","views/lead-capture-log-record/modals/detail":"admin","views/layout-set/layouts":"admin","views/layout-set/record/list":"admin","views/layout-set/fields/layout-list":"admin","views/layout-set/fields/edit":"admin","views/inbound-email/record/list":"admin","views/inbound-email/record/edit":"admin","views/inbound-email/fields/test-send":"admin","views/inbound-email/fields/test-connection":"admin","views/inbound-email/fields/target-user-position":"admin","views/inbound-email/fields/name":"admin","views/inbound-email/fields/folders":"admin","views/inbound-email/fields/folder":"admin","views/inbound-email/fields/email-address":"admin","views/extension/record/row-actions":"admin","views/extension/record/list":"admin","views/authentication-provider/record/edit":"admin","views/authentication-provider/record/detail":"admin","views/authentication-provider/fields/method":"admin","views/api-user/list":"admin","views/admin/user-interface":"admin","views/admin/sms":"admin","views/admin/settings":"admin","views/admin/outbound-emails":"admin","views/admin/notifications":"admin","views/admin/jobs-settings":"admin","views/admin/inbound-emails":"admin","views/admin/currency":"admin","views/admin/currency-main":"admin","views/admin/authentication":"admin","views/admin/upgrade/ready":"admin","views/admin/upgrade/index":"admin","views/admin/upgrade/done":"admin","views/admin/template-manager/index":"admin","views/admin/template-manager/edit":"admin","views/admin/template-manager/fields/body":"admin","views/admin/system-requirements/index":"admin","views/admin/panels/notifications":"admin","views/admin/link-manager/modals/edit":"admin","views/admin/link-manager/fields/foreign-link-entity-type-list":"admin","views/admin/layouts/side-panels-edit":"admin","views/admin/layouts/side-panels-edit-small":"admin","views/admin/layouts/side-panels-detail-small":"admin","views/admin/layouts/mass-update":"admin","views/admin/layouts/list-small":"admin","views/admin/layouts/kanban":"admin","views/admin/layouts/filters":"admin","views/admin/layouts/detail-small":"admin","views/admin/layouts/detail-convert":"admin","views/admin/layouts/default-side-panel":"admin","views/admin/layouts/bottom-panels-edit-small":"admin","views/admin/layouts/bottom-panels-detail-small":"admin","views/admin/layouts/record/edit-attributes":"admin","views/admin/layouts/modals/panel-attributes":"admin","views/admin/layouts/modals/edit-attributes":"admin","views/admin/layouts/fields/width-complex":"admin","views/admin/label-manager/index":"admin","views/admin/label-manager/edit":"admin","views/admin/label-manager/category":"admin","views/admin/job/list":"admin","views/admin/job/record/list":"admin","views/admin/job/record/detail-small":"admin","views/admin/job/modals/detail":"admin","views/admin/job/fields/name":"admin","views/admin/integrations/oauth2":"admin","views/admin/integrations/index":"admin","views/admin/integrations/google-maps":"admin","views/admin/formula-sandbox/index":"admin","views/admin/formula-sandbox/record/edit":"admin","views/admin/formula/modals/add-function":"admin","views/admin/formula/modals/add-attribute":"admin","views/admin/formula/fields/attribute":"admin","views/admin/field-manager/list":"admin","views/admin/field-manager/index":"admin","views/admin/field-manager/header":"admin","views/admin/field-manager/edit":"admin","views/admin/field-manager/modals/add-field":"admin","views/admin/field-manager/fields/source-list":"admin","views/admin/field-manager/fields/pattern":"admin","views/admin/field-manager/fields/options-with-style":"admin","views/admin/field-manager/fields/options-reference":"admin","views/admin/field-manager/fields/not-actual-options":"admin","views/admin/field-manager/fields/entity-list":"admin","views/admin/field-manager/fields/dynamic-logic-options":"admin","views/admin/field-manager/fields/dynamic-logic-conditions":"admin","views/admin/field-manager/fields/currency-default":"admin","views/admin/field-manager/fields/text/attachment-field":"admin","views/admin/field-manager/fields/phone/default":"admin","views/admin/field-manager/fields/options/default":"admin","views/admin/field-manager/fields/options/default-multi":"admin","views/admin/field-manager/fields/link-multiple/default":"admin","views/admin/field-manager/fields/link/default":"admin","views/admin/field-manager/fields/int/max":"admin","views/admin/field-manager/fields/foreign/link":"admin","views/admin/field-manager/fields/foreign/field":"admin","views/admin/field-manager/fields/date/default":"admin","views/admin/field-manager/fields/date/after-before":"admin","views/admin/extensions/ready":"admin","views/admin/extensions/index":"admin","views/admin/extensions/done":"admin","views/admin/entity-manager/scope":"admin","views/admin/entity-manager/index":"admin","views/admin/entity-manager/formula":"admin","views/admin/entity-manager/edit":"admin","views/admin/entity-manager/record/edit":"admin","views/admin/entity-manager/modals/select-icon":"admin","views/admin/entity-manager/modals/select-formula":"admin","views/admin/entity-manager/fields/icon-class":"admin","views/admin/entity-manager/fields/duplicate-check-field-list":"admin","views/admin/entity-manager/fields/acl-account-link":"admin","views/admin/dynamic-logic/modals/edit":"admin","views/admin/dynamic-logic/modals/add-field":"admin","views/admin/dynamic-logic/fields/user-id":"admin","views/admin/dynamic-logic/fields/field":"admin","views/admin/dynamic-logic/conditions-string/item-value-varchar":"admin","views/admin/dynamic-logic/conditions-string/item-value-link":"admin","views/admin/dynamic-logic/conditions-string/item-value-enum":"admin","views/admin/dynamic-logic/conditions-string/item-multiple-values-base":"admin","views/admin/dynamic-logic/conditions-string/item-is-today":"admin","views/admin/dynamic-logic/conditions-string/item-in-past":"admin","views/admin/dynamic-logic/conditions-string/item-in-future":"admin","views/admin/dynamic-logic/conditions-string/group-not":"admin","views/admin/dynamic-logic/conditions/or":"admin","views/admin/dynamic-logic/conditions/not":"admin","views/admin/dynamic-logic/conditions/and":"admin","views/admin/dynamic-logic/conditions/field-types/multi-enum":"admin","views/admin/dynamic-logic/conditions/field-types/link":"admin","views/admin/dynamic-logic/conditions/field-types/link-parent":"admin","views/admin/dynamic-logic/conditions/field-types/enum":"admin","views/admin/dynamic-logic/conditions/field-types/date":"admin","views/admin/dynamic-logic/conditions/field-types/current-user":"admin","views/admin/dynamic-logic/conditions/field-types/current-user-teams":"admin","views/admin/complex-expression/modals/add-function":"admin","views/admin/authentication/fields/test-connection":"admin","views/admin/auth-token/list":"admin","views/admin/auth-token/record/list":"admin","views/admin/auth-token/record/detail":"admin","views/admin/auth-token/record/detail-small":"admin","views/admin/auth-token/record/row-actions/default":"admin","views/admin/auth-token/modals/detail":"admin","views/admin/auth-log-record/list":"admin","views/admin/auth-log-record/record/list":"admin","views/admin/auth-log-record/record/detail":"admin","views/admin/auth-log-record/record/detail-small":"admin","views/admin/auth-log-record/modals/detail":"admin","views/admin/auth-log-record/fields/authentication-method":"admin","views/admin/app-secret/fields/value":"admin","views/admin/app-log-record/record/list":"admin","controllers/role":"admin","controllers/portal-role":"admin","controllers/admin":"admin","views/import/record/panels/imported":"extra","views/email-account/record/detail":"extra","views/personal-data/record/record":"extra","views/personal-data/modals/personal-data":"extra","views/outbound-email/modals/test-send":"extra","views/import-error/fields/validation-failures":"extra","views/import-error/fields/line-number":"extra","views/import/step2":"extra","views/import/step1":"extra","views/import/list":"extra","views/import/index":"extra","views/import/detail":"extra","views/import/record/list":"extra","views/import/record/detail":"extra","views/import/record/row-actions/duplicates":"extra","views/import/record/panels/updated":"extra","views/import/record/panels/duplicates":"extra","views/group-email-folder/list":"extra","views/group-email-folder/record/list":"extra","views/group-email-folder/record/edit-small":"extra","views/group-email-folder/record/row-actions/default":"extra","views/external-account/oauth2":"extra","views/external-account/index":"extra","views/email-account/list":"extra","views/email-account/record/list":"extra","views/email-account/record/edit":"extra","views/email-account/modals/select-folder":"extra","views/email-account/fields/email-folder":"extra","views/email-account/fields/email-address":"extra","modules/crm/views/meeting/fields/attendees":"crm","modules/crm/views/calendar/fields/teams":"crm","modules/crm/knowledge-base-helper":"crm","modules/crm/views/task/record/list":"crm","modules/crm/views/record/panels/tasks":"crm","modules/crm/views/record/panels/activities":"crm","modules/crm/views/meeting/detail":"crm","modules/crm/views/meeting/record/list":"crm","modules/crm/views/mass-email/record/edit":"crm","modules/crm/views/mass-email/modals/send-test":"crm","modules/crm/views/dashlets/options/chart":"crm","modules/crm/views/contact/record/detail":"crm","modules/crm/views/call/record/list":"crm","modules/crm/views/call/fields/contacts":"crm","modules/crm/views/calendar/modals/edit-view":"crm","modules/crm/views/calendar/fields/users":"crm","modules/crm/acl/meeting":"crm","modules/crm/views/user/record/panels/tasks":"crm","modules/crm/views/task/list":"crm","modules/crm/views/task/detail":"crm","modules/crm/views/task/record/list-expanded":"crm","modules/crm/views/task/record/detail":"crm","modules/crm/views/task/record/row-actions/default":"crm","modules/crm/views/task/record/row-actions/dashlet":"crm","modules/crm/views/task/modals/detail":"crm","modules/crm/views/task/fields/tasks":"crm","modules/crm/views/task/fields/priority-for-dashlet":"crm","modules/crm/views/task/fields/is-overdue":"crm","modules/crm/views/task/fields/date-end":"crm","modules/crm/views/target-list/record/detail":"crm","modules/crm/views/target-list/record/row-actions/opted-out":"crm","modules/crm/views/target-list/record/row-actions/default":"crm","modules/crm/views/target-list/record/panels/relationship":"crm","modules/crm/views/target-list/record/panels/opted-out":"crm","modules/crm/views/target-list/fields/target-status":"crm","modules/crm/views/target-list/fields/including-action-list":"crm","modules/crm/views/stream/notes/event-confirmation":"crm","modules/crm/views/record/list-activities-dashlet":"crm","modules/crm/views/record/row-actions/tasks":"crm","modules/crm/views/record/row-actions/relationship-target":"crm","modules/crm/views/record/row-actions/history":"crm","modules/crm/views/record/row-actions/activities":"crm","modules/crm/views/record/row-actions/activities-dashlet":"crm","modules/crm/views/record/panels/target-lists":"crm","modules/crm/views/record/panels/history":"crm","modules/crm/views/opportunity/detail":"crm","modules/crm/views/opportunity/record/list":"crm","modules/crm/views/opportunity/record/kanban":"crm","modules/crm/views/opportunity/record/edit":"crm","modules/crm/views/opportunity/record/edit-small":"crm","modules/crm/views/opportunity/record/panels/activities":"crm","modules/crm/views/opportunity/fields/stage":"crm","modules/crm/views/opportunity/fields/lead-source":"crm","modules/crm/views/opportunity/fields/last-stage":"crm","modules/crm/views/opportunity/fields/contacts":"crm","modules/crm/views/opportunity/fields/contact-role":"crm","modules/crm/views/opportunity/admin/field-manager/fields/probability-map":"crm","modules/crm/views/notification/items/event-attendee":"crm","modules/crm/views/meeting/popup-notification":"crm","modules/crm/views/meeting/record/list-expanded":"crm","modules/crm/views/meeting/record/edit-small":"crm","modules/crm/views/meeting/record/detail":"crm","modules/crm/views/meeting/record/row-actions/default":"crm","modules/crm/views/meeting/record/row-actions/dashlet":"crm","modules/crm/views/meeting/record/panels/scheduler":"crm","modules/crm/views/meeting/record/panels/attendees":"crm","modules/crm/views/meeting/modals/send-invitations":"crm","modules/crm/views/meeting/modals/send-cancellation":"crm","modules/crm/views/meeting/modals/detail":"crm","modules/crm/views/meeting/modals/acceptance-status":"crm","modules/crm/views/meeting/fields/users":"crm","modules/crm/views/meeting/fields/reminders":"crm","modules/crm/views/meeting/fields/date-start":"crm","modules/crm/views/meeting/fields/date-end":"crm","modules/crm/views/meeting/fields/contacts":"crm","modules/crm/views/meeting/fields/acceptance-status":"crm","modules/crm/views/mass-email/detail":"crm","modules/crm/views/mass-email/record/list-for-campaign":"crm","modules/crm/views/mass-email/record/edit-small":"crm","modules/crm/views/mass-email/record/detail":"crm","modules/crm/views/mass-email/record/detail-bottom":"crm","modules/crm/views/mass-email/record/row-actions/for-campaign":"crm","modules/crm/views/mass-email/fields/smtp-account":"crm","modules/crm/views/mass-email/fields/from-address":"crm","modules/crm/views/mass-email/fields/email-template":"crm","modules/crm/views/lead/detail":"crm","modules/crm/views/lead/convert":"crm","modules/crm/views/lead/record/detail":"crm","modules/crm/views/lead/record/detail-side":"crm","modules/crm/views/lead/record/panels/converted-to":"crm","modules/crm/views/lead/fields/industry":"crm","modules/crm/views/lead/fields/created-opportunity":"crm","modules/crm/views/lead/fields/created-contact":"crm","modules/crm/views/lead/fields/acceptance-status":"crm","modules/crm/views/knowledge-base-article/list":"crm","modules/crm/views/knowledge-base-article/record/list":"crm","modules/crm/views/knowledge-base-article/record/edit":"crm","modules/crm/views/knowledge-base-article/record/edit-quick":"crm","modules/crm/views/knowledge-base-article/record/detail":"crm","modules/crm/views/knowledge-base-article/record/detail-quick":"crm","modules/crm/views/knowledge-base-article/modals/select-records":"crm","modules/crm/views/knowledge-base-article/fields/status":"crm","modules/crm/views/knowledge-base-article/fields/language":"crm","modules/crm/views/fields/ico":"crm","modules/crm/views/event-confirmation/confirmation":"crm","modules/crm/views/email-queue-item/list":"crm","modules/crm/views/email-queue-item/record/list":"crm","modules/crm/views/document/list":"crm","modules/crm/views/document/modals/select-records":"crm","modules/crm/views/document/fields/name":"crm","modules/crm/views/document/fields/file":"crm","modules/crm/views/dashlets/tasks":"crm","modules/crm/views/dashlets/meetings":"crm","modules/crm/views/dashlets/calls":"crm","modules/crm/views/dashlets/calendar":"crm","modules/crm/views/dashlets/activities":"crm","modules/crm/views/dashlets/options/sales-pipeline":"crm","modules/crm/views/dashlets/options/calendar":"crm","modules/crm/views/dashlets/options/activities":"crm","modules/crm/views/dashlets/options/sales-pipeline/fields/team":"crm","modules/crm/views/contact/detail":"crm","modules/crm/views/contact/record/detail-small":"crm","modules/crm/views/contact/modals/select-for-portal-user":"crm","modules/crm/views/contact/fields/title":"crm","modules/crm/views/contact/fields/opportunity-role":"crm","modules/crm/views/contact/fields/name-for-account":"crm","modules/crm/views/contact/fields/accounts":"crm","modules/crm/views/contact/fields/account":"crm","modules/crm/views/contact/fields/account-role":"crm","modules/crm/views/case/record/detail":"crm","modules/crm/views/case/record/panels/activities":"crm","modules/crm/views/campaign-tracking-url/record/edit":"crm","modules/crm/views/campaign-tracking-url/record/edit-small":"crm","modules/crm/views/campaign-log-record/fields/data":"crm","modules/crm/views/campaign/unsubscribe":"crm","modules/crm/views/campaign/tracking-url":"crm","modules/crm/views/campaign/detail":"crm","modules/crm/views/campaign/record/detail":"crm","modules/crm/views/campaign/record/panels/campaign-stats":"crm","modules/crm/views/campaign/record/panels/campaign-log-records":"crm","modules/crm/views/campaign/modals/mail-merge-pdf":"crm","modules/crm/views/campaign/fields/template":"crm","modules/crm/views/campaign/fields/int-with-percentage":"crm","modules/crm/views/call/detail":"crm","modules/crm/views/call/record/list-expanded":"crm","modules/crm/views/call/record/edit-small":"crm","modules/crm/views/call/record/detail":"crm","modules/crm/views/call/record/row-actions/default":"crm","modules/crm/views/call/record/row-actions/dashlet":"crm","modules/crm/views/call/fields/leads":"crm","modules/crm/views/call/fields/date-start":"crm","modules/crm/views/calendar/mode-buttons":"crm","modules/crm/views/calendar/calendar-page":"crm","modules/crm/views/calendar/modals/shared-options":"crm","modules/crm/views/calendar/modals/edit":"crm","modules/crm/views/admin/entity-manager/fields/status-list":"crm","modules/crm/views/activities/list":"crm","modules/crm/views/account/detail":"crm","modules/crm/views/account/fields/shipping-address":"crm","modules/crm/view-setup-handlers/document/record-list-drag-n-drop":"crm","modules/crm/handlers/task/reminders-handler":"crm","modules/crm/handlers/task/menu":"crm","modules/crm/handlers/task/detail-actions":"crm","modules/crm/handlers/opportunity/defaults-preparator":"crm","modules/crm/handlers/opportunity/contacts-create":"crm","modules/crm/handlers/knowledge-base-article/send-in-email":"crm","modules/crm/handlers/knowledge-base-article/move":"crm","modules/crm/handlers/event/reminders-handler":"crm","modules/crm/handlers/case/detail-actions":"crm","modules/crm/handlers/campaign/mass-emails-create":"crm","modules/crm/controllers/unsubscribe":"crm","modules/crm/controllers/tracking-url":"crm","modules/crm/controllers/task":"crm","modules/crm/controllers/lead":"crm","modules/crm/controllers/event-confirmation":"crm","modules/crm/controllers/calendar":"crm","modules/crm/controllers/activities":"crm","modules/crm/acl-portal/document":"crm","modules/crm/acl-portal/contact":"crm","modules/crm/acl-portal/account":"crm","modules/crm/acl/mass-email":"crm","modules/crm/acl/campaign-tracking-url":"crm","modules/crm/acl/call":"crm","modules/crm/views/dashlets/abstract/chart":"chart","modules/crm/views/dashlets/sales-pipeline":"chart","modules/crm/views/dashlets/sales-by-month":"chart","modules/crm/views/dashlets/opportunities-by-stage":"chart","modules/crm/views/dashlets/opportunities-by-lead-source":"chart","modules/crm/views/calendar/calendar":"calendar","modules/crm/views/scheduler/scheduler":"timeline","modules/crm/views/calendar/timeline":"timeline"});
 
 Espo.layoutTemplates = {"record":"<% var hasHiddenPanel = false; %>\r\n\r\n<% _.each(layout, function (panel, columnNumber) { %>\r\n    <% hasHiddenPanel = panel.hidden || hasHiddenPanel; %>\r\n    <div\r\n        class=\"panel panel-<%= panel.style %><%= panel.label ? ' headered' : '' %><%= panel.tabNumber ? ' tab-hidden' : '' %><% if (panel.name) { %>{{#if hiddenPanels.<%= panel.name %>}} hidden{{/if}}<% } %>\"\r\n        <% if (panel.name) print('data-name=\"'+panel.name+'\"') %>\r\n        <% if (panel.style) print('data-style=\"'+panel.style+'\"') %>\r\n        data-tab=\"<%= panel.tabNumber %>\"\r\n    >\r\n        <% if (panel.label) { %>\r\n        <div class=\"panel-heading\"><h4 class=\"panel-title\"><%= panel.label %></h4></div>\r\n        <% } %>\r\n        <div class=\"panel-body panel-body-form\">\r\n\r\n        <% if (panel.noteText) { %>\r\n        <div class=\"alert alert-<%= panel.noteStyle %>\"><%= panel.noteText %></div>\r\n        <% } %>\r\n\r\n        <% var rows = panel.rows || [] %>\r\n        <% var columns = panel.columns || [] %>\r\n\r\n        <% _.each(rows, function (row, rowNumber) { %>\r\n            <div class=\"row\">\r\n            <% var columnCount = row.length; %>\r\n            <% _.each(row, function (cell, cellNumber) { %>\r\n\r\n                <%\r\n                    var spanClassBase;\r\n                    if (columnCount === 1) {\r\n                        spanClassBase = 'col-sm-12';\r\n                    } else if (columnCount === 2) {\r\n                        spanClassBase = 'col-sm-6';\r\n                    } else if (columnCount === 3) {\r\n                        spanClassBase = 'col-sm-4';\r\n                    } else if (columnCount === 4) {\r\n                        spanClassBase = 'col-md-3 col-sm-6';\r\n                    } else {\r\n                        spanClass = 'col-sm-12';\r\n                    }\r\n                %>\r\n                <% if (cell != false) { %>\r\n                    <%\r\n                        var spanClass;\r\n                        if (columnCount === 1 || cell.fullWidth) {\r\n                            spanClass = 'col-sm-12';\r\n                        } else if (columnCount === 2) {\r\n                            if (cell.span === 2) {\r\n                                spanClass = 'col-sm-12';\r\n                            } else {\r\n                                spanClass = 'col-sm-6';\r\n                            }\r\n                        } else if (columnCount === 3) {\r\n                            if (cell.span === 2) {\r\n                                spanClass = 'col-sm-8';\r\n                            } else if (cell.span === 3) {\r\n                                spanClass = 'col-sm-12';\r\n                            } else {\r\n                                spanClass = 'col-sm-4';\r\n                            }\r\n                        } else if (columnCount === 4) {\r\n                            if (cell.span === 2) {\r\n                                spanClass = 'col-sm-6';\r\n                            } else if (cell.span === 3) {\r\n                                spanClass = 'col-sm-9';\r\n                            } else if (cell.span === 4) {\r\n                                spanClass = 'col-sm-12';\r\n                            } else {\r\n                                spanClass = 'col-md-3 col-sm-6';\r\n                            }\r\n                        } else {\r\n                            spanClass = 'col-sm-12';\r\n                        }\r\n                    %>\r\n                    <div\r\n                        class=\"cell <%= spanClass %> form-group<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden-cell{{/if}}<% } %>\"\r\n                        data-name=\"<%= cell.field %>\"\r\n                        tabindex=\"-1\"\r\n                    >\r\n                        <% if (!cell.noLabel) { %><label class=\"control-label<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden{{/if}}<% } %>\" data-name=\"<%= cell.field %>\"><span class=\"label-text\"><%\r\n                            if ('customLabel' in cell) {\r\n                                print (cell.customLabel);\r\n                            } else {\r\n                                var label = cell.label || cell.field;\r\n                                print (\"{{translate \\\"\"+label+\"\\\" scope=\\\"\"+model.name+\"\\\" category='fields'}}\");\r\n                            }\r\n                        %></span></label><% } %>\r\n                        <div class=\"field<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden{{/if}}<% } %>\" data-name=\"<%= cell.field %>\"><%\r\n                            if ('customCode' in cell) {\r\n                                print (cell.customCode);\r\n                            } else {\r\n                                print (\"{{{this.\"+cell.name+\"}}}\");\r\n                            }\r\n                        %></div>\r\n                    </div>\r\n                <% } else { %>\r\n                    <div class=\"<%= spanClassBase %>\"></div>\r\n                <% } %>\r\n            <% }); %>\r\n            </div>\r\n        <% }); %>\r\n\r\n        <%\r\n            var columnCount = columns.length;\r\n            if (columnCount) {\r\n                %>\r\n            <div class=\"row\">\r\n                <%\r\n            }\r\n        %>\r\n        <% _.each(columns, function (column, columnNumber) { %>\r\n            <%\r\n                var spanClass;\r\n                if (!columnCount) return;\r\n\r\n                if (columnCount === 1 || column.fullWidth) {\r\n                    spanClass = 'col-sm-12';\r\n                } else if (columnCount === 2) {\r\n                    if (column.span === 2) {\r\n                        spanClass = 'col-sm-12';\r\n                    } else {\r\n                        spanClass = 'col-sm-6';\r\n                    }\r\n                } else if (columnCount === 3) {\r\n                    if (column.span === 2) {\r\n                        spanClass = 'col-sm-8';\r\n                    } else if (column.span === 3) {\r\n                        spanClass = 'col-sm-12';\r\n                    } else {\r\n                        spanClass = 'col-sm-4';\r\n                    }\r\n                } else if (columnCount === 4) {\r\n                    if (column.span === 2) {\r\n                        spanClass = 'col-sm-6';\r\n                    } else if (column.span === 3) {\r\n                        spanClass = 'col-sm-9';\r\n                    } else if (column.span === 4) {\r\n                        spanClass = 'col-sm-12';\r\n                    } else {\r\n                        spanClass = 'col-md-3 col-sm-6';\r\n                    }\r\n                } else {\r\n                    spanClass = 'col-sm-12';\r\n                }\r\n            %>\r\n            <div class=\"column <%= spanClass %>\">\r\n                <% _.each(column, function (cell, cellNumber) { %>\r\n                    <div class=\"cell form-group<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden-cell{{/if}}<% } %>\" data-name=\"<%= cell.field %>\">\r\n                        <% if (!cell.noLabel) { %><label class=\"control-label<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden{{/if}}<% } %>\" data-name=\"<%= cell.field %>\"><span class=\"label-text\"><%\r\n                            if ('customLabel' in cell) {\r\n                                print (cell.customLabel);\r\n                            } else {\r\n                                print (\"{{translate \\\"\"+cell.field+\"\\\" scope=\\\"\"+model.name+\"\\\" category='fields'}}\");\r\n                            }\r\n                        %></span></label><% } %>\r\n                        <div class=\"field<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden{{/if}}<% } %>\" data-name=\"<%= cell.field %>\"><%\r\n                            if ('customCode' in cell) {\r\n                                print (cell.customCode);\r\n                            } else {\r\n                                print (\"{{{this.\"+cell.name+\"}}}\");\r\n                            }\r\n                        %></div>\r\n                    </div>\r\n                <% }); %>\r\n            </div>\r\n        <% }); %>\r\n        <%\r\n            if (columnCount) {\r\n                %>\r\n            </div>\r\n                <%\r\n            }\r\n        %>\r\n        </div>\r\n    </div>\r\n<% }); %>\r\n\r\n<%\r\nif (hasHiddenPanel) {\r\n%>\r\n<div class=\"panel panel-default panels-show-more-delimiter\" data-name=\"showMoreDelimiter\" data-tab=\"0\">\r\n    <a role=\"button\" tabindex=\"0\" data-action=\"showMoreDetailPanels\" title=\"{{translate 'Show more'}}\">\r\n        <span class=\"fas fa-ellipsis-h fa-lg\"></span>\r\n    </a>\r\n</div>\r\n<%\r\n}\r\n%>\r\n","list-row":"<% _.each(layout, function (defs, key) { %>\r\n    <%\r\n        let width = null;\r\n\r\n        if (defs.options && defs.options.defs && defs.options.defs.width !== undefined) {\r\n            width = (defs.options.defs.width + '%') || null;\r\n        }\r\n\r\n        if (defs.options && defs.options.defs && defs.options.defs.widthPx !== undefined) {\r\n            width = defs.options.defs.widthPx || null;\r\n        }\r\n\r\n        let align = false;\r\n\r\n        if (defs.options && defs.options.defs) {\r\n            align = defs.options.defs.align || false;\r\n        }\r\n    %>\r\n    <td\r\n        class=\"cell\"\r\n        data-name=\"<%= defs.columnName %>\"\r\n        <% if (width || align) { %>\r\n        style=\"<% if (width) print('width: ' + width); %>;<% if (align) print(' text-align: ' + align);%>\"\r\n        <% } %>\r\n    >\r\n    <%\r\n            var tag = 'tag' in defs ? defs.tag : false;\r\n            if (tag) {\r\n                print( '<' + tag);\r\n                if ('id' in defs) {\r\n                    print(' id=\"'+defs.id+'\"');\r\n                }\r\n                if ('class' in defs) {\r\n                    print(' class=\"'+defs.class+'\"');\r\n                };\r\n                print('>');\r\n            }\r\n        %>{{{this.<%= defs.name %>}}}<%\r\n            if (tag) {\r\n                print( '</' + tag + '>');\r\n            }\r\n    %>\r\n    </td>\r\n<% }); %>\r\n","list-row-expanded":"<% if (layout.right) { %>\r\n<div class=\"pull-right right cell\" data-name=\"buttons\">\r\n    {{{<%= layout.right.name %>}}}\r\n</div>\r\n<% } %>\r\n<% _.each(layout.rows, function (row, key) { %><div class=\"expanded-row\"><% _.each(row, function (defs, key) { %><span class=\"cell<%= defs.align ? ' pull-right' : '' %><%= defs.small ? ' small' : '' %><%= defs.soft ? ' text-soft' : '' %>\" data-name=\"<%= defs.field %>\"><%\r\n                var tag = 'tag' in defs ? defs.tag : false;\r\n                if (tag) {\r\n                    print( '<' + tag);\r\n                    if ('id' in defs) {\r\n                        print(' id=\"'+defs.id+'\"');\r\n                    }\r\n                    if ('class' in defs) {\r\n                        print(' class=\"'+defs.class+'\"');\r\n                    };\r\n                    print('>');\r\n                }\r\n            %>{{{this.<%= defs.name %>}}}<%\r\n                if (tag) {\r\n                    print( '</' + tag + '>');\r\n                }\r\n        %></span><% }); %></div>\r\n<% }); %>\r\n","default":"<% _.each(layout, function (defs, key) {\r\n        var tag = 'tag' in defs ? defs.tag : 'div';\r\n        print( '<' + tag);\r\n        if ('id' in defs) {\r\n            print(' id=\"'+defs.id+'\"');\r\n        }\r\n        if ('class' in defs) {\r\n            print(' class=\"'+defs.class+'\"');\r\n        }\r\n        print('>');\r\n    %>\r\n        {{{this.<%= defs.name %>}}}\r\n        <%= '</' + tag + '>' %>\r\n<% }); %>\r\n","columns-2":"<% _.each(layout, function (row, rowNumber) { %>\r\n    <div class=\"col-sm-6\">\r\n    <% _.each(row, function (defs, key) { %>\r\n        <%\r\n            var tag = 'tag' in defs ? defs.tag : 'div';\r\n            print( '<' + tag);\r\n            if ('id' in defs) {\r\n                print(' id=\"'+defs.id+'\"');\r\n            }\r\n            print(' class=\"');\r\n            if ('class' in defs) {\r\n                print(defs.class);\r\n            };\r\n            print('\"');\r\n            print('>');\r\n        %>\r\n            {{{this.<%= defs.name %>}}}\r\n            <%= '</' + tag + '>' %>\r\n    <% }); %>\r\n    </div>\r\n<% }); %>\r\n"};

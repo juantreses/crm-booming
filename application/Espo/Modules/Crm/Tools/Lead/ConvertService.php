@@ -3,7 +3,7 @@
  * This file is part of EspoCRM.
  *
  * EspoCRM – Open Source CRM application.
- * Copyright (C) 2014-2025 EspoCRM, Inc.
+ * Copyright (C) 2014-2026 EspoCRM, Inc.
  * Website: https://www.espocrm.com
  *
  * This program is free software: you can redistribute it and/or modify
@@ -314,6 +314,14 @@ class ConvertService
 
         if ($account) {
             $values->accountId = $account->getId();
+
+            if ($lead->getTitle()) {
+                $values->accountsColumns = (object) [
+                    $account->getId() => (object) [
+                        Contact::COLUMN_ACCOUNTS_ROLE => $lead->getTitle(),
+                    ],
+                ];
+            }
         }
 
         $service = $this->recordServiceContainer->getByClass(Contact::class);
