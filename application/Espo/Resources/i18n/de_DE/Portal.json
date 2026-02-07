@@ -14,7 +14,7 @@
     "defaultCurrency": "Standardwährung",
     "customUrl": "Benutzerdefinierte URL",
     "customId": "Benutzerdefinierte ID",
-    "layoutSet": "Layout-Set",
+    "layoutSet": "Layout-Satz",
     "authenticationProvider": "Authentifizierungsanbieter",
     "authTokenLifetime": "Auth Token-Lebensdauer (Stunden)",
     "authTokenMaxIdleTime": "Auth Token Maximale Leerlaufzeit (Stunden)",
@@ -24,12 +24,12 @@
     "users": "Benutzer",
     "portalRoles": "Rollen",
     "notes": "Notizen",
-    "layoutSet": "Layout-Set",
+    "layoutSet": "Layout-Satz",
     "authenticationProvider": "Authentifizierungsanbieter"
   },
   "tooltips": {
-    "portalRoles": "Die spezifizierten Portal Rollen werden auf alle Benutzer dieses Portals angewendet.",
-    "layoutSet": "Bietet die Möglichkeit, von Standard-Layouts abweichende Layouts zu haben."
+    "portalRoles": "Die spezifizierten Portal-Rollen werden auf alle Benutzer dieses Portals angewendet.",
+    "layoutSet": "Bietet die Möglichkeit, von den Standard-Layouts abweichende Layouts zu haben."
   },
   "labels": {
     "Create Portal": "Portal erstellen",

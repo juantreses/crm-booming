@@ -3,7 +3,7 @@
  * This file is part of EspoCRM.
  *
  * EspoCRM – Open Source CRM application.
- * Copyright (C) 2014-2025 EspoCRM, Inc.
+ * Copyright (C) 2014-2026 EspoCRM, Inc.
  * Website: https://www.espocrm.com
  *
  * This program is free software: you can redistribute it and/or modify
@@ -136,7 +136,7 @@ class RecordService
                 $groupedCount = $groupedCountMap[$entity->getActionId()] ?? 0;
             }
 
-            $entity->set('groupedCount', $groupedCount);
+            $entity->setGroupedCount($groupedCount);
         }
 
         $collection = new EntityCollection([...$collection], Notification::ENTITY_TYPE);
@@ -213,6 +213,8 @@ class RecordService
         ?int &$count,
         User $user
     ): void {
+
+        $this->prepareSetFields($entity);
 
         $noteId = $this->getNoteId($entity);
 
@@ -466,5 +468,16 @@ class RecordService
     {
         // @todo Param in preferences?
         return (bool) ($this->config->get('notificationGrouping') ?? true);
+    }
+
+    private function prepareSetFields(Notification $entity): void
+    {
+        if ($entity->getRelated() && $entity->getData()?->relatedName) {
+            $entity->set('relatedName', $entity->getData()->relatedName);
+        }
+
+        if ($entity->getCreatedBy() && $entity->getData()?->createdByName) {
+            $entity->set('createdByName', $entity->getData()->createdByName);
+        }
     }
 }

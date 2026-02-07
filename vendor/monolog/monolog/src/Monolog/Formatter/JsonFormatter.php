@@ -195,7 +195,11 @@ class JsonFormatter extends NormalizerFormatter
             }
 
             if ($data instanceof Stringable) {
-                return $data->__toString();
+                try {
+                    return $data->__toString();
+                } catch (Throwable) {
+                    return $data::class;
+                }
             }
 
             if (\get_class($data) === '__PHP_Incomplete_Class') {
@@ -216,7 +220,7 @@ class JsonFormatter extends NormalizerFormatter
      * Normalizes given exception with or without its own stack trace based on
      * `includeStacktraces` property.
      *
-     * @return array<string, string|int|array<string|int|array<string>>>|string
+     * @return array<array-key, string|int|array<string|int|array<string>>>
      */
     protected function normalizeException(Throwable $e, int $depth = 0): array
     {

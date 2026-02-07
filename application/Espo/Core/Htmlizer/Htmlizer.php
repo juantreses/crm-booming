@@ -3,7 +3,7 @@
  * This file is part of EspoCRM.
  *
  * EspoCRM – Open Source CRM application.
- * Copyright (C) 2014-2025 EspoCRM, Inc.
+ * Copyright (C) 2014-2026 EspoCRM, Inc.
  * Website: https://www.espocrm.com
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,6 +34,7 @@ use DOMDocument;
 use DOMElement;
 use DOMException;
 use DOMXPath;
+use Espo\Core\Currency\PrecisionProvider;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\ORM\Entity as CoreEntity;
@@ -42,6 +43,7 @@ use Espo\Core\Select\SelectBuilderFactory;
 use Espo\Entities\Attachment;
 use Espo\Entities\User;
 use Espo\ORM\Name\Attribute;
+use Espo\ORM\Query\Part\Order;
 use Espo\Repositories\Attachment as AttachmentRepository;
 use Espo\Core\Utils\Json;
 use Espo\Core\Acl;
@@ -73,7 +75,7 @@ use const JSON_PRESERVE_ZERO_FRACTION;
  */
 class Htmlizer
 {
-    private const LINK_LIMIT = 100;
+    private const int LINK_LIMIT = 100;
 
     public function __construct(
         private DateTime $dateTime,
@@ -86,6 +88,7 @@ class Htmlizer
         private Config $config,
         private Log $log,
         private InjectableFactory $injectableFactory,
+        private PrecisionProvider $precisionProvider,
         private ?Acl $acl = null,
         private ?ServiceFactory $serviceFactory = null,
     ) {}
@@ -224,7 +227,9 @@ class Htmlizer
         $data = $this->prepareData($entity, $additionalData);
 
         if (!$skipLinks && $level === 0 && $entity->hasId()) {
-            $this->loadRelatedCollections($entity, $template, $data);
+            $additionalDataKeys = is_array($additionalData) ? array_keys($additionalData) : [];
+
+            $this->loadRelatedCollections($entity, $template, $data, $additionalDataKeys);
         }
 
         $skipAttributeList = [];
@@ -242,10 +247,15 @@ class Htmlizer
 
     /**
      * @param array<string, mixed> $data
+     * @param string[] $skipList
      */
-    private function loadRelatedCollections(Entity $entity, ?string $template, array &$data): void
+    private function loadRelatedCollections(Entity $entity, ?string $template, array &$data, array $skipList): void
     {
         foreach ($entity->getRelationList() as $relation) {
+            if (in_array($relation, $skipList)) {
+                continue;
+            }
+
             $collection = $this->loadRelatedCollection($entity, $relation, $template);
 
             if ($collection) {
@@ -636,7 +646,6 @@ class Htmlizer
                 $rootData,
                 $context['fn'] ?? null,
                 $context['inverse'] ?? null,
-                //$context['fn.blockParams'],
             );
 
             $helper = $injectableFactory->create($className);
@@ -692,6 +701,13 @@ class Htmlizer
             ->getDefs()
             ->getEntity($entityType)
             ->getRelation($relation);
+
+        if ($relationDefs->getParam('orderBy')) {
+            $orderBy = $relationDefs->getParam('orderBy');
+            $order = $relationDefs->getParam('order') ?? Order::ASC;
+
+            return [[$orderBy, $order]];
+        }
 
         if (!$relationDefs->hasForeignEntityType()) {
             return [];
@@ -921,7 +937,7 @@ class Htmlizer
                 continue;
             }
 
-            if ($this->acl && !$this->acl->checkEntityRead($relatedEntity)) {
+            if ($this->acl && !$this->acl->tryCheck($relatedEntity, Acl\Table::ACTION_READ)) {
                 continue;
             }
 
@@ -1061,6 +1077,16 @@ class Htmlizer
                 }
             }
 
+            if ($fieldType === FieldType::CURRENCY) {
+                $code = $data[$attribute . 'Currency'] ?? null;
+
+                if (!is_string($code)) {
+                    $code = null;
+                }
+
+                $data[$attribute] = $this->formatCurrencyValue($data[$attribute], $code);
+            }
+
             $data[$attribute] = $this->format($data[$attribute]);
         }
     }
@@ -1106,5 +1132,20 @@ class Htmlizer
         }
 
         return $data;
+    }
+
+    private function formatCurrencyValue(mixed $value, ?string $code): ?string
+    {
+        if (!is_string($value) && !is_int($value) && !is_float($value)) {
+            return null;
+        }
+
+        if (is_string($value) && !is_numeric($value)) {
+            return null;
+        }
+
+        $precision = $this->precisionProvider->get($code);
+
+        return $this->number->format($value, $precision);
     }
 }

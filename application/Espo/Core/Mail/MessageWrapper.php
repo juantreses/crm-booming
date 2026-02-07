@@ -3,7 +3,7 @@
  * This file is part of EspoCRM.
  *
  * EspoCRM – Open Source CRM application.
- * Copyright (C) 2014-2025 EspoCRM, Inc.
+ * Copyright (C) 2014-2026 EspoCRM, Inc.
  * Website: https://www.espocrm.com
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@
 namespace Espo\Core\Mail;
 
 use Espo\Core\Mail\Account\Storage;
+use Espo\Core\Mail\Exceptions\ImapError;
 use Espo\Core\Mail\Message\Part;
 
 use RuntimeException;
@@ -42,11 +43,15 @@ class MessageWrapper implements Message
     /** @var ?string[] */
     private ?array $flagList = null;
 
+    /**
+     * @throws ImapError
+     */
     public function __construct(
         private int $id,
         private ?Storage $storage = null,
         private ?Parser $parser = null,
-        private ?string $fullRawContent = null
+        private ?string $fullRawContent = null,
+        private bool $peek = false,
     ) {
         if ($storage) {
             $data = $storage->getHeaderAndFlags($id);
@@ -108,7 +113,7 @@ class MessageWrapper implements Message
                 throw new RuntimeException();
             }
 
-            $this->rawContent = $this->storage->getRawContent($this->id);
+            $this->rawContent = $this->storage->getRawContent($this->id, $this->peek);
         }
 
         return $this->rawContent ?? '';

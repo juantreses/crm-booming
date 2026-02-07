@@ -16,9 +16,9 @@
 		}
 	],
 	"require": {
-		"php": "^7.0|^7.1|^7.2|^7.3|^7.4|^8.0|^8.1|^8.2",
+		"php": "^8.1",
 		"ext-json": "*",
-		"intervention/image": "^2.3",
+		"intervention/image": "^3.11",
 		"lasserafn/php-initials": "^3.0",
 		"lasserafn/php-string-script-language": "^0.4",
 		"meyfa/php-svg": "^0.9.0",

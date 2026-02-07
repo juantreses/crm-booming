@@ -3,7 +3,7 @@
  * This file is part of EspoCRM.
  *
  * EspoCRM – Open Source CRM application.
- * Copyright (C) 2014-2025 EspoCRM, Inc.
+ * Copyright (C) 2014-2026 EspoCRM, Inc.
  * Website: https://www.espocrm.com
  *
  * This program is free software: you can redistribute it and/or modify
@@ -53,15 +53,15 @@ use Espo\Tools\EntityManager\NameUtil;
  */
 class LinkManager
 {
-    private const MANY_TO_MANY = 'manyToMany';
-    private const MANY_TO_ONE = 'manyToOne';
-    private const ONE_TO_MANY = 'oneToMany';
-    private const CHILDREN_TO_PARENT = 'childrenToParent';
-    private const ONE_TO_ONE_LEFT = 'oneToOneLeft';
-    private const ONE_TO_ONE_RIGHT = 'oneToOneRight';
+    private const string MANY_TO_MANY = 'manyToMany';
+    private const string MANY_TO_ONE = 'manyToOne';
+    private const string ONE_TO_MANY = 'oneToMany';
+    private const string CHILDREN_TO_PARENT = 'childrenToParent';
+    private const string ONE_TO_ONE_LEFT = 'oneToOneLeft';
+    private const string ONE_TO_ONE_RIGHT = 'oneToOneRight';
 
     // 64 - 3
-    private const MAX_LINK_NAME_LENGTH = 61;
+    private const int MAX_LINK_NAME_LENGTH = 61;
 
     public function __construct(
         private Metadata $metadata,
@@ -70,7 +70,7 @@ class LinkManager
         private DataManager $dataManager,
         private LinkHookProcessor $linkHookProcessor,
         private NameUtil $nameUtil,
-        private Route $routeUtil
+        private Route $routeUtil,
     ) {}
 
     /**
@@ -78,7 +78,7 @@ class LinkManager
      *     linkType: string,
      *     entity: string,
      *     link: string,
-     *     entityForeign: string,
+     *     entityForeign: ?string,
      *     linkForeign: string,
      *     label: string,
      *     labelForeign: string,
@@ -127,6 +127,10 @@ class LinkManager
         }
 
         if ($linkType === self::MANY_TO_MANY) {
+            if (!$entityForeign) {
+                throw new Error("No entityForeign.");
+            }
+
             $relationName = !empty($params['relationName']) ?
                 $params['relationName'] :
                 lcfirst($entity) . $entityForeign;
@@ -284,7 +288,7 @@ class LinkManager
             }
         }
 
-        if ($linkForeign === lcfirst($entityForeign)) {
+        if ($entityForeign && $linkForeign === lcfirst($entityForeign)) {
             throw new Conflict("Link $entityForeign::$linkForeign must not match entity type name.");
         }
 

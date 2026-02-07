@@ -5,26 +5,33 @@ declare(strict_types=1);
 namespace OpenSpout\Writer\Common;
 
 use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Common\TempFolderOptionTrait;
+use OpenSpout\Common\TempFolderCheck;
 
-abstract class AbstractOptions
+abstract readonly class AbstractOptions
 {
-    use TempFolderOptionTrait;
+    /** @var non-empty-string */
+    public string $tempFolder;
 
-    public Style $DEFAULT_ROW_STYLE;
-    public bool $SHOULD_CREATE_NEW_SHEETS_AUTOMATICALLY = true;
-    public ?float $DEFAULT_COLUMN_WIDTH = null;
-    public ?float $DEFAULT_ROW_HEIGHT = null;
+    private ColumnWidthContainer $COLUMN_WIDTHS;
 
-    /** @var ColumnWidth[] Array of min-max-width arrays */
-    private array $COLUMN_WIDTHS = [];
+    public function __construct(
+        public Style $FALLBACK_STYLE = new Style(),
+        public bool $SHOULD_CREATE_NEW_SHEETS_AUTOMATICALLY = true,
+        public ?float $DEFAULT_COLUMN_WIDTH = null,
+        public ?float $DEFAULT_ROW_HEIGHT = null,
+        ?string $tempFolder = null,
+    ) {
+        $tempFolder ??= sys_get_temp_dir();
+        \assert('' !== $tempFolder);
+        $this->tempFolder = $tempFolder;
+        (new TempFolderCheck())->assertTempFolder($this->tempFolder);
 
-    public function __construct()
-    {
-        $this->DEFAULT_ROW_STYLE = new Style();
+        $this->COLUMN_WIDTHS = new ColumnWidthContainer();
     }
 
     /**
+     * Columns are indexed from 1 (A = 1).
+     *
      * @param positive-int ...$columns One or more columns with this width
      */
     final public function setColumnWidth(float $width, int ...$columns): void
@@ -46,22 +53,24 @@ abstract class AbstractOptions
     }
 
     /**
+     * Columns are indexed from 1 (A = 1).
+     *
      * @param float        $width The width to set
      * @param positive-int $start First column index of the range
      * @param positive-int $end   Last column index of the range
      */
     final public function setColumnWidthForRange(float $width, int $start, int $end): void
     {
-        $this->COLUMN_WIDTHS[] = new ColumnWidth($start, $end, $width);
+        $this->COLUMN_WIDTHS->append(new ColumnWidth($start, $end, $width));
     }
 
     /**
      * @internal
      *
-     * @return ColumnWidth[]
+     * @return list<ColumnWidth>
      */
     final public function getColumnWidths(): array
     {
-        return $this->COLUMN_WIDTHS;
+        return $this->COLUMN_WIDTHS->get();
     }
 }

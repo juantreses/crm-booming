@@ -5,6 +5,7 @@ namespace AsyncAws\S3\Result;
 use AsyncAws\Core\Response;
 use AsyncAws\Core\Result;
 use AsyncAws\Core\Stream\ResultStream;
+use AsyncAws\S3\Enum\ChecksumType;
 use AsyncAws\S3\Enum\ObjectLockLegalHoldStatus;
 use AsyncAws\S3\Enum\ObjectLockMode;
 use AsyncAws\S3\Enum\ReplicationStatus;
@@ -47,7 +48,8 @@ class GetObjectOutput extends Result
      * header. It includes the `expiry-date` and `rule-id` key-value pairs providing object expiration information. The
      * value of the `rule-id` is URL-encoded.
      *
-     * > This functionality is not supported for directory buckets.
+     * > Object expiration information is not returned in directory buckets and this header returns the value
+     * > "`NotImplemented`" in all responses for directory buckets.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketLifecycleConfiguration.html
      *
@@ -58,8 +60,9 @@ class GetObjectOutput extends Result
     /**
      * Provides information about object restoration action and expiration time of the restored object copy.
      *
-     * > This functionality is not supported for directory buckets. Only the S3 Express One Zone storage class is supported
-     * > by directory buckets to store objects.
+     * > This functionality is not supported for directory buckets. Directory buckets only support `EXPRESS_ONEZONE` (the S3
+     * > Express One Zone storage class) in Availability Zones and `ONEZONE_IA` (the S3 One Zone-Infrequent Access storage
+     * > class) in Dedicated Local Zones.
      *
      * @var string|null
      */
@@ -92,8 +95,8 @@ class GetObjectOutput extends Result
     private $etag;
 
     /**
-     * The base64-encoded, 32-bit CRC-32 checksum of the object. This will only be present if it was uploaded with the
-     * object. For more information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
+     * The Base64 encoded, 32-bit `CRC32` checksum of the object. This checksum is only present if the object was uploaded
+     * with the object. For more information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
      *
@@ -102,8 +105,8 @@ class GetObjectOutput extends Result
     private $checksumCrc32;
 
     /**
-     * The base64-encoded, 32-bit CRC-32C checksum of the object. This will only be present if it was uploaded with the
-     * object. For more information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
+     * The Base64 encoded, 32-bit `CRC32C` checksum of the object. This will only be present if the object was uploaded with
+     * the object. For more information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
      *
@@ -112,8 +115,18 @@ class GetObjectOutput extends Result
     private $checksumCrc32C;
 
     /**
-     * The base64-encoded, 160-bit SHA-1 digest of the object. This will only be present if it was uploaded with the object.
-     * For more information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
+     * The Base64 encoded, 64-bit `CRC64NVME` checksum of the object. For more information, see Checking object integrity in
+     * the Amazon S3 User Guide [^1].
+     *
+     * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+     *
+     * @var string|null
+     */
+    private $checksumCrc64Nvme;
+
+    /**
+     * The Base64 encoded, 160-bit `SHA1` digest of the object. This will only be present if the object was uploaded with
+     * the object. For more information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
      *
@@ -122,14 +135,26 @@ class GetObjectOutput extends Result
     private $checksumSha1;
 
     /**
-     * The base64-encoded, 256-bit SHA-256 digest of the object. This will only be present if it was uploaded with the
-     * object. For more information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
+     * The Base64 encoded, 256-bit `SHA256` digest of the object. This will only be present if the object was uploaded with
+     * the object. For more information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
      *
      * @var string|null
      */
     private $checksumSha256;
+
+    /**
+     * The checksum type, which determines how part-level checksums are combined to create an object-level checksum for
+     * multipart objects. You can use this header response to verify that the checksum type that is received is the same
+     * checksum type that was specified in the `CreateMultipartUpload` request. For more information, see Checking object
+     * integrity [^1] in the *Amazon S3 User Guide*.
+     *
+     * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+     *
+     * @var ChecksumType::*|null
+     */
+    private $checksumType;
 
     /**
      * This is set to the number of metadata entries not returned in the headers that are prefixed with `x-amz-meta-`. This
@@ -212,7 +237,10 @@ class GetObjectOutput extends Result
     private $websiteRedirectLocation;
 
     /**
-     * The server-side encryption algorithm used when you store this object in Amazon S3.
+     * The server-side encryption algorithm used when you store this object in Amazon S3 or Amazon FSx.
+     *
+     * > When accessing data stored in Amazon FSx file systems using S3 access points, the only valid server side encryption
+     * > option is `aws:fsx`.
      *
      * @var ServerSideEncryption::*|null
      */
@@ -264,8 +292,8 @@ class GetObjectOutput extends Result
      * Provides storage class information of the object. Amazon S3 returns this header for all objects except for S3
      * Standard storage class objects.
      *
-     * > **Directory buckets ** - Only the S3 Express One Zone storage class is supported by directory buckets to store
-     * > objects.
+     * > **Directory buckets ** - Directory buckets only support `EXPRESS_ONEZONE` (the S3 Express One Zone storage class)
+     * > in Availability Zones and `ONEZONE_IA` (the S3 One Zone-Infrequent Access storage class) in Dedicated Local Zones.
      *
      * @var StorageClass::*|null
      */
@@ -377,6 +405,13 @@ class GetObjectOutput extends Result
         return $this->checksumCrc32C;
     }
 
+    public function getChecksumCrc64Nvme(): ?string
+    {
+        $this->initialize();
+
+        return $this->checksumCrc64Nvme;
+    }
+
     public function getChecksumSha1(): ?string
     {
         $this->initialize();
@@ -389,6 +424,16 @@ class GetObjectOutput extends Result
         $this->initialize();
 
         return $this->checksumSha256;
+    }
+
+    /**
+     * @return ChecksumType::*|null
+     */
+    public function getChecksumType(): ?string
+    {
+        $this->initialize();
+
+        return $this->checksumType;
     }
 
     public function getContentDisposition(): ?string
@@ -621,8 +666,10 @@ class GetObjectOutput extends Result
         $this->etag = $headers['etag'][0] ?? null;
         $this->checksumCrc32 = $headers['x-amz-checksum-crc32'][0] ?? null;
         $this->checksumCrc32C = $headers['x-amz-checksum-crc32c'][0] ?? null;
+        $this->checksumCrc64Nvme = $headers['x-amz-checksum-crc64nvme'][0] ?? null;
         $this->checksumSha1 = $headers['x-amz-checksum-sha1'][0] ?? null;
         $this->checksumSha256 = $headers['x-amz-checksum-sha256'][0] ?? null;
+        $this->checksumType = $headers['x-amz-checksum-type'][0] ?? null;
         $this->missingMeta = isset($headers['x-amz-missing-meta'][0]) ? (int) $headers['x-amz-missing-meta'][0] : null;
         $this->versionId = $headers['x-amz-version-id'][0] ?? null;
         $this->cacheControl = $headers['cache-control'][0] ?? null;

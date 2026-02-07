@@ -56,25 +56,27 @@ final class PutObjectRequest extends Input
      * The bucket name to which the PUT action was initiated.
      *
      * **Directory buckets** - When you use this operation with a directory bucket, you must use virtual-hosted-style
-     * requests in the format `*Bucket_name*.s3express-*az_id*.*region*.amazonaws.com`. Path-style requests are not
-     * supported. Directory bucket names must be unique in the chosen Availability Zone. Bucket names must follow the format
-     * `*bucket_base_name*--*az-id*--x-s3` (for example, `*DOC-EXAMPLE-BUCKET*--*usw2-az1*--x-s3`). For information about
-     * bucket naming restrictions, see Directory bucket naming rules [^1] in the *Amazon S3 User Guide*.
+     * requests in the format `*Bucket-name*.s3express-*zone-id*.*region-code*.amazonaws.com`. Path-style requests are not
+     * supported. Directory bucket names must be unique in the chosen Zone (Availability Zone or Local Zone). Bucket names
+     * must follow the format `*bucket-base-name*--*zone-id*--x-s3` (for example,
+     * `*amzn-s3-demo-bucket*--*usw2-az1*--x-s3`). For information about bucket naming restrictions, see Directory bucket
+     * naming rules [^1] in the *Amazon S3 User Guide*.
      *
-     * **Access points** - When you use this action with an access point, you must provide the alias of the access point in
-     * place of the bucket name or specify the access point ARN. When using the access point ARN, you must direct requests
-     * to the access point hostname. The access point hostname takes the form
+     * **Access points** - When you use this action with an access point for general purpose buckets, you must provide the
+     * alias of the access point in place of the bucket name or specify the access point ARN. When you use this action with
+     * an access point for directory buckets, you must provide the access point name in place of the bucket name. When using
+     * the access point ARN, you must direct requests to the access point hostname. The access point hostname takes the form
      * *AccessPointName*-*AccountId*.s3-accesspoint.*Region*.amazonaws.com. When using this action with an access point
      * through the Amazon Web Services SDKs, you provide the access point ARN in place of the bucket name. For more
      * information about access point ARNs, see Using access points [^2] in the *Amazon S3 User Guide*.
      *
-     * > Access points and Object Lambda access points are not supported by directory buckets.
+     * > Object Lambda access points are not supported by directory buckets.
      *
-     * **S3 on Outposts** - When you use this action with Amazon S3 on Outposts, you must direct requests to the S3 on
-     * Outposts hostname. The S3 on Outposts hostname takes the form
+     * **S3 on Outposts** - When you use this action with S3 on Outposts, you must direct requests to the S3 on Outposts
+     * hostname. The S3 on Outposts hostname takes the form
      * `*AccessPointName*-*AccountId*.*outpostID*.s3-outposts.*Region*.amazonaws.com`. When you use this action with S3 on
-     * Outposts through the Amazon Web Services SDKs, you provide the Outposts access point ARN in place of the bucket name.
-     * For more information about S3 on Outposts ARNs, see What is S3 on Outposts? [^3] in the *Amazon S3 User Guide*.
+     * Outposts, the destination bucket must be the Outposts access point ARN or the access point alias. For more
+     * information about S3 on Outposts, see What is S3 on Outposts? [^3] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/directory-bucket-naming-rules.html
      * [^2]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-access-points.html
@@ -135,10 +137,10 @@ final class PutObjectRequest extends Input
     private $contentLength;
 
     /**
-     * The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. This header can be
-     * used as a message integrity check to verify that the data is the same data that was originally sent. Although it is
-     * optional, we recommend using the Content-MD5 mechanism as an end-to-end integrity check. For more information about
-     * REST request authentication, see REST Authentication [^1].
+     * The Base64 encoded 128-bit `MD5` digest of the message (without the headers) according to RFC 1864. This header can
+     * be used as a message integrity check to verify that the data is the same data that was originally sent. Although it
+     * is optional, we recommend using the Content-MD5 mechanism as an end-to-end integrity check. For more information
+     * about REST request authentication, see REST Authentication [^1].
      *
      * > The `Content-MD5` or `x-amz-sdk-checksum-algorithm` header is required for any request to upload an object with a
      * > retention period configured using Amazon S3 Object Lock. For more information, see Uploading objects to an Object
@@ -174,14 +176,14 @@ final class PutObjectRequest extends Input
      *
      * - `CRC32`
      * - `CRC32C`
+     * - `CRC64NVME`
      * - `SHA1`
      * - `SHA256`
      *
      * For more information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * If the individual checksum value you provide through `x-amz-checksum-*algorithm*` doesn't match the checksum
-     * algorithm you set through `x-amz-sdk-checksum-algorithm`, Amazon S3 ignores any provided `ChecksumAlgorithm`
-     * parameter and uses the checksum algorithm that matches the provided value in `x-amz-checksum-*algorithm*`.
+     * algorithm you set through `x-amz-sdk-checksum-algorithm`, Amazon S3 fails the request with a `BadDigest` error.
      *
      * > The `Content-MD5` or `x-amz-sdk-checksum-algorithm` header is required for any request to upload an object with a
      * > retention period configured using Amazon S3 Object Lock. For more information, see Uploading objects to an Object
@@ -199,7 +201,7 @@ final class PutObjectRequest extends Input
 
     /**
      * This header can be used as a data integrity check to verify that the data received is the same data that was
-     * originally sent. This header specifies the base64-encoded, 32-bit CRC-32 checksum of the object. For more
+     * originally sent. This header specifies the Base64 encoded, 32-bit `CRC32` checksum of the object. For more
      * information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
@@ -210,7 +212,7 @@ final class PutObjectRequest extends Input
 
     /**
      * This header can be used as a data integrity check to verify that the data received is the same data that was
-     * originally sent. This header specifies the base64-encoded, 32-bit CRC-32C checksum of the object. For more
+     * originally sent. This header specifies the Base64 encoded, 32-bit `CRC32C` checksum of the object. For more
      * information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
@@ -221,7 +223,19 @@ final class PutObjectRequest extends Input
 
     /**
      * This header can be used as a data integrity check to verify that the data received is the same data that was
-     * originally sent. This header specifies the base64-encoded, 160-bit SHA-1 digest of the object. For more information,
+     * originally sent. This header specifies the Base64 encoded, 64-bit `CRC64NVME` checksum of the object. The `CRC64NVME`
+     * checksum is always a full object checksum. For more information, see Checking object integrity in the Amazon S3 User
+     * Guide [^1].
+     *
+     * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+     *
+     * @var string|null
+     */
+    private $checksumCrc64Nvme;
+
+    /**
+     * This header can be used as a data integrity check to verify that the data received is the same data that was
+     * originally sent. This header specifies the Base64 encoded, 160-bit `SHA1` digest of the object. For more information,
      * see Checking object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
@@ -232,7 +246,7 @@ final class PutObjectRequest extends Input
 
     /**
      * This header can be used as a data integrity check to verify that the data received is the same data that was
-     * originally sent. This header specifies the base64-encoded, 256-bit SHA-256 digest of the object. For more
+     * originally sent. This header specifies the Base64 encoded, 256-bit `SHA256` digest of the object. For more
      * information, see Checking object integrity [^1] in the *Amazon S3 User Guide*.
      *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
@@ -361,8 +375,7 @@ final class PutObjectRequest extends Input
     private $metadata;
 
     /**
-     * The server-side encryption algorithm that was used when you store this object in Amazon S3 (for example, `AES256`,
-     * `aws:kms`, `aws:kms:dsse`).
+     * The server-side encryption algorithm that was used when you store this object in Amazon S3 or Amazon FSx.
      *
      * - **General purpose buckets ** - You have four mutually exclusive options to protect data using server-side
      *   encryption in Amazon S3, depending on how you choose to manage the encryption keys. Specifically, the encryption
@@ -394,6 +407,11 @@ final class PutObjectRequest extends Input
      *   > [^6] and UploadPartCopy [^7]), the encryption request headers must match the default encryption configuration of
      *   > the directory bucket.
      *
+     * - **S3 access points for Amazon FSx ** - When accessing data stored in Amazon FSx file systems using S3 access
+     *   points, the only valid server side encryption option is `aws:fsx`. All Amazon FSx file systems have encryption
+     *   configured by default and are encrypted at rest. Data is automatically encrypted before being written to the file
+     *   system, and automatically decrypted as it is read. These processes are handled transparently by Amazon FSx.
+     *
      * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
      * [^2]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-express-serv-side-encryption.html
      * [^3]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-express-specifying-kms-encryption.html
@@ -411,7 +429,8 @@ final class PutObjectRequest extends Input
      * provides high durability and high availability. Depending on performance needs, you can specify a different Storage
      * Class. For more information, see Storage Classes [^1] in the *Amazon S3 User Guide*.
      *
-     * > - For directory buckets, only the S3 Express One Zone storage class is supported to store newly created objects.
+     * > - Directory buckets only support `EXPRESS_ONEZONE` (the S3 Express One Zone storage class) in Availability Zones
+     * >   and `ONEZONE_IA` (the S3 One Zone-Infrequent Access storage class) in Dedicated Local Zones.
      * > - Amazon S3 on Outposts only uses the OUTPOSTS Storage Class.
      * >
      *
@@ -487,14 +506,12 @@ final class PutObjectRequest extends Input
      * `x-amz-server-side-encryption-aws-kms-key-id`, Amazon S3 uses the Amazon Web Services managed key (`aws/s3`) to
      * protect the data.
      *
-     * **Directory buckets** - If you specify `x-amz-server-side-encryption` with `aws:kms`, the `
-     * x-amz-server-side-encryption-aws-kms-key-id` header is implicitly assigned the ID of the KMS symmetric encryption
-     * customer managed key that's configured for your directory bucket's default encryption setting. If you want to specify
-     * the ` x-amz-server-side-encryption-aws-kms-key-id` header explicitly, you can only specify it with the ID (Key ID or
-     * Key ARN) of the KMS customer managed key that's configured for your directory bucket's default encryption setting.
-     * Otherwise, you get an HTTP `400 Bad Request` error. Only use the key ID or key ARN. The key alias format of the KMS
-     * key isn't supported. Your SSE-KMS configuration can only support 1 customer managed key [^1] per directory bucket for
-     * the lifetime of the bucket. The Amazon Web Services managed key [^2] (`aws/s3`) isn't supported.
+     * **Directory buckets** - To encrypt data using SSE-KMS, it's recommended to specify the `x-amz-server-side-encryption`
+     * header to `aws:kms`. Then, the `x-amz-server-side-encryption-aws-kms-key-id` header implicitly uses the bucket's
+     * default KMS customer managed key ID. If you want to explicitly set the ` x-amz-server-side-encryption-aws-kms-key-id`
+     * header, it must match the bucket's default customer managed key (using key ID or ARN, not alias). Your SSE-KMS
+     * configuration can only support 1 customer managed key [^1] per directory bucket's lifetime. The Amazon Web Services
+     * managed key [^2] (`aws/s3`) isn't supported. Incorrect key specification results in an HTTP `400 Bad Request` error.
      *
      * [^1]: https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#customer-cmk
      * [^2]: https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#aws-managed-cmk
@@ -505,7 +522,7 @@ final class PutObjectRequest extends Input
 
     /**
      * Specifies the Amazon Web Services KMS Encryption Context as an additional encryption context to use for object
-     * encryption. The value of this header is a Base64-encoded string of a UTF-8 encoded JSON, which contains the
+     * encryption. The value of this header is a Base64 encoded string of a UTF-8 encoded JSON, which contains the
      * encryption context as key-value pairs. This value is stored as object metadata and automatically gets passed on to
      * Amazon Web Services KMS for future `GetObject` operations on this object.
      *
@@ -613,6 +630,7 @@ final class PutObjectRequest extends Input
      *   ChecksumAlgorithm?: null|ChecksumAlgorithm::*,
      *   ChecksumCRC32?: null|string,
      *   ChecksumCRC32C?: null|string,
+     *   ChecksumCRC64NVME?: null|string,
      *   ChecksumSHA1?: null|string,
      *   ChecksumSHA256?: null|string,
      *   Expires?: null|\DateTimeImmutable|string,
@@ -658,6 +676,7 @@ final class PutObjectRequest extends Input
         $this->checksumAlgorithm = $input['ChecksumAlgorithm'] ?? null;
         $this->checksumCrc32 = $input['ChecksumCRC32'] ?? null;
         $this->checksumCrc32C = $input['ChecksumCRC32C'] ?? null;
+        $this->checksumCrc64Nvme = $input['ChecksumCRC64NVME'] ?? null;
         $this->checksumSha1 = $input['ChecksumSHA1'] ?? null;
         $this->checksumSha256 = $input['ChecksumSHA256'] ?? null;
         $this->expires = !isset($input['Expires']) ? null : ($input['Expires'] instanceof \DateTimeImmutable ? $input['Expires'] : new \DateTimeImmutable($input['Expires']));
@@ -703,6 +722,7 @@ final class PutObjectRequest extends Input
      *   ChecksumAlgorithm?: null|ChecksumAlgorithm::*,
      *   ChecksumCRC32?: null|string,
      *   ChecksumCRC32C?: null|string,
+     *   ChecksumCRC64NVME?: null|string,
      *   ChecksumSHA1?: null|string,
      *   ChecksumSHA256?: null|string,
      *   Expires?: null|\DateTimeImmutable|string,
@@ -785,6 +805,11 @@ final class PutObjectRequest extends Input
     public function getChecksumCrc32C(): ?string
     {
         return $this->checksumCrc32C;
+    }
+
+    public function getChecksumCrc64Nvme(): ?string
+    {
+        return $this->checksumCrc64Nvme;
     }
 
     public function getChecksumSha1(): ?string
@@ -1011,6 +1036,9 @@ final class PutObjectRequest extends Input
         if (null !== $this->checksumCrc32C) {
             $headers['x-amz-checksum-crc32c'] = $this->checksumCrc32C;
         }
+        if (null !== $this->checksumCrc64Nvme) {
+            $headers['x-amz-checksum-crc64nvme'] = $this->checksumCrc64Nvme;
+        }
         if (null !== $this->checksumSha1) {
             $headers['x-amz-checksum-sha1'] = $this->checksumSha1;
         }
@@ -1190,6 +1218,13 @@ final class PutObjectRequest extends Input
     public function setChecksumCrc32C(?string $value): self
     {
         $this->checksumCrc32C = $value;
+
+        return $this;
+    }
+
+    public function setChecksumCrc64Nvme(?string $value): self
+    {
+        $this->checksumCrc64Nvme = $value;
 
         return $this;
     }

@@ -102,8 +102,8 @@ final readonly class CellValueFormatter
 
             return new Cell\FormulaCell(
                 '='.$fNodeValue,
+                $computedValue instanceof Cell\ErrorCell ? null : $computedValue,
                 null,
-                $computedValue instanceof Cell\ErrorCell ? null : $computedValue
             );
         }
 
@@ -199,9 +199,15 @@ final readonly class CellValueFormatter
         } elseif ($this->styleManager->shouldFormatNumericValueAsDate($cellStyleId)) {
             $cellValue = $this->formatExcelTimestampValue((float) $nodeValue, $cellStyleId);
         } else {
-            $nodeIntValue = (int) $nodeValue;
-            $nodeFloatValue = (float) $nodeValue;
-            $cellValue = ((float) $nodeIntValue === $nodeFloatValue) ? $nodeIntValue : $nodeFloatValue;
+            $cellValue = $nodeValue;
+            if (\is_string($nodeValue)) {
+                $cellValue = (float) $nodeValue;
+            }
+            if ($nodeValue < PHP_INT_MAX && $nodeValue > PHP_INT_MIN) {
+                $nodeIntValue = (int) $nodeValue;
+                $nodeFloatValue = (float) $nodeValue;
+                $cellValue = ((float) $nodeIntValue === $nodeFloatValue) ? $nodeIntValue : $nodeFloatValue;
+            }
         }
 
         return $cellValue;
@@ -279,9 +285,7 @@ final readonly class CellValueFormatter
         $dateObj = DateTimeImmutable::createFromFormat('|Y-m-d', $baseDate);
         \assert(false !== $dateObj);
         $dateObj = $dateObj->modify($daysSign.$daysSinceBaseDate.'days');
-        \assert(false !== $dateObj);
         $dateObj = $dateObj->modify($secondsSign.$secondsRemainder.'seconds');
-        \assert(false !== $dateObj);
 
         if ($this->shouldFormatDates) {
             $styleNumberFormatCode = $this->styleManager->getNumberFormatCode($cellStyleId);

@@ -7,6 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'ICal' => array($vendorDir . '/johngrogg/ics-parser/src'),
-    'HTMLPurifier' => array($vendorDir . '/ezyang/htmlpurifier/library'),
     'CIDRmatch\\' => array($vendorDir . '/tholu/php-cidr-match'),
 );

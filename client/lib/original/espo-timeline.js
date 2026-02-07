@@ -13,7 +13,7 @@ define("modules/crm/views/scheduler/scheduler", ["exports", "view", "vis-data", 
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
@@ -475,7 +475,7 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
    * This file is part of EspoCRM.
    *
    * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2025 EspoCRM, Inc.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
    * Website: https://www.espocrm.com
    *
    * This program is free software: you can redistribute it and/or modify
