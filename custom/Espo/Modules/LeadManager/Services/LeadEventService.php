@@ -170,10 +170,7 @@ readonly class LeadEventService
             ->where([
                 'parentId' => $leadId,
                 'parentType' => 'Lead',
-                'OR' => [
-                    'status' => 'Planned',
-                    'status' => 'Tentative',
-                ],
+                'status' => ['Tentative', 'Planned'],
             ])
             ->order('dateStart', 'ASC')
             ->findOne();
