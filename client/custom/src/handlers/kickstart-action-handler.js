@@ -12,7 +12,7 @@ define(['action-handler'], (Dep) => {
                 
                 view.once('success', (response) => {
                     this.view.model.fetch();
-                    this.view.reRender();
+                    this.view.render();
                     
                     if (response && response.data) {
                         const eventCount = response.data.eventIds ? response.data.eventIds.length : 0;

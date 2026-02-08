@@ -5,7 +5,7 @@ define('custom:handlers/log-message-sent-handler', ['action-handler'], (Dep) => 
         async logMessageSent(data, e) {
             this.view.disableMenuItem('logMessageSent');
 
-            Espo.Ajax.postRequest('lead/logMessageSent', {
+            Espo.Ajax.postRequest('leadEvent/logMessageSent', {
                 id: this.view.model.id
             })
             .then((response) => {

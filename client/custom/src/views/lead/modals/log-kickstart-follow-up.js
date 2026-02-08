@@ -1,61 +1,50 @@
-define('custom:views/lead/modals/log-kickstart-follow-up', ['views/modal', 'custom:utils/date-utils'], function (Dep, DateUtils) {
+define('custom:views/lead/modals/log-kickstart-follow-up', [
+    'custom:views/lead/modals/base-lead-event-modal',
+    'custom:utils/form-validation-utils'
+], function (Dep, ValidationUtils) {
 
-	return Dep.extend({
-		template: 'custom:lead/modals/log-kickstart-follow-up',
-		className: 'dialog dialog-record',
+    return Dep.extend({
+        
+        template: 'custom:lead/modals/log-kickstart-follow-up',
+        
+        apiEndpoint: 'leadEvent/logKickstartFollowUp',
+        successMessage: 'KS Opvolging opgeslagen.',
+        errorMessage: 'KS Opvolging opslaan mislukt.',
 
-		setup: function () {
-			this.buttonList = [
-				{
-					name: 'save',
-					label: 'Opslaan',
-					style: 'primary'
-				},
-				{
-					name: 'cancel',
-					label: 'Annuleer'
-				}
-			];
+        getSaveButtonLabel: function() {
+            return 'Opslaan';
+        },
 
-			this.headerText = 'Log KS Opvolging - ' + this.model.get('name');
-		},
+        getHeaderText: function() {
+            return 'Log KS Opvolging';
+        },
 
-		actionSave: function () {
-			const outcome = this.$el.find('[name="outcome"]').val();
-			const coachNote = this.$el.find('[name="coachNote"]').val();
-			const followUpDateTime = this.$el.find('[name="followUpDateTime"]').val();
+        getFormData: function() {
+            const outcome = this.getFieldValue('outcome');
+            const coachNote = this.getFieldValue('coachNote');
+            const followUpDateTime = this.getFieldValue('followUpDateTime');
+            
+            return {
+                id: this.model.id,
+                outcome: outcome,
+                followUpDateTime: this.formatDateTime(followUpDateTime),
+                coachNote: coachNote || null
+            };
+        },
 
-            const saveButton = this.$el.find('button[data-name="save"]');
-            saveButton.prop('disabled', true);
+        validateForm: function() {
+            const outcome = this.getFieldValue('outcome');
+            const followUpDateTime = this.getFieldValue('followUpDateTime');
 
-			if (!outcome) {
-                Espo.Ui.error('Selecteer een uitkomst.');
-				saveButton.prop('disabled', false);
-                return;
+            if (!ValidationUtils.validateRequired(outcome, 'Selecteer een uitkomst.')) {
+                return false;
             }
 
-			if (followUpDateTime) {
-                const now = new Date();
-                const ksDate = new Date(followUpDateTime);
-                if (ksDate > now) {
-                    Espo.Ui.error('Datum/tijd van opvolging mag niet in de toekomst zijn.');
-					saveButton.prop('disabled', false);
-                    return;
-                }
+            if (!ValidationUtils.validateEventDateTime(followUpDateTime, 'opvolging')) {
+                return false;
             }
 
-			Espo.Ajax.postRequest('leadEvent/logKickstartFollowUp', {
-				id: this.model.id,
-				outcome: outcome,
-				followUpDateTime: followUpDateTime ? DateUtils.toOffsetISOString(new Date(followUpDateTime)) : null,
-				coachNote: coachNote || null
-			}).then(() => {
-				this.trigger('success');
-				this.close();
-			}).catch(() => {
-				Espo.Ui.error('KS Opvolging opslaan mislukt.');
-				saveButton.prop('disabled', false);
-			});
-		}
-	});
+            return true;
+        }
+    });
 });

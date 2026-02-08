@@ -12,7 +12,7 @@ define(['action-handler'], (Dep) => {
                 
                 view.once('success', (response) => {
                     this.view.model.fetch();
-                    this.view.reRender();
+                    this.view.render();
                     
                     // Show success message with more details if available
                     if (response && response.data) {

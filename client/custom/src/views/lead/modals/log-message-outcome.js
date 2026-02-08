@@ -1,99 +1,107 @@
-define('custom:views/lead/modals/log-message-outcome', ['views/modal', 'custom:utils/date-utils'], function (Dep, DateUtils) {
+define('custom:views/lead/modals/log-message-outcome', [
+    'custom:views/lead/modals/base-lead-event-modal',
+    'custom:mixins/meeting-scheduler-mixin',
+    'custom:utils/form-validation-utils'
+], function (Dep, MeetingSchedulerMixin, ValidationUtils) {
 
-	return Dep.extend({
-		template: 'custom:lead/modals/log-message-outcome',
-		className: 'dialog dialog-record',
+    const LogMessageOutcomeView = Dep.extend({
+        
+        template: 'custom:lead/modals/log-message-outcome',
+        
+        apiEndpoint: 'leadEvent/logMessageOutcome',
+        successMessage: 'Bericht uitkomst opgeslagen.',
+        errorMessage: 'Bericht uitkomst opslaan mislukt.',
 
-		setup: function () {
-			this.buttonList = [
-				{
-					name: 'save',
-					label: 'Opslaan',
-					style: 'primary'
-				},
-				{
-					name: 'cancel',
-					label: 'Annuleer'
-				}
-			];
+        setup: function () {
+            Dep.prototype.setup.call(this);
+            
+            this.initializeMeetingScheduler();
+            
+            this.events['change [name="outcome"]'] = 'handleOutcomeChange';
+        },
 
-			this.headerText = 'Log Bericht Uitkomst - ' + this.model.get('name');
-		},
+        afterRender: function () {
+            Dep.prototype.afterRender.call(this);
+            this.handleOutcomeChange();
+        },
 
-		afterRender: function () {
-			Dep.prototype.afterRender.call(this);
+        getSaveButtonLabel: function() {
+            return 'Opslaan';
+        },
 
-			const $outcome = this.$el.find('[name="outcome"]');
-			const $callAgainField = this.$el.find('[data-field="call-again-date"]');
-            const $meetingTypeField = this.$el.find('[data-field="meeting-type"]');
+        getHeaderText: function() {
+            return 'Log Bericht Uitkomst';
+        },
 
-            $outcome.on('change', () => {
-				const value = $outcome.val();
-				if (value === 'call_again') {
-					$callAgainField.show();
-				} else {
-					$callAgainField.hide();
-				}
+        handleOutcomeChange: function() {
+            const outcome = this.getFieldValue('outcome');
+            
+            this.toggleField('call-again-date', outcome === 'call_again');
+            this.toggleField('meeting-type', outcome === 'invited');
+            
+            if (outcome === 'invited') {
+                this.showMeetingScheduler();
+            } else {
+                this.hideMeetingScheduler();
+            }
+        },
 
-                if (value === 'invited') {
-                    $meetingTypeField.show();
-                } else {
-                    $meetingTypeField.hide();
+        getFormData: function() {
+            const outcome = this.getFieldValue('outcome');
+            const callAgainDateTime = this.getFieldValue('callAgainDateTime');
+            const coachNote = this.getFieldValue('coachNote');
+            const meetingType = this.getFieldValue('meetingType');
+            
+            const formData = {
+                id: this.model.id,
+                outcome: outcome,
+                callAgainDateTime: this.formatDateTime(callAgainDateTime),
+                coachNote: coachNote || null,
+                meetingType: meetingType || null
+            };
+
+            if (outcome === 'invited') {
+                const meetingData = this.getSelectedMeetingData();
+                if (meetingData) {
+                    formData.calendarId = meetingData.calendarId;
+                    formData.selectedDate = meetingData.slotDate;
+                    formData.selectedTime = meetingData.slotTime;
                 }
-			});
-		},
+            }
 
-		actionSave: function () {
-			const outcome = this.$el.find('[name="outcome"]').val();
-			const callAgainDateTime = this.$el.find('[name="callAgainDateTime"]').val();
-			const coachNote = this.$el.find('[name="coachNote"]').val();
-            const meetingType = this.$el.find('[name="meetingType"]').val();
+            return formData;
+        },
 
-            const saveButton = this.$el.find('button[data-name="save"]');
-            saveButton.prop('disabled', true);
+        validateForm: function() {
+            const outcome = this.getFieldValue('outcome');
+            const callAgainDateTime = this.getFieldValue('callAgainDateTime');
+            const meetingType = this.getFieldValue('meetingType');
 
-			if (!outcome) {
-                Espo.Ui.error('Selecteer een uitkomst.');
-				saveButton.prop('disabled', false);
-                return;
+            if (!ValidationUtils.validateRequired(outcome, 'Selecteer een uitkomst.')) {
+                return false;
             }
 
             if (outcome === 'invited') {
-                if (!meetingType) {
-                    Espo.Ui.error('Type afspraak is verplicht voor een uitnodiging.');
-                    saveButton.prop('disabled', false);
-                    return;
+                if (!ValidationUtils.validateRequired(meetingType, 'Type afspraak is verplicht voor een uitnodiging.')) {
+                    return false;
+                }
+
+                if (!this.validateMeetingSelection()) {
+                    return false;
                 }
             }
 
-            if (outcome === 'call_again' && !callAgainDateTime) {
-				if (!callAgainDateTime) {
-                    Espo.Ui.error('Datum/tijd opnieuw bellen is verplicht.');
-					saveButton.prop('disabled', false);
-                    return;
+            if (outcome === 'call_again') {
+                if (!ValidationUtils.validateCallAgainDateTime(callAgainDateTime, true)) {
+                    return false;
                 }
-                const now = new Date();
-                const callAgainDate = new Date(callAgainDateTime);
-                if (callAgainDate <= now) {
-                    Espo.Ui.error('Datum/tijd opnieuw bellen moet in de toekomst zijn.');
-					saveButton.prop('disabled', false);
-                    return;
-                }
-			}
+            }
 
-			Espo.Ajax.postRequest('leadEvent/logMessageOutcome', {
-				id: this.model.id,
-				outcome: outcome,
-				callAgainDateTime: callAgainDateTime ? DateUtils.toOffsetISOString(new Date(callAgainDateTime)) : null,
-				coachNote: coachNote || null,
-                meetingType: meetingType || null
-            }).then(() => {
-				this.trigger('success');
-				this.close();
-			}).catch(() => {
-				Espo.Ui.error('Bericht uitkomst opslaan mislukt.');
-				saveButton.prop('disabled', false);
-			});
-		}
-	});
+            return true;
+        }
+    });
+
+    _.extend(Dep.prototype, MeetingSchedulerMixin);
+
+    return LogMessageOutcomeView;
 });

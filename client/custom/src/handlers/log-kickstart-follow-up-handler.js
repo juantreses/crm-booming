@@ -9,7 +9,7 @@ define(['action-handler'], (Dep) => {
 				view.render();
 				view.once('success', async () => {
 					await this.view.model.fetch();
-					this.view.reRender();
+					this.view.render();
 					Espo.Ui.success('KS Opvolging opgeslagen.');
 					this.view.enableMenuItem('logKickstartFollowUp');
 				});
