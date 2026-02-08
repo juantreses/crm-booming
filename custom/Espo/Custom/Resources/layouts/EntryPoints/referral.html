@@ -6,102 +6,64 @@
     <title>Start jouw traject - Booming</title>
     <link rel="stylesheet" href="client/custom/res/tailwind.min.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-
-    <style>
-        [v-cloak] { display: none; }
-    </style>
+    <script src="client/custom/res/widget-components.js"></script>
+    <script src="client/custom/src/utils/widget-validation-utils.js"></script>
+    <style>[v-cloak] { display: none; }</style>
 </head>
 <body class="bg-[#f8faff] min-h-screen flex items-center justify-center p-4">
 
-    <div id="app" v-cloak
-    class="bg-white rounded-2xl shadow-xl max-w-6xl w-full flex flex-col md:flex-row overflow-hidden border border-gray-100 min-h-[650px]">
+<div id="app" v-cloak class="bg-white rounded-2xl shadow-xl max-w-6xl w-full flex flex-col md:flex-row overflow-hidden border border-gray-100 min-h-[650px]">
 
-    <div class="md:w-96 p-10 border-r border-gray-100 flex flex-col bg-white">
-        <div class="mb-8 p-3 border border-gray-100 inline-block rounded-xl shadow-sm w-fit">
-            <img src="?entryPoint=LogoImage" class="h-14 w-auto object-contain">
-        </div>
-
-        <h2 class="text-gray-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-2">Spark Center Booming</h2>
-        <h1 class="text-2xl font-black text-gray-900 leading-tight mb-8">Start jouw transformatie</h1>
-
-        <div class="mt-10 text-[14px] text-gray-500 description-text border-t pt-8">
-            Je bent uitgenodigd om kennis te maken met onze coaching. Vul je gegevens in en we nemen contact op om te kijken hoe we jou kunnen helpen.
-        </div>
-
-        <div class="space-y-4 pt-6 border-t border-gray-100 mt-auto">
-            <div class="flex items-center gap-3 text-gray-700 font-bold text-xs">
-                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <span>Persoonlijke intake</span>
-            </div>
-            <div class="flex items-center gap-3 text-gray-700 font-bold text-xs">
-                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                </div>
-                <span>Direct resultaatgericht</span>
-            </div>
-            <div class="flex items-center gap-3 text-gray-700 font-bold text-xs">
-                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                </div>
-                <span>1-op-1 begeleiding</span>
-            </div>
-        </div>
-    </div>
+    <widget-sidebar
+        title="Start jouw transformatie"
+        description="Je bent uitgenodigd om kennis te maken met onze coaching. Vul je gegevens in en we nemen contact op om te kijken hoe we jou kunnen helpen."
+        :features="['Persoonlijke intake', 'Direct resultaatgericht', '1-op-1 begeleiding']"
+    ></widget-sidebar>
 
     <div class="flex-1 p-6 md:p-10 bg-white overflow-y-auto relative">
         
-        <div v-if="loading" class="absolute inset-0 bg-white/80 z-10 flex items-center justify-center backdrop-blur-sm rounded-2xl">
-            <div class="flex flex-col items-center">
-                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-3"></div>
-                <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Even geduld...</span>
-            </div>
-        </div>
+        <loading-overlay v-if="loading"></loading-overlay>
 
         <div v-if="!submitted" class="space-y-6">
-            
             <div class="mb-2">
                 <h3 class="text-lg font-extrabold text-gray-800">Jouw gegevens</h3>
                 <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Vul het formulier in om te starten</p>
             </div>
 
-            <div v-if="errorMessage" class="p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
-                <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                <p class="text-sm text-red-600 font-medium">{{ errorMessage }}</p>
-            </div>
+            <error-alert v-if="errorMessage" :message="errorMessage"></error-alert>
             
             <form @submit.prevent="submitReferral" class="space-y-5">
-                
                 <div class="grid grid-cols-2 gap-4">
-                    <input v-model="form.firstName" placeholder="Voornaam *" class="p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
-                    <input v-model="form.lastName" placeholder="Achternaam *" class="p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
+                    <form-input v-model="form.firstName" placeholder="Voornaam *" required></form-input>
+                    <form-input v-model="form.lastName" placeholder="Achternaam *" required></form-input>
                 </div>
 
-                <input v-model="form.email" type="email" placeholder="E-mailadres *" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
-                <input v-model="form.phone" type="tel" placeholder="Telefoonnummer *" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
+                <form-input v-model="form.email" type="email" placeholder="E-mailadres *" required></form-input>
+                <form-input v-model="form.phone" type="tel" placeholder="Telefoonnummer *" required></form-input>
 
                 <div>
                     <label class="block text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Waarin ben je geïnteresseerd? *</label>
                     <div class="grid grid-cols-1 gap-2">
-                        <button v-for="opt in interestOptions" :key="opt"
+                        <multi-select-button
+                            v-for="opt in interestOptions"
+                            :key="opt"
+                            :label="opt"
+                            :selected="form.interests.includes(opt)"
                             @click="toggleInterest(opt)"
-                            :class="[form.interests.includes(opt) ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-600']"
-                            class="text-left p-3 border-2 rounded-xl text-[11px] font-bold transition-all">
-                            {{ opt }}
-                        </button>
+                        ></multi-select-button>
                     </div>
                 </div>
 
                 <div class="pt-2">
                     <label class="block text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-widest">Wie heeft je met ons in contact gebracht? *</label>
-                    <input v-model="form.referredBy" required placeholder="Naam van je vriend(in) / kennis *" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
+                    <form-input v-model="form.referredBy" placeholder="Naam van je vriend(in) / kennis *" required></form-input>
                 </div>
 
-                <button type="submit" :disabled="loading"
-                        class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-xl transition-all transform active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed mt-4">
-                    Aanvraag Versturen
-                </button>
+                <submit-button
+                    :disabled="!isFormValid || loading"
+                    :loading="loading"
+                    label="Aanvraag Versturen"
+                ></submit-button>
             </form>
         </div>
 
@@ -133,78 +95,77 @@
             
             <p class="mt-12 text-gray-300 text-xs font-bold uppercase tracking-widest">Je kunt dit venster sluiten</p>
         </div>
-
     </div>
 </div>
 
 <script>
-    const { createApp, ref, onMounted } = Vue;
+const { createApp, ref } = Vue;
 
-    createApp({
-        setup() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const coachId = urlParams.get('coach');
-            
-            const submitted = ref(false);
-            const loading = ref(false);
-            const errorMessage = ref('');
+createApp({
+    components: {
+        WidgetSidebar,
+        LoadingOverlay,
+        ErrorAlert,
+        MultiSelectButton,
+        FormInput,
+        SubmitButton
+    },
+    setup() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const submitted = ref(false);
 
-            const interestOptions = [
-                "Gewicht verliezen / vetverbranding",
-                "Spieropbouw / sterker worden",
-                "Conditie & energie verbeteren",
-                "Buikspieren & core versterken",
-                "Fitter worden in het dagelijks leven"
-            ];
+        const interestOptions = [
+            "Gewicht verliezen / vetverbranding",
+            "Spieropbouw / sterker worden",
+            "Conditie & energie verbeteren",
+            "Buikspieren & core versterken",
+            "Fitter worden in het dagelijks leven"
+        ];
 
-            const form = ref({
-                firstName: '', lastName: '', email: '', phone: '',
-                interests: [], referredBy: '', coachId: coachId,             
-                source: 'referral'
-            });
+        const form = ref({
+            firstName: '', 
+            lastName: '', 
+            email: '', 
+            phone: '',
+            interests: [], 
+            referredBy: '', 
+            coachId: urlParams.get('coach'),             
+            source: 'referral'
+        });
 
-            const toggleInterest = (val) => {
-                const idx = form.value.interests.indexOf(val);
-                if (idx > -1) form.value.interests.splice(idx, 1);
-                else form.value.interests.push(val);
-            };
+        const toggleInterest = (val) => {
+            const idx = form.value.interests.indexOf(val);
+            if (idx > -1) form.value.interests.splice(idx, 1);
+            else form.value.interests.push(val);
+        };
 
-            const submitReferral = async () => {
-                if (form.value.interests.length === 0) {
-                    errorMessage.value = "Selecteer ten minste één interesse.";
-                    return;
-                }
-                
-                loading.value = true;
-                errorMessage.value = '';
+        const { isFormValid } = useFormValidation(form);
 
-                try {
-                    const res = await fetch('/api/v1/widget/submit', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify(form.value)
-                    });
+        const { loading, errorMessage, submitForm } = useWidgetSubmit(form, () => {
+            submitted.value = true;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
 
-                    if (res.ok) {
-                        submitted.value = true;
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    } else {
-                        const data = await res.json();
-                        errorMessage.value = data.error || "Er is iets misgegaan.";
-                    }
-                } catch (e) {
-                    errorMessage.value = "Kon geen verbinding maken.";
-                } finally {
-                    loading.value = false;
-                }
-            };
+        const submitReferral = () => {
+            if (form.value.interests.length === 0) {
+                errorMessage.value = "Selecteer ten minste één interesse.";
+                return;
+            }
+            submitForm();
+        };
 
-            return { submitted, loading, errorMessage, form, interestOptions, toggleInterest, submitReferral };
-        }
-    }).mount('#app');
+        return { 
+            submitted, 
+            loading, 
+            errorMessage, 
+            form, 
+            interestOptions, 
+            toggleInterest, 
+            submitReferral,
+            isFormValid
+        };
+    }
+}).mount('#app');
 </script>
 </body>
 </html>

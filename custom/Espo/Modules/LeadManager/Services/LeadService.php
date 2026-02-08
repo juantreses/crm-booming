@@ -15,18 +15,20 @@ readonly class LeadService
     public function __construct(
         private EntityManager $entityManager,
         private SlugService $slug,
-    )
-    {}
+        private PhoneFormatterService $phoneFormatter,
+    ) {}
 
     public function findOrCreate(array $data): Entity
     {
         $email = $data['email'] ?? '';
         $phone = $data['phone'] ?? '';
 
+        $formattedPhone = $this->phoneFormatter->format($phone);
+
         // Try to find by email first, then by phone
         $person = $email ? $this->lookupBy('emailAddress', $email) : null;
-        if (!$person && $phone) {
-            $person = $this->lookupBy('phoneNumber', $phone);
+        if (!$person && $formattedPhone) {
+            $person = $this->lookupBy('phoneNumber', $formattedPhone);
         }
 
         if (!$person) {
@@ -36,7 +38,7 @@ readonly class LeadService
         $coachIdentifier = $data['coachId'] ?? null;
         $coachId = $this->slug->resolve('User', $coachIdentifier);
         if ($coachId) {
-            $this->assignCoach($person, $coachId, $data->source ?? 'Webform');
+            $this->assignCoach($person, $coachId, $data['source'] ?? 'Webform');
         }
 
         return $person;
@@ -66,11 +68,13 @@ readonly class LeadService
         /** @var Lead $lead */
         $lead = $this->entityManager->getNewEntity(Lead::ENTITY_TYPE);
 
+        $formattedPhone = $this->phoneFormatter->format($data['phone'] ?? '');
+
         $lead->set([
             'firstName' => $data['firstName'] ?? '',
             'lastName' => $data['lastName'] ?? '',
             'emailAddress' => $data['email'] ?? '',
-            'phoneNumber' => $data['phone'] ?? '',
+            'phoneNumber' => $formattedPhone,
             'source' => $data['source'] ?? 'Webform',
         ]);
 
@@ -78,28 +82,16 @@ readonly class LeadService
         return $lead;
     }
 
-    private function assignCoach(Entity $person, string $newCoachId, $source = 'Webform'): void
+    private function assignCoach(Entity $person, string $newCoachId, string $source = 'Webform'): void
     {
         $oldCoachId = $person->get('cTeamId');
 
-        // 1. Klanten (Contacts) worden NOOIT opnieuw toegewezen
         if ($person->getEntityType() === Contact::ENTITY_TYPE) {
             return;
         }
 
-        // 2. Controleer op inactiviteit (30 dagen) bij Leads
         if ($oldCoachId && !$this->isLeadEligibleForReassignment($person)) {
-            $oldCoach = $this->entityManager->getEntityById('CTeam', $oldCoachId);
-            $msg = "Toewijzing gefaald: Lead is nog actief bij coach " . ($oldCoach?->get('name') ?? 'onbekend');
-            
-            $existingNotes = (string) ($person->get('cNotes') ?? '');
-            $timezone = new \DateTimeZone('Europe/Brussels');
-            $dt = new \DateTime('now', $timezone);
-            $formattedHeader = $dt->format('[d/m/Y H:i]');
-            $newLine = "$formattedHeader ($source): $msg";
-            $updatedNotes = $existingNotes ? ($newLine . "\n\n" . $existingNotes) : $newLine;
-
-            $person->set('cNotes', $updatedNotes);
+            $this->logReassignmentFailure($person, $oldCoachId, $source);
             return;
         }
 
@@ -108,14 +100,40 @@ readonly class LeadService
             return;
         }
 
-        $oldCoachName = $oldCoachId ? ($this->entityManager->getEntityById('CTeam', $oldCoachId)?->get('name') ?? 'Onbekend') : 'null';
-        $newCoachName = $newCoach->get('name');
+        $this->performAssignment($person, $newCoachId, $oldCoachId, $newCoach->get('name'));
+    }
+
+    private function logReassignmentFailure(Entity $person, string $oldCoachId, string $source): void
+    {
+        $oldCoach = $this->entityManager->getEntityById('CTeam', $oldCoachId);
+        $msg = "Toewijzing gefaald: Lead is nog actief bij coach " . ($oldCoach?->get('name') ?? 'onbekend');
+        
+        $existingNotes = (string) ($person->get('cNotes') ?? '');
+        $timezone = new \DateTimeZone('Europe/Brussels');
+        $dt = new \DateTime('now', $timezone);
+        $formattedHeader = $dt->format('[d/m/Y H:i]');
+        $newLine = "$formattedHeader ($source): $msg";
+        $updatedNotes = $existingNotes ? ($newLine . "\n\n" . $existingNotes) : $newLine;
+
+        $person->set('cNotes', $updatedNotes);
+        $this->entityManager->saveEntity($person);
+    }
+
+    private function performAssignment(Entity $person, string $newCoachId, ?string $oldCoachId, string $newCoachName): void
+    {
+        $oldCoachName = $oldCoachId 
+            ? ($this->entityManager->getEntityById('CTeam', $oldCoachId)?->get('name') ?? 'Onbekend') 
+            : 'null';
 
         $person->set('assignedUserId', $newCoachId);
-        $team = $this->entityManager->getRDBRepository('CTeam')->where('assignedUserId', $newCoachId)->findOne();
+        
+        $team = $this->entityManager->getRDBRepository('CTeam')
+            ->where('assignedUserId', $newCoachId)
+            ->findOne();
+            
         if ($team) {
             $person->set('cTeamId', $team->getId());
-            $person->set('status', LeadEventType::ASSIGNED);
+            $person->set('status', LeadEventType::ASSIGNED->value);
 
             if ($sfcId = $team->get('slimFitCenterId')) {
                 $person->set('cSlimFitCenterId', $sfcId);
@@ -124,6 +142,11 @@ readonly class LeadService
         
         $this->entityManager->saveEntity($person);
 
+        $this->createAssignmentEvent($person, $oldCoachName, $newCoachName);
+    }
+
+    private function createAssignmentEvent(Entity $person, string $oldCoachName, string $newCoachName): void
+    {
         $event = $this->entityManager->getNewEntity('CLeadEvent');
         $timezone = new \DateTimeZone('UTC');
         $dt = new \DateTime('now', $timezone);
@@ -135,6 +158,7 @@ readonly class LeadService
         ]);
         
         $this->entityManager->saveEntity($event);
+        
         $this->entityManager->getRDBRepository('CLeadEvent')
             ->getRelation($event, 'lead')
             ->relate($person);

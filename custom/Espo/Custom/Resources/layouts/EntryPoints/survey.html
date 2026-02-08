@@ -6,27 +6,22 @@
     <title>SPARK - Welzijnsevaluatie</title>
     <link rel="stylesheet" href="client/custom/res/tailwind.min.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="client/custom/res/widget-components.js"></script>
+    <script src="client/custom/src/utils/widget-validation-utils.js"></script>
     <style>[v-cloak] { display: none; }</style>
 </head>
 <body class="bg-[#f8faff] min-h-screen flex items-center justify-center p-2 md:p-4">
 
 <div id="app" v-cloak class="bg-white rounded-2xl shadow-xl max-w-4xl w-full flex flex-col md:flex-row overflow-hidden border border-gray-100 min-h-[600px]">
     
-    <div class="md:w-72 p-8 border-r border-gray-100 flex flex-col bg-white">
-        <div class="mb-6 p-3 border border-gray-100 inline-block rounded-xl shadow-sm w-fit">
-            <img src="?entryPoint=LogoImage" class="h-10 w-auto object-contain">
-        </div>
-        <h2 class="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">SPARK Center Booming</h2>
-        <h1 class="text-xl font-black text-gray-900 leading-tight mb-4">Welzijnsevaluatie</h1>
-        <div class="mt-auto">
-            <div class="flex gap-1 mb-2">
-                <div v-for="i in 3" :key="i" :class="[step >= i ? 'bg-blue-600' : 'bg-gray-200']" class="h-1 flex-1 rounded-full transition-all"></div>
-            </div>
-            <p class="text-[10px] font-bold text-gray-400 uppercase">Stap {{step}} van 3</p>
-        </div>
-    </div>
+    <widget-sidebar
+        title="Welzijnsevaluatie"
+        :current-step="step"
+        :total-steps="3"
+    ></widget-sidebar>
 
     <div class="flex-1 p-6 md:p-10">
+        <loading-overlay v-if="loading"></loading-overlay>
         
         <div v-if="step === 1" class="space-y-6">
             <h3 class="text-lg font-extrabold text-gray-800">Stap 1: Welzijn</h3>
@@ -34,12 +29,7 @@
             <div>
                 <label class="block text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Wat had je vanmorgen als ontbijt? *</label>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    <button v-for="opt in options.ontbijt" :key="opt"
-                        @click="toggleMulti('ontbijt', opt)"
-                        :class="[form.ontbijt.includes(opt) ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-600 hover:border-blue-200']"
-                        class="p-3 border-2 rounded-xl text-xs font-bold transition-all text-center">
-                        {{ opt }}
-                    </button>
+                    <multi-select-button v-for="opt in options.ontbijt" :key="opt" :label="opt" :selected="form.ontbijt.includes(opt)" @click="toggleMulti('ontbijt', opt)"></multi-select-button>
                 </div>
                 <input v-if="form.ontbijt.includes('Andere')" v-model="form.ontbijtAndere" placeholder="Namelijk..." class="mt-2 w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:border-blue-600">
             </div>
@@ -47,30 +37,19 @@
             <div>
                 <label class="block text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Hoe zou je je algemene gezondheid op dit moment beoordelen? *</label>
                 <div class="flex gap-1 overflow-x-auto pb-2">
-                    <button v-for="n in 10" :key="n" @click="form.score = n"
-                        :class="[form.score === n ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-500']"
-                        class="w-8 h-8 rounded-lg flex-shrink-0 font-bold text-xs transition-all">{{ n }}</button>
+                    <button v-for="n in 10" :key="n" @click="form.score = n" :class="[form.score === n ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-500']" class="w-8 h-8 rounded-lg flex-shrink-0 font-bold text-xs transition-all">{{ n }}</button>
                 </div>
             </div>
 
             <div>
                 <label class="block text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Doe je aan sport? Zo ja, welke?</label>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    <button v-for="opt in options.sport" :key="opt"
-                        @click="toggleMulti('sport', opt)"
-                        :class="[form.sport.includes(opt) ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-600 hover:border-blue-200']"
-                        class="p-3 border-2 rounded-xl text-xs font-bold transition-all text-center">
-                        {{ opt }}
-                    </button>
+                    <multi-select-button v-for="opt in options.sport" :key="opt" :label="opt" :selected="form.sport.includes(opt)" @click="toggleMulti('sport', opt)"></multi-select-button>
                 </div>
                 <input v-if="form.sport.includes('Andere')" v-model="form.sportAndere" placeholder="Namelijk..." class="mt-2 w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:border-blue-600">
             </div>
 
-            <button @click="step = 2" :disabled="!isStep1Valid" 
-                :class="[isStep1Valid ? 'bg-blue-600 shadow-blue-200 hover:bg-blue-700' : 'bg-gray-200 cursor-not-allowed opacity-50']"
-                class="w-full text-white py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center gap-2">
-                Volgende stap
-            </button>
+            <submit-button :disabled="!isStep1Valid" label="Volgende stap" @click="step = 2"></submit-button>
         </div>
 
         <div v-if="step === 2" class="space-y-6">
@@ -82,41 +61,25 @@
             <div>
                 <label class="block text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Ik geef je 5 gezondheidsresultaten. Stel dat er één vanaf nu zou werken, welke zou je kiezen? *</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <button v-for="opt in options.resultaten" :key="opt"
-                        @click="toggleMulti('resultaten', opt)"
-                        :class="[form.resultaten.includes(opt) ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-600']"
-                        class="text-left p-3 border-2 rounded-xl text-[11px] font-bold transition-all">
-                        {{ opt }}
-                    </button>
+                    <multi-select-button v-for="opt in options.resultaten" :key="opt" :label="opt" :selected="form.resultaten.includes(opt)" @click="toggleMulti('resultaten', opt)"></multi-select-button>
                 </div>
             </div>
 
             <div>
                 <label class="block text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Ik selecteer per week 10 mensen voor één van onze gratis en vrijblijvende ervaringen in ons SPARK Center. Welke zou jij het liefste volgen? *</label>
                 <div class="grid grid-cols-1 gap-2">
-                    <button v-for="opt in options.ervaringen" :key="opt"
-                        @click="toggleMulti('ervaringen', opt)"
-                        :class="[form.ervaringen.includes(opt) ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-600']"
-                        class="text-left p-3 border-2 rounded-xl text-[11px] font-bold transition-all">
-                        {{ opt }}
-                    </button>
+                    <multi-select-button v-for="opt in options.ervaringen" :key="opt" :label="opt" :selected="form.ervaringen.includes(opt)" @click="toggleMulti('ervaringen', opt)"></multi-select-button>
                 </div>
             </div>
 
             <div>
                 <label class="block text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Wil je vrijblijvend meer info over hoe je een centje kan bijvrienden als welzijnscoach? *</label>
                 <div class="flex gap-2">
-                    <button v-for="opt in ['Ja', 'Nee']" :key="opt" @click="form.bijverdienen = opt"
-                        :class="[form.bijverdienen === opt ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-600']"
-                        class="flex-1 p-3 border-2 rounded-xl text-xs font-bold transition-all">{{ opt }}</button>
+                    <button v-for="opt in ['Ja', 'Nee']" :key="opt" @click="form.bijverdienen = opt" :class="[form.bijverdienen === opt ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-600']" class="flex-1 p-3 border-2 rounded-xl text-xs font-bold transition-all">{{ opt }}</button>
                 </div>
             </div>
 
-            <button @click="step = 3" :disabled="!isStep2Valid" 
-                :class="[isStep2Valid ? 'bg-blue-600 shadow-blue-200 hover:bg-blue-700' : 'bg-gray-200 cursor-not-allowed opacity-50']"
-                class="w-full text-white py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center gap-2">
-                Naar contactgegevens
-            </button>
+            <submit-button :disabled="!isStep2Valid" label="Naar contactgegevens" @click="step = 3"></submit-button>
         </div>
 
         <div v-if="step === 3" class="space-y-6">
@@ -126,54 +89,39 @@
             <h3 class="text-lg font-extrabold text-gray-800">Stap 3: Contactgegevens</h3>
             
             <div class="grid grid-cols-2 gap-4">
-                <input v-model="form.firstName" placeholder="Voornaam *" class="p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
-                <input v-model="form.lastName" placeholder="Achternaam *" class="p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
+                <form-input v-model="form.firstName" placeholder="Voornaam *" required></form-input>
+                <form-input v-model="form.lastName" placeholder="Achternaam *" required></form-input>
             </div>
-            <input v-model="form.email" type="email" placeholder="E-mailadres *" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
-            <input v-model="form.phone" type="tel" placeholder="Telefoonnummer *" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
+            <form-input v-model="form.email" type="email" placeholder="E-mailadres *" required></form-input>
+            <form-input v-model="form.phone" type="tel" placeholder="Telefoonnummer *" required></form-input>
             
             <textarea v-model="form.opmerking" rows="2" placeholder="Opmerking / Need to know" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm"></textarea>
 
-            <button @click="submitSurvey" :disabled="!isStep3Valid || loading" 
-                :class="[isStep3Valid && !loading ? 'bg-green-600 shadow-green-100 hover:bg-green-700' : 'bg-gray-200 cursor-not-allowed opacity-50']"
-                class="w-full text-white py-4 rounded-xl font-bold shadow-lg transition-all">
-                {{ loading ? 'Verzenden...' : 'Enquête Afronden' }}
-            </button>
+            <submit-button :disabled="!isStep3Valid || loading" :loading="loading" label="Enquête Afronden" variant="green" @click="submitSurvey"></submit-button>
         </div>
     </div>
 </div>
 
 <script>
 const { createApp, ref, computed } = Vue;
+
 createApp({
+    components: { WidgetSidebar, LoadingOverlay, MultiSelectButton, FormInput, SubmitButton },
     setup() {
         const urlParams = new URLSearchParams(window.location.search);
         const step = ref(1);
-        const loading = ref(false);
         const options = {
             ontbijt: ['Brood', 'Eitjes', 'Cornflakes/Muesli/Granola', 'Fruit', 'Havermout', 'Yoghurt', 'Niets', 'Andere'],
             sport: ['Fitness', 'Hardlopen', 'Wielrennen', 'Zwemmen', 'Yoga', 'Pilates', 'Andere'],
             resultaten: ['Meer energie', 'Sportprestaties', 'Afslanken', 'Aankomen (spieren)', 'Gezondere huid'],
             ervaringen: ['Beauty workshop', 'Groepsworkout', 'Info-avond bijverdienen', 'Bodyscan + evaluatie']
         };
-        const initialForm = {
-            ontbijt: [], 
-            ontbijtAndere: '', 
-            score: null,
-            sport: [],
-            sportAndere: '',
-            bijverdienen: null, 
-            resultaten: [], 
-            ervaringen: [],
-            firstName: '', 
-            lastName: '', 
-            email: '', 
-            phone: '', 
-            opmerking: '',
-            coachId: urlParams.get('coach'),
-            source: 'enquête'
-        };
-        const form = ref({...initialForm});
+        const form = ref({
+            ontbijt: [], ontbijtAndere: '', score: null, sport: [], sportAndere: '',
+            bijverdienen: null, resultaten: [], ervaringen: [],
+            firstName: '', lastName: '', email: '', phone: '', opmerking: '',
+            coachId: urlParams.get('coach'), source: 'enquête'
+        });
 
         const toggleMulti = (field, val) => {
             const index = form.value[field].indexOf(val);
@@ -183,23 +131,11 @@ createApp({
 
         const isStep1Valid = computed(() => form.value.ontbijt.length > 0 && form.value.score !== null);
         const isStep2Valid = computed(() => form.value.resultaten.length > 0 && form.value.ervaringen.length > 0 && form.value.bijverdienen !== null);
-        const isStep3Valid = computed(() => form.value.firstName.trim() !== '' && form.value.lastName.trim() !== '' && form.value.email.includes('@') && form.value.phone.length > 8);
+        
+        const { isFormValid: isStep3Valid } = useFormValidation(form);
+        const { loading, submitForm } = useWidgetSubmit(form, () => window.location.reload());
 
-        const submitSurvey = async () => {
-            loading.value = true;
-            try {
-                const res = await fetch('/api/v1/widget/submit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(form.value)
-                });
-                if (res.ok) {
-                    window.location.reload();
-                }
-            } finally { loading.value = false; }
-        };
-
-        return { step, form, options, toggleMulti, isStep1Valid, isStep2Valid, isStep3Valid, submitSurvey, loading };
+        return { step, form, options, toggleMulti, isStep1Valid, isStep2Valid, isStep3Valid, submitSurvey: submitForm, loading };
     }
 }).mount('#app');
 </script>

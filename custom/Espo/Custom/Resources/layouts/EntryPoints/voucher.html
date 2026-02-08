@@ -6,91 +6,89 @@
     <title>SPARK Voucher Claimen</title>
     <link rel="stylesheet" href="client/custom/res/tailwind.min.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="client/custom/res/widget-components.js"></script>
+    <script src="client/custom/src/utils/widget-validation-utils.js"></script>
     <style>[v-cloak] { display: none; }</style>
 </head>
 <body class="bg-[#f8faff] min-h-screen flex items-center justify-center p-2 md:p-4">
 
 <div id="app" v-cloak class="bg-white rounded-2xl shadow-xl max-w-4xl w-full flex flex-col md:flex-row overflow-hidden border border-gray-100 min-h-[550px]">
     
-    <div class="md:w-72 p-8 border-r border-gray-100 flex flex-col bg-white">
-        <div class="mb-6 p-3 border border-gray-100 inline-block rounded-xl shadow-sm w-fit">
-            <img src="?entryPoint=LogoImage" class="h-10 w-auto object-contain">
-        </div>
-        <h2 class="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">SPARK Center Booming</h2>
-        <h1 class="text-xl font-black text-gray-900 leading-tight mb-4">Voucher Claimen</h1>
-        <p class="text-xs text-gray-500 mb-8">
-            Vul je gegevens in en laat ons weten waar je interesse in hebt om je gratis voucher te claimen.
-        </p>
-        <div class="mt-auto">
-            <div class="flex gap-1 mb-2">
-                <div v-for="i in 2" :key="i" :class="[step >= i ? 'bg-blue-600' : 'bg-gray-200']" class="h-1 flex-1 rounded-full transition-all"></div>
-            </div>
-            <p class="text-[10px] font-bold text-gray-400 uppercase">Stap {{step}} van 2</p>
-        </div>
-    </div>
+    <widget-sidebar
+        title="Voucher Claimen"
+        description="Vul je gegevens in en laat ons weten waar je interesse in hebt om je gratis voucher te claimen."
+        :current-step="step"
+        :total-steps="2"
+    ></widget-sidebar>
 
     <div class="flex-1 p-6 md:p-10">
+        <loading-overlay v-if="loading"></loading-overlay>
         
+        <!-- Step 1: Interests -->
         <div v-if="step === 1" class="space-y-6">
             <h3 class="text-lg font-extrabold text-gray-800">Stap 1: Waarvoor wil je de voucher gebruiken?</h3>
 
             <div>
                 <label class="block text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Ik heb interesse in... *</label>
                 <div class="grid grid-cols-1 gap-2">
-                    <button v-for="opt in options.ervaringen" :key="opt"
+                    <multi-select-button
+                        v-for="opt in options.ervaringen"
+                        :key="opt"
+                        :label="opt"
+                        :selected="form.ervaringen.includes(opt)"
                         @click="toggleMulti('ervaringen', opt)"
-                        :class="[form.ervaringen.includes(opt) ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-600']"
-                        class="text-left p-3 border-2 rounded-xl text-[11px] font-bold transition-all flex items-center gap-2">
-                        <span v-if="form.ervaringen.includes(opt)">✓</span>
-                        {{ opt }}
-                    </button>
+                    ></multi-select-button>
                 </div>
             </div>
 
-            <button @click="step = 2" :disabled="!isStep1Valid" 
-                :class="[isStep1Valid ? 'bg-blue-600 shadow-blue-200 hover:bg-blue-700' : 'bg-gray-200 cursor-not-allowed opacity-50']"
-                class="w-full text-white py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center gap-2">
-                Volgende stap
-            </button>
+            <submit-button :disabled="!isStep1Valid" label="Volgende stap" @click="step = 2"></submit-button>
         </div>
 
+        <!-- Step 2: Contact Details -->
         <div v-if="step === 2" class="space-y-6">
             <button @click="step = 1" class="text-gray-400 font-bold text-[10px] uppercase tracking-widest hover:text-blue-600 flex items-center gap-1">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg> Terug naar interesses
             </button>
             <h3 class="text-lg font-extrabold text-gray-800">Stap 2: Jouw gegevens</h3>
             
+            <error-alert v-if="errorMessage" :message="errorMessage"></error-alert>
+
             <div class="grid grid-cols-2 gap-4">
-                <input v-model="form.firstName" placeholder="Voornaam *" class="p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
-                <input v-model="form.lastName" placeholder="Achternaam *" class="p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
+                <form-input v-model="form.firstName" placeholder="Voornaam *" required></form-input>
+                <form-input v-model="form.lastName" placeholder="Achternaam *" required></form-input>
             </div>
-            <input v-model="form.email" type="email" placeholder="E-mailadres *" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
-            <input v-model="form.phone" type="tel" placeholder="Telefoonnummer *" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm">
+            <form-input v-model="form.email" type="email" placeholder="E-mailadres *" required></form-input>
+            <form-input v-model="form.phone" type="tel" placeholder="Telefoonnummer *" required></form-input>
             
             <textarea v-model="form.opmerking" rows="2" placeholder="Opmerking / Specifieke vraag" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm"></textarea>
 
-            <button @click="submitVoucher" :disabled="!isStep2Valid || loading" 
-                :class="[isStep2Valid && !loading ? 'bg-green-600 shadow-green-100 hover:bg-green-700' : 'bg-gray-200 cursor-not-allowed opacity-50']"
-                class="w-full text-white py-4 rounded-xl font-bold shadow-lg transition-all">
-                {{ loading ? 'Verzenden...' : 'Voucher Claimen' }}
-            </button>
+            <submit-button
+                :disabled="!isStep2Valid || loading"
+                :loading="loading"
+                label="Voucher Claimen"
+                variant="green"
+                @click="submitVoucher"
+            ></submit-button>
+
+            <success-alert v-if="success" message="Je voucher werd geactiveerd!"></success-alert>
         </div>
     </div>
 </div>
 
 <script>
 const { createApp, ref, computed } = Vue;
+
 createApp({
+    components: { WidgetSidebar, LoadingOverlay, ErrorAlert, MultiSelectButton, FormInput, SubmitButton, SuccessAlert},
     setup() {
         const urlParams = new URLSearchParams(window.location.search);
         const step = ref(1);
-        const loading = ref(false);
         
         const options = {
             ervaringen: ['Beauty workshop', 'Groepsworkout', 'Info-avond bijverdienen', 'Bodyscan + evaluatie']
         };
 
-        const initialForm = {
+        const form = ref({
             ervaringen: [],
             firstName: '', 
             lastName: '', 
@@ -99,8 +97,7 @@ createApp({
             opmerking: '',
             coachId: urlParams.get('coach'),
             source: 'voucher'
-        };
-        const form = ref({...initialForm});
+        });
 
         const toggleMulti = (field, val) => {
             const index = form.value[field].indexOf(val);
@@ -109,33 +106,26 @@ createApp({
         };
 
         const isStep1Valid = computed(() => form.value.ervaringen.length > 0);
+        const { isFormValid: isStep2Valid } = useFormValidation(form);
         
-        const isStep2Valid = computed(() => form.value.firstName.trim() !== '' && form.value.lastName.trim() !== '' && form.value.email.includes('@') && form.value.phone.length > 8);
+        const { loading, success, errorMessage, submitForm } = useWidgetSubmit(form, () => {
+            setTimeout(() => { 
+                window.location.reload(); 
+            }, 3000);
+        });
 
-        const submitVoucher = async () => {
-            loading.value = true;
-            try {
-                const res = await fetch('/api/v1/widget/submit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(form.value)
-                });
-                
-                if (res.ok) {
-                    alert('Bedankt! Je voucher is aangevraagd. We nemen spoedig contact op.');
-                    window.location.reload(); 
-                } else {
-                    alert('Er ging iets mis. Probeer het later opnieuw.');
-                }
-            } catch (e) {
-                console.error(e);
-                alert('Netwerkfout.');
-            } finally { 
-                loading.value = false; 
-            }
+        return { 
+            step, 
+            form, 
+            options, 
+            toggleMulti, 
+            isStep1Valid, 
+            isStep2Valid, 
+            submitVoucher: submitForm, 
+            loading,
+            errorMessage,
+            success
         };
-
-        return { step, form, options, toggleMulti, isStep1Valid, isStep2Valid, submitVoucher, loading };
     }
 }).mount('#app');
 </script>
