@@ -103,12 +103,12 @@ const { createApp, ref } = Vue;
 
 createApp({
     components: {
-        WidgetSidebar,
-        LoadingOverlay,
-        ErrorAlert,
-        MultiSelectButton,
-        FormInput,
-        SubmitButton
+        'widget-sidebar': WidgetComponents.WidgetSidebar,
+        'loading-overlay': WidgetComponents.LoadingOverlay,
+        'error-alert': WidgetComponents.ErrorAlert,
+        'multi-select-button': WidgetComponents.MultiSelectButton,
+        'form-input': WidgetComponents.FormInput,
+        'submit-button': WidgetComponents.SubmitButton
     },
     setup() {
         const urlParams = new URLSearchParams(window.location.search);

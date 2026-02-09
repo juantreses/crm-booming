@@ -106,7 +106,13 @@
 const { createApp, ref, computed } = Vue;
 
 createApp({
-    components: { WidgetSidebar, LoadingOverlay, MultiSelectButton, FormInput, SubmitButton },
+    components: {
+        'widget-sidebar': WidgetComponents.WidgetSidebar,
+        'loading-overlay': WidgetComponents.LoadingOverlay,
+        'multi-select-button': WidgetComponents.MultiSelectButton,
+        'form-input': WidgetComponents.FormInput,
+        'submit-button': WidgetComponents.SubmitButton
+     },
     setup() {
         const urlParams = new URLSearchParams(window.location.search);
         const step = ref(1);
