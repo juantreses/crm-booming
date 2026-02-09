@@ -30,48 +30,6 @@
         "rows": [
             [
                 {
-                    "name": "enquete"
-                }
-            ],
-            [
-                {
-                    "name": "cadeaubon"
-                }
-            ],
-            [
-                {
-                    "name": "berichten"
-                }
-            ],
-            [
-                {
-                    "name": "linkReferral"
-                }
-            ],
-            [
-                {
-                    "name": "linkGelaatsverzorgingworkshop"
-                }
-            ],
-            [
-                {
-                    "name": "sparkGroepsles"
-                }
-            ]
-        ],
-        "dynamicLogicVisible": null,
-        "style": "default",
-        "tabBreak": true,
-        "tabLabel": "Links",
-        "hidden": false,
-        "noteText": null,
-        "noteStyle": "info",
-        "customLabel": "Actie Links"
-    },
-    {
-        "rows": [
-            [
-                {
                     "name": "maxCallAttempts"
                 }
             ]

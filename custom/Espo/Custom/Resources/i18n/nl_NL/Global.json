@@ -1,14 +1,16 @@
 {
     "scopeNames": {
         "Contact": "Klant",
-        "CTeam": "HB Team",
+        "CTeam": "HBL Team",
         "CCampagneRoundRobin": "Round Robin",
-        "Meeting": "Afspraak"
+        "Meeting": "Afspraak",
+        "CSlimFitCenter": "Center"
     },
     "scopeNamesPlural": {
         "Contact": "Klanten",
-        "CTeam": "HB Teams",
+        "CTeam": "HBL Teams",
         "CCampagneRoundRobin": "Round Robins",
-        "Meeting": "Afspraken"
+        "Meeting": "Afspraken",
+        "CSlimFitCenter": "Centers"
     }
 }

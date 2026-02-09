@@ -38,5 +38,6 @@
             "layout": null,
             "selectPrimaryFilterName": null
         }
-    }
+    },
+    "kanbanViewMode": false
 }

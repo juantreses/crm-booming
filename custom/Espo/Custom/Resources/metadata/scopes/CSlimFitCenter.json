@@ -19,5 +19,12 @@
     "type": "BasePlus",
     "module": "Custom",
     "object": true,
-    "isCustom": true
+    "isCustom": true,
+    "statusField": null,
+    "kanbanStatusIgnoreList": null,
+    "stars": false,
+    "preserveAuditLog": false,
+    "duplicateCheckFieldList": [],
+    "collaborators": false,
+    "assignedUsers": false
 }
