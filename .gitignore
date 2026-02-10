@@ -4,6 +4,7 @@
 /data/upload/
 /data/config.php
 /data/config-internal.php
+/data/state.php
 /install/
 .env
 
