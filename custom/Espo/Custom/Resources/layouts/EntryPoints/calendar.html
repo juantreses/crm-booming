@@ -318,7 +318,7 @@
 
                     const fetchAvailabilityData = async (year, month) => {
                         try {
-                            let uri = `/api/v1/calendar/${calendarId}/availability?year=${year}&month=${month}`;
+                            let uri = `/api/v1/calendar/${calendarId}/availability?year=${year}&month=${month}&coach=${coachId}`;
                             if (locationId) {
                                 uri += `&location=${locationId}`
                             };
@@ -381,7 +381,7 @@
                     const fetchSlots = async () => {
                         loading.value = true;
                         try {
-                            let slotsUri = `/api/v1/calendar/${calendarId}/slots?date=${selectedDate.value}`;
+                            let slotsUri = `/api/v1/calendar/${calendarId}/slots?date=${selectedDate.value}&coach=${coachId}`;
                             if (locationId) {
                                 slotsUri += `&location=${locationId}`;
                             }

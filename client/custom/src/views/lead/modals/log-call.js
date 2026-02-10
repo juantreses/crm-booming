@@ -13,7 +13,6 @@ define('custom:views/lead/modals/log-call', [
         errorMessage: 'Failed to log call',
 
         setup: function () {
-            console.log('LogCallView setup called!', this);
             Dep.prototype.setup.call(this);
             
             this.initializeMeetingScheduler();

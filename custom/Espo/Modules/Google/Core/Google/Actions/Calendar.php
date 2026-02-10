@@ -251,7 +251,7 @@ class Calendar extends Base
             try {
                 $this->entityManager->saveEntity($this->syncParams['calendar']);
             } catch (Exception $e) {
-                $GLOBALS['log']->info("Google Calendar Synchronization: Updating lastSync is failed. ($lastDate)");
+                $GLOBALS['log']->error("Google Calendar Synchronization: Updating lastSync is failed. ($lastDate)");
             }
         }
 

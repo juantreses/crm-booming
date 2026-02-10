@@ -21,15 +21,28 @@ readonly class CalendarService
     ) {}
 
     /**
+     * Get available slots for a calendar on a specific date
+     * 
+     * @param string $identifier Calendar slug or ID
+     * @param string $dateString Date in Y-m-d format
+     * @param string|null $locationIdentifier Location slug or ID (optional)
+     * @param string|null $coachIdentifier Coach slug or ID (optional, filters by team)
      * @throws Exception
      */
-    public function getAvailableSlots($identifier, $dateString, ?string $locationIdentifier = null): array
-    {
+    public function getAvailableSlots(
+        string $identifier, 
+        string $dateString, 
+        ?string $locationIdentifier = null,
+        ?string $coachIdentifier = null
+    ): array {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         $locationId = $this->slugService->resolve('CLocation', $locationIdentifier);
+        $teamId = $this->resolveTeamFromCoach($coachIdentifier);
 
+        $GLOBALS['log']->debug("CalendarDebug: Coach Identifier '{$coachIdentifier}' resolved to Team ID: " . ($teamId ?? 'NULL'));
+        
         $calendar = $this->validateCalendar($calendarId);
-        $availabilities = $this->getAvailabilityForDate($calendar, $dateString, $locationId);
+        $availabilities = $this->getAvailabilityForDate($calendar, $dateString, $locationId, $teamId);
         
         if (!$availabilities || (is_countable($availabilities) && count($availabilities) === 0)) {
             return [];
@@ -44,25 +57,7 @@ readonly class CalendarService
             }
         }
 
-        $locationMap = [];
-        if (!empty($locationIds)) {
-            $locations = $this->entityManager->getRDBRepository('CLocation')
-                            ->where(['id' => array_unique($locationIds)])
-                            ->find();
-            
-            foreach($locations as $loc) {
-                $locationMap[$loc->getId()] = [
-                    'id' => $loc->getId(),
-                    'name' => $loc->get('name'),
-                    'addressStreet' => $loc->get('addressStreet'),
-                    'addressCity' => $loc->get('addressCity'),
-                    'addressState' => $loc->get('addressState'),
-                    'addressCountry' => $loc->get('addressCountry'),
-                    'addressPostalCode' => $loc->get('addressPostalCode'),
-                ];
-            }
-        }
-
+        $locationMap = $this->buildLocationMap($locationIds);
         $calendarConfig = $this->getCalendarConfig($calendar, $dateString);
         
         $allSlots = [];
@@ -75,6 +70,65 @@ readonly class CalendarService
         }
 
         return $this->deduplicateAndSortSlots($allSlots);
+    }
+
+    /**
+     * Resolve team ID from coach identifier
+     * 
+     * @param string|null $coachIdentifier Coach slug or ID
+     * @return string|null Team ID if found
+     */
+    private function resolveTeamFromCoach(?string $coachIdentifier): ?string
+    {
+        if (!$coachIdentifier) {
+            return null;
+        }
+
+        $userId = $this->slugService->resolve('User', $coachIdentifier);
+        $GLOBALS['log']->debug("CalendarDebug userid: $userId");
+
+        if (!$userId) {
+            return null;
+        }
+
+        $team = $this->entityManager
+            ->getRDBRepository('CTeam')
+            ->where(['assignedUserId' => $userId])
+            ->findOne();
+
+            $GLOBALS['log']->debug("CalendarDebug:" . ($team ? $team->getId() : 'NULL'));
+    
+
+        return $team?->getId();
+    }
+
+    /**
+     * Build location data map
+     */
+    private function buildLocationMap(array $locationIds): array
+    {
+        if (empty($locationIds)) {
+            return [];
+        }
+
+        $locations = $this->entityManager->getRDBRepository('CLocation')
+            ->where(['id' => array_unique($locationIds)])
+            ->find();
+        
+        $locationMap = [];
+        foreach($locations as $loc) {
+            $locationMap[$loc->getId()] = [
+                'id' => $loc->getId(),
+                'name' => $loc->get('name'),
+                'addressStreet' => $loc->get('addressStreet'),
+                'addressCity' => $loc->get('addressCity'),
+                'addressState' => $loc->get('addressState'),
+                'addressCountry' => $loc->get('addressCountry'),
+                'addressPostalCode' => $loc->get('addressPostalCode'),
+            ];
+        }
+
+        return $locationMap;
     }
 
     public function getBookableCalendars(): array
@@ -100,7 +154,13 @@ readonly class CalendarService
         return $result;
     }
 
-    public function getUpcomingSlots(string $identifier): array
+    /**
+     * Get upcoming slots for a calendar
+     * 
+     * @param string $identifier Calendar slug or ID
+     * @param string|null $coachIdentifier Coach slug or ID (filters by team)
+     */
+    public function getUpcomingSlots(string $identifier, ?string $coachIdentifier = null): array
     {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         if (!$calendarId) {
@@ -125,7 +185,7 @@ readonly class CalendarService
             $dateString = $currentDate->format('Y-m-d');
             
             try {
-                $daySlots = $this->getAvailableSlots($identifier, $dateString);
+                $daySlots = $this->getAvailableSlots($identifier, $dateString, null, $coachIdentifier);
                 
                 if (!empty($daySlots)) {
                     $slots[$dateString] = $daySlots;
@@ -226,7 +286,7 @@ readonly class CalendarService
         $slotEnd = (clone $currentPointer)->modify("+{$config['duration']} minutes")->format('H:i');
 
         $isBlocked = $this->isSlotBlocked($slotStart, $slotEnd, $config['blockingPeriods']);
-        $isTooSoon = $this->isSlotTooSoon($currentPointer, $dateString, $config['firstBookableMoment']);
+        $isTooSoon = $this->isSlotTooSoon($displayPointer, $dateString, $config['firstBookableMoment']);
         $availableSeats = $this->getAvailableSeats($slotStart, $config['maxSeats'], $config['bookings']);
         $hasSeats = $availableSeats > 0;
         $isBookable = !$isBlocked && !$isTooSoon && $hasSeats;
@@ -242,9 +302,9 @@ readonly class CalendarService
             'locationName' => $locationData['name'] ?? null,
             'locationAddressStreet' => $locationData['addressStreet'] ?? null,
             'locationAddressCity' => $locationData['addressCity'] ?? null,
-            'locationAddressState' => $locationData['addressState'],
-            'locationAddressCountry' => $locationData['addressCountry'],
-            'locationAddressPostalCode' => $locationData['addressPostalCode'],
+            'locationAddressState' => $locationData['addressState'] ?? null,
+            'locationAddressCountry' => $locationData['addressCountry'] ?? null,
+            'locationAddressPostalCode' => $locationData['addressPostalCode'] ?? null,
         ];
     }
 
@@ -332,8 +392,21 @@ readonly class CalendarService
         return $result;
     }
 
-    private function getAvailabilityForDate($calendar, $dateString, ?string $locationId = null): SthCollection|EntityCollection
-    {
+    /**
+     * Get availabilities for a specific date, filtered by team if provided
+     * 
+     * @param Entity $calendar
+     * @param string $dateString
+     * @param string|null $locationId
+     * @param string|null $teamId Filter by team (null = no filter)
+     * @return SthCollection|EntityCollection
+     */
+    private function getAvailabilityForDate(
+        Entity $calendar, 
+        string $dateString, 
+        ?string $locationId = null,
+        ?string $teamId = null
+    ): SthCollection|EntityCollection {
         $dayNum = (string) date('w', strtotime($dateString));
 
         $criteria = [
@@ -350,10 +423,26 @@ readonly class CalendarService
                     ]
                 ]
             ]
-                    ];
+        ];
 
         if ($locationId) {
             $criteria['locationId'] = $locationId;
+        }
+
+        if ($teamId) {
+            $repo = $this->entityManager->getRDBRepository('CAvailability');
+            
+            return $repo
+                ->leftJoin('cTeams', 'teamJoin')
+                ->where($criteria)
+                ->where([
+                    'OR' => [
+                        ['teamJoin.id' => $teamId],
+                        ['teamJoin.id' => null]
+                    ]
+                ])
+                ->distinct()
+                ->find();
         }
 
         return $this->entityManager->getRDBRepository('CAvailability')
@@ -390,10 +479,22 @@ readonly class CalendarService
     }
 
     /**
+     * Get month availability
+     * 
+     * @param string $identifier Calendar slug or ID
+     * @param int $year
+     * @param int $month
+     * @param string|null $locationIdentifier Location slug or ID
+     * @param string|null $coachIdentifier Coach slug or ID (filters by team)
      * @throws Exception
      */
-    public function getMonthAvailability(string $identifier, int $year, int $month, ?string $locationIdentifier = null): array
-    {
+    public function getMonthAvailability(
+        string $identifier, 
+        int $year, 
+        int $month, 
+        ?string $locationIdentifier = null,
+        ?string $coachIdentifier = null
+    ): array {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         $locationId = $this->slugService->resolve('CLocation', $locationIdentifier);
 
@@ -408,15 +509,15 @@ readonly class CalendarService
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dateString = sprintf('%04d-%02d-%02d', $year, $month, $day);
 
-            // Gebruik de nieuwe range check
             if (!$this->isDateWithinRange($dateString, $calendar)) {
                 continue;
             }
 
-            $slots = $this->getAvailableSlots($calendarId, $dateString, $locationIdentifier);
+            $slots = $this->getAvailableSlots($calendarId, $dateString, $locationId, $coachIdentifier);
 
             foreach ($slots as $slot) {
                 if ($slot['isBookable'] ?? false) {
+                    $GLOBALS['log']->debug("CalendarDebug: $dateString: " . json_encode($slot));
                     $availableDates[] = $dateString;
                     break;
                 }
@@ -427,13 +528,12 @@ readonly class CalendarService
 
     private function isDateWithinRange(string $dateString, Entity $calendar): bool
     {
-        $maxDays = $calendar->get('maxBookingRange') ?? 30; // Gebruik de waarde uit CRM of default naar 30
+        $maxDays = $calendar->get('maxBookingRange') ?? 30;
 
         $today = new \DateTime('today');
         $requestedDate = new \DateTime($dateString);
         $maxDate = (clone $today)->modify("+$maxDays days");
 
-        // De datum mag niet in het verleden liggen én niet verder dan de max range
         return $requestedDate >= $today && $requestedDate <= $maxDate;
     }
 
