@@ -1,22 +1,15 @@
-define('custom:views/cslimfitcenter/record/panels/links', ['custom:views/cteam/record/panels/links'], (TeamLinksView) => {
+define('custom:views/cslimfitcenter/record/panels/links', ['custom:views/shared/links-panel'], (BaseLinksPanel) => {
 
-    return class extends TeamLinksView {
-
+    /**
+     * Center Links Panel View
+     * 
+     * Extends the base links panel with center-wide API call
+     */
+    return class extends BaseLinksPanel {
         fetchLinks() {
-          
-            Espo.Ajax.getRequest(`center/links`)
-                .then(response => {
-                    this.widgetLinks = response.widgets || [];
-                    this.calendarLinks = response.calendars || [];
-                    this.hasLinks = this.widgetLinks.length > 0 || this.calendarLinks.length > 0;
-                    this.loading = false;
-                    this.reRender();
-                })
-                .catch(err => {
-                    console.error("Fout bij ophalen center links:", err);
-                    this.loading = false;
-                    this.reRender();
-                });
+            Espo.Ajax.getRequest('center/links')
+                .then(response => this.handleLinksResponse(response))
+                .catch(error => this.handleLinksError(error));
         }
     };
 });

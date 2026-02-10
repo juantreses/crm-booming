@@ -2,151 +2,70 @@
 
 namespace Espo\Modules\Links\Services;
 
-use Espo\Core\Utils\Config;
 use Espo\ORM\EntityManager;
+use Espo\Modules\Links\ValueObjects\LinkCollection;
 
 readonly class LinkGeneratorService
 {
     public function __construct(
         private EntityManager $entityManager,
-        private Config $config,
+        private WidgetLinkBuilder $widgetLinkBuilder,
+        private CalendarLinkBuilder $calendarLinkBuilder,
     ) {}
 
-    public function getLinksForTeam(string $teamId): array
+    /**
+     * Generate all links for a specific team
+     * 
+     * @param string $teamId
+     * @return LinkCollection
+     */
+    public function getLinksForTeam(string $teamId): LinkCollection
     {
         $team = $this->entityManager->getEntityById('CTeam', $teamId);
         if (!$team) {
-            return [];
+            return new LinkCollection([], []);
         }
 
-        $user = $this->entityManager->getEntityById('User', $team->get('assignedUserId'));
-        $coachIdentifier = $user?->get('cSlug') ?: $team->get('id');
+        $coachIdentifier = $this->getCoachIdentifier($team);
 
-        return $this->generateLinks($coachIdentifier, $teamId);
+        $widgetLinks = $this->widgetLinkBuilder->build($coachIdentifier);
+        $calendarLinks = $this->calendarLinkBuilder->buildForTeam($teamId, $coachIdentifier);
+
+        return new LinkCollection($widgetLinks, $calendarLinks);
     }
 
-    public function getLinksForCenter(): array
+    /**
+     * Generate all links for the center (no specific team/coach)
+     * 
+     * @return LinkCollection
+     */
+    public function getLinksForCenter(): LinkCollection
     {
-        return $this->generateLinks(null, null);
+        $widgetLinks = $this->widgetLinkBuilder->build(null);
+        $calendarLinks = $this->calendarLinkBuilder->buildForCenter();
+
+        return new LinkCollection($widgetLinks, $calendarLinks);
     }
 
-    private function generateLinks(?string $coachIdentifier, ?string $teamId): array
+    /**
+     * Get the coach identifier (slug) from team
+     * Falls back to team ID if no slug is set
+     * 
+     * @param \Espo\ORM\Entity $team
+     * @return string|null
+     */
+    private function getCoachIdentifier($team): ?string
     {
-        $baseUrl = rtrim($this->config->get('siteUrl'), '/');
-        $baseWidgetUrl = "$baseUrl/?entryPoint=widget";
-        
-        $coachParam = $coachIdentifier ? "&coach=$coachIdentifier" : "";
-
-        $links = [];
-
-        $widgets = [
-            ['type' => 'survey', 'label' => 'Enquête', 'icon' => 'fas fa-clipboard-list'],
-            ['type' => 'voucher', 'label' => 'Voucher', 'icon' => 'fas fa-ticket-alt'],
-            ['type' => 'direct', 'label' => 'Direct Boeken', 'icon' => 'fas fa-bolt'],
-            ['type' => 'referral', 'label' => 'Referral', 'icon' => 'fas fa-user-friends'],
-        ];
-
-        foreach ($widgets as $widget) {
-            $links['widgets'][] = [
-                'label' => $widget['label'],
-                'url' => "{$baseWidgetUrl}&type={$widget['type']}{$coachParam}",
-                'icon' => $widget['icon']
-            ];
+        $assignedUserId = $team->get('assignedUserId');
+        if (!$assignedUserId) {
+            return $team->get('id');
         }
 
-        $calendars = $this->fetchCalendars($teamId);
-
-        foreach ($calendars as $calendar) {
-            $calendarIdentifier = $calendar->get('slug') ?: $calendar->get('id');
-            $calName = $calendar->get('name');
-
-            $links['calendars'][] = [
-                'label' => "$calName (Algemeen)",
-                'url' => "{$baseWidgetUrl}&type=calendar&id={$calendarIdentifier}{$coachParam}",
-                'subtext' => 'Ongeacht locatie',
-            ];
-
-            $locations = $this->fetchLocationsForCalendar($calendar->get('id'), $teamId);
-
-            foreach ($locations as $loc) {
-                $links['calendars'][] = [
-                    'label' => "$calName - {$loc['name']}",
-                    'url' => "{$baseWidgetUrl}&type=calendar&id={$calendarIdentifier}{$coachParam}&location={$loc['slug']}",
-                    'isLocation' => true
-                ];
-            }
+        $user = $this->entityManager->getEntityById('User', $assignedUserId);
+        if (!$user) {
+            return $team->get('id');
         }
 
-        return $links;
-    }
-
-    private function fetchCalendars(?string $teamId): iterable
-    {
-        $repo = $this->entityManager->getRDBRepository('CCalendar');
-        
-        $repo->where(['isActive' => true]);
-
-        if ($teamId) {
-            $repo->leftJoin('cTeams', 'teamJoin')
-                 ->where([
-                     'OR' => [
-                         ['teamJoin.id' => $teamId],
-                         ['teamJoin.id' => null]
-                     ]
-                 ]);
-        }
-
-        return $repo->distinct()->find();
-    }
-
-    private function fetchLocationsForCalendar(string $calendarId, ?string $teamId): array
-    {
-        $repo = $this->entityManager->getRDBRepository('CAvailability');
-        
-        $where = [
-            'calendarId' => $calendarId,
-            'deleted' => 0
-        ];
-
-        if ($teamId) {
-            $where['OR'] = [
-                ['teamId' => $teamId],
-                ['teamId' => null]
-            ];
-        }
-
-        $availabilities = $repo->where($where)->distinct()->find();
-
-        if (count($availabilities) === 0) {
-            return [];
-        }
-
-        $locationIds = [];
-        foreach ($availabilities as $availability) {
-            if ($locId = $availability->get('locationId')) {
-                $locationIds[] = $locId;
-            }
-        }
-        
-        $locationIds = array_unique($locationIds);
-
-        if (empty($locationIds)) {
-            return [];
-        }
-
-        $locations = $this->entityManager->getRDBRepository('CLocation')
-            ->where(['id' => $locationIds])
-            ->order('name')
-            ->find();
-
-        $result = [];
-        foreach ($locations as $loc) {
-            $result[] = [
-                'name' => $loc->get('name'),
-                'slug' => $loc->get('slug') ?: $loc->get('id')
-            ];
-        }
-
-        return $result;
+        return $user->get('cSlug') ?: $team->get('id');
     }
 }

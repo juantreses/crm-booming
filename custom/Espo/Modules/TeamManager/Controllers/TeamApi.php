@@ -3,19 +3,29 @@
 namespace Espo\Modules\TeamManager\Controllers;
 
 use Espo\Core\Api\Request;
-use Espo\Core\Api\Response;
 use Espo\Modules\Links\Services\LinkGeneratorService;
 
 readonly class TeamApi
 {
     public function __construct(
-        private LinkGeneratorService $service
+        private LinkGeneratorService $linkGeneratorService,
     ) {}
 
-    public function getActionLinks(Request $request, Response $response): void
+    /**
+     * GET /api/v1/team/{id}/links
+     * 
+     * Returns widget and calendar links for a specific team
+     */
+    public function getActionLinks(Request $request): array
     {
         $teamId = $request->getRouteParam('id');
-        $links = $this->service->getLinksForTeam($teamId);
-        $response->writeBody(json_encode($links));
+        
+        if (!$teamId) {
+            return ['widgets' => [], 'calendars' => []];
+        }
+
+        $linkCollection = $this->linkGeneratorService->getLinksForTeam($teamId);
+        
+        return $linkCollection->toArray();
     }
 }
