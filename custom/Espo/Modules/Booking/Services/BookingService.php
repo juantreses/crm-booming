@@ -113,10 +113,12 @@ readonly class BookingService
                 'status' => 'Accepted'
             ]);
 
-        $this->entityManager
+        if ($person->get('assignedUserId')) {
+            $this->entityManager
             ->getRDBRepository('Meeting')
             ->getRelation($meeting, 'users')
             ->relateById($person->get('assignedUserId'));
+        }
 
         return $meeting;
     }
