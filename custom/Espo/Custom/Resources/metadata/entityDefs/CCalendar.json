@@ -153,6 +153,13 @@
         },
         "cancellationTemplate": {
             "type": "link"
+        },
+        "isPubliek": {
+            "notNull": true,
+            "type": "bool",
+            "default": true,
+            "tooltip": true,
+            "isCustom": true
         }
     },
     "links": {

@@ -225,6 +225,7 @@ readonly class CalendarRepository
             ->getRDBRepository('CCalendar')
             ->where([
                 'isActive' => true,
+                'isPublic' => true,
                 'id' => $calendarIds
             ])
             ->order('name')
@@ -238,7 +239,10 @@ readonly class CalendarRepository
     {
         return $this->entityManager
             ->getRDBRepository('CCalendar')
-            ->where(['isActive' => true])
+            ->where([
+                'isActive' => true,
+                'isPublic' => true,
+            ])
             ->find();
     }
 

@@ -23,7 +23,8 @@
         "slug": "Slug",
         "cTeams": "Gebruikers",
         "isDirectBookable": "Direct Boekbaar",
-        "cancellationTemplate": "Annulerings e-mail"
+        "cancellationTemplate": "Annulerings e-mail",
+        "isPubliek": "Is Publiek"
     },
     "links": {
         "availabilities": "Beschikbaarheden",
@@ -41,7 +42,8 @@
         "maxBookingRange": "Hoeveel dagen in de toekomst mag de kalender getoond worden?",
         "minLeadTime": "Hoeveel uur van tevoren mag iemand minimaal boeken?",
         "priority": "Hogere prioriteit blokkeert lagere prioriteit kalenders",
-        "isDirectBookable": "Kan vanuit het CRM geboekt worden via \"Telefoongesprek\""
+        "isDirectBookable": "Kan vanuit het CRM geboekt worden via \"Telefoongesprek\"",
+        "isPubliek": "Als dit staat aangevinkt heeft een kalender een publieke link"
     },
     "options": {
         "type": {
