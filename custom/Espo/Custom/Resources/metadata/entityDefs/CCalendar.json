@@ -108,7 +108,8 @@
                 "coach",
                 "event",
                 "royalty",
-                "online"
+                "online",
+                "ander"
             ],
             "style": {
                 "kickstart": null,
@@ -119,7 +120,8 @@
                 "coach": null,
                 "event": null,
                 "royalty": null,
-                "online": null
+                "online": null,
+                "ander": null
             },
             "default": "kickstart",
             "maxLength": 100,
@@ -138,7 +140,7 @@
         },
         "slug": {
             "type": "varchar",
-            "required": true,
+            "required": false,
             "maxLength": 100,
             "options": [],
             "isCustom": true
