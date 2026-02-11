@@ -3,6 +3,7 @@
 namespace Espo\Modules\Links\Services;
 
 use Espo\Core\Utils\Config;
+use Espo\Modules\Calendar\Repositories\CalendarRepository;
 use Espo\Modules\Links\ValueObjects\CalendarLink;
 use Espo\ORM\EntityCollection;
 
