@@ -6,8 +6,8 @@
     <title>Sneltoevoegen Lead - SPARK Center Booming</title>
     <link rel="stylesheet" href="client/custom/res/tailwind.min.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script src="client/custom/res/widget-components.js"></script>
     <script src="client/custom/src/utils/widget-validation-utils.js"></script>
+    <script src="client/custom/res/widget-components.js"></script>
     <style>[v-cloak] { display: none; }</style>
 </head>
 <body class="bg-[#f8faff] min-h-screen flex items-center justify-center p-2 md:p-4">
@@ -22,7 +22,6 @@
     ></widget-sidebar>
 
     <div class="flex-1 p-6 md:p-10 relative">
-        
         <loading-overlay v-if="loading" message="Bezig met opslaan..."></loading-overlay>
 
         <div class="max-w-md mx-auto space-y-6">
@@ -33,29 +32,56 @@
 
             <error-alert v-if="errorMessage" :message="errorMessage"></error-alert>
 
-            <form @submit.prevent="submitDirect" class="space-y-5">
+            <form @submit.prevent="submitForm" class="space-y-5">
                 <div class="grid grid-cols-2 gap-4">
-                    <form-input v-model="form.firstName" placeholder="Voornaam *" required></form-input>
-                    <form-input v-model="form.lastName" placeholder="Achternaam *" required></form-input>
+                    <form-input 
+                        v-model="form.firstName" 
+                        placeholder="Voornaam *" 
+                        :error="errors.firstName"
+                        @blur="markTouched('firstName')"
+                        required>
+                    </form-input>
+                    
+                    <form-input 
+                        v-model="form.lastName" 
+                        placeholder="Achternaam *" 
+                        :error="errors.lastName"
+                        @blur="markTouched('lastName')"
+                        required>
+                    </form-input>
                 </div>
                 
-                <form-input v-model="form.email" type="email" placeholder="E-mailadres *" required></form-input>
-                <form-input v-model="form.phone" type="tel" placeholder="Telefoonnummer *" required></form-input>
+                <form-input 
+                    v-model="form.email" 
+                    type="email" 
+                    placeholder="E-mailadres *" 
+                    :error="errors.email"
+                    @blur="markTouched('email')"
+                    required>
+                </form-input>
+                
+                <form-input 
+                    v-model="form.phone" 
+                    type="tel" 
+                    placeholder="Telefoonnummer *" 
+                    :error="errors.phone"
+                    @blur="markTouched('phone')"
+                    required>
+                </form-input>
 
                 <submit-button
-                    :disabled="!isValid || loading"
+                    :disabled="loading"
                     :loading="loading"
                     label="Lead Aanmaken"
                 ></submit-button>
             </form>
         </div>
-
         <success-alert v-if="success" message="Lead succesvol toegevoegd!"></success-alert>
     </div>
 </div>
 
 <script>
-const { createApp, ref, computed } = Vue;
+const { createApp, ref } = Vue;
 
 createApp({
     components: {
@@ -68,29 +94,62 @@ createApp({
     },
     setup() {
         const urlParams = new URLSearchParams(window.location.search);
+        const { useWidgetSubmit, useFieldValidation } = WidgetComponents;
 
         const initialForm = {
-            firstName: '', 
-            lastName: '', 
-            email: '', 
-            phone: '', 
-            coachId: urlParams.get('coach'),
-            source: 'direct'
+            firstName: '', lastName: '', email: '', phone: '', 
+            coachId: urlParams.get('coach'), source: 'direct'
         };
 
         const form = ref({...initialForm});
 
-        const { isFormValid } = useFormValidation(form);
-
-        const { loading, success, errorMessage, submitForm } = useWidgetSubmit(form, () => {
-            form.value = {...initialForm};
-            setTimeout(() => { success.value = false; }, 3000);
+        const validation = useFieldValidation({
+            firstName: {
+                value: () => form.value.firstName,
+                rules: [
+                    ValidationRules.required('Voornaam is verplicht'),
+                    ValidationRules.name('Voornaam')
+                ]
+            },
+            lastName: {
+                value: () => form.value.lastName,
+                rules: [
+                    ValidationRules.required('Achternaam is verplicht'),
+                    ValidationRules.name('Achternaam')
+                ]
+            },
+            email: {
+                value: () => form.value.email,
+                rules: [
+                    ValidationRules.required('E-mailadres is verplicht'),
+                    ValidationRules.email()
+                ]
+            },
+            phone: {
+                value: () => form.value.phone,
+                rules: [
+                    ValidationRules.required('Telefoonnummer is verplicht'),
+                    ValidationRules.phone()
+                ]
+            }
         });
+
+        const { errors, markTouched } = validation;
+
+        const { loading, success, errorMessage, submitForm } = useWidgetSubmit(
+            form,
+            () => {
+                form.value = {...initialForm};
+                setTimeout(() => { success.value = false; }, 3000);
+            },
+            validation
+        );
 
         return { 
             form, 
-            isValid: isFormValid, 
-            submitDirect: submitForm,
+            errors,
+            markTouched,
+            submitForm,
             loading, 
             success, 
             errorMessage 

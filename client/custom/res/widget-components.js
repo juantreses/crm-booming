@@ -182,12 +182,14 @@ const MultiSelectButton = {
 };
 
 /**
- * FormInput Component
+ * FormInput Component with inline validation
  * 
  * Usage:
  * <form-input
  *   v-model="form.firstName"
  *   placeholder="Voornaam *"
+ *   :error="errors.firstName"
+ *   @blur="markTouched('firstName')"
  *   required
  * ></form-input>
  */
@@ -196,18 +198,30 @@ const FormInput = {
         modelValue: { type: String, default: '' },
         placeholder: { type: String, default: '' },
         type: { type: String, default: 'text' },
-        required: { type: Boolean, default: false }
+        required: { type: Boolean, default: false },
+        error: { type: String, default: '' }
     },
-    emits: ['update:modelValue'],
+    emits: ['update:modelValue', 'blur'],
     template: `
-        <input
-            :type="type"
-            :placeholder="placeholder"
-            :required="required"
-            :value="modelValue"
-            @input="$emit('update:modelValue', $event.target.value)"
-            class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-600 text-sm font-medium transition-all"
-        />
+        <div>
+            <input
+                :type="type"
+                :placeholder="placeholder"
+                :required="required"
+                :value="modelValue"
+                @input="$emit('update:modelValue', $event.target.value)"
+                @blur="$emit('blur')"
+                :class="[
+                    error 
+                        ? 'border-red-300 focus:border-red-500 bg-red-50' 
+                        : 'border-gray-100 focus:border-blue-600 bg-gray-50'
+                ]"
+                class="w-full p-4 border rounded-xl outline-none text-sm font-medium transition-all"
+            />
+            <p v-if="error" class="mt-1.5 text-xs text-red-600 font-medium flex items-center gap-1">
+                {{ error }}
+            </p>
+        </div>
     `
 };
 
@@ -236,10 +250,6 @@ const SubmitButton = {
                 return `${base} bg-gray-200 cursor-not-allowed opacity-50 text-gray-500`;
             }
             
-            if (this.variant === 'green') {
-                return `${base} bg-green-600 text-white shadow-green-100 hover:bg-green-700`;
-            }
-            
             return `${base} bg-blue-600 text-white shadow-blue-200 hover:bg-blue-700`;
         }
     },
@@ -256,19 +266,32 @@ const SubmitButton = {
 /**
  * Composable: useWidgetSubmit
  * 
- * Reusable logic for submitting widget forms
+ * Reusable logic for submitting widget forms with built-in validation flow
+ * 
+ * @param {Ref} form - The form ref object
+ * @param {Function} onSuccess - Callback function on successful submission
+ * @param {Object} validation - Optional validation object from useInlineValidation
+ * @returns {Object} { loading, success, errorMessage, submitForm }
  */
-function useWidgetSubmit(form, onSuccess) {
+function useWidgetSubmit(form, onSuccess, validation = null) {
     const loading = Vue.ref(false);
     const success = Vue.ref(false);
     const errorMessage = Vue.ref('');
 
     const submitForm = async () => {
+        if (validation) {
+            validation.markAllTouched();
+
+            if (!validation.isFormValid.value) {
+                errorMessage.value = 'Vul alle velden correct in.';
+                return;
+            }
+        }
+
         loading.value = true;
         success.value = false;
         errorMessage.value = '';
 
-        // Format phone number before submission
         if (form.value.phone && window.FormValidation) {
             form.value.phone = window.FormValidation.formatBelgianPhone(form.value.phone);
         }
@@ -285,6 +308,13 @@ function useWidgetSubmit(form, onSuccess) {
 
             if (res.ok) {
                 success.value = true;
+                
+                if (validation && validation.touched) {
+                    Object.keys(validation.touched.value).forEach(key => {
+                        validation.touched.value[key] = false;
+                    });
+                }
+                
                 if (onSuccess) {
                     onSuccess();
                 }
@@ -308,48 +338,99 @@ function useWidgetSubmit(form, onSuccess) {
 }
 
 /**
- * Composable: useFormValidation
+ * Composable: useFieldValidation
  * 
- * Reusable validation logic for widget forms
+ * Enhanced validation with declarative field rules
+ * 
+ * Usage:
+ * const { errors, markTouched, isFormValid, fields } = useFieldValidation({
+ *   firstName: { 
+ *     value: () => form.value.firstName,
+ *     rules: [ValidationRules.required(), ValidationRules.name('Voornaam')]
+ *   },
+ *   email: {
+ *     value: () => form.value.email,
+ *     rules: [ValidationRules.required(), ValidationRules.email()]
+ *   },
+ *   interests: {
+ *     value: () => form.value.interests,
+ *     rules: [ValidationRules.minItems(1, 'Selecteer ten minste één interesse')]
+ *   }
+ * });
  */
-function useFormValidation(form) {
-    const isValidEmail = Vue.computed(() => {
-        return window.FormValidation 
-            ? window.FormValidation.isValidEmail(form.value.email)
-            : form.value.email && form.value.email.includes('@');
+function useFieldValidation(fieldConfigs) {
+    const touched = Vue.ref({});
+    
+    // Initialize touched state for all fields
+    Object.keys(fieldConfigs).forEach(fieldName => {
+        touched.value[fieldName] = false;
     });
 
-    const isValidPhone = Vue.computed(() => {
-        return window.FormValidation 
-            ? window.FormValidation.isValidBelgianPhone(form.value.phone)
-            : form.value.phone && form.value.phone.length > 8;
+    const errors = Vue.computed(() => {
+        const errs = {};
+
+        Object.entries(fieldConfigs).forEach(([fieldName, config]) => {
+            errs[fieldName] = '';
+
+            // Only show errors for touched fields
+            if (!touched.value[fieldName]) {
+                return;
+            }
+
+            // Get current value
+            const value = typeof config.value === 'function' 
+                ? config.value() 
+                : config.value;
+
+            // Validate with rules
+            if (config.rules && window.validateWithRules) {
+                const result = window.validateWithRules(value, config.rules);
+                if (!result.isValid) {
+                    errs[fieldName] = result.error;
+                }
+            }
+        });
+
+        return errs;
     });
 
-    const isValidFirstName = Vue.computed(() => {
-        return window.FormValidation 
-            ? window.FormValidation.isValidName(form.value.firstName)
-            : form.value.firstName && form.value.firstName.trim().length >= 2;
-    });
+    const markTouched = (field) => {
+        touched.value[field] = true;
+    };
 
-    const isValidLastName = Vue.computed(() => {
-        return window.FormValidation 
-            ? window.FormValidation.isValidName(form.value.lastName)
-            : form.value.lastName && form.value.lastName.trim().length >= 2;
-    });
+    const markAllTouched = () => {
+        Object.keys(touched.value).forEach(key => {
+            touched.value[key] = true;
+        });
+    };
 
     const isFormValid = Vue.computed(() => {
-        return isValidEmail.value && 
-               isValidPhone.value && 
-               isValidFirstName.value && 
-               isValidLastName.value;
+        // Check all fields regardless of touched state
+        for (const [fieldName, config] of Object.entries(fieldConfigs)) {
+            const value = typeof config.value === 'function' 
+                ? config.value() 
+                : config.value;
+
+            if (config.rules && window.validateWithRules) {
+                const result = window.validateWithRules(value, config.rules);
+                if (!result.isValid) {
+                    return false;
+                }
+            }
+        }
+        return true;
     });
 
+    // Return field names for easy access
+    const fields = Object.keys(fieldConfigs);
+
     return {
-        isValidEmail,
-        isValidPhone,
-        isValidFirstName,
-        isValidLastName,
-        isFormValid
+        errors,
+        touched,
+        markTouched,
+        markAllTouched,
+        isFormValid,
+        fields
     };
 }
 
@@ -364,6 +445,6 @@ if (typeof window !== 'undefined') {
         FormInput,
         SubmitButton,
         useWidgetSubmit,
-        useFormValidation
+        useFieldValidation
     };
 }

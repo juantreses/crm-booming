@@ -1,20 +1,26 @@
 /**
  * Form Validation Utilities
  * 
- * Client-side validation for widget forms
+ * Client-side validation for widget forms with detailed error messages
  */
 
 const FormValidation = {
     /**
      * Validate email address
      * @param {string} email 
-     * @returns {boolean}
+     * @returns {{isValid: boolean, error: string|null}}
      */
-    isValidEmail(email) {
-        if (!email) return false;
+    validateEmail(email) {
+        if (!email || !email.trim()) {
+            return { isValid: false, error: 'E-mailadres is verplicht' };
+        }
         
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+        if (!emailRegex.test(email)) {
+            return { isValid: false, error: 'Voer een geldig e-mailadres in' };
+        }
+        
+        return { isValid: true, error: null };
     },
 
     /**
@@ -27,18 +33,63 @@ const FormValidation = {
      * - 0032470123456
      * 
      * @param {string} phone 
-     * @returns {boolean}
+     * @returns {{isValid: boolean, error: string|null}}
      */
-    isValidBelgianPhone(phone) {
-        if (!phone) return false;
+    validateBelgianPhone(phone) {
+        if (!phone || !phone.trim()) {
+            return { isValid: false, error: 'Telefoonnummer is verplicht' };
+        }
         
         const cleaned = phone.replace(/[\s\.\-\/]/g, '');
         
+        // Mobile regex: starts with 04[5-9] followed by 7 digits
         const mobileRegex = /^(?:(?:\+|00)32|0)4[5-9]\d{7}$/;
         
+        // Landline regex: starts with 0 (or +32/0032) followed by [1-9] and 7-8 more digits
         const landlineRegex = /^(?:(?:\+|00)32|0)[1-9]\d{7,8}$/;
         
-        return mobileRegex.test(cleaned) || landlineRegex.test(cleaned);
+        if (!mobileRegex.test(cleaned) && !landlineRegex.test(cleaned)) {
+            return { isValid: false, error: 'Voer een geldig Belgisch telefoonnummer in' };
+        }
+        
+        return { isValid: true, error: null };
+    },
+
+    /**
+     * Validate name (first name or last name)
+     * @param {string} name 
+     * @param {string} fieldLabel - e.g., 'Voornaam' or 'Achternaam'
+     * @returns {{isValid: boolean, error: string|null}}
+     */
+    validateName(name, fieldLabel = 'Naam') {
+        if (!name || !name.trim()) {
+            return { isValid: false, error: `${fieldLabel} is verplicht` };
+        }
+        
+        if (name.trim().length < 2) {
+            return { isValid: false, error: `${fieldLabel} moet minimaal 2 tekens zijn` };
+        }
+        
+        const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
+        if (!nameRegex.test(name)) {
+            return { isValid: false, error: `${fieldLabel} mag alleen letters bevatten` };
+        }
+        
+        return { isValid: true, error: null };
+    },
+
+    /**
+     * Validate required field (generic)
+     * @param {string} value 
+     * @param {string} fieldLabel
+     * @returns {{isValid: boolean, error: string|null}}
+     */
+    validateRequired(value, fieldLabel = 'Dit veld') {
+        if (!value || !value.trim()) {
+            return { isValid: false, error: `${fieldLabel} is verplicht` };
+        }
+        
+        return { isValid: true, error: null };
     },
 
     /**
@@ -68,25 +119,21 @@ const FormValidation = {
         return '+32' + cleaned;
     },
 
-    /**
-     * Validate required field
-     * @param {string} value 
-     * @returns {boolean}
-     */
-    isRequired(value) {
-        return value && value.trim().length > 0;
+    // Legacy methods for backward compatibility
+    isValidEmail(email) {
+        return this.validateEmail(email).isValid;
     },
 
-    /**
-     * Validate name (only letters, spaces, hyphens, apostrophes)
-     * @param {string} name 
-     * @returns {boolean}
-     */
+    isValidBelgianPhone(phone) {
+        return this.validateBelgianPhone(phone).isValid;
+    },
+
     isValidName(name) {
-        if (!name) return false;
-        
-        const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
-        return nameRegex.test(name) && name.trim().length >= 2;
+        return this.validateName(name).isValid;
+    },
+
+    isRequired(value) {
+        return this.validateRequired(value).isValid;
     }
 };
 
