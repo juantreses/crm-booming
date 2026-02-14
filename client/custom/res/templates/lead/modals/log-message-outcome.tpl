@@ -12,15 +12,21 @@
 					</select>
 				</div>
 			</div>
-            <div class="col-md-6" data-field="meeting-type" style="display: none;">
+            <div class="col-md-6" data-field="calendar-select" style="display: none;">
                 <div class="form-group">
-                    <label>Type afspraak *</label>
-                    <select name="meetingType" class="form-control">
-                        <option value="">-- Selecteer type --</option>
-                        <option value="kickstart">Kickstart</option>
-                        <option value="bws">BWS (skin)</option>
-                        <option value="spark">SPARK</option>
-                        <option value="iom">HOM</option>
+                    <label>Kies Agenda *</label>
+                    <select name="selectedCalendar" class="form-control">
+                        <option value="">Laden...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6" data-field="meeting-slot" style="display: none;">
+                <div class="form-group">
+                    <label>Beschikbaar moment *</label>
+                    <select name="selectedSlot" class="form-control">
+                        <option value="">-- Kies eerst een agenda --</option>
                     </select>
                 </div>
             </div>

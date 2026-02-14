@@ -7,7 +7,6 @@ define('custom:views/lead/modals/log-kickstart', [
     const LogKickstartView = Dep.extend({
         
         template: 'custom:lead/modals/log-kickstart',
-        
         apiEndpoint: 'leadEvent/logKickstart',
         successMessage: 'Kickstart logged successfully',
         errorMessage: 'Failed to log kickstart',

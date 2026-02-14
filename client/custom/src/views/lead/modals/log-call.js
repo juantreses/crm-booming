@@ -5,9 +5,7 @@ define('custom:views/lead/modals/log-call', [
 ], function (Dep, MeetingSchedulerMixin, ValidationUtils) {
     
     const LogCallView = Dep.extend({
-        
         template: 'custom:lead/modals/log-call',
-        
         apiEndpoint: 'leadEvent/logCall',
         successMessage: 'Call logged successfully',
         errorMessage: 'Failed to log call',
@@ -99,8 +97,7 @@ define('custom:views/lead/modals/log-call', [
             this.close();
 
             if (response && response.data && response.data.eventIds) {
-                const eventCount = response.data.eventIds.length;
-                Espo.Ui.success(`Call logged successfully. Created ${eventCount} event(s).`);
+                Espo.Ui.success(`Gesprek gelogd.`);
             } else {
                 Espo.Ui.success(this.successMessage);
             }
