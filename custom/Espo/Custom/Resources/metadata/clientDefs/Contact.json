@@ -1,5 +1,6 @@
 {
     "kanbanViewMode": false,
+    "createDisabled": true,
     "color": "#00c81c",
     "iconClass": "fas fa-people-line",
     "relationshipPanels": {
