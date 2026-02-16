@@ -19,41 +19,31 @@ class AssignDefaultCalendar implements BeforeSave
 
     public function beforeSave(Entity $entity, SaveOptions $options): void
     {
-        $GLOBALS['log']->debug('Meeting before save');
         if (!$this->shouldAssignCalendar($entity)) {
             return;
         }
-
+        
         $assignedUserId = $entity->get('assignedUserId');
         
         if (!$assignedUserId) {
             return;
         }
 
-        $user = $this->entityManager->getEntityById('User', $assignedUserId);
+        $calendar = $this->entityManager
+            ->getRDBRepository('CCalendar')
+            ->where([
+                'assignedUserId' => $assignedUserId,
+                'isActive' => true,
+            ])
+            ->findOne();
         
-        if (!$user) {
+        if (!$calendar) {
             return;
         }
 
-        $defaultCalendarId = $user->get('cCalendarId');
-        
-        if (!$defaultCalendarId) {
-            return;
-        }
-
-        $calendar = $this->entityManager->getEntityById('CCalendar', $defaultCalendarId);
-        
-        if (!$calendar || !$calendar->get('isActive')) {
-            return;
-        }
-
-        $entity->set('cCalendarId', $defaultCalendarId);
+        $entity->set('cCalendarId', $calendar->getId());
     }
 
-    /**
-     * Determine if we should assign a calendar
-     */
     private function shouldAssignCalendar(Entity $entity): bool
     {
         if (! $entity->get('cCalendarId')) {

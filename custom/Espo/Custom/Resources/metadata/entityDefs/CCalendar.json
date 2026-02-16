@@ -247,13 +247,6 @@
                 "rightId",
                 "leftId"
             ]
-        },
-        "users": {
-            "type": "hasMany",
-            "foreign": "cCalendar",
-            "entity": "User",
-            "audited": false,
-            "isCustom": true
         }
     },
     "collection": {
