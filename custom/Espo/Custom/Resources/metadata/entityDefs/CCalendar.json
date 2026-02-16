@@ -223,6 +223,37 @@
             "entity": "EmailTemplate",
             "audited": false,
             "isCustom": true
+        },
+        "blocksCalendars": {
+            "type": "hasMany",
+            "relationName": "cCalendarBlockingRelation",
+            "foreign": "blockedByCalendars",
+            "entity": "CCalendar",
+            "audited": false,
+            "isCustom": true,
+            "midKeys": [
+                "leftId",
+                "rightId"
+            ]
+        },
+        "blockedByCalendars": {
+            "type": "hasMany",
+            "relationName": "cCalendarBlockingRelation",
+            "foreign": "blocksCalendars",
+            "entity": "CCalendar",
+            "audited": false,
+            "isCustom": true,
+            "midKeys": [
+                "rightId",
+                "leftId"
+            ]
+        },
+        "users": {
+            "type": "hasMany",
+            "foreign": "cCalendar",
+            "entity": "User",
+            "audited": false,
+            "isCustom": true
         }
     },
     "collection": {

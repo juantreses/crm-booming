@@ -10,12 +10,23 @@
     "availabilities": {
         "index": 1
     },
-    "_tabBreak_0": {
+    "_tabBreak_2": {
         "index": 2,
+        "tabBreak": true,
+        "tabLabel": "Blokkades"
+    },
+    "blocksCalendars": {
+        "index": 3
+    },
+    "blockedByCalendars": {
+        "index": 4
+    },
+    "_tabBreak_0": {
+        "index": 5,
         "tabBreak": true,
         "tabLabel": "Specifieke gebruikers"
     },
     "cTeams": {
-        "index": 3
+        "index": 6
     }
 }

@@ -21,6 +21,9 @@
             "maxLength": 100,
             "options": [],
             "isCustom": true
+        },
+        "cCalendar": {
+            "type": "link"
         }
     },
     "links": {
@@ -28,6 +31,13 @@
             "type": "belongsTo",
             "foreign": "cUser",
             "entity": "Contact",
+            "isCustom": true
+        },
+        "cCalendar": {
+            "type": "belongsTo",
+            "foreign": "users",
+            "entity": "CCalendar",
+            "audited": false,
             "isCustom": true
         }
     }

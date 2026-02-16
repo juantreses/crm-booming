@@ -3,9 +3,11 @@
         "cHerbalifeID": "Herbalife ID",
         "cMember": "Member",
         "cVankoCRM": "VankoCRM",
-        "cSlug": "Slug"
+        "cSlug": "Slug",
+        "cCalendar": "Default Kalender"
     },
     "links": {
-        "cMember": "Member"
+        "cMember": "Member",
+        "cCalendar": "Default Kalender"
     }
 }

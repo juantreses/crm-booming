@@ -91,19 +91,52 @@ readonly class CalendarRepository
     }
 
     /**
-     * Get blocking availabilities from higher priority calendars
+     * Get IDs of calendars that block the given calendar
      */
-    public function getBlockingAvailabilities(Entity $calendar, string $dateString): array
+    public function getBlockedByCalendarIds(Entity $calendar): array
     {
+        $blockedByCalendars = $this->entityManager
+            ->getRDBRepository('CCalendar')
+            ->getRelation($calendar, 'blockedByCalendars')
+            ->find();
+
+        $ids = [];
+        foreach ($blockedByCalendars as $blockingCalendar) {
+            $ids[] = $blockingCalendar->getId();
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Get availabilities from blocking calendars for a specific date
+     * 
+     * @param array $calendarIds Array of blocking calendar IDs
+     * @param string $dateString Date in Y-m-d format
+     * @return array Array of availability data with buffer time
+     */
+    public function getBlockingCalendarAvailabilities(array $calendarIds, string $dateString): array
+    {
+        if (empty($calendarIds)) {
+            return [];
+        }
+
+        $dayNum = (string) date('w', strtotime($dateString));
+
         $collection = $this->entityManager
             ->getRDBRepository('CAvailability')
-            ->join('calendar')
             ->where([
-                'calendarId!=' => $calendar->get('id'),
-                'type' => 'specific',
-                'date' => $dateString,
-                'calendar.priority>' => $calendar->get('priority'),
-                'calendar.isActive' => true,
+                'calendarId' => $calendarIds,
+                'OR' => [
+                    [
+                        'type' => 'specific',
+                        'date' => $dateString
+                    ],
+                    [
+                        'type' => 'recurrent',
+                        'daysOfWeek*' => '%' . $dayNum . '%'
+                    ]
+                ]
             ])
             ->find();
 
@@ -124,6 +157,54 @@ readonly class CalendarRepository
             $result[] = $data;
         }
         
+        return $result;
+    }
+
+    /**
+     * Get meetings from blocking calendars for a specific date
+     * 
+     * @param array $calendarIds Array of blocking calendar IDs
+     * @param string $dateString Date in Y-m-d format
+     * @return array Array of meeting data with buffer time
+     */
+    public function getBlockingCalendarMeetings(array $calendarIds, string $dateString): array
+    {
+        if (empty($calendarIds)) {
+            return [];
+        }
+
+        $meetings = $this->entityManager
+            ->getRDBRepository('Meeting')
+            ->where([
+                'cCalendarId' => $calendarIds,
+                'dateStart>=' => $dateString . ' 00:00:00',
+                'dateStart<=' => $dateString . ' 23:59:59',
+                'status!=' => ['Cancelled', 'Tentative']
+            ])
+            ->find();
+
+        $result = [];
+
+        foreach ($meetings as $meeting) {
+            $startTime = (new \DateTime($meeting->get('dateStart')))->setTimezone(new DateTimeZone('Europe/Brussels'));
+            $endTime = (new \DateTime($meeting->get('dateEnd')))->setTimezone(new DateTimeZone('Europe/Brussels'));
+            
+            $blockingCalId = $meeting->get('cCalendarId');
+            $bufferTime = 0;
+            
+            if ($blockingCalId) {
+                $blockingCal = $this->entityManager->getEntityById('CCalendar', $blockingCalId);
+                $bufferTime = $blockingCal ? $blockingCal->get('bufferTime') : 0;
+            }
+
+            $result[] = [
+                'startTime' => $startTime->format('H:i'),
+                'endTime' => $endTime->format('H:i'),
+                '_bufferTime' => $bufferTime,
+                '_isMeeting' => true
+            ];
+        }
+
         return $result;
     }
 

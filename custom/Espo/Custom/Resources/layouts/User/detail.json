@@ -20,6 +20,9 @@
             [
                 {
                     "name": "cMember"
+                },
+                {
+                    "name": "cCalendar"
                 }
             ],
             [

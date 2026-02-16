@@ -28,7 +28,10 @@
         "cTeams": "Gebruikers",
         "isDirectBookable": "Direct Boekbaar",
         "cancellationTemplate": "Annulerings e-mail",
-        "isPubliek": "Is Publiek"
+        "isPubliek": "Is Publiek",
+        "blocksCalendars": "Blokkeert",
+        "blockedByCalendars": "Geblokkeerd door",
+        "users": "Users"
     },
     "tooltips": {
         "bufferTime": "Tijd tussen twee boekingen",
@@ -44,7 +47,10 @@
         "emailTemplate": "Bevestiging",
         "reminderTemplate": "Reminder",
         "cTeams": "Gebruikers",
-        "cancellationTemplate": "Annulerings e-mail"
+        "cancellationTemplate": "Annulerings e-mail",
+        "blocksCalendars": "Blokkeert",
+        "blockedByCalendars": "Geblokkeerd door",
+        "users": "Users"
     },
     "options": {
         "type": {

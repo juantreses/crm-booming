@@ -15,6 +15,10 @@
         "availabilities": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "calendar": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     }
 }

@@ -30,6 +30,18 @@
         "cancellationTemplate": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "blocksCalendars": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "blockedByCalendars": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "users": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     }
 }

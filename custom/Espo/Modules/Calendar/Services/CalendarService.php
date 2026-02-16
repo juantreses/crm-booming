@@ -293,13 +293,22 @@ readonly class CalendarService
         $tzUTC = new DateTimeZone('UTC');
         $now = new DateTime();
         $minLeadTime = $calendar->get('minLeadTime') ?? 0;
+        
+        $blockedByCalendarIds = $this->calendarRepository->getBlockedByCalendarIds($calendar);
+        $relationshipBlockingAvailabilities = $this->calendarRepository->getBlockingCalendarAvailabilities($blockedByCalendarIds, $dateString);
+        $relationshipBlockingMeetings = $this->calendarRepository->getBlockingCalendarMeetings($blockedByCalendarIds, $dateString);
+        
+        $allBlockingPeriods = array_merge(
+            $relationshipBlockingAvailabilities,
+            $relationshipBlockingMeetings
+        );
 
         return [
             'calendar' => $calendar,
             'duration' => $calendar->get('duration'),
             'buffer' => $calendar->get('bufferTime'),
             'maxSeats' => $calendar->get('seatsPerMeeting'),
-            'blockingPeriods' => $this->calendarRepository->getBlockingAvailabilities($calendar, $dateString),
+            'blockingPeriods' => $allBlockingPeriods,
             'bookings' => $this->calendarRepository->getBookingsForDate($calendar->getId(), $dateString),
             'firstBookableMoment' => (clone $now)->modify("+$minLeadTime hours"),
             'tzLocal' => $tzLocal,
@@ -408,7 +417,7 @@ readonly class CalendarService
                 $blockEnd = $blockEndObj->format('H:i');
             }
 
-            if ($slotStart <= $blockEnd && $slotEnd >= $blockStart) {
+            if ($slotStart < $blockEnd && $slotEnd >= $blockStart) {
                 return true;
             }
         }
