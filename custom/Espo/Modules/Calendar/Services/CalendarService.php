@@ -417,7 +417,7 @@ readonly class CalendarService
                 $blockEnd = $blockEndObj->format('H:i');
             }
 
-            if ($slotStart < $blockEnd && $slotEnd >= $blockStart) {
+            if ($slotStart < $blockEnd && $slotEnd > $blockStart) {
                 return true;
             }
         }
