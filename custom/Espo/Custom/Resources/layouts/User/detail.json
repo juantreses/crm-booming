@@ -20,21 +20,15 @@
             [
                 {
                     "name": "cMember"
-                },
-                {
-                    "name": "cCalendar"
                 }
             ],
             [
                 {
                     "name": "emailAddress"
-                }
-            ],
-            [
+                },
                 {
                     "name": "phoneNumber"
-                },
-                false
+                }
             ]
         ],
         "style": "default",
