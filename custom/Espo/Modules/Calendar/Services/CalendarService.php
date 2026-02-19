@@ -345,6 +345,9 @@ readonly class CalendarService
             $slotEnd = $slotEndTime->format('H:i');
 
             $isBlocked = $this->isSlotBlocked($slotStart, $slotEnd, $blockingPeriods);
+            if ($isBlocked) {
+                continue;
+            }
             $isTooSoon = $this->isSlotTooSoon($slotTime, $dateString, $firstBookableMoment);
             $availableSeats = $this->getAvailableSeats($slotStart, $maxSeats, $bookings);
 
