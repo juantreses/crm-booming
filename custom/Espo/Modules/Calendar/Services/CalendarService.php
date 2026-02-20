@@ -345,34 +345,33 @@ readonly class CalendarService
             $slotEnd = $slotEndTime->format('H:i');
 
             $isBlocked = $this->isSlotBlocked($slotStart, $slotEnd, $blockingPeriods);
-            if ($isBlocked) {
-                continue;
+            if (!$isBlocked) {
+                $isTooSoon = $this->isSlotTooSoon($slotTime, $dateString, $firstBookableMoment);
+                $availableSeats = $this->getAvailableSeats($slotStart, $maxSeats, $bookings);
+
+                $isBookable = !$isBlocked && !$isTooSoon && $availableSeats > 0;
+                $reason = $this->getUnavailabilityReason($isBlocked, $isTooSoon, $availableSeats);
+
+                $slot = [
+                    'start' => $slotStart,
+                    'end' => $slotEnd,
+                    'isBookable' => $isBookable,
+                    'availableSeats' => $availableSeats,
+                    'reason' => $reason,
+                ];
+
+                if ($locationData) {
+                    $slot['locationId'] = $locationData['id'];
+                    $slot['locationName'] = $locationData['name'];
+                    $slot['locationAddressStreet'] = $locationData['addressStreet'];
+                    $slot['locationAddressCity'] = $locationData['addressCity'];
+                    $slot['locationAddressState'] = $locationData['addressState'];
+                    $slot['locationAddressCountry'] = $locationData['addressCountry'];
+                    $slot['locationAddressPostalCode'] = $locationData['addressPostalCode'];
+                }
+
+                $slots[] = $slot;
             }
-            $isTooSoon = $this->isSlotTooSoon($slotTime, $dateString, $firstBookableMoment);
-            $availableSeats = $this->getAvailableSeats($slotStart, $maxSeats, $bookings);
-
-            $isBookable = !$isBlocked && !$isTooSoon && $availableSeats > 0;
-            $reason = $this->getUnavailabilityReason($isBlocked, $isTooSoon, $availableSeats);
-
-            $slot = [
-                'start' => $slotStart,
-                'end' => $slotEnd,
-                'isBookable' => $isBookable,
-                'availableSeats' => $availableSeats,
-                'reason' => $reason,
-            ];
-
-            if ($locationData) {
-                $slot['locationId'] = $locationData['id'];
-                $slot['locationName'] = $locationData['name'];
-                $slot['locationAddressStreet'] = $locationData['addressStreet'];
-                $slot['locationAddressCity'] = $locationData['addressCity'];
-                $slot['locationAddressState'] = $locationData['addressState'];
-                $slot['locationAddressCountry'] = $locationData['addressCountry'];
-                $slot['locationAddressPostalCode'] = $locationData['addressPostalCode'];
-            }
-
-            $slots[] = $slot;
 
             $slotTime->modify("+$duration minutes");
             if ($buffer > 0) {
