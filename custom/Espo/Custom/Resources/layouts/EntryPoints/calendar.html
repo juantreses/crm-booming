@@ -161,8 +161,7 @@
                                 </span>
 
                                 <span v-if="slot.locationAddressCity"
-                                    class="text-[10px] tracking-widest uppercase opacity-60 mb-3"
-                                >
+                                    class="text-[10px] tracking-widest uppercase opacity-60 mb-3">
                                     📍 {{ slot.locationAddressCity }}
                                 </span>
                             </button>
@@ -461,16 +460,16 @@
 
                     const backToCalendar = async () => {
                         step.value = 1;
-                        
+
                         await nextTick();
-                        
+
                         initCalendar();
 
                         if (fp) {
                             if (currentAvailability.value.length > 0) {
                                 fp.set('enable', currentAvailability.value);
                             }
-                            
+
                             if (selectedDate.value) {
                                 fp.setDate(selectedDate.value, true);
                             }

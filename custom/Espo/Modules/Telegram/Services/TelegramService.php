@@ -16,7 +16,7 @@ class TelegramService
         $targetChat = $chatId ?? $this->config->get('defaultChatId');
         $botToken = $this->config->get('botToken');
 
-        if (!$botToken || $targetChat) {
+        if (!$botToken || !$targetChat) {
             return false;
         }
         $url = "https://api.telegram.org/bot{$botToken}/sendMessage";

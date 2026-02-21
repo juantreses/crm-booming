@@ -24,10 +24,6 @@ class TelegramNotification implements AfterSave
         $isNew = $meeting->isNew();
         $status = $meeting->get('status');
 
-        if (!$isNew && !$meeting->isAttributeChanged('status')) {
-            return;
-        }
-
         $calendarId = $meeting->get('cCalendarId') ?? $meeting->get('calendarId');
         $calendar = $calendarId ? $this->entityManager->getEntityById('CCalendar', $calendarId) : null;
 
@@ -85,7 +81,7 @@ class TelegramNotification implements AfterSave
             $tag = " " . $coach->get('cTelegramUsername'); 
         }
 
-        $type = $calendar?->get('type') ?: 'Afspraak';
+        $type = $calendar?->get('type') ? ucfirst($calendar?->get('type')): 'Afspraak';
         $msg = "🚨 <b>{$type} Geannuleerd!</b>{$tag}\n\n";
         
         if ($parent) {

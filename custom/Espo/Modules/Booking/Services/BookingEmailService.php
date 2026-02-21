@@ -9,6 +9,7 @@ use Espo\Core\Mail\EmailSender;
 use Espo\Tools\EmailTemplate\Params as EmailTemplateParams;
 use Espo\Tools\EmailTemplate\Data as EmailTemplateData;
 use Espo\Modules\Crm\Entities\Meeting;
+use Espo\Modules\Crm\Business\Event\Ics;
 
 readonly class BookingEmailService
 {
@@ -19,7 +20,7 @@ readonly class BookingEmailService
     )
     {}
 
-    public function sendMeetingEmail(Entity $meeting, string $templateId): void
+    public function sendMeetingEmail(Entity $meeting, string $templateId, string $icsMethod = Ics::METHOD_REQUEST): void
     {
         $template = $this->entityManager->getEntityById('EmailTemplate', $templateId);
         if (!$template) {
@@ -35,6 +36,29 @@ readonly class BookingEmailService
             throw new \Exception("Lead/Contact met id $parentId niet teruggevonden");
         }
 
+        $icsStatus = ($icsMethod === Ics::METHOD_CANCEL) ? Ics::STATUS_CANCELLED : Ics::STATUS_CONFIRMED;
+
+        $ics = new Ics('//EspoCRM//Booming CRM//EN', [
+            'method' => $icsMethod,
+            'status' => $icsStatus,
+            'startDate' => strtotime($meeting->get('dateStart')),
+            'endDate' => strtotime($meeting->get('dateEnd')),
+            'uid' => $meeting->get('id'),
+            'summary' => $meeting->get('name'),
+            'description' => $meeting->get('description')
+        ]);
+
+        $icsContent = $ics->get();
+
+        $attachment = $this->entityManager->getNewEntity('Attachment');
+        $attachment->set([
+            'name' =>  $meeting->get('name') . '.ics',
+            'type' => 'text/calendar',
+            'role' => 'Attachment',
+            'contents' => $icsContent
+        ]);
+        $this->entityManager->saveEntity($attachment);
+
         $emailData = $this->mailTemplateProcessor->process(
             $template,
             EmailTemplateParams::create(),
@@ -44,6 +68,9 @@ readonly class BookingEmailService
             ])
         );
 
+        $attachments = $emailData->getAttachmentList();
+        $attachments[] = $attachment;
+
         $email = $this->entityManager->getNewEntity('Email');
         $email->set([
             'subject' => $emailData->getSubject(),
@@ -52,14 +79,14 @@ readonly class BookingEmailService
             'parentType' => $person->getEntityType(),
             'parentId' => $person->get('id'),
             'to' => $person->get('emailAddress'),
+            'attachmentsIds' => array_map(fn($a) => $a->get('id'), $attachments) 
         ]);
 
         $this->emailSender
             ->withAddedHeader('Auto-Submitted', 'auto-generated')
-            ->withAttachments($emailData->getAttachmentList())
+            ->withAttachments($attachments)
             ->send($email);
 
         $this->entityManager->saveEntity($email);
-
     }
 }

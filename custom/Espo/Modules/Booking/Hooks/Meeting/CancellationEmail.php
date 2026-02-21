@@ -6,6 +6,7 @@ use Espo\Core\Hook\Hook\AfterSave;
 use Espo\ORM\Entity;
 use Espo\ORM\Repository\Option\SaveOptions;
 use Espo\Modules\Booking\Services\BookingEmailService;
+use Espo\Modules\Crm\Business\Event\Ics;
 use Espo\ORM\EntityManager;
 
 class CancellationEmail implements AfterSave
@@ -46,7 +47,7 @@ class CancellationEmail implements AfterSave
             
             if ($templateId) {
                 try {
-                    $this->emailService->sendMeetingEmail($entity, $templateId);
+                    $this->emailService->sendMeetingEmail($entity, $templateId, Ics::METHOD_CANCEL);
                 } catch (\Exception $e) {
                     $entity->set('cMailError', "Annulering mail fout: " . $e->getMessage());
                 }
