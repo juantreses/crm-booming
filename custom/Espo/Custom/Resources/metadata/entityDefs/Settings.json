@@ -1,0 +1,12 @@
+{
+    "fields": {
+        "telegramBotToken": {
+            "type": "varchar",
+            "maxLength": 255
+        },
+        "telegramChatId": {
+            "type": "varchar",
+            "maxLength": 255
+        }
+    }
+}

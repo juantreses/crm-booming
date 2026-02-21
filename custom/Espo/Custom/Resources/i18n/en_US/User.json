@@ -4,10 +4,14 @@
         "cMember": "Member",
         "cVankoCRM": "VankoCRM",
         "cSlug": "Slug",
-        "cCalendar": "Default Kalender"
+        "cCalendar": "Default Kalender",
+        "cTelegramUsername": "Telegram Username"
     },
     "links": {
         "cMember": "Member",
         "cCalendar": "Default Kalender"
+    },
+    "tooltips": {
+        "cTelegramUsername": "Vul je telegram gebruikersnaam in met de @"
     }
 }

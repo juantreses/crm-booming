@@ -1,0 +1,8 @@
+{
+    "fields": {
+        "cTelegramUsername": "Telegram Username"
+    },
+    "tooltips": {
+        "cTelegramUsername": "Vul je telegram gebruikersnaam in met de @"
+    }
+}

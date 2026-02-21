@@ -21,6 +21,13 @@
             "maxLength": 100,
             "options": [],
             "isCustom": true
+        },
+        "cTelegramUsername": {
+            "type": "varchar",
+            "maxLength": 100,
+            "options": [],
+            "isCustom": true,
+            "tooltip": true
         }
     },
     "links": {
