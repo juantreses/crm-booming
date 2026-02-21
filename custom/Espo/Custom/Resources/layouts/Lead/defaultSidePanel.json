@@ -9,6 +9,9 @@
         "name": "source"
     },
     {
+        "name": "cSourceUrl"
+    },
+    {
         "name": "convertedAt"
     }
 ]

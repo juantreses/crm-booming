@@ -11,7 +11,8 @@
         "cFollowUpAction": "Opvolgactie",
         "cSurveyData": "Enquête",
         "cMeetingType": "Afspraak Type",
-        "cReferredBy": "Doorverwezen door"
+        "cReferredBy": "Doorverwezen door",
+        "cSourceUrl": "Source Url"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",

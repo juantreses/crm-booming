@@ -130,7 +130,8 @@ createApp({
             interests: [], 
             referredBy: '', 
             coachId: urlParams.get('coach'),             
-            source: 'referral'
+            source: 'referral',
+            sourceUrl: window.location.href
         });
 
         const toggleInterest = (val) => {

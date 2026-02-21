@@ -75,7 +75,8 @@ createApp({
             email: '', 
             phone: '', 
             coachId: urlParams.get('coach'),
-            source: 'direct'
+            source: 'direct',
+            sourceUrl: window.location.href
         };
 
         const form = ref({...initialForm});

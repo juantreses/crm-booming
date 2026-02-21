@@ -76,6 +76,7 @@ readonly class LeadService
             'emailAddress' => $data['email'] ?? '',
             'phoneNumber' => $formattedPhone,
             'source' => $data['source'] ?? 'Webform',
+            'cSourceUrl' => $data['sourceUrl'] ?? '',
         ]);
 
         $this->entityManager->saveEntity($lead);

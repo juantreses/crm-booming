@@ -157,6 +157,10 @@
             "maxLength": 100,
             "options": [],
             "isCustom": true
+        },
+        "cSourceUrl": {
+            "type": "url",
+            "isCustom": true
         }
     },
     "collection": {
