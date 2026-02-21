@@ -15,5 +15,21 @@
             "layout": null,
             "selectPrimaryFilterName": null
         }
+    },
+    "menu": {
+        "detail": {
+            "buttons": [
+                "__APPEND__",
+                {
+                    "label": "Annuleer & Verwijder",
+                    "name": "cancelAndRemove",
+                    "style": "default",
+                    "aclScope": "Meeting",
+                    "handler": "custom:handlers/cancel-remove-handler",
+                    "actionFunction": "cancelAndRemove",
+                    "checkVisibilityFunction": "isCancelAndRemoveVisible"
+                }
+            ]
+        }
     }
 }
