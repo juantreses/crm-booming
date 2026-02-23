@@ -38,12 +38,20 @@
         "sticked": false,
         "index": 5
     },
-    "_tabBreak_3": {
+    "_tabBreak_4": {
         "index": 6,
+        "tabBreak": true,
+        "tabLabel": "Bestelgeschiedenis"
+    },
+    "cOrders": {
+        "index": 7
+    },
+    "_tabBreak_3": {
+        "index": 8,
         "tabBreak": true,
         "tabLabel": "Afspraken"
     },
     "meetings": {
-        "index": 7
+        "index": 9
     }
 }

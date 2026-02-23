@@ -1,0 +1,34 @@
+[
+    {
+        "rows": [
+            [
+                {
+                    "name": "dateOrdered"
+                },
+                {
+                    "name": "volumePoints"
+                }
+            ],
+            [
+                {
+                    "name": "products"
+                }
+            ],
+            [
+                {
+                    "name": "programEnd"
+                },
+                {
+                    "name": "programType"
+                }
+            ],
+            [
+                {
+                    "name": "contact"
+                }
+            ]
+        ],
+        "style": "default",
+        "label": "Overview"
+    }
+]

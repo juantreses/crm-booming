@@ -1,0 +1,3 @@
+{
+    "beforeSaveCustomScript": "ifThen(\n    entity\\isNew(), \n    programType = contact.cTypeKlant\n);"
+}

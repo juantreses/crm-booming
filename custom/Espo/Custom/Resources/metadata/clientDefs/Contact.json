@@ -43,6 +43,10 @@
         "notes": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "orders": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     },
     "views": {

@@ -1,0 +1,18 @@
+[
+    {
+        "name": "dateOrdered",
+        "width": 20
+    },
+    {
+        "name": "volumePoints",
+        "width": 20
+    },
+    {
+        "name": "programType",
+        "width": 20
+    },
+    {
+        "name": "programEnd",
+        "width": 20
+    }
+]

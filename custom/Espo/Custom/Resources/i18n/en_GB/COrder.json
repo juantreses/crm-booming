@@ -1,0 +1,28 @@
+{
+    "fields": {
+        "dateOrdered": "Datum Besteld",
+        "volumePoints": "Volumepunten",
+        "products": "Producten",
+        "programEnd": "Programma tot",
+        "contact": "Klant",
+        "programType": "Welk programma"
+    },
+    "links": {
+        "contact": "Klant"
+    },
+    "options": {
+        "programType": {
+            "21_day_base": "21 Dagen Basis",
+            "21_day_fit": "21 Dagen Fit",
+            "21_day_best_deal": "21 Dagen Best Deal",
+            "21_day_ultimate": "21 Dagen Ultimate",
+            "retail": "Retail",
+            "spark_free": "SPARK Gratis",
+            "spark_10x": "SPARK 10 Beurten",
+            "pcx_15": "PCX 15",
+            "pcx_25": "PCX 25",
+            "pcx_35": "PCX 35",
+            "distributor": "Distributeur"
+        }
+    }
+}

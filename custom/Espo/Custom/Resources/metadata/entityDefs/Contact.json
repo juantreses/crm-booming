@@ -141,6 +141,13 @@
             "entity": "CNote",
             "audited": false,
             "isCustom": true
+        },
+        "cOrders": {
+            "type": "hasMany",
+            "foreign": "contact",
+            "entity": "COrder",
+            "audited": false,
+            "isCustom": true
         }
     }
 }

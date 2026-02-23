@@ -1,0 +1,22 @@
+[
+    {
+        "name": "contact",
+        "width": 16
+    },
+    {
+        "name": "dateOrdered",
+        "width": 16
+    },
+    {
+        "name": "volumePoints",
+        "width": 16
+    },
+    {
+        "name": "programType",
+        "width": 16
+    },
+    {
+        "name": "programEnd",
+        "width": 16
+    }
+]
