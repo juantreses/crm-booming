@@ -25,7 +25,13 @@ class GroupAssignment implements BeforeSave
      */
     public function beforeSave(Entity $entity, SaveOptions $options): void
     {
+        if (! $entity->get('parentType') || ! $entity->get('parentId')) {
+            return;
+        }
         $person = $this->entityManager->getEntityById($entity->get('parentType'), $entity->get('parentId'));
+        if (!$person) {
+            return;
+        }
         try {
             $this->groupAssignmentService->syncGroupsFromFields($entity, self::FIELDS_TO_WATCH, $person);
         } catch (\Exception $e) {
