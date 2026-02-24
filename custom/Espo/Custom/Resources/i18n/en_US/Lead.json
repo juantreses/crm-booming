@@ -12,7 +12,10 @@
         "cSurveyData": "Enquête",
         "cMeetingType": "Afspraak Type",
         "cReferredBy": "Doorverwezen door",
-        "cSourceUrl": "Source Url"
+        "cSourceUrl": "Source Url",
+        "cStage": "Fase",
+        "cReasonLost": "Verlies Reden",
+        "cSparksUsed": "SPARKS Gebruikt"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
@@ -61,6 +64,20 @@
             "spark": "SPARK",
             "iom": "HOM",
             "": ""
+        },
+        "cStage": {
+            "to_call": "📞 Nieuw / Te bellen",
+            "follow_up": "📱 Opvolgen / Onbereikbaar",
+            "book_spark": "📅 Boek SPARK",
+            "spark_planned": "🏃 SPARK Ingepland",
+            "book_ks": "📅 Boek KickStart",
+            "ks_planned": "🚀 Kickstart Ingepland",
+            "ks_doubt": "🤔 Twijfelt nog"
+        },
+        "cReasonLost": {
+            "wrong_number": "Fout nummer",
+            "not_interested": "Geen interesse",
+            "not_converted": "Niet geconverteerd"
         }
     }
 }

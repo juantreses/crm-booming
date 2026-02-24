@@ -61,6 +61,17 @@
                     }
                 ]
             }
+        },
+        "cReasonLost": {
+            "visible": {
+                "conditionGroup": [
+                    {
+                        "type": "equals",
+                        "attribute": "status",
+                        "value": "Disqualified"
+                    }
+                ]
+            }
         }
     }
 }

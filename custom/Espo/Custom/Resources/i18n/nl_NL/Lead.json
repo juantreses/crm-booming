@@ -15,7 +15,10 @@
         "cFollowUpAction": "Opvolgactie",
         "cSurveyData": "Enquête",
         "cMeetingType": "Afspraak Type",
-        "cReferredBy": "Doorverwezen door"
+        "cReferredBy": "Doorverwezen door",
+        "cStage": "Fase",
+        "cReasonLost": "Verlies Reden",
+        "cSparksUsed": "SPARKS Gebruikt"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
@@ -34,7 +37,7 @@
             "Verkeerd Nummer": "Verkeerd Nummer",
             "Geen Interesse": "Geen Interesse",
             "Recycled": "Opnieuw verwerkt",
-            "Dead": "Vervallen",
+            "Dead": "Dead",
             "new": "Nieuw",
             "assigned": "Toegewezen",
             "call_again": "Opnieuw bellen",
@@ -64,6 +67,20 @@
             "spark": "SPARK",
             "iom": "HOM",
             "": ""
+        },
+        "cStage": {
+            "to_call": "📞 Nieuw / Te bellen",
+            "follow_up": "📱 Opvolgen / Onbereikbaar",
+            "book_spark": "📅 Boek SPARK",
+            "spark_planned": "🏃 SPARK Ingepland",
+            "book_ks": "📅 Boek KickStart",
+            "ks_planned": "🚀 Kickstart Ingepland",
+            "ks_doubt": "🤔 Twijfelt nog"
+        },
+        "cReasonLost": {
+            "wrong_number": "Fout nummer",
+            "not_interested": "Geen interesse",
+            "not_converted": "Niet geconverteerd"
         }
     }
 }

@@ -40,6 +40,19 @@
                 {
                     "name": "cNotes"
                 }
+            ],
+            [
+                {
+                    "name": "cSparkUsed"
+                },
+                {
+                    "name": "cStage"
+                }
+            ],
+            [
+                {
+                    "name": "cReasonLost"
+                }
             ]
         ],
         "style": "default",
