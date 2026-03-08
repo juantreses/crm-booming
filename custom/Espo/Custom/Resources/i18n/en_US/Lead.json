@@ -72,7 +72,11 @@
             "spark_planned": "🏃 SPARK Ingepland",
             "book_ks": "📅 Boek KickStart",
             "ks_planned": "🚀 Kickstart Ingepland",
-            "ks_doubt": "🤔 Twijfelt nog"
+            "ks_doubt": "🤔 Twijfelt nog",
+            "message_to_be_sent": "💬 Bericht sturen",
+            "message_sent": "📤 Bericht gestuurd",
+            "converted": "🏆Klant Geworden",
+            "became_client": "🏆Klant Geworden"
         },
         "cReasonLost": {
             "wrong_number": "Fout nummer",

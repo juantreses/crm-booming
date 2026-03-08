@@ -13,12 +13,16 @@
         },
         "status": {
             "options": [
+                "New",
                 "Assigned",
+                "became_client",
                 "Converted",
                 "Dead"
             ],
             "style": {
+                "New": null,
                 "Assigned": null,
+                "became_client": null,
                 "Converted": "success",
                 "Dead": "info"
             },
@@ -26,22 +30,9 @@
             "labelType": null,
             "default": "Assigned",
             "notActualOptions": [
-                "Recycled",
-                "Dead",
-                "call_again",
-                "wrong_number",
-                "not_interested",
-                "invited",
-                "appointment_booked",
+                "Assigned",
                 "Converted",
-                "attended",
-                "no_show",
-                "still_thinking",
-                "appointment_cancelled",
-                "became_coach",
-                "not_converted",
-                "message_to_be_sent",
-                "message_sent"
+                "Dead"
             ]
         },
         "cTeam": {
@@ -138,6 +129,8 @@
             "options": [
                 "to_call",
                 "follow_up",
+                "message_to_be_sent",
+                "message_sent",
                 "book_spark",
                 "spark_planned",
                 "book_ks",
@@ -147,6 +140,8 @@
             "style": {
                 "to_call": null,
                 "follow_up": null,
+                "message_to_be_sent": null,
+                "message_sent": null,
                 "book_spark": null,
                 "spark_planned": null,
                 "book_ks": null,

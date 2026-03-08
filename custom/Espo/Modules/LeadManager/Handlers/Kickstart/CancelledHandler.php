@@ -25,7 +25,7 @@ class CancelledHandler extends AbstractOutcomeHandler
 
     public function getEventTypes(): array
     {
-        return [LeadEventType::APPOINTMENT_CANCELLED];
+        return [LeadEventType::KICKSTART_CANCELLED];
     }
 
     public function handle(string $leadId, array $context): OutcomeResult
@@ -59,7 +59,7 @@ class CancelledHandler extends AbstractOutcomeHandler
 
                         $eventId = $this->eventLogService->logEvent(
                             $leadId,
-                            LeadEventType::APPOINTMENT_BOOKED,
+                            LeadEventType::KICKSTART_BOOKED,
                             $context['eventDate'] ?? null
                         )['eventId'];
                         $result = $result->addEventId($eventId);

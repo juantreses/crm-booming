@@ -1,48 +1,43 @@
 <?php
 
-namespace Espo\Modules\LeadManager\Handlers\Call;
+namespace Espo\Modules\LeadManager\Handlers\IntroMeeting;
 
 use Espo\Custom\Enums\IntroMeetingType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
-use Espo\Modules\LeadManager\Services\LeadMeetingService;
 use Espo\Modules\LeadManager\Services\IntroMeetingService;
+use Espo\Modules\LeadManager\Services\LeadEventLogService;
+use Espo\Modules\LeadManager\Services\LeadNotesService;
+use Espo\Modules\LeadManager\Services\LeadFollowUpService;
+use Espo\Modules\LeadManager\Services\LeadMeetingService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 use Espo\Modules\Utils\SlugService;
-use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
-
 
 class InvitedHandler extends AbstractOutcomeHandler
 {
     public function __construct(
+        LeadEventLogService $eventLogService,
+        LeadNotesService $notesService,
+        LeadFollowUpService $followUpService,
         private readonly LeadMeetingService $meetingService,
         private readonly EntityManager $entityManager,
         private readonly IntroMeetingService $introMeetingService,
         private readonly SlugService $slugService,
-    ) {}
+    ) {
+        parent::__construct($eventLogService, $notesService, $followUpService);
+    }
 
     public function getEventTypes(): array
     {
-        return [LeadEventType::CALLED, LeadEventType::KICKSTART_BOOKED];
+        return [LeadEventType::BOOK_INTRO];
     }
 
     public function handle(string $leadId, array $context): OutcomeResult
     {
-        $result = $this->logEvents($leadId, $context['eventDate'] ?? null);
-        
-        $this->addCoachNoteIfProvided(
-            $leadId,
-            $context['coachNote'] ?? null,
-            'Telefoon',
-            $context['eventDate'] ?? null
-        );
-
-        $this->followUpService->clearFollowUpAction($leadId);
-
         if (!isset($context['calendarId'], $context['selectedDate'], $context['selectedTime'])) {
-            return $result;
+            throw new \InvalidArgumentException("Calendar ID, date, and time are required for booking");
         }
 
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
@@ -58,6 +53,16 @@ class InvitedHandler extends AbstractOutcomeHandler
         }
 
         $calendarType = $calendar->get('type');
+        $meetingType = IntroMeetingType::fromCalendarType($calendarType);
+        
+        if (!$meetingType) {
+            throw new \InvalidArgumentException("Calendar type '{$calendarType}' is not an intro meeting");
+        }
+
+        if (!$this->introMeetingService->canBook($lead, $meetingType)) {
+            $remaining = $this->introMeetingService->getRemainingUsage($lead, $meetingType);
+            throw new \RuntimeException("Lead cannot book {$meetingType->value}");
+        }
 
         $this->meetingService->createInternalMeeting(
             $context['calendarId'],
@@ -67,47 +72,33 @@ class InvitedHandler extends AbstractOutcomeHandler
             $context['coachNote'] ?? null
         );
 
-        if ($calendarType === 'kickstart') {
-            return $this->handleKickstartBooking($lead, $result);
-        } else if (IntroMeetingType::isIntroMeeting($calendarType)) {
-            return $this->handleIntroBooking($lead, $context, $result, $calendarType);
-        } else {
-            return $result;
-        }
-    }
+        $result = $this->logEvents($leadId, $context['eventDate'] ?? null);
 
-    private function handleIntroBooking(Entity $lead, array $context, OutcomeResult $result, string $calendarType): OutcomeResult
-    {
-        $meetingType = IntroMeetingType::fromCalendarType($calendarType);
+        $usageCount = $this->introMeetingService->getUsageCount($lead, $meetingType) + 1;
+        $noteText = "{$meetingType->value}";
         
-        if (!$meetingType) {
-            return $result;
+        if ($meetingType->hasUsageLimit()) {
+            $noteText .= " #{$usageCount}";
+        }
+        
+        $noteText .= " geboekt voor {$context['selectedDate']} om {$context['selectedTime']}";
+        
+        if ($context['coachNote'] ?? null) {
+            $noteText .= "\n" . $context['coachNote'];
         }
 
-        if (!$this->introMeetingService->canBook($lead, $meetingType)) {
-            throw new \RuntimeException("Lead cannot book {$meetingType->value}");
-        }
-
-        $eventId = $this->eventLogService->logEvent(
-            $lead->getId(),
-            LeadEventType::BOOK_INTRO,
+        $this->addCoachNoteIfProvided(
+            $leadId,
+            $noteText,
+            $context['fromCall'] ?? false ? 'Telefoon' : 'Afspraak',
             $context['eventDate'] ?? null
-        )['eventId'];
-        
-        $result = $result->addEventId($eventId);
+        );
 
-        // Update stage and type
         $lead->set('cStage', LeadStage::INTRO_SCHEDULED->value);
         $lead->set('introMeetingType', $meetingType->value);
         $this->entityManager->saveEntity($lead);
 
-        return $result;
-    }
-
-    private function handleKickstartBooking(Entity $lead, OutcomeResult $result): OutcomeResult
-    {
-        $lead->set('cStage', LeadStage::KS_PLANNED->value);
-        $this->entityManager->saveEntity($lead);
+        $this->followUpService->clearFollowUpAction($leadId);
 
         return $result;
     }

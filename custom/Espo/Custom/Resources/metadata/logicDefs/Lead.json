@@ -68,7 +68,7 @@
                     {
                         "type": "equals",
                         "attribute": "status",
-                        "value": "Disqualified"
+                        "value": "Dead"
                     }
                 ]
             }

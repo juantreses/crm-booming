@@ -37,7 +37,7 @@
             "Verkeerd Nummer": "Verkeerd Nummer",
             "Geen Interesse": "Geen Interesse",
             "Recycled": "Opnieuw verwerkt",
-            "Dead": "Dead",
+            "Dead": "Verloren",
             "new": "Nieuw",
             "assigned": "Toegewezen",
             "call_again": "Opnieuw bellen",
@@ -53,7 +53,7 @@
             "became_coach": "Coach geworden",
             "message_to_be_sent": "Bericht Sturen",
             "message_sent": "Bericht Gestuurd",
-            "became_client": "Klant geworden",
+            "became_client": "Klant Geworden",
             "Disqualified": "Geen interesse"
         },
         "salutationName": {
@@ -75,7 +75,11 @@
             "spark_planned": "🏃 SPARK Ingepland",
             "book_ks": "📅 Boek KickStart",
             "ks_planned": "🚀 Kickstart Ingepland",
-            "ks_doubt": "🤔 Twijfelt nog"
+            "ks_doubt": "🤔 Twijfelt nog",
+            "message_to_be_sent": "💬 Bericht sturen",
+            "message_sent": "📤 Bericht gestuurd",
+            "converted": "🏆Klant Geworden",
+            "became_client": "🏆Klant Geworden"
         },
         "cReasonLost": {
             "wrong_number": "Fout nummer",

@@ -29,8 +29,11 @@ define(['action-handler'], (Dep) => {
             });
         }       
 
-        isLogCallVisible() {        
-            return ['assigned', 'call_again'].includes(this.view.model.attributes.status);
+        isLogCallVisible() {
+            const status = this.view.model.get('status');
+            const stage = this.view.model.get('cStage');
+
+            return status === 'Assigned' && ['to_call', 'follow_up'].includes(stage);
         }
     }
 });

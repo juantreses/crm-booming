@@ -22,7 +22,10 @@ define('custom:handlers/log-message-sent-handler', ['action-handler'], (Dep) => 
         }
 
         isLogMessageSentVisible() {
-            return this.view.model.attributes.status === 'message_to_be_sent';
+            const status = this.view.model.get('status');
+            const stage = this.view.model.get('cStage');
+
+            return status === 'Assigned' && ['message_to_be_sent'].includes(stage);
         }
     }
 });

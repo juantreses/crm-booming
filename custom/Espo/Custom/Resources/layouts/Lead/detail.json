@@ -6,7 +6,12 @@
                     "name": "status"
                 },
                 {
-                    "name": "cReferredBy"
+                    "name": "cStage"
+                }
+            ],
+            [
+                {
+                    "name": "cReasonLost"
                 }
             ],
             [
@@ -43,15 +48,10 @@
             ],
             [
                 {
-                    "name": "cSparkUsed"
+                    "name": "cSparksUsed"
                 },
                 {
-                    "name": "cStage"
-                }
-            ],
-            [
-                {
-                    "name": "cReasonLost"
+                    "name": "cReferredBy"
                 }
             ]
         ],

@@ -34,6 +34,8 @@ readonly class LeadEventService
         $this->callCountService->increment($callData->leadId);
 
         $handler = $this->handlerRegistry->getCallHandler($callData->outcome->value);
+
+        $GLOBALS['log']->info('Handler: ' . get_class($handler));
         
         $context = [
             'eventDate' => $callData->callDateTime,
