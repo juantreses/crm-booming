@@ -51,7 +51,6 @@ class ConfirmationEmail implements AfterSave
                 $this->emailService->sendMeetingEmail($entity, $templateId);
             } catch (\Exception $e) {
                 $entity->set('cMailError', "Bevestiging fout: " . $e->getMessage());
-                $this->entityManager->saveEntity($entity, ['silent' => true]);
             }
         }
     }
