@@ -57,6 +57,16 @@
                     "checkVisibilityFunction": "isLogCallVisible"
                 },
                 {
+                    "label": "Intro Meeting",
+                    "name": "logIntroMeeting",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/intro-meeting-action-handler",
+                    "actionFunction": "logIntroMeeting",
+                    "checkVisibilityFunction": "isLogIntroMeetingVisible"
+                },
+                {
                     "label": "Kickstart",
                     "name": "logKickstart",
                     "action": "logKickstart",

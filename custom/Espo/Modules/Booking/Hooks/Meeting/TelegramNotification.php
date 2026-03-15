@@ -63,7 +63,7 @@ class TelegramNotification implements AfterSave
         
         $msg .= "📅 {$formattedDate}\n";
         
-        $msg .= "🎓 {$meeting->get('assignedUserName')}\n\n";
+        $msg .= "🎓 {$parent->get('assignedUserName')}\n\n";
         
         
         $this->telegramService->sendMessage($msg);

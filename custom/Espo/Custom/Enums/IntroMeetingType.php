@@ -6,6 +6,7 @@ enum IntroMeetingType: string
 {
     case SPARK = 'spark';
     case BWS = 'bws';
+    case HOM = 'hom';
     
     public function hasUsageLimit(): bool
     {
@@ -22,11 +23,15 @@ enum IntroMeetingType: string
     
     public static function isIntroMeeting(string $calendarType): bool
     {
-        return self::tryFrom($calendarType) !== null;
+        return self::fromCalendarType($calendarType) !== null;
     }
     
     public static function fromCalendarType(string $calendarType): ?self
     {
+        if ($calendarType === 'iom') {
+            return self::HOM;
+        }
+
         return self::tryFrom($calendarType);
     }
 }

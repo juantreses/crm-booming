@@ -7,7 +7,10 @@ use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
 use Espo\Modules\LeadManager\Services\IntroMeetingService;
+use Espo\Modules\LeadManager\Services\LeadEventLogService;
+use Espo\Modules\LeadManager\Services\LeadFollowUpService;
 use Espo\Modules\LeadManager\Services\LeadMeetingService;
+use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
@@ -15,10 +18,14 @@ use Espo\ORM\EntityManager;
 class CancelledHandler extends AbstractOutcomeHandler
 {
     public function __construct(
+        LeadEventLogService $eventLogService,
+        LeadNotesService $notesService,
+        LeadFollowUpService $followUpService,
         private readonly EntityManager $entityManager,
         private readonly IntroMeetingService $introMeetingService,
         private readonly LeadMeetingService $meetingService,
     ) {
+        parent::__construct($eventLogService, $notesService, $followUpService);
     }
 
     public function getEventTypes(): array
@@ -62,7 +69,7 @@ class CancelledHandler extends AbstractOutcomeHandler
         
         switch ($cancellationAction) {
             case 'reschedule_now':
-                return $this->handleRescheduleNow($lead, $context, $result, $meetingType);
+                return $this->handleRescheduleNow($lead, $context, $result);
                 
             case 'reschedule_later':
                 return $this->handleRescheduleLater($lead, $context, $result, $meetingType);
@@ -76,10 +83,25 @@ class CancelledHandler extends AbstractOutcomeHandler
     /**
      * Handle immediate rescheduling
      */
-    private function handleRescheduleNow(Entity $lead, array $context, OutcomeResult $result, IntroMeetingType $meetingType): OutcomeResult
+    private function handleRescheduleNow(Entity $lead, array $context, OutcomeResult $result): OutcomeResult
     {
         if (empty($context['calendarId']) || empty($context['selectedDate']) || empty($context['selectedTime'])) {
             throw new \InvalidArgumentException("Calendar ID, date, and time required for rescheduling");
+        }
+
+        $calendar = $this->entityManager->getEntityById('CCalendar', $context['calendarId']);
+        if (!$calendar) {
+            throw new \RuntimeException("Calendar not found: {$context['calendarId']}");
+        }
+
+        $calendarType = $calendar->get('type');
+        $nextMeetingType = IntroMeetingType::fromCalendarType($calendarType);
+        if (!$nextMeetingType) {
+            throw new \InvalidArgumentException("Calendar type '{$calendarType}' is not an intro meeting");
+        }
+
+        if (!$this->introMeetingService->canBook($lead, $nextMeetingType)) {
+            throw new \RuntimeException("Lead cannot book {$nextMeetingType->value}");
         }
 
         $this->meetingService->createInternalMeeting(
@@ -100,12 +122,13 @@ class CancelledHandler extends AbstractOutcomeHandler
 
         $this->addCoachNoteIfProvided(
             $lead->getId(),
-            "{$meetingType->value} opnieuw geboekt voor {$context['selectedDate']} om {$context['selectedTime']}",
+            "{$nextMeetingType->value} opnieuw geboekt voor {$context['selectedDate']} om {$context['selectedTime']}",
             'Afspraak',
             $context['eventDate'] ?? null
         );
 
         $lead->set('cStage', LeadStage::INTRO_SCHEDULED->value);
+        $lead->set('cMeetingType', $nextMeetingType->value);
         $this->entityManager->saveEntity($lead);
 
         $this->followUpService->clearFollowUpAction($lead->getId());

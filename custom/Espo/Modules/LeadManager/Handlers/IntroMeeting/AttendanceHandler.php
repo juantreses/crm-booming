@@ -128,8 +128,12 @@ class AttendanceHandler extends AbstractOutcomeHandler
         } else {
             $nextMeetingType = IntroMeetingType::fromCalendarType($nextCalendarType);
             if ($nextMeetingType) {
+                if (!$this->introMeetingService->canBook($lead, $nextMeetingType)) {
+                    throw new \RuntimeException("Lead cannot book {$nextMeetingType->value}");
+                }
+
                 $lead->set('cStage', LeadStage::INTRO_SCHEDULED->value);
-                $lead->set('introMeetingType', $nextMeetingType->value);
+                $lead->set('cMeetingType', $nextMeetingType->value);
                 $bookingNote = "Direct {$nextMeetingType->value} geboekt";
             } else {
                 throw new \InvalidArgumentException("Invalid next booking calendar type: {$nextCalendarType}");
@@ -143,8 +147,23 @@ class AttendanceHandler extends AbstractOutcomeHandler
             $context['eventDate'] ?? null
         );
 
+        $bookingEventType = $nextCalendarType === 'kickstart'
+            ? LeadEventType::KICKSTART_BOOKED
+            : LeadEventType::BOOK_INTRO;
+
+        $eventId = $this->eventLogService->logEvent(
+            $leadId,
+            $bookingEventType,
+            $context['eventDate'] ?? null
+        )['eventId'];
+
+        $result = $result->addEventId($eventId);
+
         $this->entityManager->saveEntity($lead);
         $this->followUpService->clearFollowUpAction($leadId);
+
+        $meeting = $this->meetingService->findPlannedMeeting($leadId);
+        $this->meetingService->markAsHeld($meeting);
 
         return $result;
     }
@@ -193,6 +212,9 @@ class AttendanceHandler extends AbstractOutcomeHandler
         } else if ($nextStage === LeadStage::BOOK_KS) {
             $this->followUpService->addFollowUpAction($leadId, "Kickstart boeken");
         }
+
+        $meeting = $this->meetingService->findPlannedMeeting($leadId);
+        $this->meetingService->markAsHeld($meeting);
 
         return $result;
     }

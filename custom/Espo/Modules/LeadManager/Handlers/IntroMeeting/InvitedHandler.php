@@ -95,7 +95,7 @@ class InvitedHandler extends AbstractOutcomeHandler
         );
 
         $lead->set('cStage', LeadStage::INTRO_SCHEDULED->value);
-        $lead->set('introMeetingType', $meetingType->value);
+        $lead->set('cMeetingType', $meetingType->value);
         $this->entityManager->saveEntity($lead);
 
         $this->followUpService->clearFollowUpAction($leadId);

@@ -65,9 +65,17 @@
             "iom": "HOM",
             "": ""
         },
+        "introMeetingType": {
+            "spark": "SPARK",
+            "bws": "Beauty Workshop",
+            "hom": "HOM",
+            "": ""
+        },
         "cStage": {
             "to_call": "📞 Nieuw / Te bellen",
             "follow_up": "📱 Opvolgen / Onbereikbaar",
+            "intro_scheduled": "📅 Intro ingepland",
+            "intro_attended": "✅ Intro bijgewoond",
             "book_spark": "📅 Boek SPARK",
             "spark_planned": "🏃 SPARK Ingepland",
             "book_ks": "📅 Boek KickStart",

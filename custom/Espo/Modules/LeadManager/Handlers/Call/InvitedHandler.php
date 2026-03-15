@@ -6,8 +6,11 @@ use Espo\Custom\Enums\IntroMeetingType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
+use Espo\Modules\LeadManager\Services\LeadEventLogService;
+use Espo\Modules\LeadManager\Services\LeadFollowUpService;
 use Espo\Modules\LeadManager\Services\LeadMeetingService;
 use Espo\Modules\LeadManager\Services\IntroMeetingService;
+use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 use Espo\Modules\Utils\SlugService;
 use Espo\ORM\Entity;
@@ -17,15 +20,20 @@ use Espo\ORM\EntityManager;
 class InvitedHandler extends AbstractOutcomeHandler
 {
     public function __construct(
+        LeadEventLogService $eventLogService,
+        LeadNotesService $notesService,
+        LeadFollowUpService $followUpService,
         private readonly LeadMeetingService $meetingService,
         private readonly EntityManager $entityManager,
         private readonly IntroMeetingService $introMeetingService,
         private readonly SlugService $slugService,
-    ) {}
+    ) {
+        parent::__construct($eventLogService, $notesService, $followUpService);
+    }
 
     public function getEventTypes(): array
     {
-        return [LeadEventType::CALLED, LeadEventType::KICKSTART_BOOKED];
+        return [LeadEventType::CALLED];
     }
 
     public function handle(string $leadId, array $context): OutcomeResult
@@ -58,6 +66,33 @@ class InvitedHandler extends AbstractOutcomeHandler
         }
 
         $calendarType = $calendar->get('type');
+        if ($calendarType === 'kickstart') {
+            $this->meetingService->createInternalMeeting(
+                $context['calendarId'],
+                $lead,
+                $context['selectedDate'],
+                $context['selectedTime'],
+                $context['coachNote'] ?? null
+            );
+
+            return $this->handleKickstartBooking($lead, $result, $context['eventDate'] ?? null);
+        }
+
+        if (IntroMeetingType::isIntroMeeting($calendarType)) {
+            if (!$this->introMeetingService->canBook($lead, IntroMeetingType::fromCalendarType($calendarType))) {
+                throw new \RuntimeException("Lead cannot book {$calendarType}");
+            }
+
+            $this->meetingService->createInternalMeeting(
+                $context['calendarId'],
+                $lead,
+                $context['selectedDate'],
+                $context['selectedTime'],
+                $context['coachNote'] ?? null
+            );
+
+            return $this->handleIntroBooking($lead, $context, $result, $calendarType);
+        }
 
         $this->meetingService->createInternalMeeting(
             $context['calendarId'],
@@ -67,13 +102,7 @@ class InvitedHandler extends AbstractOutcomeHandler
             $context['coachNote'] ?? null
         );
 
-        if ($calendarType === 'kickstart') {
-            return $this->handleKickstartBooking($lead, $result);
-        } else if (IntroMeetingType::isIntroMeeting($calendarType)) {
-            return $this->handleIntroBooking($lead, $context, $result, $calendarType);
-        } else {
-            return $result;
-        }
+        return $result;
     }
 
     private function handleIntroBooking(Entity $lead, array $context, OutcomeResult $result, string $calendarType): OutcomeResult
@@ -98,14 +127,22 @@ class InvitedHandler extends AbstractOutcomeHandler
 
         // Update stage and type
         $lead->set('cStage', LeadStage::INTRO_SCHEDULED->value);
-        $lead->set('introMeetingType', $meetingType->value);
+        $lead->set('cMeetingType', $meetingType->value);
         $this->entityManager->saveEntity($lead);
 
         return $result;
     }
 
-    private function handleKickstartBooking(Entity $lead, OutcomeResult $result): OutcomeResult
+    private function handleKickstartBooking(Entity $lead, OutcomeResult $result, ?string $eventDate = null): OutcomeResult
     {
+        $eventId = $this->eventLogService->logEvent(
+            $lead->getId(),
+            LeadEventType::KICKSTART_BOOKED,
+            $eventDate
+        )['eventId'];
+
+        $result = $result->addEventId($eventId);
+
         $lead->set('cStage', LeadStage::KS_PLANNED->value);
         $this->entityManager->saveEntity($lead);
 

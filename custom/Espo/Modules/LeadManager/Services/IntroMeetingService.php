@@ -37,11 +37,11 @@ readonly class IntroMeetingService
         if ($meetingType === IntroMeetingType::SPARK) {
             $sparksUsed = $lead->get('cSparksUsed') ?? 0;
             
-            if ($sparksUsed < 2) {
-                return LeadStage::FOLLOW_UP;
-            } else {
-                return LeadStage::BOOK_KS;
+            if ($sparksUsed < $meetingType->getMaxUsage()) {
+                return LeadStage::INTRO_ATTENDED;
             }
+
+            return LeadStage::BOOK_KS;
         }
         
         return LeadStage::BOOK_KS;
@@ -73,7 +73,7 @@ readonly class IntroMeetingService
         $current = (int) ($lead->get('cSparksUsed') ?? 0);
         
         if ($current >= 2) {
-            throw new \RuntimeException("Lead has already used maximum SPARK sessions");
+            throw new \RuntimeException("Lead has already used the maximum number of SPARK sessions (2)");
         }
         
         $lead->set('cSparksUsed', $current + 1);
@@ -83,7 +83,7 @@ readonly class IntroMeetingService
 
     public function shouldOfferAnotherIntro(Entity $lead): bool
     {
-        $introType = $lead->get('introMeetingType');
+        $introType = $lead->get('cMeetingType');
         
         if (!$introType) {
             return false;
@@ -100,7 +100,7 @@ readonly class IntroMeetingService
 
     public function getIntroMeetingType(Entity $lead): ?IntroMeetingType
     {
-        $type = $lead->get('introMeetingType');
+        $type = $lead->get('cMeetingType');
         
         if (!$type) {
             return null;

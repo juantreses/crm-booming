@@ -12,6 +12,9 @@
             [
                 {
                     "name": "cReasonLost"
+                },
+                {
+                    "name": "cMeetingType"
                 }
             ],
             [

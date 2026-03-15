@@ -71,8 +71,8 @@
         "cStage": {
             "to_call": "📞 Nieuw / Te bellen",
             "follow_up": "📱 Opvolgen / Onbereikbaar",
-            "book_spark": "📅 Boek SPARK",
-            "spark_planned": "🏃 SPARK Ingepland",
+            "intro_scheduled": "📅 Intro ingepland",
+            "intro_attended": "✅ Intro bijgewoond",
             "book_ks": "📅 Boek KickStart",
             "ks_planned": "🚀 Kickstart Ingepland",
             "ks_doubt": "🤔 Twijfelt nog",
