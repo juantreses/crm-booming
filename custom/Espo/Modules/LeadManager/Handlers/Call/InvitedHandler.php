@@ -9,7 +9,6 @@ use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\Services\LeadFollowUpService;
 use Espo\Modules\LeadManager\Services\LeadMeetingService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
-use Espo\ORM\EntityManager;
 
 class InvitedHandler extends AbstractOutcomeHandler
 {
@@ -18,7 +17,6 @@ class InvitedHandler extends AbstractOutcomeHandler
         LeadNotesService $notesService,
         LeadFollowUpService $followUpService,
         private readonly LeadMeetingService $meetingService,
-        private readonly EntityManager $entityManager,
     ) {
         parent::__construct($eventLogService, $notesService, $followUpService);
     }
@@ -41,17 +39,16 @@ class InvitedHandler extends AbstractOutcomeHandler
 
         $this->followUpService->clearFollowUpAction($leadId);
 
+        $GLOBALS['log']->info('InvitedHandler: ' . json_encode($context));
+
         if (isset($context['calendarId'], $context['selectedDate'], $context['selectedTime'])) {
-            $lead = $this->entityManager->getEntityById('Lead', $leadId);
-            if ($lead) {
-                $this->meetingService->createInternalMeeting(
-                    $context['calendarId'],
-                    $lead,
-                    $context['selectedDate'],
-                    $context['selectedTime'],
-                    $context['coachNote'] ?? null
-                );
-            }
+            $this->meetingService->createInternalMeetingForLeadId(
+                $context['calendarId'],
+                $leadId,
+                $context['selectedDate'],
+                $context['selectedTime'],
+                $context['coachNote'] ?? null
+            );
         }
 
         return $result;

@@ -12,6 +12,9 @@ readonly class MessageOutcomeData
         public ?string $callAgainDateTime = null,
         public ?string $coachNote = null,
         public ?string $meetingType = null,
+        public ?string $calendarId = null,
+        public ?string $selectedDate = null,
+        public ?string $selectedTime = null,
     ) {}
 
     public static function fromStdClass(\StdClass $data): self
@@ -22,6 +25,9 @@ readonly class MessageOutcomeData
             callAgainDateTime: $data->callAgainDateTime ?? null,
             coachNote: $data->coachNote ?? null,
             meetingType: $data->meetingType ?? null,
+            calendarId: $data->calendarId ?? null,
+            selectedDate: $data->selectedDate ?? null,
+            selectedTime: $data->selectedTime ?? null,
         );
     }
 }

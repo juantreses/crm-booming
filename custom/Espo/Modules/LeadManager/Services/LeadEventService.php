@@ -101,6 +101,9 @@ readonly class LeadEventService
         $context = [
             'callAgainDateTime' => $messageData->callAgainDateTime,
             'coachNote' => $messageData->coachNote,
+            'calendarId' => $messageData->calendarId,
+            'selectedDate' => $messageData->selectedDate,
+            'selectedTime' => $messageData->selectedTime,
         ];
 
         $result = $handler->handle($messageData->leadId, $context);
