@@ -770,7 +770,6 @@ class GoogleCalendar extends Database
                 'instancePattern' => $googleCalendarEventId . '_%',
             ],
         ];
-        @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
         $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
         // #endregion
 
