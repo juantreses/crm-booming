@@ -364,7 +364,7 @@ class Event extends Base
         }
 
         // #region agent log
-        @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode([
+        $agentLogPayload = [
             'sessionId' => 'c8d6ce',
             'timestamp' => (int) round(microtime(true) * 1000),
             'location' => 'Event.php:updateEspoEvent:entry',
@@ -382,19 +382,23 @@ class Event extends Base
                 'eventType' => $googleEvent->getEventType(),
                 'scope' => $scope,
             ],
-        ], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+        ];
+        @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+        $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
         // #endregion
 
         if ($googleEvent->isDeleted()) {
             // #region agent log
-            @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode([
+            $agentLogPayload = [
                 'sessionId' => 'c8d6ce',
                 'timestamp' => (int) round(microtime(true) * 1000),
                 'location' => 'Event.php:updateEspoEvent:cancelled',
                 'message' => 'isDeleted branch: deleteRecurrentInstancesFromEspo',
                 'hypothesisId' => 'H2',
                 'data' => ['googleEventId' => $googleEvent->getId()],
-            ], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+            ];
+            @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+            $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
             // #endregion
             $this->deleteRecurrentInstancesFromEspo($googleEvent->getId());
         }
@@ -411,7 +415,7 @@ class Event extends Base
 
         if ($googleEvent->getRecurrence() && !$googleEvent->getRecurringEventId()) {
             // #region agent log
-            @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode([
+            $agentLogPayload = [
                 'sessionId' => 'c8d6ce',
                 'timestamp' => (int) round(microtime(true) * 1000),
                 'location' => 'Event.php:updateEspoEvent:recurring_master',
@@ -421,7 +425,9 @@ class Event extends Base
                     'googleEventId' => $googleEvent->getId(),
                     'willQueueInstances' => !$googleEvent->isPrivate() && $googleEvent->hasEnd(),
                 ],
-            ], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+            ];
+            @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+            $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
             // #endregion
             $this->deleteRecurrentInstancesFromEspo($googleEvent->getId());
 
@@ -435,7 +441,7 @@ class Event extends Base
                 );
 
                 // #region agent log
-                @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode([
+                $agentLogPayload = [
                     'sessionId' => 'c8d6ce',
                     'timestamp' => (int) round(microtime(true) * 1000),
                     'location' => 'Event.php:updateEspoEvent:recurring_master_remove',
@@ -448,7 +454,9 @@ class Event extends Base
                             return $e->get('id');
                         }, $espoEvents),
                     ],
-                ], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+                ];
+                @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+                $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
                 // #endregion
 
                 foreach ($espoEvents as $espoEvent) {
@@ -503,7 +511,7 @@ class Event extends Base
             ) {
                 if (!$eventIsNew && $this->acl->check($espoEvent->getEntityType(), 'delete')) {
                     // #region agent log
-                    @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode([
+                    $agentLogPayload = [
                         'sessionId' => 'c8d6ce',
                         'timestamp' => (int) round(microtime(true) * 1000),
                         'location' => 'Event.php:updateEspoEvent:remove_deleted_private_noend',
@@ -518,7 +526,9 @@ class Event extends Base
                                 'gNoEnd' => !$googleEvent->hasEnd(),
                             ],
                         ],
-                    ], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+                    ];
+                    @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+                    $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
                     // #endregion
                     $this->getGoogleCalendarRepository()->resetEventRelation(
                         $espoEvent->getEntityType(),

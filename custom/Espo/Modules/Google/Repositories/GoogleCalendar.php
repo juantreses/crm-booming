@@ -759,7 +759,7 @@ class GoogleCalendar extends Database
     public function deleteRecurrentInstancesFromEspo($calendarId, $googleCalendarEventId, $eventTypes)
     {
         // #region agent log
-        @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode([
+        $agentLogPayload = [
             'sessionId' => 'c8d6ce',
             'timestamp' => (int) round(microtime(true) * 1000),
             'location' => 'GoogleCalendar.php:deleteRecurrentInstancesFromEspo',
@@ -769,7 +769,9 @@ class GoogleCalendar extends Database
                 'googleCalendarEventIdPrefix' => $googleCalendarEventId,
                 'instancePattern' => $googleCalendarEventId . '_%',
             ],
-        ], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+        ];
+        @file_put_contents('/home/juan/espocrm/.cursor/debug-c8d6ce.log', json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+        $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
         // #endregion
 
         $eventTypes = $this->validateEventTypes($eventTypes);
