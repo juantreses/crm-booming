@@ -101,25 +101,53 @@ git pull origin master
 cd ..
 ```
 
-2. Backup the production DB.
+2. Backup the production DB (sanitized dump).
 
-    On the production server, create a database dump file.
+    Create a sanitized database dump file. The sanitizer SQL is appended to the dump so it runs on import.
 
 ```bash
-mysqldump -u [prod_user] -p [prod_db] > db.sql
+CONFIRM=1 DB_HOST=your_prod_host DB_USER=your_prod_user DB_PASSWORD=your_prod_password DB_NAME=your_prod_db OUT_FILE=db.sanitized.sql app/bin/db-copy-sanitize-dump.sh
 ```
-
-Enter the production db password when prompted.
 
 3. Import the database locally.
 
     Copy the `db.sql` file to your local `crm-sfc` directory. Then, run the following command to import the database into your local Docker container. The `mysql` client will connect to your Docker container's database service.
 
 ```bash
-mysql -u espocrm_user -p --host=127.0.0.1 --port=3306 espocrm_db < db.sql
+mysql -u espocrm_user -p --host=127.0.0.1 --port=3306 espocrm_db < db.sanitized.sql
 ```
 
 Use `your_db_password` for the password.
+
+4. Sanitize the copied database (required).
+
+Run the sanitizer script to prevent live syncs, cronjobs, and outbound mail in local/test.
+
+```bash
+CONFIRM=1 DB_PASSWORD=your_db_password app/bin/db-copy-sanitize.sh
+```
+
+If your DB is not local, you must also set `CONFIRM_REMOTE=1`. You can override connection settings with `DB_HOST`, `DB_PORT`, `DB_NAME`, and `DB_USER`.
+
+BELANGRIJK BIJ KOPIE
+Volgende queries moeten gerund worden op de test/lokale omgeving na het nemen van een kopie. Anders kan dit issues geven met foute syncs en mails:
+
+```sql
+-- 1. Wis alle Google Calendar (en andere externe) tokens van gebruikers
+TRUNCATE TABLE external_account;
+
+-- 2. Schakel alle Scheduled Jobs (Cronjobs) uit, zodat er op de achtergrond niets begint te draaien
+UPDATE scheduled_job SET status = 'Inactive';
+
+-- 3. Schakel alle Inkomende (Groep) mailboxen uit
+UPDATE inbound_email SET status = 'Inactive';
+
+-- 4. Schakel alle Persoonlijke mailboxen (van users) uit
+UPDATE email_account SET status = 'Inactive';
+
+-- 5. Wis de Google Integratie API keys op systeemniveau
+UPDATE integration SET data = NULL WHERE id = 'Google';
+```
 
 ***
 
@@ -130,4 +158,3 @@ Now that the application files and database are in place, you need to update the
 1. Add a config-internal file
 
     Add a `config-internal.php` file similar to what is in production. Replace the DB settings with the DB settings from the `docker-compose.yml` file and replace the Vanko Webhooks with dummy-urls so the calls will silently fail.
-
