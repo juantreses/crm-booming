@@ -144,6 +144,7 @@ class InvitedHandler extends AbstractOutcomeHandler
         $result = $result->addEventId($eventId);
 
         $lead->set('cStage', LeadStage::KS_PLANNED->value);
+        $lead->set('cMeetingType', 'kickstart');
         $this->entityManager->saveEntity($lead);
 
         return $result;

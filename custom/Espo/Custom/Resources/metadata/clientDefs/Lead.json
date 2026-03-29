@@ -78,6 +78,16 @@
                     "checkVisibilityFunction": "isLogKickstartVisible"
                 },
                 {
+                    "label": "Kickstart Boeken",
+                    "name": "bookKickstart",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/book-kickstart-action-handler",
+                    "actionFunction": "bookKickstart",
+                    "checkVisibilityFunction": "isBookKickstartVisible"
+                },
+                {
                     "label": "Bericht Gestuurd",
                     "name": "logMessageSent",
                     "action": "logMessageSent",

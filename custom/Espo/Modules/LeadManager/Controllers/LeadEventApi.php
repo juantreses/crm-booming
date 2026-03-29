@@ -8,6 +8,7 @@ use Espo\Core\Exceptions\Conflict;
 use Espo\Modules\LeadManager\Services\LeadEventService;
 use Espo\Modules\LeadManager\Validators\LogCallValidator;
 use Espo\Modules\LeadManager\Validators\LogIntroMeetingValidator;
+use Espo\Modules\LeadManager\Validators\LogKickstartBookingValidator;
 use Espo\Modules\LeadManager\Validators\LogKickstartValidator;
 use Espo\Modules\LeadManager\Validators\LogMessageOutcomeValidator;
 
@@ -194,6 +195,36 @@ readonly class LeadEventApi
                 'trace' => $e->getTraceAsString()
             ]);
             throw new BadRequest('Failed to log intro meeting: ' . $e->getMessage());
+        }
+    }
+
+    public function postActionBookKickstart(Request $request): array
+    {
+        try {
+            $data = $request->getParsedBody();
+
+            $validator = new LogKickstartBookingValidator();
+            $validator->validate($data);
+
+            $result = $this->leadEventService->bookKickstart($data);
+
+            return [
+                'success' => true,
+                'message' => 'Kickstart booked successfully',
+                'data' => $result
+            ];
+
+        } catch (Conflict $e) {
+            throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
+        } catch (BadRequest $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            $GLOBALS['log']->error('Lead Book Kickstart Error: ' . $e->getMessage(), [
+                'leadId' => $data->id ?? null,
+                'eventDate' => $data->eventDate ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new BadRequest('Failed to book kickstart: ' . $e->getMessage());
         }
     }
 }

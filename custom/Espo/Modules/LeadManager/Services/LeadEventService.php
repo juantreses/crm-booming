@@ -89,6 +89,25 @@ readonly class LeadEventService
         return $result->toArray();
     }
 
+    public function bookKickstart(\StdClass $data): array
+    {
+        $leadId = (string) $data->id;
+
+        $handler = $this->handlerRegistry->getKickstartBookingHandler();
+
+        $context = [
+            'eventDate' => $data->eventDate ?? null,
+            'coachNote' => $data->coachNote ?? null,
+            'calendarId' => $data->calendarId ?? null,
+            'selectedDate' => $data->selectedDate ?? null,
+            'selectedTime' => $data->selectedTime ?? null,
+        ];
+
+        $result = $handler->handle($leadId, $context);
+
+        return $result->toArray();
+    }
+
     public function logIntroMeeting(\StdClass $data): array
     {
         $introData = IntroMeetingOutcomeData::fromStdClass($data);

@@ -21,6 +21,7 @@ readonly class HandlerRegistry
     private array $messageHandlers;
     private array $kickstartFollowUpHandlers;
     private array $introMeetingHandlers;
+    private Kickstart\BookedHandler $kickstartBookingHandler;
 
     public function __construct(
         Call\CalledHandler $calledHandler,
@@ -30,6 +31,7 @@ readonly class HandlerRegistry
         Call\WrongNumberHandler $wrongNumberHandler,
         Call\NotInterestedHandler $callNotInterestedHandler,
         Kickstart\BecameClientHandler $becameClientHandler,
+        Kickstart\BookedHandler $kickstartBookedHandler,
         Kickstart\NoShowHandler $noShowHandler,
         Kickstart\NotConvertedHandler $notConvertedHandler,
         Kickstart\StillThinkingHandler $stillThinkingHandler,
@@ -59,6 +61,7 @@ readonly class HandlerRegistry
             KickstartOutcome::STILL_THINKING->value => $stillThinkingHandler,
             KickstartOutcome::CANCELLED->value => $cancelledHandler,
         ];
+        $this->kickstartBookingHandler = $kickstartBookedHandler;
 
         $this->messageHandlers = [
             MessageSentOutcome::INVITED->value => $messageInvitedHandler,
@@ -94,6 +97,11 @@ readonly class HandlerRegistry
         }
 
         return $this->kickstartHandlers[$outcome];
+    }
+
+    public function getKickstartBookingHandler(): OutcomeHandler
+    {
+        return $this->kickstartBookingHandler;
     }
 
     public function getKickstartFollowUpHandler(string $outcome): OutcomeHandler

@@ -6,7 +6,7 @@
                     <label data-role="intro-outcome-label">Intro uitkomst *</label>
                     <select name="outcome" class="form-control" required>
                         <option value="">-- Selecteer uitkomst --</option>
-                        <option value="attended">Bijgewoond</option>
+                        <option value="attended">Aanwezig</option>
                         <option value="no_show">Niet opgedaagd</option>
                         <option value="cancelled">Geannuleerd</option>
                     </select>

@@ -57,7 +57,7 @@ class LogIntroMeetingValidator
         }
 
         if ($outcome !== IntroMeetingOutcome::ATTENDED->value && !empty($data->nextBooking)) {
-            throw new BadRequest('Volgende afspraak is enkel mogelijk na een bijgewoonde intro.');
+            throw new BadRequest('Volgende afspraak is enkel mogelijk na een aanwezige intro.');
         }
 
         if (!empty($data->callAgainDateTime)) {

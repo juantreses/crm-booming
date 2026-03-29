@@ -97,7 +97,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
         if ($attendedType->hasUsageLimit()) {
             $noteText .= " #{$usageCount}";
         }
-        $noteText .= " bijgewoond";
+        $noteText .= " aanwezig";
         
         if ($remaining > 0 && $attendedType->hasUsageLimit()) {
             $noteText .= ". Nog {$remaining} sessie(s) beschikbaar";
@@ -124,6 +124,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
 
         if ($nextCalendarType === 'kickstart') {
             $lead->set('cStage', LeadStage::KS_PLANNED->value);
+            $lead->set('cMeetingType', 'kickstart');
             $bookingNote = "Direct Kickstart geboekt na {$attendedType->value}";
         } else {
             $nextMeetingType = IntroMeetingType::fromCalendarType($nextCalendarType);
@@ -181,7 +182,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
         if ($meetingType->hasUsageLimit()) {
             $noteText .= " #{$usageCount}";
         }
-        $noteText .= " bijgewoond";
+        $noteText .= " aanwezig";
         
         if ($remaining > 0 && $meetingType->hasUsageLimit()) {
             $noteText .= ". Nog {$remaining} sessie(s) beschikbaar.";
@@ -205,12 +206,12 @@ class AttendanceHandler extends AbstractOutcomeHandler
         $this->entityManager->saveEntity($lead);
 
         if ($nextStage === LeadStage::INTRO_ATTENDED) {
-            $this->followUpService->addFollowUpAction(
+            $this->followUpService->setFollowUpActionText(
                 $leadId,
                 "Opnieuw {$meetingType->value} boeken of Kickstart"
             );
         } else if ($nextStage === LeadStage::BOOK_KS) {
-            $this->followUpService->addFollowUpAction($leadId, "Kickstart boeken");
+            $this->followUpService->setFollowUpActionText($leadId, "Kickstart boeken");
         }
 
         $meeting = $this->meetingService->findPlannedMeeting($leadId);

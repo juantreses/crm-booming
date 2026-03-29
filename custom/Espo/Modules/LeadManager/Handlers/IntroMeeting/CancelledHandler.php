@@ -163,7 +163,7 @@ class CancelledHandler extends AbstractOutcomeHandler
         $lead->set('cStage', LeadStage::FOLLOW_UP->value);
         $this->entityManager->saveEntity($lead);
 
-        $this->followUpService->addFollowUpAction(
+        $this->followUpService->setFollowUpActionText(
             $lead->getId(),
             "{$meetingType->value} geannuleerd - Contact opnemen"
         );

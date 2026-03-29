@@ -91,6 +91,10 @@ readonly class LeadService
             return;
         }
 
+        if ($oldCoachId === $newCoachId) {
+            return;
+        }
+
         if ($oldCoachId && !$this->isLeadEligibleForReassignment($person)) {
             $this->logReassignmentFailure($person, $oldCoachId, $source);
             return;

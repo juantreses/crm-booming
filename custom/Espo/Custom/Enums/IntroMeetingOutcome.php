@@ -16,7 +16,7 @@ enum IntroMeetingOutcome: string
     public function getLabel(): string
     {
         return match($this) {
-            self::ATTENDED => 'Bijgewoond',
+            self::ATTENDED => 'Aanwezig',
             self::NO_SHOW => 'Niet opgedaagd',
             self::CANCELLED => 'Geannuleerd',
         };
