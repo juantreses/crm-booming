@@ -34,6 +34,19 @@ class GroupAssignmentService
         $this->setGroupsForEntity($destinationEntity, $requiredGroupIds);
     }
 
+    /**
+     * Sets assigned user from linked coach team, else from slim-fit center (same source as group fields).
+     */
+    public function syncAssignedUserFromTeamFields(Entity $entity, ?Entity $sourceEntity = null): void
+    {
+        $sourceEntity = $sourceEntity ?? $entity;
+
+        $cTeam = $this->entityManager->getRelation($sourceEntity, 'cTeam')->findOne();
+        if ($cTeam && $cTeam->get('assignedUserId')) {
+            $entity->set('assignedUserId', $cTeam->get('assignedUserId'));
+        }
+    }
+
     private function getGroupsFromFields(Entity $entity, array $fieldsToWatch): array
     {
         $requiredGroupIds = [];

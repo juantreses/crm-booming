@@ -36,6 +36,12 @@ class BeforeSaveHook implements BeforeSave
                 null,
                 $extraGroupNames
             );
+            if (
+                $contact->isNew()
+                || $contact->isAttributeChanged('cTeamId')
+            ) {
+                $this->groupAssignmentService->syncAssignedUserFromTeamFields($contact);
+            }
         } catch (\Exception $e) {
             $this->log->error('Contact Before Save Hook error: ' . $e->getMessage());
         }
