@@ -13,6 +13,21 @@ readonly class LeadMeetingService
         private BookingService $bookingService,
     ) {}
 
+    public function createInternalMeetingForLeadId(
+        string $calendarId,
+        string $leadId,
+        string $selectedDate,
+        string $selectedTime,
+        ?string $coachNote = null
+    ): void {
+        $lead = $this->entityManager->getEntityById('Lead', $leadId);
+        if (!$lead) {
+            return;
+        }
+
+        $this->createInternalMeeting($calendarId, $lead, $selectedDate, $selectedTime, $coachNote);
+    }
+
     public function createInternalMeeting(
         string $calendarId,
         Entity $lead,

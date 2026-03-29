@@ -363,7 +363,41 @@ class Event extends Base
             return false;
         }
 
+        // #region agent log
+        $agentLogPayload = [
+            'sessionId' => 'c8d6ce',
+            'timestamp' => (int) round(microtime(true) * 1000),
+            'location' => 'Event.php:updateEspoEvent:entry',
+            'message' => 'google sync event state',
+            'hypothesisId' => 'H1-H5',
+            'data' => [
+                'googleEventId' => $googleEvent->getId(),
+                'status' => $googleEvent->getStatus(),
+                'isDeleted' => $googleEvent->isDeleted(),
+                'hasRecurrence' => (bool) $googleEvent->getRecurrence(),
+                'recurringEventId' => $googleEvent->getRecurringEventId(),
+                'hasEnd' => $googleEvent->hasEnd(),
+                'endTimeUnspecified' => isset($event['endTimeUnspecified']),
+                'isPrivate' => $googleEvent->isPrivate(),
+                'eventType' => $googleEvent->getEventType(),
+                'scope' => $scope,
+            ],
+        ];
+        $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
+        // #endregion
+
         if ($googleEvent->isDeleted()) {
+            // #region agent log
+            $agentLogPayload = [
+                'sessionId' => 'c8d6ce',
+                'timestamp' => (int) round(microtime(true) * 1000),
+                'location' => 'Event.php:updateEspoEvent:cancelled',
+                'message' => 'isDeleted branch: deleteRecurrentInstancesFromEspo',
+                'hypothesisId' => 'H2',
+                'data' => ['googleEventId' => $googleEvent->getId()],
+            ];
+            $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
+            // #endregion
             $this->deleteRecurrentInstancesFromEspo($googleEvent->getId());
         }
 
@@ -378,6 +412,20 @@ class Event extends Base
         }
 
         if ($googleEvent->getRecurrence() && !$googleEvent->getRecurringEventId()) {
+            // #region agent log
+            $agentLogPayload = [
+                'sessionId' => 'c8d6ce',
+                'timestamp' => (int) round(microtime(true) * 1000),
+                'location' => 'Event.php:updateEspoEvent:recurring_master',
+                'message' => 'recurring master series branch',
+                'hypothesisId' => 'H1',
+                'data' => [
+                    'googleEventId' => $googleEvent->getId(),
+                    'willQueueInstances' => !$googleEvent->isPrivate() && $googleEvent->hasEnd(),
+                ],
+            ];
+            $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
+            // #endregion
             $this->deleteRecurrentInstancesFromEspo($googleEvent->getId());
 
             if (!$googleEvent->isPrivate() && $googleEvent->hasEnd()) {
@@ -388,6 +436,24 @@ class Event extends Base
                     $googleEvent,
                     $this->syncParams['syncEntities']
                 );
+
+                // #region agent log
+                $agentLogPayload = [
+                    'sessionId' => 'c8d6ce',
+                    'timestamp' => (int) round(microtime(true) * 1000),
+                    'location' => 'Event.php:updateEspoEvent:recurring_master_remove',
+                    'message' => 'removeEntity for each Espo row linked to master id',
+                    'hypothesisId' => 'H1',
+                    'data' => [
+                        'googleEventId' => $googleEvent->getId(),
+                        'espoCount' => count($espoEvents),
+                        'espoIds' => array_map(static function ($e) {
+                            return $e->get('id');
+                        }, $espoEvents),
+                    ],
+                ];
+                $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
+                // #endregion
 
                 foreach ($espoEvents as $espoEvent) {
                     $this->getGoogleCalendarRepository()->resetEventRelation(
@@ -440,6 +506,25 @@ class Event extends Base
                 !$googleEvent->hasEnd()
             ) {
                 if (!$eventIsNew && $this->acl->check($espoEvent->getEntityType(), 'delete')) {
+                    // #region agent log
+                    $agentLogPayload = [
+                        'sessionId' => 'c8d6ce',
+                        'timestamp' => (int) round(microtime(true) * 1000),
+                        'location' => 'Event.php:updateEspoEvent:remove_deleted_private_noend',
+                        'message' => 'removeEntity',
+                        'hypothesisId' => 'H3-H4',
+                        'data' => [
+                            'googleEventId' => $googleEvent->getId(),
+                            'espoEntityId' => $espoEvent->get('id'),
+                            'reason' => [
+                                'gCancelled' => $googleEvent->isDeleted(),
+                                'gPrivate' => $googleEvent->isPrivate(),
+                                'gNoEnd' => !$googleEvent->hasEnd(),
+                            ],
+                        ],
+                    ];
+                    $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
+                    // #endregion
                     $this->getGoogleCalendarRepository()->resetEventRelation(
                         $espoEvent->getEntityType(),
                         $espoEvent->get('id')

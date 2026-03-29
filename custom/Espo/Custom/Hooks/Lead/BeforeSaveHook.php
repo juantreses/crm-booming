@@ -23,6 +23,12 @@ class BeforeSaveHook implements BeforeSave
     {
         try {
             $this->groupAssignmentService->syncGroupsFromFields($lead, self::FIELDS_TO_WATCH);
+            if (
+                $lead->isNew()
+                || $lead->isAttributeChanged('cTeamId')
+            ) {
+                $this->groupAssignmentService->syncAssignedUserFromTeamFields($lead);
+            }
         } catch (\Exception $e) {
             $this->log->error('Lead Before Save Hook error: ' . $e->getMessage());
         }
