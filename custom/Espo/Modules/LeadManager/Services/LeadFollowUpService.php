@@ -29,6 +29,17 @@ readonly class LeadFollowUpService
         $this->entityManager->saveEntity($lead);
     }
 
+    public function setFollowUpActionText(string $leadId, string $text): void
+    {
+        $lead = $this->entityManager->getEntityById('Lead', $leadId);
+        if (!$lead) {
+            return;
+        }
+
+        $lead->set('cFollowUpAction', $text);
+        $this->entityManager->saveEntity($lead);
+    }
+
     public function clearFollowUpAction(string $leadId): void
     {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);

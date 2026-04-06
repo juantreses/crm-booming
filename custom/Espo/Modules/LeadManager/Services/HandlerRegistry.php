@@ -4,10 +4,12 @@ namespace Espo\Modules\LeadManager\Services;
 
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Custom\Enums\CallOutcome;
+use Espo\Custom\Enums\IntroMeetingOutcome;
 use Espo\Custom\Enums\KickstartOutcome;
 use Espo\Custom\Enums\MessageSentOutcome;
 use Espo\Modules\LeadManager\Handlers\OutcomeHandler;
 use Espo\Modules\LeadManager\Handlers\Call;
+use Espo\Modules\LeadManager\Handlers\IntroMeeting;
 use Espo\Modules\LeadManager\Handlers\Kickstart;
 use Espo\Modules\LeadManager\Handlers\KickstartFollowUp;
 use Espo\Modules\LeadManager\Handlers\Message;
@@ -18,6 +20,8 @@ readonly class HandlerRegistry
     private array $kickstartHandlers;
     private array $messageHandlers;
     private array $kickstartFollowUpHandlers;
+    private array $introMeetingHandlers;
+    private Kickstart\BookedHandler $kickstartBookingHandler;
 
     public function __construct(
         Call\CalledHandler $calledHandler,
@@ -27,6 +31,7 @@ readonly class HandlerRegistry
         Call\WrongNumberHandler $wrongNumberHandler,
         Call\NotInterestedHandler $callNotInterestedHandler,
         Kickstart\BecameClientHandler $becameClientHandler,
+        Kickstart\BookedHandler $kickstartBookedHandler,
         Kickstart\NoShowHandler $noShowHandler,
         Kickstart\NotConvertedHandler $notConvertedHandler,
         Kickstart\StillThinkingHandler $stillThinkingHandler,
@@ -36,6 +41,9 @@ readonly class HandlerRegistry
         Message\InvitedHandler $messageInvitedHandler,
         Message\NotInterestedHandler $messageNotInterestedHandler,
         Message\CallAgainHandler $messageCallAgainHandler,
+        IntroMeeting\AttendanceHandler $introAttendanceHandler,
+        IntroMeeting\NoShowHandler $introNoShowHandler,
+        IntroMeeting\CancelledHandler $introCancelledHandler,
     ) {
         $this->callHandlers = [
             CallOutcome::CALLED->value => $calledHandler,
@@ -53,6 +61,7 @@ readonly class HandlerRegistry
             KickstartOutcome::STILL_THINKING->value => $stillThinkingHandler,
             KickstartOutcome::CANCELLED->value => $cancelledHandler,
         ];
+        $this->kickstartBookingHandler = $kickstartBookedHandler;
 
         $this->messageHandlers = [
             MessageSentOutcome::INVITED->value => $messageInvitedHandler,
@@ -63,6 +72,12 @@ readonly class HandlerRegistry
         $this->kickstartFollowUpHandlers = [
             KickstartOutcome::BECAME_CLIENT->value => $becameClientFollowUpHandler,
             KickstartOutcome::NOT_CONVERTED->value => $notConvertedFollowUpHandler,
+        ];
+
+        $this->introMeetingHandlers = [
+            IntroMeetingOutcome::ATTENDED->value => $introAttendanceHandler,
+            IntroMeetingOutcome::NO_SHOW->value => $introNoShowHandler,
+            IntroMeetingOutcome::CANCELLED->value => $introCancelledHandler,
         ];
     }
 
@@ -84,6 +99,11 @@ readonly class HandlerRegistry
         return $this->kickstartHandlers[$outcome];
     }
 
+    public function getKickstartBookingHandler(): OutcomeHandler
+    {
+        return $this->kickstartBookingHandler;
+    }
+
     public function getKickstartFollowUpHandler(string $outcome): OutcomeHandler
     {
         if (!isset($this->kickstartFollowUpHandlers[$outcome])) {
@@ -100,5 +120,14 @@ readonly class HandlerRegistry
         }
 
         return $this->messageHandlers[$outcome];
+    }
+
+    public function getIntroMeetingHandler(string $outcome): OutcomeHandler
+    {
+        if (!isset($this->introMeetingHandlers[$outcome])) {
+            throw new BadRequest("Invalid intro meeting outcome: $outcome");
+        }
+
+        return $this->introMeetingHandlers[$outcome];
     }
 }

@@ -23,7 +23,7 @@ class InvitedHandler extends AbstractOutcomeHandler
 
     public function getEventTypes(): array
     {
-        return [LeadEventType::INVITED];
+        return [LeadEventType::BOOK_INTRO];
     }
 
     public function handle(string $leadId, array $context): OutcomeResult

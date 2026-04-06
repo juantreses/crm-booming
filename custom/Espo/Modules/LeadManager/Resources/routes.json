@@ -47,5 +47,21 @@
           "controller": "LeadEventApi",
           "action": "logKickstartFollowUp"
       }
+    },
+    {
+      "route": "/leadEvent/logIntroMeeting",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "logIntroMeeting"
+      }
+    },
+    {
+      "route": "/leadEvent/bookKickstart",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "bookKickstart"
+      }
     }
 ]

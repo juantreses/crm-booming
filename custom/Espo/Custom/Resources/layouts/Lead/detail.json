@@ -6,7 +6,15 @@
                     "name": "status"
                 },
                 {
-                    "name": "cReferredBy"
+                    "name": "cStage"
+                }
+            ],
+            [
+                {
+                    "name": "cReasonLost"
+                },
+                {
+                    "name": "cMeetingType"
                 }
             ],
             [
@@ -39,6 +47,14 @@
                 },
                 {
                     "name": "cNotes"
+                }
+            ],
+            [
+                {
+                    "name": "cSparksUsed"
+                },
+                {
+                    "name": "cReferredBy"
                 }
             ]
         ],

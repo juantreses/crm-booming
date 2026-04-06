@@ -5,6 +5,7 @@ namespace Espo\Modules\LeadManager\Services;
 use Espo\ORM\EntityManager;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Modules\LeadManager\ValueObjects\CallOutcomeData;
+use Espo\Modules\LeadManager\ValueObjects\IntroMeetingOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\KickstartFollowUpOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\KickstartOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\MessageOutcomeData;
@@ -34,6 +35,8 @@ readonly class LeadEventService
         $this->callCountService->increment($callData->leadId);
 
         $handler = $this->handlerRegistry->getCallHandler($callData->outcome->value);
+
+        $GLOBALS['log']->info('Handler: ' . get_class($handler));
         
         $context = [
             'eventDate' => $callData->callDateTime,
@@ -83,6 +86,50 @@ readonly class LeadEventService
         
         $result = $handler->handle($kickstartFollowUpData->leadId, $context);
         
+        return $result->toArray();
+    }
+
+    public function bookKickstart(\StdClass $data): array
+    {
+        $leadId = (string) $data->id;
+
+        $handler = $this->handlerRegistry->getKickstartBookingHandler();
+
+        $context = [
+            'eventDate' => $data->eventDate ?? null,
+            'coachNote' => $data->coachNote ?? null,
+            'calendarId' => $data->calendarId ?? null,
+            'selectedDate' => $data->selectedDate ?? null,
+            'selectedTime' => $data->selectedTime ?? null,
+        ];
+
+        $result = $handler->handle($leadId, $context);
+
+        return $result->toArray();
+    }
+
+    public function logIntroMeeting(\StdClass $data): array
+    {
+        $introData = IntroMeetingOutcomeData::fromStdClass($data);
+
+        $handler = $this->handlerRegistry->getIntroMeetingHandler($introData->outcome->value);
+
+        $context = [
+            'eventDate' => $introData->introDateTime,
+            'callAgainDateTime' => $introData->callAgainDateTime,
+            'coachNote' => $introData->coachNote,
+            'cancellationAction' => $introData->cancellationAction,
+            'calendarId' => $introData->calendarId,
+            'selectedDate' => $introData->selectedDate,
+            'selectedTime' => $introData->selectedTime,
+        ];
+
+        if (!empty($introData->nextBooking)) {
+            $context['nextBooking'] = $introData->nextBooking;
+        }
+
+        $result = $handler->handle($introData->leadId, $context);
+
         return $result->toArray();
     }
 

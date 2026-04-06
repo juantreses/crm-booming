@@ -94,7 +94,8 @@
             },
             "default": "21_day_base",
             "maxLength": 100,
-            "isCustom": true
+            "isCustom": true,
+            "optionsReference": "Contact.cTypeKlant"
         }
     },
     "links": {

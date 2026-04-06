@@ -61,6 +61,27 @@
                     }
                 ]
             }
+        },
+        "cReasonLost": {
+            "visible": {
+                "conditionGroup": [
+                    {
+                        "type": "equals",
+                        "attribute": "status",
+                        "value": "Dead"
+                    }
+                ]
+            }
+        },
+        "cMeetingType": {
+            "visible": {
+                "conditionGroup": [
+                    {
+                        "type": "isNotEmpty",
+                        "attribute": "cMeetingType"
+                    }
+                ]
+            }
         }
     }
 }

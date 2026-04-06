@@ -19,8 +19,11 @@ define(['action-handler'], (Dep) => {
 			});
 		}     
 
-        isLogMessageOutcomeVisible() {        
-            return ['message_sent'].includes(this.view.model.attributes.status);
+        isLogMessageOutcomeVisible() {
+			const status = this.view.model.get('status');
+            const stage = this.view.model.get('cStage');
+
+            return status === 'Assigned' && ['message_sent'].includes(stage);      
         }
     }
 });

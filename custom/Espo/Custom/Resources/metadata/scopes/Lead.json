@@ -1,7 +1,7 @@
 {
     "stream": true,
     "disabled": false,
-    "statusField": "status",
+    "statusField": "cStage",
     "kanbanStatusIgnoreList": null,
     "stars": false,
     "preserveAuditLog": false,

@@ -20,7 +20,10 @@ define(['action-handler'], (Dep) => {
 		}     
 
         isLogKickstartFollowUpVisible() {        
-            return ['still_thinking'].includes(this.view.model.attributes.status);
+            const status = this.view.model.get('status');
+            const stage = this.view.model.get('cStage');
+
+            return status === 'Assigned' && ['ks_doubt'].includes(stage);   
         }
     }
 });

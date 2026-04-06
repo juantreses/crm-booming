@@ -4,61 +4,39 @@ namespace Espo\Custom\Enums;
 
 enum LeadEventType: string
 {
-    case ASSIGNED = 'assigned';
-
-    //Call events
+    // Call events
     case CALLED = 'called';
-    case INVITED = 'invited';
     case CALL_AGAIN = 'call_again';
     case NO_ANSWER = 'no_answer';
     case WRONG_NUMBER = 'wrong_number';
     case NOT_INTERESTED = 'not_interested';
-
-    //MESSAGE events
+    
+    // Message events
     case MESSAGE_TO_BE_SENT = 'message_to_be_sent';
     case MESSAGE_SENT = 'message_sent';
-
-    //Appointment events
-    case APPOINTMENT_BOOKED = 'appointment_booked';
+    case LOG_MESSAGE_OUTCOME = 'log_message_outcome';
+    
+    // Intro events
+    case BOOK_INTRO = 'book_intro';
+    case ATTEND_INTRO = 'attend_intro';
+    case INTRO_NO_SHOW = 'intro_no_show';
+    case INTRO_CANCELLED = 'intro_cancelled';
+    
+    // Kickstart events
+    case LOG_KICKSTART = 'log_kickstart';
+    case LOG_KICKSTART_FOLLOW_UP = 'log_kickstart_follow_up';
+    case KICKSTART_NO_SHOW = 'kickstart_no_show';
+    case KICKSTART_BOOKED = 'kickstart_booked';
+    case KICKSTART_CANCELLED = 'kickstart_cancelled';
+    case STILL_THINKING = 'still_thinking';
     case ATTENDED = 'attended';
     case NO_SHOW = 'no_show';
+    
+    // Assignment
+    case ASSIGNED = 'assigned';
+    
+    // Outcome events
     case BECAME_CLIENT = 'became_client';
-    case NOT_CONVERTED = 'not_converted';
-    case STILL_THINKING = 'still_thinking';
-    case APPOINTMENT_CANCELLED = 'appointment_cancelled';
-
-    //Coach events
     case BECAME_COACH = 'became_coach';
-
-    public function getLabel(): string
-    {
-        return match ($this) {
-            self::ASSIGNED => 'Assigned',
-            //Call events
-            self::CALLED => 'Called',
-            self::INVITED => 'Invited',
-            self::CALL_AGAIN => 'Call Again',
-            self::NO_ANSWER => 'No Answer',
-            self::WRONG_NUMBER => 'Wrong Number',
-            self::NOT_INTERESTED => 'Not Interested',
-            //Message events
-            self::MESSAGE_TO_BE_SENT => 'Message To Be Sent',
-            self::MESSAGE_SENT => 'Message Sent',
-            //Appointment events
-            self::APPOINTMENT_BOOKED => 'Appointment Booked',
-            self::ATTENDED => 'Attended',
-            self::NO_SHOW => 'No Show',
-            self::BECAME_CLIENT => 'Became Client',
-            self::NOT_CONVERTED => 'Not Converted',
-            self::STILL_THINKING => 'Still thinking',
-            self::APPOINTMENT_CANCELLED => 'Appointment Cancelled',
-            //Coach events
-            self::BECAME_COACH => 'Became Coach',
-        };
-    }
-
-    public static function isValid(string $eventType): bool
-    {
-        return (bool) self::tryFrom($eventType);
-    }
-} 
+    case NOT_CONVERTED = 'not_converted';
+}
