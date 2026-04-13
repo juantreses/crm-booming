@@ -7,6 +7,8 @@ namespace Espo\Modules\Vanko\Services;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Utils\Log;
+use Espo\Custom\Enums\LeadStage;
+use Espo\Custom\Enums\LeadStatus;
 use Espo\Modules\Crm\Entities\Lead;
 use Espo\Modules\Vanko\Services\LeadDataValidator;
 use Espo\Modules\Vanko\Services\LeadFactory;
@@ -26,7 +28,6 @@ class LeadService
     private const COACH_FIELD = 'CC_SlimFitCenter_Coach';
     private const CENTER_FIELD = 'CC_SlimFitCenter';
     private const CAMPAIGN_FIELD = 'CC_SlimFitCenter_Campagne_Type';
-    private const DEFAULT_LEAD_STATUS = 'assigned';
 
     public function __construct(
         private readonly EntityManager $entityManager,
@@ -91,7 +92,10 @@ class LeadService
         $this->campaignAssigner->assignCampaignByName($lead, $campaignName);
 
         if ($teamWasAssigned) {
-            $lead->set('status', self::DEFAULT_LEAD_STATUS);
+            $lead->set('status', LeadStatus::ASSIGNED->value);
+            if (!$lead->get('cStage')) {
+                $lead->set('cStage', LeadStage::TO_CALL->value);
+            }
         }
     }
 

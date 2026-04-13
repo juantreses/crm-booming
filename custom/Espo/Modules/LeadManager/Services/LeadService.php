@@ -4,6 +4,8 @@ namespace Espo\Modules\LeadManager\Services;
 
 use DateTime;
 use Espo\Custom\Enums\LeadEventType;
+use Espo\Custom\Enums\LeadStage;
+use Espo\Custom\Enums\LeadStatus;
 use Espo\Modules\Crm\Entities\Contact;
 use Espo\Modules\Crm\Entities\Lead;
 use Espo\Modules\Utils\SlugService;
@@ -138,7 +140,10 @@ readonly class LeadService
             
         if ($team) {
             $person->set('cTeamId', $team->getId());
-            $person->set('status', LeadEventType::ASSIGNED->value);
+            $person->set('status', LeadStatus::ASSIGNED->value);
+            if (!$person->get('cStage')) {
+                $person->set('cStage', LeadStage::TO_CALL->value);
+            }
 
             if ($sfcId = $team->get('slimFitCenterId')) {
                 $person->set('cSlimFitCenterId', $sfcId);

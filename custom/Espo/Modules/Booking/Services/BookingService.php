@@ -6,6 +6,9 @@ use DateTime;
 use DateTimeZone;
 use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\NotFound;
+use Espo\Custom\Enums\IntroMeetingType;
+use Espo\Custom\Enums\LeadStage;
+use Espo\Custom\Enums\LeadStatus;
 use Espo\Modules\Calendar\Services\CalendarService;
 use Espo\Modules\LeadManager\Services\LeadService;
 use Espo\Modules\Utils\SlugService;
@@ -36,6 +39,7 @@ readonly class BookingService
 
         $dateStartString = $data['date'] . ' ' . $data['time'] .':00';
         $meeting = $this->createMeeting($calendar, $person, $dateStartString, $targetSlot, $data['note']);
+        $this->applyLeadStatusForBooking($person, (string) $calendar->get('type'));
 
         return ['success' => true, 'id' => $meeting->get('id')];
     }
@@ -123,4 +127,26 @@ readonly class BookingService
         return $meeting;
     }
 
+    private function applyLeadStatusForBooking(Entity $person, string $calendarType): void
+    {
+        if ($person->getEntityType() !== 'Lead') {
+            return;
+        }
+
+        $meetingType = IntroMeetingType::fromCalendarType($calendarType);
+
+        $updates = [
+            'status' => LeadStatus::ASSIGNED->value,
+        ];
+
+        if ($meetingType) {
+            $updates['cStage'] = LeadStage::INTRO_SCHEDULED->value;
+            $updates['cMeetingType'] = $meetingType->value;
+        } elseif (!$person->get('cStage')) {
+            $updates['cStage'] = LeadStage::TO_CALL->value;
+        }
+
+        $person->set($updates);
+        $this->entityManager->saveEntity($person);
+    }
 }
