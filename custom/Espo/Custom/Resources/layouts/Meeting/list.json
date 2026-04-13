@@ -4,10 +4,6 @@
         "link": true
     },
     {
-        "name": "parent",
-        "width": 22
-    },
-    {
         "name": "status",
         "width": 15
     },

@@ -1,8 +1,0 @@
-{
-    "accessControlFilterClassNameMap": {
-        "mandatory": "Espo\\Classes\\Select\\Template\\AccessControlFilters\\Mandatory"
-    },
-    "primaryFilterClassNameMap": {
-        "active": "Espo\\Classes\\Select\\Template\\PrimaryFilters\\Active"
-    }
-}

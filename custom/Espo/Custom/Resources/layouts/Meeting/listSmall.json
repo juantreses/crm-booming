@@ -1,6 +1,7 @@
 [
     {
         "name": "name",
+	"link": true,
         "width": 20
     },
     {
@@ -10,10 +11,5 @@
     {
         "name": "dateStart",
         "width": 25
-    },
-    {
-        "name": "teams",
-        "width": 20,
-        "notSortable": true
     }
 ]

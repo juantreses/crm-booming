@@ -74,14 +74,7 @@
             }
         },
         "cMeetingType": {
-            "visible": {
-                "conditionGroup": [
-                    {
-                        "type": "isNotEmpty",
-                        "attribute": "cMeetingType"
-                    }
-                ]
-            }
+            "visible": null
         }
     }
 }

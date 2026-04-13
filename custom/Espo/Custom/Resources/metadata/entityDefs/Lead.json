@@ -133,8 +133,6 @@
                 "message_sent",
                 "intro_scheduled",
                 "intro_attended",
-                "book_spark",
-                "spark_planned",
                 "book_ks",
                 "ks_planned",
                 "ks_doubt"
@@ -146,15 +144,13 @@
                 "message_sent": null,
                 "intro_scheduled": null,
                 "intro_attended": null,
-                "book_spark": null,
-                "spark_planned": null,
                 "book_ks": null,
                 "ks_planned": null,
                 "ks_doubt": null
             },
             "default": "to_call",
             "labelType": "state",
-            "inlineEditDisabled": true,
+            "inlineEditDisabled": false,
             "maxLength": 100,
             "isCustom": true
         },

@@ -1,1 +1,0 @@
-<p>Vous pouvez modifier votre mot de passe en suivant ce lien <a href="{{link}}">{{link}}</a>. Cette URL unique expirera bientôt.</p>
