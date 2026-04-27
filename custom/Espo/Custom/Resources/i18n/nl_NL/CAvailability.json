@@ -10,6 +10,7 @@
         "date": "Datum",
         "calendar": "Kalender",
         "location": "Locatie",
+        "publicSlug": "Publieke slug",
         "cTeams": "Gebruiker"
     },
     "options": {

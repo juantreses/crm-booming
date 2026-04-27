@@ -60,27 +60,46 @@ readonly class CalendarLinkBuilder
             $calendarIdentifier = $calendar->get('slug') ?: $calendar->get('id');
             $calendarName = $calendar->get('name');
             $calendarId = $calendar->get('id');
+            $baseCalendarUrl = "{$baseWidgetUrl}&type=calendar&id={$calendarIdentifier}{$coachParam}";
+            $locationStructure = $this->calendarRepository->getPublicLinkStructureForCalendar($calendarId, $teamId);
+            $locationCount = count(array_filter($locationStructure, fn(array $row) => !empty($row['id'])));
+            $hasVariants = count(array_filter(
+                $locationStructure,
+                fn(array $row) => count($row['variants']) > 0
+            )) > 0;
 
-            $locations = $this->calendarRepository->getLocationsForCalendar($calendarId, $teamId);
-
-            if (count($locations) < 2) {
+            if ($locationCount < 2 && !$hasVariants) {
                 $links[] = new CalendarLink(
                     label: $calendarName,
-                    url: "{$baseWidgetUrl}&type=calendar&id={$calendarIdentifier}{$coachParam}",
+                    url: $baseCalendarUrl,
                 );
             } else {
                 $links[] = new CalendarLink(
                     label: $calendarName,
-                    url: "{$baseWidgetUrl}&type=calendar&id={$calendarIdentifier}{$coachParam}",
-                    subtext: 'Alle locaties'
+                    url: $baseCalendarUrl,
+                    subtext: $locationCount > 1 ? 'Alle locaties' : 'Alle sessies'
                 );
 
-                foreach ($locations as $location) {
-                    $links[] = new CalendarLink(
-                        label: "{$calendarName} - {$location['name']}",
-                        url: "{$baseWidgetUrl}&type=calendar&id={$calendarIdentifier}{$coachParam}&location={$location['slug']}",
-                        isLocation: true
-                    );
+                foreach ($locationStructure as $location) {
+                    $locationUrl = $baseCalendarUrl;
+
+                    if (!empty($location['slug'])) {
+                        $locationUrl .= "&location={$location['slug']}";
+
+                        $links[] = new CalendarLink(
+                            label: "{$calendarName} - {$location['name']}",
+                            url: $locationUrl,
+                            isLocation: true
+                        );
+                    }
+
+                    foreach ($location['variants'] as $variant) {
+                        $links[] = new CalendarLink(
+                            label: $variant['label'],
+                            url: "{$locationUrl}&variant={$variant['slug']}",
+                            isVariant: true
+                        );
+                    }
                 }
             }
         }

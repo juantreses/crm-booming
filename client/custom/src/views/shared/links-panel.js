@@ -45,12 +45,16 @@ define('custom:views/shared/links-panel', ['views/base'], (Dep) => {
                                     <strong>Kalenders</strong>
                                 </div>
                                 {{#each calendarLinks}}
-                                <div class="list-group-item" style="display: flex; justify-content: space-between; align-items: center; {{#if isLocation}}padding-left: 25px; font-size: 0.9em;{{/if}}">
+                                <div class="list-group-item" style="display: flex; justify-content: space-between; align-items: center; {{#if isLocation}}padding-left: 25px; font-size: 0.9em;{{/if}}{{#if isVariant}}padding-left: 45px; font-size: 0.88em;{{/if}}">
                                     <div>
-                                        {{#if isLocation}}
-                                            <i class="fas fa-map-marker-alt text-muted"></i>
+                                        {{#if isVariant}}
+                                            <i class="fas fa-tag text-muted"></i>
                                         {{else}}
-                                            <i class="fas fa-calendar-alt"></i>
+                                            {{#if isLocation}}
+                                                <i class="fas fa-map-marker-alt text-muted"></i>
+                                            {{else}}
+                                                <i class="fas fa-calendar-alt"></i>
+                                            {{/if}}
                                         {{/if}} 
                                         &nbsp; {{label}}
                                         {{#if subtext}}<br><small class="text-muted">{{subtext}}</small>{{/if}}

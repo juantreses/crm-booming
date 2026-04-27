@@ -1,27 +1,35 @@
 [
     {
-        "name": "calendar",
+        "name": "name",
         "width": 16
     },
     {
+        "name": "calendar",
+        "width": 14
+    },
+    {
         "name": "daysOfWeek",
-        "width": 16,
+        "width": 14,
         "notSortable": true
     },
     {
         "name": "date",
-        "width": 16
+        "width": 14
     },
     {
         "name": "startTime",
-        "width": 16
+        "width": 14
     },
     {
         "name": "endTime",
-        "width": 16
+        "width": 14
     },
     {
         "name": "location",
-        "width": 16
+        "width": 14
+    },
+    {
+        "name": "publicSlug",
+        "width": 14
     }
 ]

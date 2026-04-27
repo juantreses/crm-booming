@@ -47,7 +47,8 @@ readonly class CalendarRepository
         string $calendarId,
         string $dateString,
         ?string $locationId = null,
-        ?string $teamId = null
+        ?string $teamId = null,
+        ?string $publicSlug = null
     ): SthCollection|EntityCollection {
         $dayNum = (string) date('w', strtotime($dateString));
 
@@ -69,6 +70,10 @@ readonly class CalendarRepository
 
         if ($locationId) {
             $criteria['locationId'] = $locationId;
+        }
+
+        if ($publicSlug) {
+            $criteria['publicSlug'] = $publicSlug;
         }
 
         $repo = $this->entityManager->getRDBRepository('CAvailability');
@@ -383,5 +388,141 @@ readonly class CalendarRepository
         }
 
         return $result;
+    }
+
+    /**
+     * Get public location/variant structure for a calendar and optional team.
+     */
+    public function getPublicLinkStructureForCalendar(string $calendarId, ?string $teamId = null): array
+    {
+        $where = [
+            'calendarId' => $calendarId,
+            'deleted' => 0
+        ];
+
+        if ($teamId) {
+            $where['OR'] = [
+                ['teamJoin.id' => $teamId],
+                ['teamJoin.id' => null]
+            ];
+        }
+
+        $availabilities = $this->entityManager
+            ->getRDBRepository('CAvailability')
+            ->leftJoin('cTeams', 'teamJoin')
+            ->where($where)
+            ->distinct()
+            ->find();
+
+        $locationRows = [];
+        $variantBuckets = [];
+
+        foreach ($availabilities as $availability) {
+            $locationKey = $availability->get('locationId') ?: '__none__';
+
+            if (!isset($locationRows[$locationKey])) {
+                $locationRows[$locationKey] = [
+                    'id' => $availability->get('locationId'),
+                    'name' => null,
+                    'slug' => null,
+                    'variants' => [],
+                ];
+            }
+
+            $publicSlug = trim((string) ($availability->get('publicSlug') ?? ''));
+            if ($publicSlug === '') {
+                continue;
+            }
+
+            $variantKey = $locationKey . '::' . $publicSlug;
+            if (!isset($variantBuckets[$variantKey])) {
+                $variantBuckets[$variantKey] = [
+                    'locationKey' => $locationKey,
+                    'slug' => $publicSlug,
+                    'label' => $availability->get('name') ?: $publicSlug,
+                    'description' => $availability->get('description') ?: null,
+                ];
+            }
+
+            if (!$variantBuckets[$variantKey]['description'] && $availability->get('description')) {
+                $variantBuckets[$variantKey]['description'] = $availability->get('description');
+            }
+        }
+
+        $locationIds = array_values(array_filter(array_map(
+            static fn(array $row) => $row['id'],
+            $locationRows
+        )));
+
+        if (!empty($locationIds)) {
+            $locations = $this->entityManager
+                ->getRDBRepository('CLocation')
+                ->where(['id' => array_unique($locationIds)])
+                ->order('name')
+                ->find();
+
+            foreach ($locations as $location) {
+                $locationRows[$location->getId()]['name'] = $location->get('name');
+                $locationRows[$location->getId()]['slug'] = $location->get('slug') ?: $location->getId();
+            }
+        }
+
+        foreach ($variantBuckets as $variant) {
+            $locationRows[$variant['locationKey']]['variants'][] = [
+                'slug' => $variant['slug'],
+                'label' => $variant['label'],
+                'description' => $variant['description'],
+            ];
+        }
+
+        $result = array_values($locationRows);
+
+        usort($result, static function (array $a, array $b): int {
+            return strcmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? ''));
+        });
+
+        foreach ($result as &$row) {
+            usort($row['variants'], static function (array $a, array $b): int {
+                return strcmp($a['label'], $b['label']);
+            });
+        }
+
+        return $result;
+    }
+
+    /**
+     * Find a public variant configuration for calendar/team filters.
+     */
+    public function findPublicVariant(
+        string $calendarId,
+        string $publicSlug,
+        ?string $locationId = null,
+        ?string $teamId = null
+    ): ?Entity {
+        $where = [
+            'calendarId' => $calendarId,
+            'publicSlug' => $publicSlug,
+            'deleted' => 0,
+        ];
+
+        if ($locationId) {
+            $where['locationId'] = $locationId;
+        }
+
+        $query = $this->entityManager
+            ->getRDBRepository('CAvailability')
+            ->leftJoin('cTeams', 'teamJoin')
+            ->where($where);
+
+        if ($teamId) {
+            $query = $query->where([
+                'OR' => [
+                    ['teamJoin.id' => $teamId],
+                    ['teamJoin.id' => null]
+                ]
+            ]);
+        }
+
+        return $query->findOne();
     }
 }

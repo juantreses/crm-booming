@@ -23,6 +23,19 @@
                 {
                     "name": "endTime"
                 }
+            ],
+            [
+                {
+                    "name": "description"
+                }
+            ],
+            [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "publicSlug"
+                }
             ]
         ],
         "style": "default",

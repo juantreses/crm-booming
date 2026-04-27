@@ -9,6 +9,11 @@
         "description": {
             "type": "text"
         },
+        "publicSlug": {
+            "type": "varchar",
+            "maxLength": 100,
+            "isCustom": true
+        },
         "createdAt": {
             "type": "datetime",
             "readOnly": true

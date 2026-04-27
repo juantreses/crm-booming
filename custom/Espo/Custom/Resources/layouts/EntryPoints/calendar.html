@@ -49,7 +49,7 @@
             </div>
 
             <h2 class="text-gray-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-2">Spark Center Booming</h2>
-            <h1 class="text-2xl font-black text-gray-900 leading-tight mb-8">{{ settings.name }}</h1>
+            <h1 class="text-2xl font-black text-gray-900 leading-tight mb-8">{{ displayVariantName }}</h1>
 
             <div class="space-y-6">
                 <div class="flex items-start gap-4">
@@ -110,7 +110,7 @@
             </div>
 
             <div class="mt-10 text-[14px] text-gray-500 description-text border-t pt-8">
-                {{ settings.description }}
+                {{ displayVariantDescription }}
             </div>
         </div>
 
@@ -258,7 +258,7 @@
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-500">Sessie:</span>
-                            <span class="font-bold text-gray-800">{{ settings.name }}</span>
+                            <span class="font-bold text-gray-800">{{ selectedSlotVariantName }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-500">Datum:</span>
@@ -292,6 +292,7 @@
                     const calendarId = urlParams.get('id');
                     const locationId = urlParams.get('location');
                     const coachId = urlParams.get('coach');
+                    const variantId = urlParams.get('variant');
                     const step = ref(1);
                     const settings = ref({});
                     const slots = ref([]);
@@ -301,6 +302,7 @@
                     const booking = ref(false);
                     const errorMessage = ref('');
                     const hoveredSlot = ref(null);
+                    const selectedSlot = ref(null);
                     const form = ref({ firstName: '', lastName: '', email: '', phone: '', note: '' });
                     const currentAvailability = ref([]);
 
@@ -320,7 +322,10 @@
                             let uri = `/api/v1/calendar/${calendarId}/availability?year=${year}&month=${month}&coach=${coachId}`;
                             if (locationId) {
                                 uri += `&location=${locationId}`
-                            };
+                            }
+                            if (variantId) {
+                                uri += `&variant=${variantId}`;
+                            }
                             const res = await fetch(uri);
                             return await res.json();
                         } catch (e) {
@@ -373,7 +378,14 @@
                     };
 
                     const fetchSettings = async () => {
-                        const res = await fetch(`/api/v1/calendar/${calendarId}/settings`);
+                        let settingsUri = `/api/v1/calendar/${calendarId}/settings?coach=${coachId}`;
+                        if (locationId) {
+                            settingsUri += `&location=${locationId}`;
+                        }
+                        if (variantId) {
+                            settingsUri += `&variant=${variantId}`;
+                        }
+                        const res = await fetch(settingsUri);
                         settings.value = await res.json();
                     };
 
@@ -384,14 +396,19 @@
                             if (locationId) {
                                 slotsUri += `&location=${locationId}`;
                             }
+                            if (variantId) {
+                                slotsUri += `&variant=${variantId}`;
+                            }
                             const res = await fetch(slotsUri);
                             slots.value = await res.json();
+                            selectedSlot.value = null;
                         } finally {
                             loading.value = false;
                         }
                     };
 
                     const confirmSlot = (slot) => {
+                        selectedSlot.value = slot;
                         selectedTime.value = slot.start;
                         step.value = 2;
                     };
@@ -477,7 +494,7 @@
                     };
 
                     const displayLocation = computed(() => {
-                        const target = hoveredSlot.value || (slots.value.length > 0 ? slots.value[0] : null);
+                        const target = hoveredSlot.value || selectedSlot.value || (slots.value.length > 0 ? slots.value[0] : null);
 
                         if (target && target.locationName) {
                             return {
@@ -489,12 +506,45 @@
                         return null;
                     });
 
+                    const displayVariant = computed(() => {
+                        const target = hoveredSlot.value || selectedSlot.value || (slots.value.length > 0 ? slots.value[0] : null);
+
+                        if (target && (target.variantName || target.variantDescription)) {
+                            return {
+                                name: target.variantName || settings.value.name,
+                                description: target.variantDescription || settings.value.description
+                            };
+                        }
+
+                        return null;
+                    });
+
+                    const displayVariantName = computed(() => {
+                        return displayVariant.value?.name || settings.value.name || '';
+                    });
+
+                    const displayVariantDescription = computed(() => {
+                        return displayVariant.value?.description || settings.value.description || '';
+                    });
+
+                    const selectedSlotVariantName = computed(() => {
+                        return selectedSlot.value?.variantName || settings.value.name || '';
+                    });
+
                     onMounted(async () => {
                         const now = new Date();
                         const currentYear = now.getFullYear();
                         const currentMonth = now.getMonth() + 1;
 
-                        const settingsPromise = fetch(`/api/v1/calendar/${calendarId}/settings`).then(r => r.json());
+                        let settingsUri = `/api/v1/calendar/${calendarId}/settings?coach=${coachId}`;
+                        if (locationId) {
+                            settingsUri += `&location=${locationId}`;
+                        }
+                        if (variantId) {
+                            settingsUri += `&variant=${variantId}`;
+                        }
+
+                        const settingsPromise = fetch(settingsUri).then(r => r.json());
                         const availabilityPromise = fetchAvailabilityData(currentYear, currentMonth);
 
                         const [settingsData, availabilityData] = await Promise.all([
@@ -527,6 +577,7 @@
                     return {
                         step,
                         settings,
+                        variantId,
                         slots,
                         selectedDate,
                         formattedDate,
@@ -536,6 +587,9 @@
                         errorMessage,
                         form,
                         displayLocation,
+                        displayVariantName,
+                        displayVariantDescription,
+                        selectedSlotVariantName,
                         hoveredSlot,
                         confirmSlot,
                         searchNext,

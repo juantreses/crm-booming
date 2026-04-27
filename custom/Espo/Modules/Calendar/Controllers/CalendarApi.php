@@ -23,12 +23,15 @@ readonly class CalendarApi
     {
         try {
             $id = $request->getRouteParam('id');
+            $location = $request->getQueryParam('location');
+            $coach = $request->getQueryParam('coach');
+            $variant = $request->getQueryParam('variant');
 
             if (!$id) {
                 throw new BadRequest("Missing required parameter: id");
             }
 
-            return $this->calendarService->getSettings($id);
+            return $this->calendarService->getSettings($id, $location, $coach, $variant);
 
         } catch (BadRequest $e) {
             http_response_code(400);
@@ -70,12 +73,14 @@ readonly class CalendarApi
             $date = $request->getQueryParam('date') ?? date('Y-m-d');
             $location = $request->getQueryParam('location');
             $coach = $request->getQueryParam('coach');
+            $variant = $request->getQueryParam('variant');
 
             return $this->calendarService->getAvailableSlots(
                 $id,
                 $date,
                 $location,
-                $coach
+                $coach,
+                $variant
             );
 
         } catch (BadRequest $e) {
@@ -119,13 +124,15 @@ readonly class CalendarApi
             $month = $request->getQueryParam('month') ?? date('m');
             $location = $request->getQueryParam('location');
             $coach = $request->getQueryParam('coach');
+            $variant = $request->getQueryParam('variant');
 
             return $this->calendarService->getMonthAvailability(
                 $id,
                 (int)$year,
                 (int)$month,
                 $location,
-                $coach
+                $coach,
+                $variant
             );
 
         } catch (BadRequest $e) {

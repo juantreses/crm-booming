@@ -30,7 +30,8 @@ readonly class CalendarService
         string $identifier, 
         string $dateString, 
         ?string $locationIdentifier = null,
-        ?string $coachIdentifier = null
+        ?string $coachIdentifier = null,
+        ?string $variantIdentifier = null
     ): array {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         if (!$calendarId) {
@@ -45,7 +46,8 @@ readonly class CalendarService
             $calendar->getId(),
             $dateString,
             $locationId,
-            $teamId
+            $teamId,
+            $variantIdentifier
         );
         
         if (!$availabilities || (is_countable($availabilities) && count($availabilities) === 0)) {
@@ -149,7 +151,8 @@ readonly class CalendarService
         int $year, 
         int $month, 
         ?string $locationIdentifier = null,
-        ?string $coachIdentifier = null
+        ?string $coachIdentifier = null,
+        ?string $variantIdentifier = null
     ): array {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         if (!$calendarId) {
@@ -175,7 +178,8 @@ readonly class CalendarService
                 $calendarId,
                 $dateString,
                 $this->slugService->resolve('CLocation', $locationIdentifier),
-                $coachIdentifier
+                $coachIdentifier,
+                $variantIdentifier
             );
 
             foreach ($slots as $slot) {
@@ -195,7 +199,12 @@ readonly class CalendarService
      * @throws BadRequest
      * @throws NotFound
      */
-    public function getSettings(string $identifier): array
+    public function getSettings(
+        string $identifier,
+        ?string $locationIdentifier = null,
+        ?string $coachIdentifier = null,
+        ?string $variantIdentifier = null
+    ): array
     {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         if (!$calendarId) {
@@ -203,10 +212,12 @@ readonly class CalendarService
         }
 
         $calendar = $this->getValidatedCalendar($calendarId);
+        $name = $calendar->get('name');
+        $description = $calendar->get('description');
 
         return [
-            'name' => $calendar->get('name'),
-            'description' => $calendar->get('description'),
+            'name' => $name,
+            'description' => $description,
             'duration' => $calendar->get('duration'),
             'maxBookingRange' => $calendar->get('maxBookingRange') ?? 30,
         ];
@@ -368,6 +379,12 @@ readonly class CalendarService
                     $slot['locationAddressState'] = $locationData['addressState'];
                     $slot['locationAddressCountry'] = $locationData['addressCountry'];
                     $slot['locationAddressPostalCode'] = $locationData['addressPostalCode'];
+                }
+
+                if ($availability->get('publicSlug')) {
+                    $slot['variantSlug'] = $availability->get('publicSlug');
+                    $slot['variantName'] = $availability->get('name');
+                    $slot['variantDescription'] = $availability->get('description');
                 }
 
                 $slots[] = $slot;

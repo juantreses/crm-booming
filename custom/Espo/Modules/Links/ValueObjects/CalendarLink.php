@@ -9,6 +9,7 @@ readonly class CalendarLink
         public string $url,
         public ?string $subtext = null,
         public bool $isLocation = false,
+        public bool $isVariant = false,
     ) {}
 
     public function toArray(): array
@@ -18,6 +19,7 @@ readonly class CalendarLink
             'url' => $this->url,
             'subtext' => $this->subtext,
             'isLocation' => $this->isLocation,
+            'isVariant' => $this->isVariant,
         ], fn($value) => $value !== null && $value !== false);
     }
 }
