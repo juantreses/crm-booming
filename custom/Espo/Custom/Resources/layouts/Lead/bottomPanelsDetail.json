@@ -5,9 +5,6 @@
     "history": {
         "disabled": true
     },
-    "stream": {
-        "disabled": true
-    },
     "_delimiter_": {
         "disabled": true
     },
@@ -26,5 +23,8 @@
     },
     "cLeadEvents": {
         "index": 3
+    },
+    "stream": {
+        "index": 4
     }
 }
