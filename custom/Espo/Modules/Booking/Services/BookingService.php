@@ -33,7 +33,7 @@ readonly class BookingService
         $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
 
-        $targetSlot = $this->findSlot($calendarId, $data['date'], $data['time']);
+        $targetSlot = $this->findSlot($calendarId, $data['date'], $data['time'], $data['availabilityId'] ?? null);
 
         $person = $this->leadService->findOrCreate($data);
 
@@ -66,12 +66,13 @@ readonly class BookingService
     /**
      * @throws Conflict
      */
-    private function findSlot(string $calendarId, string $date, string $time): array
+    private function findSlot(string $calendarId, string $date, string $time, ?string $availabilityId = null): array
     {
         $slots = $this->calendarService->getAvailableSlots($calendarId, $date);
         $isStillAvailable = false;
         foreach ($slots as $slot) {
-            if ($slot['start'] === $time && $slot['isBookable']) {
+            $matchesAvailability = !$availabilityId || (($slot['availabilityId'] ?? null) === $availabilityId);
+            if ($slot['start'] === $time && $slot['isBookable'] && $matchesAvailability) {
                 $targetSlot = $slot;
                 $isStillAvailable = true;
                 break;
@@ -105,6 +106,7 @@ readonly class BookingService
             'parentType' => $person->getEntityType(),
             'assignedUserId' => $calendar->get('assignedUserId') ?: $person->get('assignedUserId'),
             'cLocationId' => $targetSlot['locationId'] ?? null,
+            'cAvailabilityId' => $targetSlot['availabilityId'] ?? null,
         ]);
 
         $this->entityManager->saveEntity($meeting);

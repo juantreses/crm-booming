@@ -14,6 +14,15 @@
             "maxLength": 100,
             "isCustom": true
         },
+        "confirmationTemplate": {
+            "type": "link"
+        },
+        "reminderTemplate": {
+            "type": "link"
+        },
+        "cancellationTemplate": {
+            "type": "link"
+        },
         "createdAt": {
             "type": "datetime",
             "readOnly": true
@@ -128,6 +137,27 @@
             "type": "belongsTo",
             "foreign": "availabilities",
             "entity": "CCalendar",
+            "audited": false,
+            "isCustom": true
+        },
+        "confirmationTemplate": {
+            "type": "belongsTo",
+            "foreign": "cAvailabilities",
+            "entity": "EmailTemplate",
+            "audited": false,
+            "isCustom": true
+        },
+        "reminderTemplate": {
+            "type": "belongsTo",
+            "foreign": "cAvailabilities1",
+            "entity": "EmailTemplate",
+            "audited": false,
+            "isCustom": true
+        },
+        "cancellationTemplate": {
+            "type": "belongsTo",
+            "foreign": "cAvailabilities2",
+            "entity": "EmailTemplate",
             "audited": false,
             "isCustom": true
         },

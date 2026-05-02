@@ -11,7 +11,10 @@
         "calendar": "Kalender",
         "location": "Locatie",
         "publicSlug": "Publieke slug",
-        "cTeams": "Gebruiker"
+        "cTeams": "Gebruiker",
+        "confirmationTemplate": "Bevestigings E-mail",
+        "reminderTemplate": "Reminder E-mail",
+        "cancellationTemplate": "Annulerings e-mail"
     },
     "options": {
         "type": {
@@ -31,6 +34,9 @@
     "links": {
         "calendar": "Kalender",
         "location": "Locatie",
-        "cTeams": "Gebruiker"
+        "cTeams": "Gebruiker",
+        "confirmationTemplate": "Bevestiging",
+        "reminderTemplate": "Reminder",
+        "cancellationTemplate": "Annulerings e-mail"
     }
 }

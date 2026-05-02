@@ -7,13 +7,11 @@ use Espo\ORM\Entity;
 use Espo\ORM\Repository\Option\SaveOptions;
 use Espo\Modules\Booking\Services\BookingEmailService;
 use Espo\Modules\Crm\Business\Event\Ics;
-use Espo\ORM\EntityManager;
 
 class CancellationEmail implements AfterSave
 {
 
     public function __construct(
-        private readonly EntityManager $entityManager,
         private readonly BookingEmailService $emailService
     ) {}
 
@@ -26,22 +24,15 @@ class CancellationEmail implements AfterSave
         $oldStatus = $entity->getFetched('status');
 
         if ($status === 'Cancelled' && (in_array($oldStatus, ['Planned', 'Tentative']))) {
-            
             $calendarId = $entity->get('cCalendarId');
             if (!$calendarId) {
                 $entity->set('cMailError', "Annulering fout: Geen kalender gelinkt aan meeting");
                 return;
             }
-            
-            $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
-            if (!$calendar) {
-                $entity->set('cMailError', "Annulering fout: Kalender met id $calendarId niet teruggevonden");
-                return;
-            }
 
-            $templateId = $calendar->get('cancellationTemplateId');
+            $templateId = $this->emailService->getTemplateIdForMeeting($entity, 'cancellation');
             if (!$templateId) {
-                $entity->set('cMailError', "Annulering fout: Geen annulerings email gelinkt aan kalender");
+                $entity->set('cMailError', "Annulering fout: Geen annulerings email gelinkt aan beschikbaarheid of kalender");
                 return;                
             }
             

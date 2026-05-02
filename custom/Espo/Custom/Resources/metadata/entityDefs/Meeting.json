@@ -53,6 +53,9 @@
         },
         "cLocation": {
             "type": "link"
+        },
+        "cAvailability": {
+            "type": "link"
         }
     },
     "collection": {
@@ -77,6 +80,13 @@
             "type": "belongsTo",
             "foreign": "meetings",
             "entity": "CLocation",
+            "audited": false,
+            "isCustom": true
+        },
+        "cAvailability": {
+            "type": "belongsTo",
+            "foreign": "meetings",
+            "entity": "CAvailability",
             "audited": false,
             "isCustom": true
         }

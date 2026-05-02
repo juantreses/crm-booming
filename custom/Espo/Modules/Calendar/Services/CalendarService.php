@@ -364,6 +364,7 @@ readonly class CalendarService
                 $reason = $this->getUnavailabilityReason($isBlocked, $isTooSoon, $availableSeats);
 
                 $slot = [
+                    'availabilityId' => $availability->getId(),
                     'start' => $slotStart,
                     'end' => $slotEnd,
                     'isBookable' => $isBookable,

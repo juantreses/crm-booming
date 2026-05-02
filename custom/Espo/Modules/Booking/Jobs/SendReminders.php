@@ -38,14 +38,10 @@ class SendReminders implements JobDataLess
                 if (!$calendarId) {
                     throw new \Exception('Geen kalender gelinkt aan meeting');
                 }
-                $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
-                if (!$calendar) {
-                    throw new \Exception("Kalender met id $calendarId niet teruggevonden");
-                }
 
-                $templateId = $calendar->get('reminderTemplateId');
+                $templateId = $this->emailService->getTemplateIdForMeeting($meeting, 'reminder');
                 if (!$templateId) {
-                    throw new \Exception('Geen reminder email gelinkt aan kalender');
+                    throw new \Exception('Geen reminder email gelinkt aan beschikbaarheid of kalender');
                 }
 
                 $this->emailService->sendMeetingEmail($meeting, $templateId);

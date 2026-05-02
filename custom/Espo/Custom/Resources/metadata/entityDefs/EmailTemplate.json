@@ -20,6 +20,27 @@
             "entity": "CCalendar",
             "audited": false,
             "isCustom": true
+        },
+        "cAvailabilities": {
+            "type": "hasMany",
+            "foreign": "confirmationTemplate",
+            "entity": "CAvailability",
+            "audited": false,
+            "isCustom": true
+        },
+        "cAvailabilities1": {
+            "type": "hasMany",
+            "foreign": "reminderTemplate",
+            "entity": "CAvailability",
+            "audited": false,
+            "isCustom": true
+        },
+        "cAvailabilities2": {
+            "type": "hasMany",
+            "foreign": "cancellationTemplate",
+            "entity": "CAvailability",
+            "audited": false,
+            "isCustom": true
         }
     }
 }

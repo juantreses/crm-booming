@@ -6,7 +6,8 @@
         "cCalendar": "Kalender",
         "cReminderSent": "Herinnering verstuurd",
         "cMailError": "MailError",
-        "cLocation": "Gekoppelde Locatie"
+        "cLocation": "Gekoppelde Locatie",
+        "cAvailability": "Beschikbaarheid"
     },
     "options": {
         "status": {

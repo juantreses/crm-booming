@@ -13,12 +13,43 @@ use Espo\Modules\Crm\Business\Event\Ics;
 
 readonly class BookingEmailService
 {
+    private const TEMPLATE_FIELD_MAP = [
+        'confirmation' => 'confirmationTemplateId',
+        'reminder' => 'reminderTemplateId',
+        'cancellation' => 'cancellationTemplateId',
+    ];
+
     public function __construct(
         private EntityManager $entityManager,
         private MailTemplateProcessor $mailTemplateProcessor,
         private EmailSender $emailSender,
     )
     {}
+
+    public function getTemplateIdForMeeting(Entity $meeting, string $templateType): ?string
+    {
+        $templateField = self::TEMPLATE_FIELD_MAP[$templateType] ?? null;
+        if (!$templateField) {
+            throw new \InvalidArgumentException("Onbekend email type: $templateType");
+        }
+
+        $availabilityId = $meeting->get('cAvailabilityId');
+        if ($availabilityId) {
+            $availability = $this->entityManager->getEntityById('CAvailability', $availabilityId);
+            if ($availability && $availability->get($templateField)) {
+                return $availability->get($templateField);
+            }
+        }
+
+        $calendarId = $meeting->get('cCalendarId');
+        if (!$calendarId) {
+            return null;
+        }
+
+        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
+
+        return $calendar?->get($templateField);
+    }
 
     public function sendMeetingEmail(Entity $meeting, string $templateId, string $icsMethod = Ics::METHOD_REQUEST): void
     {

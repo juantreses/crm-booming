@@ -15,6 +15,18 @@
             "layout": null,
             "selectPrimaryFilterName": null
         },
+        "confirmationTemplate": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "reminderTemplate": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
+        "cancellationTemplate": {
+            "layout": null,
+            "selectPrimaryFilterName": null
+        },
         "cTeams": {
             "layout": null,
             "selectPrimaryFilterName": null

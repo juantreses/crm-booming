@@ -1,36 +1,42 @@
 {
+    "labels": {
+        "Create CAvailability": "Create Availability"
+    },
     "fields": {
         "type": "Type",
-        "daysOfWeek": "Dag(en)",
-        "startTime": "Starttijd",
-        "endTime": "Eindtijd",
-        "date": "Datum",
-        "calendar": "Kalender",
-        "location": "Locatie",
-        "publicSlug": "Publieke slug",
-        "cTeams": "Gebruiker"
-    },
-    "links": {
-        "calendar": "Kalender",
-        "location": "Locatie",
-        "cTeams": "Gebruiker"
-    },
-    "labels": {
-        "Create CAvailability": "Create Beschikbaarheid"
+        "daysOfWeek": "Day(s)",
+        "startTime": "Start time",
+        "endTime": "End time",
+        "date": "Date",
+        "calendar": "Calendar",
+        "location": "Location",
+        "publicSlug": "Public slug",
+        "cTeams": "User",
+        "confirmationTemplate": "Confirmation Email",
+        "reminderTemplate": "Reminder Email",
+        "cancellationTemplate": "Cancellation Email"
     },
     "options": {
         "type": {
             "recurrent": "Recurrent",
-            "specific": "Specifieke Datum"
+            "specific": "Specific Date"
         },
         "daysOfWeek": [
-            "Zondag",
-            "Maandag",
-            "Dinsdag",
-            "Woensdag",
-            "Donderdag",
-            "Vrijdag",
-            "Zaterdag"
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday"
         ]
+    },
+    "links": {
+        "calendar": "Calendar",
+        "location": "Location",
+        "cTeams": "User",
+        "confirmationTemplate": "Confirmation",
+        "reminderTemplate": "Reminder",
+        "cancellationTemplate": "Cancellation Email"
     }
 }

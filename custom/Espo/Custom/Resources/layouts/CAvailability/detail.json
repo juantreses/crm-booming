@@ -43,5 +43,29 @@
         ],
         "style": "default",
         "label": "Overview"
+    },
+    {
+        "rows": [
+            [
+                {
+                    "name": "confirmationTemplate"
+                },
+                {
+                    "name": "reminderTemplate"
+                }
+            ],
+            [
+                {
+                    "name": "cancellationTemplate"
+                }
+            ]
+        ],
+        "style": "default",
+        "tabBreak": true,
+        "tabLabel": "E-mail",
+        "hidden": false,
+        "noteText": null,
+        "noteStyle": "info",
+        "customLabel": "E-mail Templates"
     }
 ]

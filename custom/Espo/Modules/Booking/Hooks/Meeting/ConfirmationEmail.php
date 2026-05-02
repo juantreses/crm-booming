@@ -6,13 +6,11 @@ use Espo\Core\Hook\Hook\AfterSave;
 use Espo\ORM\Entity;
 use Espo\ORM\Repository\Option\SaveOptions;
 use Espo\Modules\Booking\Services\BookingEmailService;
-use Espo\ORM\EntityManager;
 
 class ConfirmationEmail implements AfterSave
 {
 
     public function __construct(
-        private readonly EntityManager $entityManager,
         private readonly BookingEmailService $emailService
     ) {}
 
@@ -34,16 +32,10 @@ class ConfirmationEmail implements AfterSave
                 $entity->set('cMailError', "Bevestiging fout: Geen kalender gelinkt aan meeting");
                 return;
             }
-            
-            $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
-            if (!$calendar) {
-                $entity->set('cMailError', "Bevestiging fout: Kalender met id $calendarId niet teruggevonden");
-                return;
-            }
 
-            $templateId = $calendar->get('confirmationTemplateId');
+            $templateId = $this->emailService->getTemplateIdForMeeting($entity, 'confirmation');
             if (!$templateId) {
-                $entity->set('cMailError', "Bevestiging fout: Geen bevestiging email gelinkt aan kalender");
+                $entity->set('cMailError', "Bevestiging fout: Geen bevestiging email gelinkt aan beschikbaarheid of kalender");
                 return;                
             }
 

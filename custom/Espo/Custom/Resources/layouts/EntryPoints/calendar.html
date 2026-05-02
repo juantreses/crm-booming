@@ -426,6 +426,7 @@
                                 body: JSON.stringify({
                                     calendarId: calendarId,
                                     coachId: coachId,
+                                    availabilityId: selectedSlot.value?.availabilityId || null,
                                     date: selectedDate.value,
                                     time: selectedTime.value,
                                     source: 'Kalender ' + calendarId,
