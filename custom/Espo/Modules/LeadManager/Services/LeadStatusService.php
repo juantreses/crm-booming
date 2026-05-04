@@ -37,7 +37,7 @@ readonly class LeadStatusService
         ],
         LeadEventType::MESSAGE_SENT->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::FOLLOW_UP->value
+            'cStage' => LeadStage::MESSAGE_SENT->value
         ],
         LeadEventType::BOOK_INTRO->value => [
             'status' => LeadStatus::ASSIGNED->value,
