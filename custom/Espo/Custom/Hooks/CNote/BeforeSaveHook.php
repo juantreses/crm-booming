@@ -25,7 +25,12 @@ class BeforeSaveHook implements BeforeSave
     {
         try {
             $contact = $this->entityManager->getRelation($entity, 'contact')->findOne();
-            $this->groupAssignmentService->syncGroupsFromFields($entity, self::FIELDS_TO_WATCH, $contact);
+            $this->groupAssignmentService->syncGroupsFromFields(
+                $entity,
+                self::FIELDS_TO_WATCH,
+                $contact,
+                $this->groupAssignmentService->getCoachExtraGroupNamesFromContact($contact)
+            );
         } catch (\Exception $e) {
             $this->log->error('Lead Before Save Hook error: ' . $e->getMessage());
         }

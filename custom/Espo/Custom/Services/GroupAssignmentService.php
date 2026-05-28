@@ -2,12 +2,18 @@
 
 namespace Espo\Custom\Services;
 
+use Espo\Core\ORM\Repository\Option\SaveOption;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 use Espo\Entities\Team;
 
 class GroupAssignmentService
 {
+    private const CONTACT_TEAM_FIELDS = [
+        'cSlimFitCenter',
+        'cTeam',
+    ];
+
     public function __construct(
         private readonly EntityManager $entityManager,
     ) {}
@@ -45,6 +51,93 @@ class GroupAssignmentService
         if ($cTeam && $cTeam->get('assignedUserId')) {
             $entity->set('assignedUserId', $cTeam->get('assignedUserId'));
         }
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getCoachExtraGroupNamesFromContact(?Entity $contact): array
+    {
+        if (!$contact) {
+            return [];
+        }
+
+        $coachGroupName = trim(sprintf(
+            '%s %s',
+            (string) $contact->get('firstName'),
+            (string) $contact->get('lastName')
+        ));
+
+        return $coachGroupName !== '' ? [$coachGroupName] : [];
+    }
+
+    /**
+     * Re-applies group assignment on existing bodyscans and notes when the linked contact's team changes.
+     * Only persists records whose teams actually changed.
+     */
+    public function syncRelatedTeamsFromContact(Entity $contact): void
+    {
+        $coachExtraGroupNames = $this->getCoachExtraGroupNamesFromContact($contact);
+
+        $this->propagateTeamsToRelation($contact, 'cBodyscans', $coachExtraGroupNames);
+        $this->propagateTeamsToRelation($contact, 'cNotes', []);
+    }
+
+    /**
+     * @param string[] $extraGroupNames
+     */
+    private function propagateTeamsToRelation(
+        Entity $contact,
+        string $relationName,
+        array $extraGroupNames
+    ): void
+    {
+        $relatedEntities = $this->entityManager
+            ->getRelation($contact, $relationName)
+            ->find();
+
+        foreach ($relatedEntities as $entity) {
+            if (!$this->applyGroupSyncFromContact($entity, $contact, $extraGroupNames)) {
+                continue;
+            }
+
+            $this->entityManager->saveEntity($entity, [SaveOption::SILENT => true]);
+        }
+    }
+
+    /**
+     * @param string[] $extraGroupNames
+     */
+    private function applyGroupSyncFromContact(
+        Entity $entity,
+        Entity $contact,
+        array $extraGroupNames
+    ): bool
+    {
+        $previousTeamsIds = $this->normalizeTeamIds($entity->get('teamsIds') ?? []);
+
+        $this->syncGroupsFromFields(
+            $entity,
+            self::CONTACT_TEAM_FIELDS,
+            $contact,
+            $extraGroupNames
+        );
+
+        $newTeamsIds = $this->normalizeTeamIds($entity->get('teamsIds') ?? []);
+
+        return $previousTeamsIds !== $newTeamsIds;
+    }
+
+    /**
+     * @param string[]|null $ids
+     * @return string[]
+     */
+    private function normalizeTeamIds(?array $ids): array
+    {
+        $ids = array_values(array_unique($ids ?? []));
+        sort($ids);
+
+        return $ids;
     }
 
     private function getGroupsFromFields(Entity $entity, array $fieldsToWatch): array
