@@ -45,7 +45,10 @@
             "21_day_best_deal": "21 Dagen Best Deal",
             "21_day_ultimate": "21 Dagen Ultimate",
             "spark_free": "SPARK Gratis",
-            "spark_10x": "SPARK 10 Beurten"
+            "spark_10x": "SPARK 10 Beurten",
+            "21_day_sta": "21 Dagen STA",
+            "21_day_stap": "21 Dagen STAP",
+            "21_day_stamp": "21 Dagen STAMP"
         },
         "salutationName": {
             "": "",

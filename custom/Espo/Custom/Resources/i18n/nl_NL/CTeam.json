@@ -25,7 +25,8 @@
         "linkGelaatsverzorgingworkshop": "Link Gelaatsverzorgingworkshop",
         "sparkGroepsles": "Link Spark Groepsles",
         "availabilities": "Beschikbaarheden",
-        "calendars": "Kalenders"
+        "calendars": "Kalenders",
+        "assignedUser": "Toegewezen gebruiker"
     },
     "links": {
         "sponser": "Sponser",
