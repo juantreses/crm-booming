@@ -1,5 +1,19 @@
 {
-  "labels": {
-    "Create COrder": "Creëer Bestelling"
-  }
+    "labels": {
+        "Create COrder": "Creëer Bestelling"
+    },
+    "options": {
+        "programType": {
+            "21_day_sta": "21 Dagen STA",
+            "21_day_stap": "21 Dagen STAP",
+            "21_day_stamp": "21 Dagen STAMP",
+            "retail": "Retail",
+            "spark_free": "SPARK Gratis",
+            "spark_10x": "SPARK 10 Beurten",
+            "pcx_15": "PCX 15",
+            "pcx_25": "PCX 25",
+            "pcx_35": "PCX 35",
+            "distributor": "Distributeur"
+        }
+    }
 }

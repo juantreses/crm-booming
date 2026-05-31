@@ -25,7 +25,10 @@
             "pcx_15": "PCX 15",
             "pcx_25": "PCX 25",
             "pcx_35": "PCX 35",
-            "distributor": "Distributeur"
+            "distributor": "Distributeur",
+            "21_day_sta": "21 Dagen STA",
+            "21_day_stap": "21 Dagen STAP",
+            "21_day_stamp": "21 Dagen STAMP"
         }
     }
 }

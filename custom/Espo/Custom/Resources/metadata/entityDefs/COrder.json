@@ -67,10 +67,9 @@
         "programType": {
             "type": "enum",
             "options": [
-                "21_day_base",
-                "21_day_fit",
-                "21_day_best_deal",
-                "21_day_ultimate",
+                "21_day_sta",
+                "21_day_stap",
+                "21_day_stamp",
                 "retail",
                 "spark_free",
                 "spark_10x",
@@ -80,10 +79,9 @@
                 "distributor"
             ],
             "style": {
-                "21_day_base": null,
-                "21_day_fit": null,
-                "21_day_best_deal": null,
-                "21_day_ultimate": null,
+                "21_day_sta": null,
+                "21_day_stap": null,
+                "21_day_stamp": null,
                 "retail": null,
                 "spark_free": null,
                 "spark_10x": null,
@@ -92,7 +90,7 @@
                 "pcx_35": null,
                 "distributor": null
             },
-            "default": "21_day_base",
+            "default": "21_day_sta",
             "maxLength": 100,
             "isCustom": true,
             "optionsReference": "Contact.cTypeKlant"
