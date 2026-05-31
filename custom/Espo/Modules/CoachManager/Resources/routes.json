@@ -1,0 +1,10 @@
+[
+    {
+        "route": "/coach/contact/:id/team",
+        "method": "post",
+        "params": {
+            "controller": "CoachApi",
+            "action": "createTeam"
+        }
+    }
+]

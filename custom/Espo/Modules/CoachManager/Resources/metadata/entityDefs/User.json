@@ -1,0 +1,16 @@
+{
+    "fields": {
+        "functions": {
+            "type": "multiEnum",
+            "options": [
+                "coach",
+                "klant"
+            ],
+            "style": {
+                "coach": null,
+                "klant": null
+            },
+            "isCustom": true
+        }
+    }
+}

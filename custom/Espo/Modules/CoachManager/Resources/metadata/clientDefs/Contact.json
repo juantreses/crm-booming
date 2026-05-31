@@ -1,0 +1,19 @@
+{
+    "menu": {
+        "detail": {
+            "buttons": [
+                "__APPEND__",
+                {
+                    "label": "Maak HBL Coach Team",
+                    "name": "createCoachTeam",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Contact",
+                    "handler": "coach-manager:create-coach-team-handler",
+                    "actionFunction": "createCoachTeam",
+                    "checkVisibilityFunction": "isCreateCoachTeamVisible"
+                }
+            ]
+        }
+    }
+}
