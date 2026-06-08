@@ -87,15 +87,15 @@ readonly class LeadService
 
     private function assignCoach(Entity $person, string $newCoachId, string $source = 'Webform'): void
     {
-        $oldCoachId = $person->get('cTeamId');
-
         if ($person->getEntityType() === Contact::ENTITY_TYPE) {
             return;
         }
 
-        if ($oldCoachId === $newCoachId) {
+        if ($this->isAssignedToCoach($person, $newCoachId)) {
             return;
         }
+
+        $oldCoachId = $person->get('cTeamId');
 
         if ($oldCoachId && !$this->isLeadEligibleForReassignment($person)) {
             $this->logReassignmentFailure($person, $oldCoachId, $source);
@@ -174,6 +174,22 @@ readonly class LeadService
             ->relate($person);
 
         $this->entityManager->saveEntity($event);
+    }
+
+    private function isAssignedToCoach(Entity $person, string $coachUserId): bool
+    {
+        if ($person->get('assignedUserId') === $coachUserId) {
+            return true;
+        }
+
+        $cTeamId = $person->get('cTeamId');
+        if (!$cTeamId) {
+            return false;
+        }
+
+        $team = $this->entityManager->getEntityById('CTeam', $cTeamId);
+
+        return $team && $team->get('assignedUserId') === $coachUserId;
     }
 
     private function isLeadEligibleForReassignment(Entity $lead): bool
