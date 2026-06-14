@@ -29,8 +29,21 @@ class BeforeSaveHook implements BeforeSave
             ) {
                 $this->groupAssignmentService->syncAssignedUserFromTeamFields($lead);
             }
+
+            $this->syncDateAssigned($lead);
         } catch (\Exception $e) {
             $this->log->error('Lead Before Save Hook error: ' . $e->getMessage());
+        }
+    }
+
+    private function syncDateAssigned(Entity $lead): void
+    {
+        if (!$lead->get('cTeamId')) {
+            return;
+        }
+
+        if ($lead->isNew() || $lead->isAttributeChanged('cTeamId')) {
+            $lead->set('cDateAssigned', gmdate('Y-m-d H:i:s'));
         }
     }
 }

@@ -15,7 +15,8 @@
         "cSourceUrl": "Source Url",
         "cStage": "Fase",
         "cReasonLost": "Verlies Reden",
-        "cSparksUsed": "SPARKS Gebruikt"
+        "cSparksUsed": "SPARKS Gebruikt",
+        "cDateAssigned": "Date Assigned"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",

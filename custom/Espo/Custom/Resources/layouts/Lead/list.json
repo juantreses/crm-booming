@@ -21,7 +21,7 @@
         "width": 16
     },
     {
-        "name": "createdAt",
+        "name": "cDateAssigned",
         "width": 16
     }
 ]

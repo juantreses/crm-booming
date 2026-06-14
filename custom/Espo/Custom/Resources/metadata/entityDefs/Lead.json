@@ -177,10 +177,18 @@
             "max": 2,
             "readOnly": true,
             "isCustom": true
+        },
+        "cDateAssigned": {
+            "type": "datetime",
+            "notNull": false,
+            "readOnly": true,
+            "inlineEditDisabled": true,
+            "isCustom": true,
+            "audited": true
         }
     },
     "collection": {
-        "orderBy": "createdAt",
+        "orderBy": "cDateAssigned",
         "order": "desc",
         "textFilterFields": [
             "name",

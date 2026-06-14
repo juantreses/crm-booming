@@ -18,7 +18,8 @@
         "cReferredBy": "Doorverwezen door",
         "cStage": "Fase",
         "cReasonLost": "Verlies Reden",
-        "cSparksUsed": "SPARKS Gebruikt"
+        "cSparksUsed": "SPARKS Gebruikt",
+        "cDateAssigned": "Toewijzingsdatum"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
