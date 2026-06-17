@@ -4,6 +4,46 @@
  * Client-side validation for widget forms
  */
 
+const WESTERN_EUROPE_PHONE_COUNTRIES = [
+    'BE', 'AD', 'AT', 'AX', 'CH', 'DE', 'DK', 'ES', 'FI', 'FO',
+    'FR', 'GB', 'GG', 'GI', 'IE', 'IM', 'IS', 'IT', 'JE', 'LI',
+    'LU', 'MC', 'MT', 'NL', 'NO', 'PT', 'SE', 'SJ', 'SM', 'VA'
+];
+const DEFAULT_PHONE_COUNTRY = 'BE';
+
+function getPhoneParser() {
+    return typeof window !== 'undefined' ? window.libphonenumber : null;
+}
+
+function normalizeInternationalPrefix(phone) {
+    return phone.trim().replace(/^00/, '+');
+}
+
+function parseEuropeanPhone(phone) {
+    const libphonenumber = getPhoneParser();
+
+    if (!phone || !libphonenumber) {
+        return null;
+    }
+
+    const normalizedPhone = normalizeInternationalPrefix(phone);
+    const parsePhoneNumberFromString = libphonenumber.parsePhoneNumberFromString;
+
+    if (normalizedPhone.startsWith('+')) {
+        const phoneNumber = parsePhoneNumberFromString(normalizedPhone);
+
+        return phoneNumber &&
+            phoneNumber.country &&
+            WESTERN_EUROPE_PHONE_COUNTRIES.includes(phoneNumber.country)
+            ? phoneNumber
+            : null;
+    }
+
+    const phoneNumber = parsePhoneNumberFromString(normalizedPhone, DEFAULT_PHONE_COUNTRY);
+
+    return phoneNumber && phoneNumber.country === DEFAULT_PHONE_COUNTRY ? phoneNumber : null;
+}
+
 const FormValidation = {
     /**
      * Validate email address
@@ -18,19 +58,22 @@ const FormValidation = {
     },
 
     /**
-     * Validate Belgian phone number
-     * Accepts formats:
-     * - 0470123456
-     * - 0470 12 34 56
-     * - 0470/12.34.56
-     * - +32470123456
-     * - 0032470123456
+     * Validate Western European phone number
+     * Uses libphonenumber-js when available. National-format numbers are
+     * treated as Belgian to avoid ambiguous cross-country formatting.
      * 
      * @param {string} phone 
      * @returns {boolean}
      */
-    isValidBelgianPhone(phone) {
+    isValidEuropeanPhone(phone) {
         if (!phone) return false;
+
+        const libphonenumber = getPhoneParser();
+        const phoneNumber = parseEuropeanPhone(phone);
+
+        if (libphonenumber) {
+            return Boolean(phoneNumber && phoneNumber.isValid());
+        }
         
         const cleaned = phone.replace(/[\s\.\-\/]/g, '');
         
@@ -42,14 +85,32 @@ const FormValidation = {
     },
 
     /**
-     * Format phone number to E.164 format for Belgium
-     * Normalizes to +32XXXXXXXXX
+     * Backwards-compatible alias for existing widgets.
+     * @param {string} phone
+     * @returns {boolean}
+     */
+    isValidBelgianPhone(phone) {
+        return this.isValidEuropeanPhone(phone);
+    },
+
+    /**
+     * Format phone number to E.164 format
      * 
      * @param {string} phone 
      * @returns {string} Formatted phone or original if invalid
      */
-    formatBelgianPhone(phone) {
+    formatEuropeanPhone(phone) {
         if (!phone) return '';
+
+        const phoneNumber = parseEuropeanPhone(phone);
+
+        if (phoneNumber && phoneNumber.isValid()) {
+            return phoneNumber.number;
+        }
+
+        if (getPhoneParser()) {
+            return phone;
+        }
         
         let cleaned = phone.replace(/[\s\.\-\/]/g, '');
         
@@ -66,6 +127,15 @@ const FormValidation = {
         }
         
         return '+32' + cleaned;
+    },
+
+    /**
+     * Backwards-compatible alias for existing widgets.
+     * @param {string} phone
+     * @returns {string}
+     */
+    formatBelgianPhone(phone) {
+        return this.formatEuropeanPhone(phone);
     },
 
     /**

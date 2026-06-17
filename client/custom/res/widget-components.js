@@ -270,7 +270,7 @@ function useWidgetSubmit(form, onSuccess) {
 
         // Format phone number before submission
         if (form.value.phone && window.FormValidation) {
-            form.value.phone = window.FormValidation.formatBelgianPhone(form.value.phone);
+            form.value.phone = window.FormValidation.formatEuropeanPhone(form.value.phone);
         }
 
         try {
@@ -321,7 +321,7 @@ function useFormValidation(form) {
 
     const isValidPhone = Vue.computed(() => {
         return window.FormValidation 
-            ? window.FormValidation.isValidBelgianPhone(form.value.phone)
+            ? window.FormValidation.isValidEuropeanPhone(form.value.phone)
             : form.value.phone && form.value.phone.length > 8;
     });
 
