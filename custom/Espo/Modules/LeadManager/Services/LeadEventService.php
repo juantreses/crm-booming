@@ -2,7 +2,6 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
-use Espo\ORM\EntityManager;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Modules\LeadManager\ValueObjects\CallOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\IntroMeetingOutcomeData;
@@ -13,7 +12,6 @@ use Espo\Modules\LeadManager\ValueObjects\MessageOutcomeData;
 readonly class LeadEventService
 {
     public function __construct(
-        private EntityManager $entityManager,
         private LeadEventLogService $eventLogService,
         private LeadCallCountService $callCountService,
         private HandlerRegistry $handlerRegistry,
@@ -154,14 +152,6 @@ readonly class LeadEventService
         ];
 
         $result = $handler->handle($messageData->leadId, $context);
-
-        if ($messageData->outcome->value === 'Invited' && $messageData->meetingType) {
-            $lead = $this->entityManager->getEntityById('Lead', $messageData->leadId);
-            if ($lead) {
-                $lead->set('cMeetingType', $messageData->meetingType);
-                $this->entityManager->saveEntity($lead);
-            }
-        }
 
         return $result->toArray();
     }
