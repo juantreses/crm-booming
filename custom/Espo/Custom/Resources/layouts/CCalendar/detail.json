@@ -15,6 +15,9 @@
                 },
                 {
                     "name": "isPubliek"
+                },
+                {
+                    "name": "hasPublicLink"
                 }
             ],
             [

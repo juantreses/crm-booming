@@ -1,0 +1,6 @@
+{
+    "backfillHasPublicLink": {
+        "className": "Espo\\Modules\\Calendar\\Tools\\BackfillHasPublicLink",
+        "listed": true
+    }
+}

@@ -5,6 +5,7 @@ namespace Espo\Modules\Booking\Controllers;
 use Espo\Core\Api\Request;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Conflict;
+use Espo\Core\Exceptions\NotFound;
 use Espo\Modules\Booking\Services\BookingService;
 
 readonly class BookingApi
@@ -16,6 +17,7 @@ readonly class BookingApi
     /**
      * @throws BadRequest
      * @throws Conflict
+     * @throws NotFound
      */
     public function postActionBooking(Request $request): array
     {

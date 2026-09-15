@@ -160,6 +160,13 @@
             "default": true,
             "tooltip": true,
             "isCustom": true
+        },
+        "hasPublicLink": {
+            "notNull": true,
+            "type": "bool",
+            "default": true,
+            "tooltip": true,
+            "isCustom": true
         }
     },
     "links": {

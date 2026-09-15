@@ -311,7 +311,7 @@ readonly class CalendarRepository
             ->getRDBRepository('CCalendar')
             ->where([
                 'isActive' => true,
-                'isPubliek' => true,
+                'hasPublicLink' => true,
                 'id' => $calendarIds
             ])
             ->order('name')
@@ -327,7 +327,7 @@ readonly class CalendarRepository
             ->getRDBRepository('CCalendar')
             ->where([
                 'isActive' => true,
-                'isPubliek' => true,
+                'hasPublicLink' => true,
             ])
             ->find();
     }

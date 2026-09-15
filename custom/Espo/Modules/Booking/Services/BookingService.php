@@ -10,6 +10,7 @@ use Espo\Custom\Enums\IntroMeetingType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Custom\Enums\LeadStatus;
 use Espo\Modules\Calendar\Services\CalendarService;
+use Espo\Modules\Calendar\Services\PublicCalendarAccess;
 use Espo\Modules\LeadManager\Services\LeadService;
 use Espo\Modules\Utils\SlugService;
 use Espo\ORM\Entity;
@@ -21,17 +22,19 @@ readonly class BookingService
         private EntityManager $entityManager,
         private CalendarService $calendarService,
         private LeadService $leadService,
-        private SlugService $slug
+        private SlugService $slug,
+        private PublicCalendarAccess $publicCalendarAccess,
     ) {}
 
     /**
      * @throws Conflict
+     * @throws NotFound
      */
     public function processBooking(array $data): array
     {
         $calendarIdentifier = $data['calendarId'];
-        $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
-        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
+        $calendar = $this->publicCalendarAccess->resolveAccessible($calendarIdentifier);
+        $calendarId = $calendar->getId();
 
         $targetSlot = $this->findSlot($calendarId, $data['date'], $data['time'], $data['availabilityId'] ?? null);
 
@@ -51,7 +54,7 @@ readonly class BookingService
     {
         $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
-        
+
         if (!$calendar) {
             throw new NotFound("Kalender met ID '$calendarId' niet gevonden.");
         }

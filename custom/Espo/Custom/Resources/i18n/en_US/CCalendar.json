@@ -24,7 +24,8 @@
         "cTeams": "Gebruikers",
         "isDirectBookable": "Direct Boekbaar",
         "cancellationTemplate": "Annulerings e-mail",
-        "isPubliek": "Is Publiek",
+        "isPubliek": "Public self-service booking",
+        "hasPublicLink": "Show booking link",
         "blocksCalendars": "Blokkeert",
         "blockedByCalendars": "Geblokkeerd door",
         "users": "Users"
@@ -49,7 +50,8 @@
         "minLeadTime": "Hoeveel uur van tevoren mag iemand minimaal boeken?",
         "priority": "Hogere prioriteit blokkeert lagere prioriteit kalenders",
         "isDirectBookable": "Kan vanuit het CRM geboekt worden via \"Telefoongesprek\"",
-        "isPubliek": "Als dit staat aangevinkt heeft een kalender een publieke link"
+        "isPubliek": "Customers can book via the widget and API without logging in",
+        "hasPublicLink": "Include this calendar in the CRM booking link overview"
     },
     "options": {
         "type": {

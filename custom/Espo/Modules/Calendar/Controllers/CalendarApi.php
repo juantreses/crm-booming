@@ -7,6 +7,7 @@ use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Core\Utils\Log;
 use Espo\Modules\Calendar\Services\CalendarService;
+use Espo\Modules\Calendar\Services\PublicCalendarAccess;
 use Exception;
 
 readonly class CalendarApi
@@ -14,6 +15,7 @@ readonly class CalendarApi
     public function __construct(
         private Log $log,
         private CalendarService $calendarService,
+        private PublicCalendarAccess $publicCalendarAccess,
     ) {}
 
     /**
@@ -31,7 +33,9 @@ readonly class CalendarApi
                 throw new BadRequest("Missing required parameter: id");
             }
 
-            return $this->calendarService->getSettings($id, $location, $coach, $variant);
+            $calendar = $this->publicCalendarAccess->resolveAccessible($id);
+
+            return $this->calendarService->getSettings($calendar->getId(), $location, $coach, $variant);
 
         } catch (BadRequest $e) {
             http_response_code(400);
@@ -65,10 +69,12 @@ readonly class CalendarApi
     {
         try {
             $id = $request->getRouteParam('id');
-            
+
             if (!$id) {
                 throw new BadRequest("Missing required parameter: id");
             }
+
+            $calendar = $this->publicCalendarAccess->resolveAccessible($id);
 
             $date = $request->getQueryParam('date') ?? date('Y-m-d');
             $location = $request->getQueryParam('location');
@@ -76,7 +82,7 @@ readonly class CalendarApi
             $variant = $request->getQueryParam('variant');
 
             return $this->calendarService->getAvailableSlots(
-                $id,
+                $calendar->getId(),
                 $date,
                 $location,
                 $coach,
@@ -115,10 +121,12 @@ readonly class CalendarApi
     {
         try {
             $id = $request->getRouteParam('id');
-            
+
             if (!$id) {
                 throw new BadRequest("Missing required parameter: id");
             }
+
+            $calendar = $this->publicCalendarAccess->resolveAccessible($id);
 
             $year = $request->getQueryParam('year') ?? date('Y');
             $month = $request->getQueryParam('month') ?? date('m');
@@ -127,7 +135,7 @@ readonly class CalendarApi
             $variant = $request->getQueryParam('variant');
 
             return $this->calendarService->getMonthAvailability(
-                $id,
+                $calendar->getId(),
                 (int)$year,
                 (int)$month,
                 $location,
@@ -167,7 +175,7 @@ readonly class CalendarApi
     {
         try {
             return $this->calendarService->getBookableCalendars();
-            
+
         } catch (Exception $e) {
             $this->log->error('Calendar API Error (getBookableList): ' . $e->getMessage());
             http_response_code(500);
@@ -186,13 +194,13 @@ readonly class CalendarApi
     {
         try {
             $id = $request->getQueryParam('id');
-            
+
             if (!$id) {
                 throw new BadRequest("Missing required parameter: id");
             }
 
             $coach = $request->getQueryParam('coach');
-            
+
             return $this->calendarService->getUpcomingSlots($id, $coach);
 
         } catch (BadRequest $e) {
