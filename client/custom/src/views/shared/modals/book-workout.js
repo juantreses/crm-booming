@@ -1,8 +1,14 @@
+/**
+ * BookWorkoutView
+ *
+ * There is only one workout calendar, so unlike other booking modals
+ * (Kickstart, Intro Meeting, ...) this view has no calendar picker:
+ * it resolves the workout calendar on the backend and only lets the
+ * user pick a time slot.
+ */
 define('custom:views/shared/modals/book-workout', [
-    'custom:views/lead/modals/base-lead-event-modal',
-    'custom:mixins/meeting-scheduler-mixin',
-    'custom:utils/form-validation-utils'
-], function (Dep, MeetingSchedulerMixin, ValidationUtils) {
+    'custom:views/lead/modals/base-lead-event-modal'
+], function (Dep) {
 
     const BookWorkoutView = Dep.extend({
         template: 'custom:shared/modals/book-workout',
@@ -10,10 +16,7 @@ define('custom:views/shared/modals/book-workout', [
         successMessage: 'Workout geboekt.',
         errorMessage: 'Workout boeken mislukt.',
 
-        setup: function () {
-            Dep.prototype.setup.call(this);
-            this.initializeMeetingScheduler();
-        },
+        workoutCalendarId: null,
 
         afterRender: function () {
             Dep.prototype.afterRender.call(this);
@@ -23,7 +26,7 @@ define('custom:views/shared/modals/book-workout', [
                 this.hideField('spark-cup');
             }
 
-            this.showMeetingScheduler();
+            this.loadSlots();
         },
 
         getSaveButtonLabel: function () {
@@ -34,59 +37,96 @@ define('custom:views/shared/modals/book-workout', [
             return 'Workout Inplannen';
         },
 
-        loadBookableCalendars: function () {
-            const $calSelect = this.$el.find('[name="selectedCalendar"]');
-            $calSelect.prop('disabled', true).empty().append('<option value="">Laden...</option>');
+        loadSlots: function () {
+            const $slotSelect = this.$el.find('[name="selectedSlot"]');
+            $slotSelect.prop('disabled', true).empty().append('<option value="">Laden...</option>');
 
-            Espo.Ajax.getRequest('calendar/bookable-list')
+            Espo.Ajax.getRequest('calendar/type/workout')
+                .then(calendar => {
+                    this.workoutCalendarId = calendar.id;
+
+                    return Espo.Ajax.getRequest('calendar/upcoming-slots', {
+                        id: calendar.id,
+                        coach: this.model.assigneUserId
+                    });
+                })
                 .then(response => {
-                    $calSelect.empty().append('<option value="">-- Kies Agenda --</option>');
+                    $slotSelect.empty().append('<option value="">-- Kies tijdstip --</option>');
 
-                    const workoutCalendars = response.filter(cal => cal.type === 'workout');
-                    if (workoutCalendars.length === 0) {
-                        Espo.Ui.error('Geen Workout agenda beschikbaar.');
-                        $calSelect.prop('disabled', true);
-                        return;
-                    }
+                    Object.keys(response).forEach(date => {
+                        const rawSlots = response[date];
+                        const validSlots = rawSlots.filter(slot => slot.isBookable && !slot.isBlocked);
 
-                    workoutCalendars.forEach(cal => {
-                        $calSelect.append(`<option value="${cal.id}">${cal.name}</option>`);
+                        if (validSlots.length === 0) return;
+
+                        const dateObj = new Date(date);
+                        const groupLabel = dateObj.toLocaleDateString('nl-BE', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long'
+                        });
+                        const shortDate = dateObj.toLocaleDateString('nl-BE', {
+                            day: 'numeric',
+                            month: 'short'
+                        });
+
+                        const $optgroup = $(`<optgroup label="${groupLabel}"></optgroup>`);
+
+                        validSlots.forEach(slot => {
+                            const label = `${shortDate} | ${slot.start} - ${slot.end}`;
+                            $optgroup.append(`<option value="${date} ${slot.start}">${label}</option>`);
+                        });
+
+                        $slotSelect.append($optgroup);
                     });
 
-                    $calSelect.prop('disabled', false);
+                    $slotSelect.prop('disabled', false);
                 })
                 .catch(e => {
-                    console.error('Failed to load bookable calendars:', e);
-                    $calSelect.empty().append('<option value="">Fout bij laden</option>');
+                    console.error('Failed to load workout calendar slots:', e);
+                    $slotSelect.empty().append('<option value="">Geen workout agenda beschikbaar</option>');
                 });
+        },
+
+        getSelectedSlot: function () {
+            const selectedSlot = this.$el.find('[name="selectedSlot"]').val();
+
+            if (!this.workoutCalendarId || !selectedSlot) {
+                return null;
+            }
+
+            const parts = selectedSlot.split(' ');
+            return {
+                calendarId: this.workoutCalendarId,
+                slotDate: parts[0],
+                slotTime: parts[1]
+            };
         },
 
         getFormData: function () {
             const coachNote = this.getFieldValue('coachNote');
-            const meetingData = this.getSelectedMeetingData();
+            const selected = this.getSelectedSlot();
             const isLead = this.model.entityType === 'Lead';
 
             return {
                 entityType: this.model.entityType,
                 entityId: this.model.id,
-                calendarId: meetingData ? meetingData.calendarId : null,
-                selectedDate: meetingData ? meetingData.slotDate : null,
-                selectedTime: meetingData ? meetingData.slotTime : null,
+                selectedDate: selected ? selected.slotDate : null,
+                selectedTime: selected ? selected.slotTime : null,
                 coachNote: coachNote || null,
                 isSparkCup: isLead || this.$el.find('[name="isSparkCup"]').prop('checked')
             };
         },
 
         validateForm: function () {
-            if (!this.validateMeetingSelection('Kies een Workout agenda en tijdstip.')) {
+            if (!this.getSelectedSlot()) {
+                Espo.Ui.error('Kies een beschikbaar tijdstip voor de afspraak.');
                 return false;
             }
 
             return true;
         }
     });
-
-    _.extend(BookWorkoutView.prototype, MeetingSchedulerMixin);
 
     return BookWorkoutView;
 });

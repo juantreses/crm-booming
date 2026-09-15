@@ -169,6 +169,45 @@ readonly class CalendarApi
     }
 
     /**
+     * Get the single active calendar for a given type (no isDirectBookable filter)
+     */
+    public function getActionByType(Request $request): array
+    {
+        try {
+            $type = $request->getRouteParam('type');
+
+            if (!$type) {
+                throw new BadRequest("Missing required parameter: type");
+            }
+
+            return $this->calendarService->getCalendarByType($type);
+
+        } catch (BadRequest $e) {
+            http_response_code(400);
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'code' => 400
+            ];
+        } catch (NotFound $e) {
+            http_response_code(404);
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'code' => 404
+            ];
+        } catch (Exception $e) {
+            $this->log->error('Calendar API Error (getByType): ' . $e->getMessage());
+            http_response_code(500);
+            return [
+                'success' => false,
+                'error' => 'Internal server error',
+                'code' => 500
+            ];
+        }
+    }
+
+    /**
      * Get bookable calendars list
      */
     public function getActionBookableList(): array

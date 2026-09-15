@@ -10,6 +10,7 @@ use Espo\Core\Exceptions\NotFound;
 use Espo\Custom\Enums\IntroMeetingType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Custom\Enums\LeadStatus;
+use Espo\Modules\Calendar\Repositories\CalendarRepository;
 use Espo\Modules\Calendar\Services\CalendarService;
 use Espo\Modules\Calendar\Services\PublicCalendarAccess;
 use Espo\Modules\LeadManager\Services\LeadService;
@@ -22,6 +23,7 @@ readonly class BookingService
     public function __construct(
         private EntityManager $entityManager,
         private CalendarService $calendarService,
+        private CalendarRepository $calendarRepository,
         private LeadService $leadService,
         private SlugService $slug,
         private PublicCalendarAccess $publicCalendarAccess,
@@ -86,22 +88,17 @@ readonly class BookingService
             throw new NotFound("$entityType niet gevonden.");
         }
 
-        $calendarId = $this->slug->resolve('CCalendar', $data['calendarId']);
-        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
-
+        // Er is maar één workout agenda; deze wordt niet door de gebruiker gekozen.
+        $calendar = $this->calendarRepository->findActiveCalendarByType('workout');
         if (!$calendar) {
-            throw new NotFound("Kalender niet gevonden.");
-        }
-
-        if ($calendar->get('type') !== 'workout') {
-            throw new BadRequest('Geselecteerde agenda is geen workout agenda.');
+            throw new NotFound('Geen actieve workout agenda gevonden.');
         }
 
         // SPARK cup is de enige workout die voor leads geboekt kan worden.
         $isSparkCup = $entityType === 'Lead' ? true : (bool) ($data['isSparkCup'] ?? false);
 
         $meeting = $this->createInternalMeeting(
-            $data['calendarId'],
+            $calendar->getId(),
             $person,
             $data['selectedDate'],
             $data['selectedTime'],

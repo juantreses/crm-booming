@@ -98,8 +98,28 @@ readonly class CalendarService
     }
 
     /**
+     * Get the single active calendar for a given type (e.g. "workout"),
+     * ignoring isDirectBookable, for flows with no calendar picker.
+     *
+     * @throws NotFound
+     */
+    public function getCalendarByType(string $type): array
+    {
+        $calendar = $this->calendarRepository->findActiveCalendarByType($type);
+
+        if (!$calendar) {
+            throw new NotFound("Geen actieve agenda gevonden voor type '$type'.");
+        }
+
+        return [
+            'id' => $calendar->getId(),
+            'name' => $calendar->get('name'),
+        ];
+    }
+
+    /**
      * Get upcoming slots for a calendar
-     * 
+     *
      * @throws BadRequest
      * @throws NotFound
      */

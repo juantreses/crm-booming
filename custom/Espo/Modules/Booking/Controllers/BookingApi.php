@@ -39,7 +39,7 @@ readonly class BookingApi
     {
         $data = $request->getParsedBody();
 
-        if (empty($data->entityType) || empty($data->entityId) || empty($data->calendarId)) {
+        if (empty($data->entityType) || empty($data->entityId)) {
             throw new BadRequest("Onvoldoende gegevens voor de boeking.");
         }
 
