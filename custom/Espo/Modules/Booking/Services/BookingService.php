@@ -4,6 +4,7 @@ namespace Espo\Modules\Booking\Services;
 
 use DateTime;
 use DateTimeZone;
+use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Custom\Enums\IntroMeetingType;
@@ -50,7 +51,7 @@ readonly class BookingService
     /**
      * Maakt direct een meeting aan vanuit interne logica (bvb Lead logCall)
      */
-    public function createInternalMeeting(string $calendarIdentifier, Entity $person, string $date, string $time, ?string $notes = null): Entity
+    public function createInternalMeeting(string $calendarIdentifier, Entity $person, string $date, string $time, ?string $notes = null, bool $isSparkCup = false): Entity
     {
         $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
@@ -63,7 +64,52 @@ readonly class BookingService
 
         $dateStartString = $date . ' ' . $time . ':00';
 
-        return $this->createMeeting($calendar, $person, $dateStartString, $targetSlot, $notes);
+        return $this->createMeeting($calendar, $person, $dateStartString, $targetSlot, $notes, $isSparkCup);
+    }
+
+    /**
+     * @throws Conflict
+     * @throws NotFound
+     * @throws BadRequest
+     */
+    public function bookWorkout(array $data): array
+    {
+        $entityType = $data['entityType'] ?? null;
+        $entityId = $data['entityId'] ?? null;
+
+        if (!in_array($entityType, ['Lead', 'Contact'], true) || empty($entityId)) {
+            throw new BadRequest('Ongeldig entiteitstype voor het boeken van een workout.');
+        }
+
+        $person = $this->entityManager->getEntityById($entityType, $entityId);
+        if (!$person) {
+            throw new NotFound("$entityType niet gevonden.");
+        }
+
+        $calendarId = $this->slug->resolve('CCalendar', $data['calendarId']);
+        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
+
+        if (!$calendar) {
+            throw new NotFound("Kalender niet gevonden.");
+        }
+
+        if ($calendar->get('type') !== 'workout') {
+            throw new BadRequest('Geselecteerde agenda is geen workout agenda.');
+        }
+
+        // SPARK cup is de enige workout die voor leads geboekt kan worden.
+        $isSparkCup = $entityType === 'Lead' ? true : (bool) ($data['isSparkCup'] ?? false);
+
+        $meeting = $this->createInternalMeeting(
+            $data['calendarId'],
+            $person,
+            $data['selectedDate'],
+            $data['selectedTime'],
+            $data['coachNote'] ?? null,
+            $isSparkCup
+        );
+
+        return ['id' => $meeting->get('id')];
     }
 
     /**
@@ -89,7 +135,7 @@ readonly class BookingService
         return $targetSlot;
     }
 
-    private function createMeeting($calendar, $person, string $dateStartString, array $targetSlot, ?string $notes = null): Entity
+    private function createMeeting($calendar, $person, string $dateStartString, array $targetSlot, ?string $notes = null, bool $isSparkCup = false): Entity
     {
         $duration = $calendar->get('duration') ?? 60;
 
@@ -97,9 +143,11 @@ readonly class BookingService
         $dateStart->setTimezone(new DateTimeZone('UTC'));
         $dateEnd = (clone $dateStart)->modify("+$duration minutes");
 
+        $typeLabel = $isSparkCup ? 'SPARK cup' : ucfirst($calendar->get('type'));
+
         $meeting = $this->entityManager->getNewEntity('Meeting');
         $meeting->set([
-            'name' => ucfirst($calendar->get('type')) . ' - ' . $person->get('name'),
+            'name' => $typeLabel . ' - ' . $person->get('name'),
             'status' => $calendar->get('needsApproval') ? 'Tentative' : 'Planned',
             'dateStart' => $dateStart->format('Y-m-d H:i:s'),
             'dateEnd' => $dateEnd->format('Y-m-d H:i:s'),

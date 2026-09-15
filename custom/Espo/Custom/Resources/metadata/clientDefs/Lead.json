@@ -88,6 +88,16 @@
                     "checkVisibilityFunction": "isBookKickstartVisible"
                 },
                 {
+                    "label": "Workout Boeken",
+                    "name": "bookWorkout",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/book-workout-action-handler",
+                    "actionFunction": "bookWorkout",
+                    "checkVisibilityFunction": "isBookWorkoutVisible"
+                },
+                {
                     "label": "Bericht Gestuurd",
                     "name": "logMessageSent",
                     "action": "logMessageSent",
