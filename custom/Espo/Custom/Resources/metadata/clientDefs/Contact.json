@@ -52,6 +52,23 @@
     "views": {
         "detail": "custom:views/contact/detail"
     },
+    "menu": {
+        "detail": {
+            "buttons": [
+                "__APPEND__",
+                {
+                    "label": "Workout Boeken",
+                    "name": "bookWorkout",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Contact",
+                    "handler": "custom:handlers/book-workout-action-handler",
+                    "actionFunction": "bookWorkout",
+                    "checkVisibilityFunction": "isBookWorkoutVisible"
+                }
+            ]
+        }
+    },
     "bottomPanels": {
         "detail": [
             "__APPEND__",

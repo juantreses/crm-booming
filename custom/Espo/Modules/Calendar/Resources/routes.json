@@ -35,6 +35,14 @@
     }
   },
   {
+    "route": "/calendar/type/:type",
+    "method": "get",
+    "params": {
+      "controller": "CalendarApi",
+      "action": "byType"
+    }
+  },
+  {
     "route": "/calendar/upcoming-slots",
     "method": "get",
     "params": {

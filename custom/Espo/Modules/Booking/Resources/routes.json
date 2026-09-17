@@ -7,5 +7,13 @@
       "action": "booking"
     },
     "noAuth": true
+  },
+  {
+    "route": "/booking/book-workout",
+    "method": "post",
+    "params": {
+      "controller": "BookingApi",
+      "action": "bookWorkout"
+    }
   }
 ]

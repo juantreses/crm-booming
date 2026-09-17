@@ -36,6 +36,24 @@ readonly class CalendarRepository
     }
 
     /**
+     * Find the active calendar for a given type, regardless of isDirectBookable.
+     * Used for flows where the calendar isn't user-selected but implied by context
+     * (e.g. there is only one "workout" calendar).
+     */
+    public function findActiveCalendarByType(string $type): ?Entity
+    {
+        return $this->entityManager
+            ->getRDBRepository('CCalendar')
+            ->where([
+                'isActive' => true,
+                'type' => $type,
+                'deleted' => false,
+            ])
+            ->order('createdAt', 'ASC')
+            ->findOne();
+    }
+
+    /**
      * Get availabilities for a specific date
      * 
      * @param string $calendarId

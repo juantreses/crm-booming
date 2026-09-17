@@ -29,4 +29,24 @@ readonly class BookingApi
 
         return $this->bookingService->processBooking((array)$data);
     }
+
+    /**
+     * @throws BadRequest
+     * @throws Conflict
+     * @throws NotFound
+     */
+    public function postActionBookWorkout(Request $request): array
+    {
+        $data = $request->getParsedBody();
+
+        if (empty($data->entityType) || empty($data->entityId)) {
+            throw new BadRequest("Onvoldoende gegevens voor de boeking.");
+        }
+
+        if (empty($data->selectedDate) || empty($data->selectedTime)) {
+            throw new BadRequest("Geen tijdstip geselecteerd.");
+        }
+
+        return $this->bookingService->bookWorkout((array) $data);
+    }
 }

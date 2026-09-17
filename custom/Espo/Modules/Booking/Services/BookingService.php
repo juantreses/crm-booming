@@ -4,11 +4,13 @@ namespace Espo\Modules\Booking\Services;
 
 use DateTime;
 use DateTimeZone;
+use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Custom\Enums\IntroMeetingType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Custom\Enums\LeadStatus;
+use Espo\Modules\Calendar\Repositories\CalendarRepository;
 use Espo\Modules\Calendar\Services\CalendarService;
 use Espo\Modules\Calendar\Services\PublicCalendarAccess;
 use Espo\Modules\LeadManager\Services\LeadService;
@@ -21,6 +23,7 @@ readonly class BookingService
     public function __construct(
         private EntityManager $entityManager,
         private CalendarService $calendarService,
+        private CalendarRepository $calendarRepository,
         private LeadService $leadService,
         private SlugService $slug,
         private PublicCalendarAccess $publicCalendarAccess,
@@ -50,7 +53,7 @@ readonly class BookingService
     /**
      * Maakt direct een meeting aan vanuit interne logica (bvb Lead logCall)
      */
-    public function createInternalMeeting(string $calendarIdentifier, Entity $person, string $date, string $time, ?string $notes = null): Entity
+    public function createInternalMeeting(string $calendarIdentifier, Entity $person, string $date, string $time, ?string $notes = null, bool $isSparkCup = false): Entity
     {
         $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
@@ -63,7 +66,47 @@ readonly class BookingService
 
         $dateStartString = $date . ' ' . $time . ':00';
 
-        return $this->createMeeting($calendar, $person, $dateStartString, $targetSlot, $notes);
+        return $this->createMeeting($calendar, $person, $dateStartString, $targetSlot, $notes, $isSparkCup);
+    }
+
+    /**
+     * @throws Conflict
+     * @throws NotFound
+     * @throws BadRequest
+     */
+    public function bookWorkout(array $data): array
+    {
+        $entityType = $data['entityType'] ?? null;
+        $entityId = $data['entityId'] ?? null;
+
+        if (!in_array($entityType, ['Lead', 'Contact'], true) || empty($entityId)) {
+            throw new BadRequest('Ongeldig entiteitstype voor het boeken van een workout.');
+        }
+
+        $person = $this->entityManager->getEntityById($entityType, $entityId);
+        if (!$person) {
+            throw new NotFound("$entityType niet gevonden.");
+        }
+
+        // Er is maar één workout agenda; deze wordt niet door de gebruiker gekozen.
+        $calendar = $this->calendarRepository->findActiveCalendarByType('workout');
+        if (!$calendar) {
+            throw new NotFound('Geen actieve workout agenda gevonden.');
+        }
+
+        // SPARK cup is de enige workout die voor leads geboekt kan worden.
+        $isSparkCup = $entityType === 'Lead' ? true : (bool) ($data['isSparkCup'] ?? false);
+
+        $meeting = $this->createInternalMeeting(
+            $calendar->getId(),
+            $person,
+            $data['selectedDate'],
+            $data['selectedTime'],
+            $data['coachNote'] ?? null,
+            $isSparkCup
+        );
+
+        return ['id' => $meeting->get('id')];
     }
 
     /**
@@ -89,7 +132,7 @@ readonly class BookingService
         return $targetSlot;
     }
 
-    private function createMeeting($calendar, $person, string $dateStartString, array $targetSlot, ?string $notes = null): Entity
+    private function createMeeting($calendar, $person, string $dateStartString, array $targetSlot, ?string $notes = null, bool $isSparkCup = false): Entity
     {
         $duration = $calendar->get('duration') ?? 60;
 
@@ -97,9 +140,11 @@ readonly class BookingService
         $dateStart->setTimezone(new DateTimeZone('UTC'));
         $dateEnd = (clone $dateStart)->modify("+$duration minutes");
 
+        $typeLabel = $isSparkCup ? 'SPARK cup' : ucfirst($calendar->get('type'));
+
         $meeting = $this->entityManager->getNewEntity('Meeting');
         $meeting->set([
-            'name' => ucfirst($calendar->get('type')) . ' - ' . $person->get('name'),
+            'name' => $typeLabel . ' - ' . $person->get('name'),
             'status' => $calendar->get('needsApproval') ? 'Tentative' : 'Planned',
             'dateStart' => $dateStart->format('Y-m-d H:i:s'),
             'dateEnd' => $dateEnd->format('Y-m-d H:i:s'),
