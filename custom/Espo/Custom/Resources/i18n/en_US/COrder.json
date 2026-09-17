@@ -1,6 +1,6 @@
 {
     "fields": {
-        "dateOrdered": "Datum Besteld",
+        "dateOrdered": "Programma Start",
         "volumePoints": "Volumepunten",
         "products": "Producten",
         "programEnd": "Programma tot",
