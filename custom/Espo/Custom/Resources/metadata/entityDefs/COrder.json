@@ -44,8 +44,10 @@
             "isCustom": true
         },
         "volumePoints": {
-            "type": "int",
+            "type": "float",
             "required": true,
+            "decimal": true,
+            "decimalPlaces": 2,
             "isCustom": true
         },
         "products": {
