@@ -1,0 +1,26 @@
+{
+    "fields": {
+        "datum": "Datum",
+        "contact": "Contact",
+        "bovenarm": "Re Bovenarm (cm)",
+        "borst": "Borst (cm)",
+        "taille": "Taille (cm)",
+        "buik": "Buik (cm)",
+        "heup": "Heup (cm)",
+        "bovenbeen": "Re Bovenbeen (cm)"
+    },
+    "links": {
+        "contact": "Contact"
+    },
+    "labels": {
+        "Create CBodyMeasurement": "Lichaamsmeting toevoegen"
+    },
+    "tooltips": {
+        "bovenarm": "Sta rechtop met de arm ontspannen langs het lichaam. Meet rond het dikste deel van de rechter bovenarm, halverwege schouder en elleboog.",
+        "borst": "Sta rechtop en adem normaal uit. Meet horizontaal rond de borst op het breedste punt (ter hoogte van de tepels), met de armen licht opzij.",
+        "taille": "Sta rechtop en adem normaal uit. Meet rond het smalste deel van de taille, net boven de navel. Houd de meetlint horizontaal en niet te strak.",
+        "buik": "Sta ontspannen rechtop. Meet horizontaal rond de buik ter hoogte van de navel. Adem normaal uit voor de meting.",
+        "heup": "Sta rechtop met de voeten bij elkaar. Meet rond het breedste deel van de heupen/billen, waarbij de meetlint horizontaal blijft.",
+        "bovenbeen": "Sta rechtop met de voeten iets uit elkaar. Meet rond het dikste deel van het rechter bovenbeen, net onder de bilplooi."
+    }
+}

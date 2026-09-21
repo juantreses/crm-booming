@@ -47,6 +47,10 @@
         "orders": {
             "layout": null,
             "selectPrimaryFilterName": null
+        },
+        "cBodyMeasurements": {
+            "layout": null,
+            "selectPrimaryFilterName": null
         }
     },
     "views": {
@@ -76,6 +80,11 @@
                 "name": "weightProgression",
                 "label": "Gewicht evolutie",
                 "view": "custom:views/contact/panels/weight-progression"
+            },
+            {
+                "name": "bodyMeasurements",
+                "label": "Lichaamsmetingen",
+                "view": "custom:views/contact/panels/body-measurements"
             }
         ]
     }

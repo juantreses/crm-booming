@@ -1,0 +1,34 @@
+[
+    {
+        "name": "datum",
+        "width": 16
+    },
+    {
+        "name": "contact",
+        "width": 16
+    },
+    {
+        "name": "bovenarm",
+        "width": 14
+    },
+    {
+        "name": "borst",
+        "width": 14
+    },
+    {
+        "name": "taille",
+        "width": 14
+    },
+    {
+        "name": "buik",
+        "width": 14
+    },
+    {
+        "name": "heup",
+        "width": 14
+    },
+    {
+        "name": "bovenbeen",
+        "width": 14
+    }
+]

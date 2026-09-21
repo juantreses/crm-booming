@@ -10,7 +10,8 @@
         "cVankoCRM": "VankoCRM",
         "cHeight": "Lengte",
         "cNotes": "Notes",
-        "cOrders": "Bestellingen"
+        "cOrders": "Bestellingen",
+        "cBodyMeasurements": "Lichaamsmetingen"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
@@ -18,7 +19,8 @@
         "cBodyscans": "Bodyscans",
         "cUser": "Account",
         "cNotes": "Notes",
-        "cOrders": "Bestellingen"
+        "cOrders": "Bestellingen",
+        "cBodyMeasurements": "Lichaamsmetingen"
     },
     "options": {
         "cTypeKlant": {

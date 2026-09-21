@@ -27,8 +27,24 @@
     "weightProgression": {
         "index": 3
     },
-    "_tabBreak_2": {
+    "_tabBreak_5": {
         "index": 4,
+        "tabBreak": true,
+        "tabLabel": "Lichaamsmetingen"
+    },
+    "cBodyMeasurements": {
+        "index": 5
+    },
+    "_tabBreak_6": {
+        "index": 6,
+        "tabBreak": true,
+        "tabLabel": "Lichaamsmetingen evolutie"
+    },
+    "bodyMeasurements": {
+        "index": 7
+    },
+    "_tabBreak_2": {
+        "index": 8,
         "tabBreak": true,
         "tabLabel": "Notities"
     },
@@ -36,22 +52,22 @@
         "dynamicLogicVisible": null,
         "style": "default",
         "sticked": false,
-        "index": 5
+        "index": 9
     },
     "_tabBreak_4": {
-        "index": 6,
+        "index": 10,
         "tabBreak": true,
         "tabLabel": "Bestelgeschiedenis"
     },
     "cOrders": {
-        "index": 7
+        "index": 11
     },
     "_tabBreak_3": {
-        "index": 8,
+        "index": 12,
         "tabBreak": true,
         "tabLabel": "Afspraken"
     },
     "meetings": {
-        "index": 9
+        "index": 13
     }
 }

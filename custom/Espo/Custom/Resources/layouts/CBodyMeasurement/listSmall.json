@@ -1,0 +1,26 @@
+[
+    {
+        "name": "datum",
+        "width": 20
+    },
+    {
+        "name": "bovenarm",
+        "width": 16
+    },
+    {
+        "name": "borst",
+        "width": 16
+    },
+    {
+        "name": "taille",
+        "width": 16
+    },
+    {
+        "name": "buik",
+        "width": 16
+    },
+    {
+        "name": "heup",
+        "width": 16
+    }
+]

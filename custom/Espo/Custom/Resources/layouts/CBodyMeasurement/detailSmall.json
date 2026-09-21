@@ -1,0 +1,41 @@
+[
+    {
+        "rows": [
+            [
+                {
+                    "name": "datum"
+                },
+                {
+                    "name": "false"
+                }
+            ],
+            [
+                {
+                    "name": "bovenarm"
+                },
+                {
+                    "name": "borst"
+                }
+            ],
+            [
+                {
+                    "name": "taille"
+                },
+                {
+                    "name": "buik"
+                }
+            ],
+            [
+                {
+                    "name": "heup"
+                },
+                {
+                    "name": "bovenbeen"
+                }
+            ]
+        ],
+        "style": "default",
+        "noteStyle": "info",
+        "label": ""
+    }
+]

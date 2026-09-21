@@ -146,6 +146,13 @@
             "entity": "COrder",
             "audited": false,
             "isCustom": true
+        },
+        "cBodyMeasurements": {
+            "type": "hasMany",
+            "foreign": "contact",
+            "entity": "CBodyMeasurement",
+            "audited": false,
+            "isCustom": true
         }
     }
 }
