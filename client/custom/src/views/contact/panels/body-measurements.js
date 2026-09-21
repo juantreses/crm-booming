@@ -74,11 +74,6 @@ define([
                             </table>
                         </div>
 
-                        <!-- Combined chart -->
-                        <div class="chart-container" style="position: relative; height: 350px; margin-bottom: 30px;">
-                            <canvas id="{{panelId}}_all"></canvas>
-                        </div>
-
                         <!-- Individual charts -->
                         <div class="row">
                             {{#each measurementCharts}}
@@ -185,8 +180,7 @@ define([
                 const firstVal = parseFloat(first[m.key] || 0);
                 const lastVal = parseFloat(last[m.key] || 0);
                 const diff = lastVal - firstVal;
-                const isGoodDown = (m.key === 'taille' || m.key === 'buik' || m.key === 'heup');
-                const isPositive = isGoodDown ? diff <= 0 : diff >= 0;
+                const isPositive = diff <= 0;
                 const sign = diff >= 0 ? '+' : '-';
                 return {
                     label: m.label,
@@ -244,40 +238,6 @@ define([
                     },
                     interaction: { mode: 'nearest', axis: 'x', intersect: false }
                 };
-
-                // Combined chart
-                const combinedCanvas = this.$el.find(`#${this.panelId}_all`)[0];
-                if (combinedCanvas) {
-                    const allValues = MEASUREMENTS.flatMap(m =>
-                        this.measurementData.map(item => parseFloat(item[m.key] || 0)).filter(v => v > 0)
-                    );
-                    const minY = allValues.length ? Math.floor(Math.min(...allValues)) - 3 : 0;
-                    const maxY = allValues.length ? Math.ceil(Math.max(...allValues)) + 3 : 100;
-
-                    this._charts['all'] = new Chart(combinedCanvas.getContext('2d'), {
-                        type: 'line',
-                        data: {
-                            labels,
-                            datasets: MEASUREMENTS.map(m => ({
-                                label: m.label + ' (cm)',
-                                data: this.measurementData.map(item => parseFloat(item[m.key] || 0)),
-                                borderColor: m.color,
-                                backgroundColor: m.bgColor,
-                                tension: 0.1,
-                                pointRadius: 4,
-                                pointHoverRadius: 7,
-                                fill: false
-                            }))
-                        },
-                        options: {
-                            ...commonOptions,
-                            scales: {
-                                x: timeScaleOptions,
-                                y: { beginAtZero: false, min: minY, max: maxY, title: { display: true, text: 'cm' } }
-                            }
-                        }
-                    });
-                }
 
                 // Individual chart per measurement
                 MEASUREMENTS.forEach(m => {
