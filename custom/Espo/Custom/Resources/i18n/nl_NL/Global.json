@@ -4,14 +4,16 @@
         "CTeam": "HBL Team",
         "CCampagneRoundRobin": "Round Robin",
         "Meeting": "Afspraak",
-        "CSlimFitCenter": "Center"
+        "CSlimFitCenter": "Center",
+        "CBodyMeasurement": "Lichaamsmeting"
     },
     "scopeNamesPlural": {
         "Contact": "Klanten",
         "CTeam": "HBL Teams",
         "CCampagneRoundRobin": "Round Robins",
         "Meeting": "Afspraken",
-        "CSlimFitCenter": "Centers"
+        "CSlimFitCenter": "Centers",
+        "CBodyMeasurement": "Lichaamsmetingen"
     },
     "lists": {
         "monthNamesShort": [

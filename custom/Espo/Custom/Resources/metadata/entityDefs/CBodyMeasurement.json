@@ -58,7 +58,8 @@
             "max": 80,
             "decimalPlaces": 1,
             "readOnlyAfterCreate": false,
-            "isCustom": true
+            "isCustom": true,
+            "tooltip": true
         },
         "borst": {
             "notNull": false,
@@ -68,7 +69,8 @@
             "max": 200,
             "decimalPlaces": 1,
             "readOnlyAfterCreate": false,
-            "isCustom": true
+            "isCustom": true,
+            "tooltip": true
         },
         "taille": {
             "notNull": false,
@@ -78,7 +80,8 @@
             "max": 200,
             "decimalPlaces": 1,
             "readOnlyAfterCreate": false,
-            "isCustom": true
+            "isCustom": true,
+            "tooltip": true
         },
         "buik": {
             "notNull": false,
@@ -88,7 +91,8 @@
             "max": 200,
             "decimalPlaces": 1,
             "readOnlyAfterCreate": false,
-            "isCustom": true
+            "isCustom": true,
+            "tooltip": true
         },
         "heup": {
             "notNull": false,
@@ -98,7 +102,8 @@
             "max": 200,
             "decimalPlaces": 1,
             "readOnlyAfterCreate": false,
-            "isCustom": true
+            "isCustom": true,
+            "tooltip": true
         },
         "bovenbeen": {
             "notNull": false,
@@ -108,7 +113,8 @@
             "max": 100,
             "decimalPlaces": 1,
             "readOnlyAfterCreate": false,
-            "isCustom": true
+            "isCustom": true,
+            "tooltip": true
         }
     },
     "links": {

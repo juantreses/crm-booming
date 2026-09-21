@@ -8,7 +8,8 @@
         "CCalendar": "Kalender",
         "CAvailability": "Beschikbaarheid",
         "CLocation": "Locatie",
-        "COrder": "Bestelling"
+        "COrder": "Bestelling",
+        "CBodyMeasurement": "Lichaamsmeting"
     },
     "scopeNamesPlural": {
         "CTeam": "HBL Teams",
@@ -19,6 +20,7 @@
         "CCalendar": "Kalenders",
         "CAvailability": "Beschikbaarheden",
         "CLocation": "Locaties",
-        "COrder": "Bestellingen"
+        "COrder": "Bestellingen",
+        "CBodyMeasurement": "Lichaamsmetingen"
     }
 }

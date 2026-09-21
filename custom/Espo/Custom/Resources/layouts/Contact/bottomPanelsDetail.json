@@ -14,7 +14,7 @@
     "_tabBreak_0": {
         "index": 0,
         "tabBreak": true,
-        "tabLabel": "Bodyscans"
+        "tabLabel": "BS"
     },
     "cBodyscans": {
         "index": 1
@@ -22,7 +22,7 @@
     "_tabBreak_1": {
         "index": 2,
         "tabBreak": true,
-        "tabLabel": "Gewicht evolutie"
+        "tabLabel": "BS Evolutie"
     },
     "weightProgression": {
         "index": 3
@@ -30,7 +30,7 @@
     "_tabBreak_5": {
         "index": 4,
         "tabBreak": true,
-        "tabLabel": "Lichaamsmetingen"
+        "tabLabel": "Cm's"
     },
     "cBodyMeasurements": {
         "index": 5
@@ -38,7 +38,7 @@
     "_tabBreak_6": {
         "index": 6,
         "tabBreak": true,
-        "tabLabel": "Lichaamsmetingen evolutie"
+        "tabLabel": "Cm's Evolutie"
     },
     "bodyMeasurements": {
         "index": 7

@@ -1,17 +1,4 @@
 {
-    "fields": {
-        "datum": "Datum",
-        "contact": "Contact",
-        "bovenarm": "Re Bovenarm (cm)",
-        "borst": "Borst (cm)",
-        "taille": "Taille (cm)",
-        "buik": "Buik (cm)",
-        "heup": "Heup (cm)",
-        "bovenbeen": "Re Bovenbeen (cm)"
-    },
-    "links": {
-        "contact": "Contact"
-    },
     "labels": {
         "Create CBodyMeasurement": "Creëer Lichaamsmeting"
     },
