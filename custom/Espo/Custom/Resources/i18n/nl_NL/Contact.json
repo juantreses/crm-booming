@@ -25,7 +25,7 @@
             "sample_pack": "Proefpakket",
             "sport_only": "Enkel sport",
             "retail": "Retail",
-            "pcx_15": "PCX 15",
+            "pcx_15": "PCX",
             "pcx_25": "PCX 25",
             "pcx_35": "PCX 35",
             "21_day_bootcamp": "21 dagen SlimFit Bootcamp",
@@ -46,9 +46,9 @@
             "21_day_ultimate": "21 Dagen Ultimate",
             "spark_free": "SPARK Gratis",
             "spark_10x": "SPARK 10 Beurten",
-            "21_day_sta": "21 Dagen STA",
-            "21_day_stap": "21 Dagen STAP",
-            "21_day_stamp": "21 Dagen STAMP"
+            "21_day_sta": "STA",
+            "21_day_stap": "STAP",
+            "21_day_stamp": "STAMP"
         },
         "salutationName": {
             "": "",

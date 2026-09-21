@@ -42,8 +42,6 @@
                 "spark_free",
                 "spark_10x",
                 "pcx_15",
-                "pcx_25",
-                "pcx_35",
                 "distributor"
             ],
             "default": "21_day_sta",
@@ -55,8 +53,6 @@
                 "spark_free": null,
                 "spark_10x": null,
                 "pcx_15": null,
-                "pcx_25": null,
-                "pcx_35": null,
                 "distributor": null
             },
             "maxLength": 100,
