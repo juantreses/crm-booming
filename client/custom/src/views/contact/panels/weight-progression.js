@@ -37,85 +37,67 @@ define([
                 <div class="weight-data-container">
                     {{#if hasData}}
                         <div class="overview-table" style="margin-bottom: 20px;">
-                            <table class="table">
+                            <table class="table table-bordered table-sm">
                                 <thead>
                                     <tr style="background: #f8f9fa;">
-                                        <th colspan="2">Eerste weging</th>
-                                        <th colspan="2">Laatste weging</th>
-                                        <th colspan="2">Resultaat</th>
+                                        <th>Meting</th>
+                                        <th>Eerste weging<br><small style="font-weight:normal;">{{firstDate}}</small></th>
+                                        <th>Laatste weging<br><small style="font-weight:normal;">{{lastDate}}</small></th>
+                                        <th>Evolutie</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>Datum:</td>
-                                        <td>{{firstDate}}</td>
-                                        <td>Datum:</td>
-                                        <td>{{lastDate}}</td>
-                                        <td>Dagen:</td>
-                                        <td>{{daysDiff}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Gewicht:</td>
+                                        <td><strong>Gewicht</strong></td>
                                         <td>{{firstWeight}} kg</td>
-                                        <td>Gewicht:</td>
                                         <td>{{lastWeight}} kg</td>
-                                        <td>Evolutie:</td>
-                                        <td style="color: {{evolutionColor}};">{{weightEvolution}} kg</td>
+                                        <td style="color: {{evolutionColor}}; font-weight: bold;">{{weightEvolution}} kg</td>
                                     </tr>
                                     <tr>
-                                        <td>Spieren:</td>
+                                        <td><strong>Spieren</strong></td>
                                         <td>{{firstMuscle}} kg</td>
-                                        <td>Spieren:</td>
                                         <td>{{lastMuscle}} kg</td>
-                                        <td>Evolutie:</td>
-                                        <td style="color: {{muscleEvolutionColor}};">{{muscleEvolution}} kg</td>
+                                        <td style="color: {{muscleEvolutionColor}}; font-weight: bold;">{{muscleEvolution}} kg</td>
                                     </tr>
                                     <tr>
-                                        <td>Vet (%):</td>
+                                        <td><strong>Vet (%)</strong></td>
                                         <td>{{firstFatPercentage}}%</td>
-                                        <td>Vet (%):</td>
                                         <td>{{lastFatPercentage}}%</td>
-                                        <td>Evolutie:</td>
-                                        <td style="color: {{fatPercentageEvolutionColor}};">{{fatPercentageEvolution}}%</td>
+                                        <td style="color: {{fatPercentageEvolutionColor}}; font-weight: bold;">{{fatPercentageEvolution}}%</td>
                                     </tr>
                                     <tr>
-                                        <td>Visceraal vet:</td>
+                                        <td><strong>Visceraal vet</strong></td>
                                         <td>{{firstVisceralFat}}</td>
-                                        <td>Visceraal vet:</td>
                                         <td>{{lastVisceralFat}}</td>
-                                        <td>Evolutie:</td>
-                                        <td style="color: {{visceralFatEvolutionColor}};">{{visceralFatEvolution}}</td>
+                                        <td style="color: {{visceralFatEvolutionColor}}; font-weight: bold;">{{visceralFatEvolution}}</td>
                                     </tr>
                                     {{#if showAllResults}}
                                     <tr>
-                                        <td>Vocht (%):</td>
+                                        <td><strong>Vocht (%)</strong></td>
                                         <td>{{firstVochtPercentage}}%</td>
-                                        <td>Vocht (%):</td>
                                         <td>{{lastVochtPercentage}}%</td>
-                                        <td>Evolutie:</td>
-                                        <td style="color: {{vochtEvolutionColor}};">{{vochtEvolution}}%</td>
+                                        <td style="color: {{vochtEvolutionColor}}; font-weight: bold;">{{vochtEvolution}}%</td>
                                     </tr>
                                     <tr>
-                                        <td>BMR:</td>
+                                        <td><strong>BMR</strong></td>
                                         <td>{{firstBmr}}</td>
-                                        <td>BMR:</td>
                                         <td>{{lastBmr}}</td>
-                                        <td>Evolutie:</td>
-                                        <td style="color: {{bmrEvolutionColor}};">{{bmrEvolution}}</td>
+                                        <td style="color: {{bmrEvolutionColor}}; font-weight: bold;">{{bmrEvolution}}</td>
                                     </tr>
                                     <tr>
-                                        <td>Metabolische Lft.:</td>
+                                        <td><strong>Metabolische Lft.</strong></td>
                                         <td>{{firstMetabolicAge}}</td>
-                                        <td>Metabolische Lft.:</td>
                                         <td>{{lastMetabolicAge}}</td>
-                                        <td>Evolutie:</td>
-                                        <td style="color: {{metabolicAgeEvolutionColor}};">{{metabolicAgeEvolution}}</td>
+                                        <td style="color: {{metabolicAgeEvolutionColor}}; font-weight: bold;">{{metabolicAgeEvolution}}</td>
                                     </tr>
                                     {{/if}}
                                     <tr>
-                                        <td colspan="6" style="text-align: right;">
+                                        <td colspan="3" style="font-size: 0.85em; color: #666;">
+                                            Periode: {{daysDiff}} dagen
+                                        </td>
+                                        <td style="text-align: right;">
                                             <a href="#" data-action="toggleAllResults">
-                                                <span class="fas fa-list"></span> {{#if showAllResults}}Toon minder resultaten{{else}}Toon alle resultaten{{/if}}
+                                                <span class="fas fa-list"></span> {{#if showAllResults}}Toon minder{{else}}Toon alle resultaten{{/if}}
                                             </a>
                                         </td>
                                     </tr>
