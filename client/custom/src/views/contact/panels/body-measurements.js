@@ -132,7 +132,9 @@ define([
                     }
                 ],
                 orderBy: 'datum',
-                order: 'asc',
+                // Fetch newest first so the limit keeps the most recent records;
+                // they are re-sorted chronologically below for the chart.
+                order: 'desc',
                 maxSize: this.limit
             };
 
