@@ -110,6 +110,44 @@ readonly class BookingService
     }
 
     /**
+     * Boekt een follow-up (FU) voor een klant in de (enige) follow-up agenda.
+     *
+     * @throws Conflict
+     * @throws NotFound
+     * @throws BadRequest
+     */
+    public function bookFollowUp(array $data): array
+    {
+        $entityType = $data['entityType'] ?? null;
+        $entityId = $data['entityId'] ?? null;
+
+        if ($entityType !== 'Contact' || empty($entityId)) {
+            throw new BadRequest('Een follow-up kan enkel voor klanten geboekt worden.');
+        }
+
+        $person = $this->entityManager->getEntityById($entityType, $entityId);
+        if (!$person) {
+            throw new NotFound("$entityType niet gevonden.");
+        }
+
+        // Er is maar één follow-up agenda; deze wordt niet door de gebruiker gekozen.
+        $calendar = $this->calendarRepository->findActiveCalendarByType('followup');
+        if (!$calendar) {
+            throw new NotFound('Geen actieve follow-up agenda gevonden.');
+        }
+
+        $meeting = $this->createInternalMeeting(
+            $calendar->getId(),
+            $person,
+            $data['selectedDate'],
+            $data['selectedTime'],
+            $data['coachNote'] ?? null
+        );
+
+        return ['id' => $meeting->get('id')];
+    }
+
+    /**
      * @throws Conflict
      */
     private function findSlot(string $calendarId, string $date, string $time, ?string $availabilityId = null): array
@@ -140,7 +178,11 @@ readonly class BookingService
         $dateStart->setTimezone(new DateTimeZone('UTC'));
         $dateEnd = (clone $dateStart)->modify("+$duration minutes");
 
-        $typeLabel = $isSparkCup ? 'SPARK cup' : ucfirst($calendar->get('type'));
+        $typeLabel = match (true) {
+            $isSparkCup => 'SPARK cup',
+            $calendar->get('type') === 'followup' => 'FU',
+            default => ucfirst($calendar->get('type')),
+        };
 
         $meeting = $this->entityManager->getNewEntity('Meeting');
         $meeting->set([

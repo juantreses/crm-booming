@@ -60,6 +60,7 @@
             "spark": "SPARK",
             "hom": "HOM",
             "workout": "Workout",
+            "followup": "Follow-up (FU)",
             "coach": "Coach",
             "event": "Event",
             "royalty": "Royalty",

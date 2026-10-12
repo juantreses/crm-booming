@@ -15,5 +15,13 @@
       "controller": "BookingApi",
       "action": "bookWorkout"
     }
+  },
+  {
+    "route": "/booking/book-follow-up",
+    "method": "post",
+    "params": {
+      "controller": "BookingApi",
+      "action": "bookFollowUp"
+    }
   }
 ]

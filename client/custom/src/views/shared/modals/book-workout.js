@@ -16,6 +16,12 @@ define('custom:views/shared/modals/book-workout', [
         successMessage: 'Workout geboekt.',
         errorMessage: 'Workout boeken mislukt.',
 
+        /**
+         * Agenda type waarvan de (enige) actieve agenda gebruikt wordt.
+         * Child views (bvb book-follow-up) overschrijven dit.
+         */
+        calendarType: 'workout',
+
         workoutCalendarId: null,
 
         afterRender: function () {
@@ -37,11 +43,15 @@ define('custom:views/shared/modals/book-workout', [
             return 'Workout Inplannen';
         },
 
+        getNoCalendarText: function () {
+            return 'Geen workout agenda beschikbaar';
+        },
+
         loadSlots: function () {
             const $slotSelect = this.$el.find('[name="selectedSlot"]');
             $slotSelect.prop('disabled', true).empty().append('<option value="">Laden...</option>');
 
-            Espo.Ajax.getRequest('calendar/type/workout')
+            Espo.Ajax.getRequest('calendar/type/' + this.calendarType)
                 .then(calendar => {
                     this.workoutCalendarId = calendar.id;
 
@@ -83,8 +93,8 @@ define('custom:views/shared/modals/book-workout', [
                     $slotSelect.prop('disabled', false);
                 })
                 .catch(e => {
-                    console.error('Failed to load workout calendar slots:', e);
-                    $slotSelect.empty().append('<option value="">Geen workout agenda beschikbaar</option>');
+                    console.error('Failed to load ' + this.calendarType + ' calendar slots:', e);
+                    $slotSelect.empty().append('<option value="">' + this.getNoCalendarText() + '</option>');
                 });
         },
 

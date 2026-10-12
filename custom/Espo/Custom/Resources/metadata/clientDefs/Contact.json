@@ -69,6 +69,16 @@
                     "handler": "custom:handlers/book-workout-action-handler",
                     "actionFunction": "bookWorkout",
                     "checkVisibilityFunction": "isBookWorkoutVisible"
+                },
+                {
+                    "label": "FU Boeken",
+                    "name": "bookFollowUp",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Contact",
+                    "handler": "custom:handlers/book-follow-up-action-handler",
+                    "actionFunction": "bookFollowUp",
+                    "checkVisibilityFunction": "isBookFollowUpVisible"
                 }
             ]
         }
