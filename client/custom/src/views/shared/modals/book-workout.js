@@ -47,7 +47,7 @@ define('custom:views/shared/modals/book-workout', [
 
                     return Espo.Ajax.getRequest('calendar/upcoming-slots', {
                         id: calendar.id,
-                        coach: this.model.assigneUserId
+                        coach: this.model.assignedUserId
                     });
                 })
                 .then(response => {
