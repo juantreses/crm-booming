@@ -12,3 +12,4 @@
 deployment.log
 
 /node_modules
+db.sanitized.sql

@@ -91,7 +91,7 @@ define('custom:mixins/meeting-scheduler-mixin', [], function () {
             $slotDiv.show();
             $slotSelect.prop('disabled', true);
 
-            Espo.Ajax.getRequest('calendar/upcoming-slots', { id: calendarIdentifier, coach: this.model.assigneUserId })
+            Espo.Ajax.getRequest('calendar/upcoming-slots', { id: calendarIdentifier, coach: this.model.assignedUserId })
                 .then(response => {
                     $slotSelect.empty().append('<option value="">-- Kies tijdstip --</option>');
 
