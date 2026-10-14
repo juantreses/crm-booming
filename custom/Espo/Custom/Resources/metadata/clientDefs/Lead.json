@@ -129,6 +129,16 @@
                     "handler": "custom:handlers/log-kickstart-follow-up-handler",
                     "actionFunction": "logKickstartFollowUp",
                     "checkVisibilityFunction": "isLogKickstartFollowUpVisible"
+                },
+                {
+                    "label": "Reset Lead",
+                    "name": "resetLead",
+                    "style": "danger",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/reset-lead-handler",
+                    "actionFunction": "resetLead",
+                    "checkVisibilityFunction": "isResetLeadVisible"
                 }
             ]
         }

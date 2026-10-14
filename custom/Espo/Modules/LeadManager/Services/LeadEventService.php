@@ -2,7 +2,13 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
+use Espo\Core\Acl;
+use Espo\Core\Exceptions\Forbidden;
+use Espo\Core\Exceptions\NotFound;
+use Espo\Core\Utils\Language;
 use Espo\Custom\Enums\LeadEventType;
+use Espo\Entities\User;
+use Espo\ORM\EntityManager;
 use Espo\Modules\LeadManager\ValueObjects\CallOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\IntroMeetingOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\KickstartFollowUpOutcomeData;
@@ -15,6 +21,10 @@ readonly class LeadEventService
         private LeadEventLogService $eventLogService,
         private LeadCallCountService $callCountService,
         private HandlerRegistry $handlerRegistry,
+        private EntityManager $entityManager,
+        private Acl $acl,
+        private User $user,
+        private Language $language,
     ) {}
 
     public function logEvent(
@@ -154,5 +164,48 @@ readonly class LeadEventService
         $result = $handler->handle($messageData->leadId, $context);
 
         return $result->toArray();
+    }
+
+    public function resetLead(\StdClass $data): array
+    {
+        $leadId = (string) $data->id;
+
+        $lead = $this->entityManager->getEntityById('Lead', $leadId);
+
+        if (!$lead) {
+            throw new NotFound('Lead not found');
+        }
+
+        if (!$this->acl->checkEntityEdit($lead)) {
+            throw new Forbidden('No edit access to this lead');
+        }
+
+        $previousStatus = $this->translateLeadOption('status', $lead->get('status'));
+        $previousStage = $this->translateLeadOption('cStage', $lead->get('cStage'));
+        $previousCallCount = (int) ($lead->get('cCallCount') ?? 0);
+
+        $this->callCountService->reset($leadId);
+
+        $description = sprintf(
+            "RESET door %s\nLead teruggezet naar status \"%s\" en fase \"%s\".\n" .
+            "Vorige status: %s\nVorige fase: %s\nBelpogingen teruggezet: %d → 0",
+            $this->user->getName() ?: $this->user->getUserName(),
+            $this->translateLeadOption('status', 'Assigned'),
+            $this->translateLeadOption('cStage', 'to_call'),
+            $previousStatus,
+            $previousStage,
+            $previousCallCount
+        );
+
+        return $this->logEvent($leadId, LeadEventType::RESET, null, $description);
+    }
+
+    private function translateLeadOption(string $field, ?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return '-';
+        }
+
+        return $this->language->translateOption($value, $field, 'Lead');
     }
 }

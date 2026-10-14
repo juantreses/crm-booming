@@ -5,6 +5,8 @@ namespace Espo\Modules\LeadManager\Controllers;
 use Espo\Core\Api\Request;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Conflict;
+use Espo\Core\Exceptions\Forbidden;
+use Espo\Core\Exceptions\NotFound;
 use Espo\Modules\LeadManager\Services\LeadEventService;
 use Espo\Modules\LeadManager\Validators\LogCallValidator;
 use Espo\Modules\LeadManager\Validators\LogIntroMeetingValidator;
@@ -225,6 +227,34 @@ readonly class LeadEventApi
                 'trace' => $e->getTraceAsString()
             ]);
             throw new BadRequest('Failed to book kickstart: ' . $e->getMessage());
+        }
+    }
+
+    public function postActionResetLead(Request $request): array
+    {
+        try {
+            $data = $request->getParsedBody();
+
+            if (!isset($data->id)) {
+                throw new BadRequest('Lead ID is required');
+            }
+
+            $result = $this->leadEventService->resetLead($data);
+
+            return [
+                'success' => true,
+                'message' => 'Lead reset successfully',
+                'data' => $result
+            ];
+
+        } catch (BadRequest | Forbidden | NotFound $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            $GLOBALS['log']->error('Lead Reset Error: ' . $e->getMessage(), [
+                'leadId' => $data->id ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new BadRequest('Failed to reset lead: ' . $e->getMessage());
         }
     }
 }

@@ -55,7 +55,8 @@
                 "became_client",
                 "not_converted",
                 "still_thinking",
-                "became_coach"
+                "became_coach",
+                "reset"
             ],
             "style": {
                 "called": null,
@@ -73,7 +74,8 @@
                 "became_client": null,
                 "not_converted": null,
                 "still_thinking": null,
-                "became_coach": null
+                "became_coach": null,
+                "reset": "danger"
             },
             "default": "called",
             "maxLength": 100,

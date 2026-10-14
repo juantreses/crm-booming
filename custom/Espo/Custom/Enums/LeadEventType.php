@@ -34,6 +34,9 @@ enum LeadEventType: string
     
     // Assignment
     case ASSIGNED = 'assigned';
+
+    // Manual reset to the start of the funnel
+    case RESET = 'reset';
     
     // Outcome events
     case BECAME_CLIENT = 'became_client';

@@ -17,6 +17,11 @@ readonly class LeadStatusService
             'status' => LeadStatus::ASSIGNED->value,
             'cStage' => LeadStage::TO_CALL->value
         ],
+        LeadEventType::RESET->value => [
+            'status' => LeadStatus::ASSIGNED->value,
+            'cStage' => LeadStage::TO_CALL->value,
+            'cReasonLost' => null
+        ],
         LeadEventType::CALL_AGAIN->value => [
             'status' => LeadStatus::ASSIGNED->value,
             'cStage' => LeadStage::FOLLOW_UP->value

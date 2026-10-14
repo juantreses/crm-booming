@@ -63,5 +63,13 @@
           "controller": "LeadEventApi",
           "action": "bookKickstart"
       }
+    },
+    {
+      "route": "/leadEvent/resetLead",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "resetLead"
+      }
     }
 ]
