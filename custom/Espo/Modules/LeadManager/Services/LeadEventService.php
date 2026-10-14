@@ -7,6 +7,7 @@ use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Core\Utils\Language;
 use Espo\Custom\Enums\LeadEventType;
+use Espo\Custom\Enums\LeadStatus;
 use Espo\Entities\User;
 use Espo\ORM\EntityManager;
 use Espo\Modules\LeadManager\ValueObjects\CallOutcomeData;
@@ -178,6 +179,12 @@ readonly class LeadEventService
 
         if (!$this->acl->checkEntityEdit($lead)) {
             throw new Forbidden('No edit access to this lead');
+        }
+
+        $convertedStatuses = [LeadStatus::CONVERTED->value, LeadStatus::BECAME_CLIENT->value];
+
+        if (in_array($lead->get('status'), $convertedStatuses, true)) {
+            throw new Forbidden('Een geconverteerde lead kan niet gereset worden.');
         }
 
         $previousStatus = $this->translateLeadOption('status', $lead->get('status'));
