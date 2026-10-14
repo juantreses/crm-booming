@@ -181,9 +181,7 @@ readonly class LeadEventService
             throw new Forbidden('No edit access to this lead');
         }
 
-        $convertedStatuses = [LeadStatus::CONVERTED->value, LeadStatus::BECAME_CLIENT->value];
-
-        if (in_array($lead->get('status'), $convertedStatuses, true)) {
+        if ($lead->get('status') === LeadStatus::CONVERTED->value) {
             throw new Forbidden('Een geconverteerde lead kan niet gereset worden.');
         }
 

@@ -47,7 +47,7 @@ define('custom:handlers/reset-lead-handler', ['action-handler'], (Dep) => {
             const status = this.view.model.get('status');
             const stage = this.view.model.get('cStage');
 
-            if (['Converted', 'became_client'].includes(status)) {
+            if (status === 'Converted') {
                 return false;
             }
 
