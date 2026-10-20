@@ -81,6 +81,14 @@ readonly class LeadStatusService
             'status' => LeadStatus::ASSIGNED->value,
             'cStage' => LeadStage::FOLLOW_UP->value
         ],
+        LeadEventType::ROYALTY_BOOKED->value => [
+            'status' => LeadStatus::ASSIGNED->value,
+            'cStage' => LeadStage::RI_PLANNED->value
+        ],
+        LeadEventType::ROYALTY_STILL_THINKING->value => [
+            'status' => LeadStatus::ASSIGNED->value,
+            'cStage' => LeadStage::RI_DOUBT->value
+        ],
     ];
 
     public function __construct(

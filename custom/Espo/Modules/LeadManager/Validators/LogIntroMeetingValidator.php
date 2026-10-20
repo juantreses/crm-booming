@@ -3,6 +3,7 @@
 namespace Espo\Modules\LeadManager\Validators;
 
 use Espo\Core\Exceptions\BadRequest;
+use Espo\Custom\Enums\HomRating;
 use Espo\Custom\Enums\IntroMeetingOutcome;
 
 class LogIntroMeetingValidator
@@ -53,6 +54,16 @@ class LogIntroMeetingValidator
 
             if (empty($calendarId) || empty($selectedDate) || empty($selectedTime)) {
                 throw new BadRequest('Volgende afspraak is niet volledig ingevuld.');
+            }
+        }
+
+        if (!empty($data->homRating)) {
+            if ($outcome !== IntroMeetingOutcome::ATTENDED->value) {
+                throw new BadRequest('HOM-score is enkel mogelijk na een aanwezige HOM.');
+            }
+
+            if (!HomRating::isValid($data->homRating)) {
+                throw new BadRequest('Ongeldige HOM-score.');
             }
         }
 

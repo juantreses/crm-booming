@@ -117,6 +117,62 @@ readonly class LeadEventService
         return $result->toArray();
     }
 
+    public function logRoyalty(\StdClass $data): array
+    {
+        $royaltyData = KickstartOutcomeData::fromStdClass($data);
+
+        $handler = $this->handlerRegistry->getRoyaltyHandler($royaltyData->outcome->value);
+
+        $context = [
+            'eventDate' => $royaltyData->kickstartDateTime,
+            'callAgainDateTime' => $royaltyData->callAgainDateTime,
+            'coachNote' => $royaltyData->coachNote,
+            'cancellationAction' => $royaltyData->cancellationAction,
+            'calendarId' => $royaltyData->calendarId,
+            'selectedDate' => $royaltyData->selectedDate,
+            'selectedTime' => $royaltyData->selectedTime,
+        ];
+
+        $result = $handler->handle($royaltyData->leadId, $context);
+
+        return $result->toArray();
+    }
+
+    public function logRoyaltyFollowUp(\StdClass $data): array
+    {
+        $followUpData = KickstartFollowUpOutcomeData::fromStdClass($data);
+
+        $handler = $this->handlerRegistry->getRoyaltyFollowUpHandler($followUpData->outcome->value);
+
+        $context = [
+            'eventDate' => $followUpData->followUpDateTime,
+            'coachNote' => $followUpData->coachNote,
+        ];
+
+        $result = $handler->handle($followUpData->leadId, $context);
+
+        return $result->toArray();
+    }
+
+    public function bookRoyalty(\StdClass $data): array
+    {
+        $leadId = (string) $data->id;
+
+        $handler = $this->handlerRegistry->getRoyaltyBookingHandler();
+
+        $context = [
+            'eventDate' => $data->eventDate ?? null,
+            'coachNote' => $data->coachNote ?? null,
+            'calendarId' => $data->calendarId ?? null,
+            'selectedDate' => $data->selectedDate ?? null,
+            'selectedTime' => $data->selectedTime ?? null,
+        ];
+
+        $result = $handler->handle($leadId, $context);
+
+        return $result->toArray();
+    }
+
     public function logIntroMeeting(\StdClass $data): array
     {
         $introData = IntroMeetingOutcomeData::fromStdClass($data);
@@ -131,6 +187,7 @@ readonly class LeadEventService
             'calendarId' => $introData->calendarId,
             'selectedDate' => $introData->selectedDate,
             'selectedTime' => $introData->selectedTime,
+            'homRating' => $introData->homRating,
         ];
 
         if (!empty($introData->nextBooking)) {

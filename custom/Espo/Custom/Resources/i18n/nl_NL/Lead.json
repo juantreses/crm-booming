@@ -66,7 +66,9 @@
             "kickstart": "Kickstart",
             "bws": "Beauty Workshop",
             "spark": "SPARK",
+            "hom": "HOM",
             "iom": "HOM",
+            "royalty": "Royalty (RI)",
             "": ""
         },
         "cStage": {
@@ -77,6 +79,9 @@
             "book_ks": "📅 Boek KickStart",
             "ks_planned": "🚀 Kickstart Ingepland",
             "ks_doubt": "🤔 Twijfelt nog",
+            "book_ri": "📅 Boek RI",
+            "ri_planned": "👑 RI Ingepland",
+            "ri_doubt": "🤔 RI Twijfelt nog",
             "message_to_be_sent": "💬 Bericht sturen",
             "message_sent": "📤 Bericht gestuurd",
             "converted": "🏆Klant Geworden",

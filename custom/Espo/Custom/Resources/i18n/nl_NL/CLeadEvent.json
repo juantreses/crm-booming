@@ -20,6 +20,9 @@
             "not_converted": "Niet opgestart",
             "became_coach": "Coach geworden",
             "still_thinking": "Twijfel",
+            "royalty_booked": "RI Ingepland",
+            "royalty_cancelled": "RI Afgezegd",
+            "royalty_still_thinking": "RI Twijfel",
             "reset": "Gereset"
         }
     }

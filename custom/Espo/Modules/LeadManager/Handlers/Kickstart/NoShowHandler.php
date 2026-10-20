@@ -12,6 +12,9 @@ use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 
 class NoShowHandler extends AbstractOutcomeHandler
 {
+    protected const NOTE_SOURCE = 'Kickstart';
+    protected const FOLLOW_UP_NOTE = 'Niet opgedaagd Kickstart';
+
     public function __construct(
         LeadEventLogService $eventLogService,
         LeadNotesService $notesService,
@@ -33,14 +36,14 @@ class NoShowHandler extends AbstractOutcomeHandler
         $this->addCoachNoteIfProvided(
             $leadId,
             $context['coachNote'] ?? null,
-            'Kickstart',
+            static::NOTE_SOURCE,
             $context['eventDate'] ?? null
         );
 
         $this->handleFollowUp(
             $leadId,
             $context['callAgainDateTime'] ?? null,
-            'Niet opgedaagd Kickstart'
+            static::FOLLOW_UP_NOTE
         );
 
         $meeting = $this->meetingService->findPlannedMeeting($leadId);

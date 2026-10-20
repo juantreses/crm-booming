@@ -9,6 +9,8 @@ define('custom:views/lead/modals/book-kickstart', [
         apiEndpoint: 'leadEvent/bookKickstart',
         successMessage: 'Kickstart geboekt.',
         errorMessage: 'Kickstart boeken mislukt.',
+        calendarType: 'kickstart',
+        meetingLabel: 'Kickstart',
 
         setup: function () {
             Dep.prototype.setup.call(this);
@@ -21,11 +23,11 @@ define('custom:views/lead/modals/book-kickstart', [
         },
 
         getSaveButtonLabel: function() {
-            return 'Kickstart boeken';
+            return `${this.meetingLabel} boeken`;
         },
 
         getHeaderText: function() {
-            return 'Kickstart Inplannen';
+            return `${this.meetingLabel} Inplannen`;
         },
 
         loadBookableCalendars: function() {
@@ -37,9 +39,9 @@ define('custom:views/lead/modals/book-kickstart', [
                 .then(response => {
                     $calSelect.empty().append('<option value="">-- Kies Agenda --</option>');
 
-                    const kickstartCalendars = response.filter(cal => cal.type === 'kickstart');
+                    const kickstartCalendars = response.filter(cal => cal.type === this.calendarType);
                     if (kickstartCalendars.length === 0) {
-                        Espo.Ui.error('Geen Kickstart agenda beschikbaar.');
+                        Espo.Ui.error(`Geen ${this.meetingLabel} agenda beschikbaar.`);
                         $calSelect.prop('disabled', true);
                         return;
                     }
@@ -72,7 +74,7 @@ define('custom:views/lead/modals/book-kickstart', [
         },
 
         validateForm: function() {
-            if (!this.validateMeetingSelection('Kies een Kickstart agenda en tijdstip.')) {
+            if (!this.validateMeetingSelection(`Kies een ${this.meetingLabel} agenda en tijdstip.`)) {
                 return false;
             }
 

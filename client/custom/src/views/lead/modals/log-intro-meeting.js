@@ -20,6 +20,7 @@ define('custom:views/lead/modals/log-intro-meeting', [
             this.events['change [name="outcome"]'] = 'handleOutcomeChange';
             this.events['change [name="cancellationAction"]'] = 'handleCancellationActionChange';
             this.events['change [name="bookNextMeeting"]'] = 'handleBookNextMeetingChange';
+            this.events['change [name="homRating"]'] = 'handleHomRatingChange';
         },
 
         afterRender: function () {
@@ -38,7 +39,19 @@ define('custom:views/lead/modals/log-intro-meeting', [
         },
 
         getIntroMeetingType: function() {
-            return this.model.get('cMeetingType');
+            const type = this.model.get('cMeetingType');
+
+            // Legacy value for HOM
+            return type === 'iom' ? 'hom' : type;
+        },
+
+        isHom: function() {
+            return this.getIntroMeetingType() === 'hom';
+        },
+
+        // C/D go straight to a Royalty (RI), A/B continue to SPARK/Kickstart
+        homRatingLeadsToRoyalty: function(rating) {
+            return rating === 'C' || rating === 'D';
         },
 
         getSparksUsed: function() {
@@ -68,6 +81,8 @@ define('custom:views/lead/modals/log-intro-meeting', [
                     return 'HOM';
                 case 'kickstart':
                     return 'Kickstart';
+                case 'royalty':
+                    return 'RI';
                 default:
                     return type;
             }
@@ -86,21 +101,46 @@ define('custom:views/lead/modals/log-intro-meeting', [
 
             this.hideField('cancellation-action');
             this.hideField('call-again-date');
+            this.hideField('hom-rating');
             this.hideField('book-next-meeting');
             this.hideField('booking-container');
 
             this.bookingMode = null;
             this.hideMeetingScheduler();
             this.$el.find('[name="bookNextMeeting"]').prop('checked', false);
+            this.$el.find('[name="homRating"]').val('').trigger('change');
 
             if (outcome === 'cancelled') {
                 this.showField('cancellation-action');
                 this.$el.find('[name="cancellationAction"]').val('');
             } else if (outcome === 'no_show') {
                 this.showField('call-again-date');
+            } else if (outcome === 'attended' && this.isHom()) {
+                this.showField('hom-rating');
             } else if (outcome === 'attended') {
                 this.showField('book-next-meeting');
             }
+        },
+
+        handleHomRatingChange: function() {
+            const rating = this.getFieldValue('homRating');
+
+            this.hideField('booking-container');
+            this.bookingMode = null;
+            this.hideMeetingScheduler();
+            this.$el.find('[name="bookNextMeeting"]').prop('checked', false);
+
+            const $hint = this.$el.find('[data-role="hom-rating-hint"]');
+
+            if (!rating) {
+                $hint.text('A/B: SPARK of Kickstart, C/D: RI');
+                this.hideField('book-next-meeting');
+                return;
+            }
+
+            const nextLabel = this.homRatingLeadsToRoyalty(rating) ? 'RI' : 'SPARK of Kickstart';
+            $hint.text(`Volgende stap: ${nextLabel}`);
+            this.showField('book-next-meeting');
         },
 
         handleCancellationActionChange: function() {
@@ -176,6 +216,14 @@ define('custom:views/lead/modals/log-intro-meeting', [
             }
 
             if (this.bookingMode === 'next') {
+                if (introType === 'hom') {
+                    if (this.homRatingLeadsToRoyalty(this.getFieldValue('homRating'))) {
+                        return ['royalty'];
+                    }
+                    // HOM does not count as a SPARK session
+                    return sparksUsed >= 2 ? ['kickstart'] : ['spark', 'kickstart'];
+                }
+
                 if (introType === 'spark') {
                     const usedAfterAttendance = sparksUsed + (outcome === 'attended' ? 1 : 0);
                     if (usedAfterAttendance < 2) {
@@ -242,6 +290,10 @@ define('custom:views/lead/modals/log-intro-meeting', [
                 }
             }
 
+            if (outcome === 'attended' && this.isHom()) {
+                formData.homRating = this.getFieldValue('homRating') || null;
+            }
+
             if (outcome === 'attended' && bookNextMeeting) {
                 const meetingData = this.getSelectedMeetingData();
                 if (meetingData) {
@@ -287,6 +339,12 @@ define('custom:views/lead/modals/log-intro-meeting', [
 
             if (outcome === 'no_show') {
                 if (!ValidationUtils.validateCallAgainDateTime(callAgainDateTime, false)) {
+                    return false;
+                }
+            }
+
+            if (outcome === 'attended' && this.isHom()) {
+                if (!ValidationUtils.validateRequired(this.getFieldValue('homRating'), 'Kies de HOM-score (A/B/C/D).')) {
                     return false;
                 }
             }

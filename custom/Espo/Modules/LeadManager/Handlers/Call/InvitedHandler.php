@@ -78,6 +78,18 @@ class InvitedHandler extends AbstractOutcomeHandler
             return $this->handleKickstartBooking($lead, $result, $context['eventDate'] ?? null);
         }
 
+        if ($calendarType === 'royalty') {
+            $this->meetingService->createInternalMeeting(
+                $context['calendarId'],
+                $lead,
+                $context['selectedDate'],
+                $context['selectedTime'],
+                $context['coachNote'] ?? null
+            );
+
+            return $this->handleRoyaltyBooking($lead, $result, $context['eventDate'] ?? null);
+        }
+
         if (IntroMeetingType::isIntroMeeting($calendarType)) {
             if (!$this->introMeetingService->canBook($lead, IntroMeetingType::fromCalendarType($calendarType))) {
                 throw new \RuntimeException("Lead cannot book {$calendarType}");
@@ -128,6 +140,23 @@ class InvitedHandler extends AbstractOutcomeHandler
         // Update stage and type
         $lead->set('cStage', LeadStage::INTRO_SCHEDULED->value);
         $lead->set('cMeetingType', $meetingType->value);
+        $this->entityManager->saveEntity($lead);
+
+        return $result;
+    }
+
+    private function handleRoyaltyBooking(Entity $lead, OutcomeResult $result, ?string $eventDate = null): OutcomeResult
+    {
+        $eventId = $this->eventLogService->logEvent(
+            $lead->getId(),
+            LeadEventType::ROYALTY_BOOKED,
+            $eventDate
+        )['eventId'];
+
+        $result = $result->addEventId($eventId);
+
+        $lead->set('cStage', LeadStage::RI_PLANNED->value);
+        $lead->set('cMeetingType', 'royalty');
         $this->entityManager->saveEntity($lead);
 
         return $result;

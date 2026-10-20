@@ -7,6 +7,10 @@ use Espo\Custom\Enums\KickstartOutcome;
 
 class LogKickstartValidator
 {
+    public function __construct(
+        private readonly string $meetingLabel = 'Kickstart',
+    ) {}
+
     public function validate(\StdClass $data): void
     {
         if (!isset($data->id) || empty($data->id)) {
@@ -23,7 +27,7 @@ class LogKickstartValidator
             $now = new \DateTime('now', new \DateTimeZone('UTC'));
     
             if ($kickstart > $now) {
-                throw new BadRequest('Kickstartdatum/tijd mag niet in de toekomst zijn.');
+                throw new BadRequest("{$this->meetingLabel} datum/tijd mag niet in de toekomst zijn.");
             }
         }
 

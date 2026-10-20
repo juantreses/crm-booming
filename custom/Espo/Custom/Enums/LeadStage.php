@@ -13,5 +13,8 @@ enum LeadStage: string
     case BOOK_KS = 'book_ks';
     case KS_PLANNED = 'ks_planned';
     case KS_DOUBT = 'ks_doubt';
+    case BOOK_RI = 'book_ri';
+    case RI_PLANNED = 'ri_planned';
+    case RI_DOUBT = 'ri_doubt';
     case BECAME_CLIENT = 'became_client';
 }

@@ -98,7 +98,8 @@
                 "kickstart",
                 "bws",
                 "spark",
-                "iom"
+                "hom",
+                "royalty"
             ],
             "required": false,
             "isCustom": true,
@@ -109,7 +110,8 @@
                 "kickstart": null,
                 "bws": null,
                 "spark": null,
-                "iom": null
+                "hom": null,
+                "royalty": null
             },
             "default": null
         },
@@ -135,7 +137,10 @@
                 "intro_attended",
                 "book_ks",
                 "ks_planned",
-                "ks_doubt"
+                "ks_doubt",
+                "book_ri",
+                "ri_planned",
+                "ri_doubt"
             ],
             "style": {
                 "to_call": null,
@@ -146,7 +151,10 @@
                 "intro_attended": null,
                 "book_ks": null,
                 "ks_planned": null,
-                "ks_doubt": null
+                "ks_doubt": null,
+                "book_ri": null,
+                "ri_planned": null,
+                "ri_doubt": null
             },
             "default": "to_call",
             "labelType": "state",

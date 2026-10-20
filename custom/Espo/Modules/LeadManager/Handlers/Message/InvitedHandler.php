@@ -85,6 +85,10 @@ class InvitedHandler extends AbstractOutcomeHandler
             return $this->handleKickstartBooking($lead, $result, $context['eventDate'] ?? null);
         }
 
+        if ($calendarType === 'royalty') {
+            return $this->handleRoyaltyBooking($lead, $result, $context['eventDate'] ?? null);
+        }
+
         if ($meetingType) {
             return $this->handleIntroBooking($lead, $result, $meetingType, $context['eventDate'] ?? null);
         }
@@ -116,6 +120,20 @@ class InvitedHandler extends AbstractOutcomeHandler
 
         $lead->set('cStage', LeadStage::KS_PLANNED->value);
         $lead->set('cMeetingType', 'kickstart');
+        $this->entityManager->saveEntity($lead);
+
+        return $result;
+    }
+
+    private function handleRoyaltyBooking(
+        Entity $lead,
+        OutcomeResult $result,
+        ?string $eventDate = null
+    ): OutcomeResult {
+        $result = $this->logBookingEvent($lead, $result, LeadEventType::ROYALTY_BOOKED, $eventDate);
+
+        $lead->set('cStage', LeadStage::RI_PLANNED->value);
+        $lead->set('cMeetingType', 'royalty');
         $this->entityManager->saveEntity($lead);
 
         return $result;

@@ -13,6 +13,10 @@ use Espo\ORM\EntityManager;
 
 class CancelledHandler extends AbstractOutcomeHandler
 {
+    protected const NOTE_SOURCE = 'Kickstart';
+    protected const FOLLOW_UP_NOTE = 'Kickstart geannuleerd - Opnieuw inplannen';
+    protected const BOOKED_EVENT = LeadEventType::KICKSTART_BOOKED;
+
     public function __construct(
         LeadEventLogService $eventLogService,
         LeadNotesService $notesService,
@@ -35,7 +39,7 @@ class CancelledHandler extends AbstractOutcomeHandler
         $this->addCoachNoteIfProvided(
             $leadId,
             $context['coachNote'] ?? null,
-            'Kickstart',
+            static::NOTE_SOURCE,
             $context['eventDate'] ?? null
         );
 
@@ -59,7 +63,7 @@ class CancelledHandler extends AbstractOutcomeHandler
 
                         $eventId = $this->eventLogService->logEvent(
                             $leadId,
-                            LeadEventType::KICKSTART_BOOKED,
+                            static::BOOKED_EVENT,
                             $context['eventDate'] ?? null
                         )['eventId'];
                         $result = $result->addEventId($eventId);
@@ -80,7 +84,7 @@ class CancelledHandler extends AbstractOutcomeHandler
                 $this->handleFollowUp(
                     $leadId,
                     $context['callAgainDateTime'] ?? null,
-                    'Kickstart geannuleerd - Opnieuw inplannen'
+                    static::FOLLOW_UP_NOTE
                 );
                 break;
 

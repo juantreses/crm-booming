@@ -15,6 +15,9 @@ use Espo\ORM\EntityManager;
 
 class BookedHandler extends AbstractOutcomeHandler
 {
+    protected const CALENDAR_TYPE = 'kickstart';
+    protected const PLANNED_STAGE = LeadStage::KS_PLANNED;
+
     public function __construct(
         LeadEventLogService $eventLogService,
         LeadNotesService $notesService,
@@ -49,8 +52,8 @@ class BookedHandler extends AbstractOutcomeHandler
             throw new \RuntimeException("Calendar not found: {$context['calendarId']}");
         }
 
-        if ($calendar->get('type') !== 'kickstart') {
-            throw new \InvalidArgumentException("Calendar type '{$calendar->get('type')}' is not kickstart");
+        if ($calendar->get('type') !== static::CALENDAR_TYPE) {
+            throw new \InvalidArgumentException("Calendar type '{$calendar->get('type')}' is not " . static::CALENDAR_TYPE);
         }
 
         $this->meetingService->createInternalMeeting(
@@ -70,8 +73,8 @@ class BookedHandler extends AbstractOutcomeHandler
             $context['eventDate'] ?? null
         );
 
-        $lead->set('cMeetingType', 'kickstart');
-        $lead->set('cStage', LeadStage::KS_PLANNED->value);
+        $lead->set('cMeetingType', static::CALENDAR_TYPE);
+        $lead->set('cStage', static::PLANNED_STAGE->value);
         $this->entityManager->saveEntity($lead);
         $this->followUpService->clearFollowUpAction($leadId);
 
