@@ -59,11 +59,11 @@ class LogIntroMeetingValidator
 
         if (!empty($data->homRating)) {
             if ($outcome !== IntroMeetingOutcome::ATTENDED->value) {
-                throw new BadRequest('HOM-score is enkel mogelijk na een aanwezige HOM.');
+                throw new BadRequest('HOM-uitkomst is enkel mogelijk na een aanwezige HOM.');
             }
 
             if (!HomRating::isValid($data->homRating)) {
-                throw new BadRequest('Ongeldige HOM-score.');
+                throw new BadRequest('Ongeldige HOM-uitkomst.');
             }
         }
 

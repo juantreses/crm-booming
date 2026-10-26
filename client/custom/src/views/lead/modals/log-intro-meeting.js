@@ -344,7 +344,7 @@ define('custom:views/lead/modals/log-intro-meeting', [
             }
 
             if (outcome === 'attended' && this.isHom()) {
-                if (!ValidationUtils.validateRequired(this.getFieldValue('homRating'), 'Kies de HOM-score (A/B/C/D).')) {
+                if (!ValidationUtils.validateRequired(this.getFieldValue('homRating'), 'Kies de HOM-uitkomst (A/B/C/D).')) {
                     return false;
                 }
             }

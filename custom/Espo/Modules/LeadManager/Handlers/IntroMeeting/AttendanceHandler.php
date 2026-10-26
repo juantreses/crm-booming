@@ -25,7 +25,7 @@ use Espo\ORM\EntityManager;
  * Determines next stage based on:
  * - Meeting type (SPARK, BWS, HOM)
  * - Usage count (for SPARK)
- * - HOM score (A/B -> SPARK/Kickstart, C/D -> Royalty)
+ * - HOM outcome (A/B -> SPARK/Kickstart, C/D -> Royalty)
  * - Immediate next booking (optional)
  */
 class AttendanceHandler extends AbstractOutcomeHandler
@@ -87,14 +87,14 @@ class AttendanceHandler extends AbstractOutcomeHandler
     {
         if ($meetingType !== IntroMeetingType::HOM) {
             if ($homRating) {
-                throw new BadRequest('HOM-score is enkel mogelijk bij een HOM.');
+                throw new BadRequest('HOM-uitkomst is enkel mogelijk bij een HOM.');
             }
 
             return null;
         }
 
         if (!$homRating) {
-            throw new BadRequest('HOM-score (A/B/C/D) is verplicht.');
+            throw new BadRequest('HOM-uitkomst (A/B/C/D) is verplicht.');
         }
 
         return $homRating;
@@ -103,7 +103,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
     private function buildAttendanceNote(?HomRating $homRating, string $noteText): string
     {
         if ($homRating) {
-            $noteText .= "\nHOM-score: {$homRating->value}";
+            $noteText .= "\nHOM-uitkomst: {$homRating->value}";
         }
 
         return $noteText;
@@ -116,7 +116,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
     {
         if (!$homRating) {
             if ($nextCalendarType === 'royalty') {
-                throw new BadRequest('Een RI kan enkel geboekt worden na een HOM met score C of D.');
+                throw new BadRequest('Een RI kan enkel geboekt worden na een HOM met uitkomst C of D.');
             }
 
             return;
@@ -127,7 +127,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
             : ['spark' => 'SPARK', 'kickstart' => 'Kickstart'];
 
         if (!array_key_exists($nextCalendarType, $allowed)) {
-            throw new BadRequest("Na een HOM met score {$homRating->value} kan je enkel " . implode(' of ', $allowed) . ' boeken.');
+            throw new BadRequest("Na een HOM met uitkomst {$homRating->value} kan je enkel " . implode(' of ', $allowed) . ' boeken.');
         }
     }
 

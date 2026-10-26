@@ -38,9 +38,9 @@
         <div class="row" data-field="hom-rating" style="display: none;">
             <div class="col-md-6">
                 <div class="form-group">
-                    <label>HOM-score *</label>
+                    <label>HOM-uitkomst *</label>
                     <select name="homRating" class="form-control">
-                        <option value="">-- Kies score --</option>
+                        <option value="">-- Kies uitkomst --</option>
                         <option value="A">A</option>
                         <option value="B">B</option>
                         <option value="C">C</option>
