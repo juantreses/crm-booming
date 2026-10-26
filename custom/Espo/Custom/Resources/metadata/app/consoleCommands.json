@@ -2,5 +2,9 @@
     "backfillHasPublicLink": {
         "className": "Espo\\Modules\\Calendar\\Tools\\BackfillHasPublicLink",
         "listed": true
+    },
+    "backfillSavingsPoints": {
+        "className": "Espo\\Modules\\ClientManager\\Tools\\BackfillSavingsPoints",
+        "listed": true
     }
 }

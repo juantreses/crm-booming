@@ -32,6 +32,14 @@
                 {
                     "name": "cHeight"
                 }
+            ],
+            [
+                {
+                    "name": "cSavingsPointsBalance"
+                },
+                {
+                    "name": "cSavingsPointsRedeemed"
+                }
             ]
         ],
         "style": "default",

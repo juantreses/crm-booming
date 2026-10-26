@@ -31,6 +31,24 @@
             "isPersonalData": true,
             "isCustom": true
         },
+        "cSavingsPointsBalance": {
+            "type": "int",
+            "readOnly": true,
+            "default": 0,
+            "isCustom": true
+        },
+        "cSavingsPointsRedeemed": {
+            "type": "int",
+            "readOnly": true,
+            "default": 0,
+            "isCustom": true
+        },
+        "cHomPlanned": {
+            "type": "bool",
+            "readOnly": true,
+            "default": false,
+            "isCustom": true
+        },
         "cTypeKlant": {
             "type": "enum",
             "required": true,

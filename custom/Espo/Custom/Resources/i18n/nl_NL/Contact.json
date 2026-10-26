@@ -11,7 +11,10 @@
         "cDateOfBirth": "Verjaardag",
         "cVankoCRM": "VankoCRM",
         "cWorkoutSchemas": "Workout Schemas",
-        "cNotes": "Notes"
+        "cNotes": "Notes",
+        "cSavingsPointsBalance": "Spaarkaart saldo",
+        "cSavingsPointsRedeemed": "Ingewisselde spaarkaartpunten",
+        "cHomPlanned": "HOM ingepland"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",

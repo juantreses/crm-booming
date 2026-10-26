@@ -79,6 +79,26 @@
                     "handler": "custom:handlers/book-follow-up-action-handler",
                     "actionFunction": "bookFollowUp",
                     "checkVisibilityFunction": "isBookFollowUpVisible"
+                },
+                {
+                    "label": "HOM Boeken",
+                    "name": "bookContactHom",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Contact",
+                    "handler": "custom:handlers/contact-hom-action-handler",
+                    "actionFunction": "bookContactHom",
+                    "checkVisibilityFunction": "isBookContactHomVisible"
+                },
+                {
+                    "label": "HOM",
+                    "name": "logContactHom",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Contact",
+                    "handler": "custom:handlers/contact-hom-action-handler",
+                    "actionFunction": "logContactHom",
+                    "checkVisibilityFunction": "isLogContactHomVisible"
                 }
             ]
         }

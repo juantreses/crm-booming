@@ -1,0 +1,18 @@
+[
+    {
+        "route": "/contactHom/book",
+        "method": "post",
+        "params": {
+            "controller": "ContactHomApi",
+            "action": "book"
+        }
+    },
+    {
+        "route": "/contactHom/log",
+        "method": "post",
+        "params": {
+            "controller": "ContactHomApi",
+            "action": "log"
+        }
+    }
+]

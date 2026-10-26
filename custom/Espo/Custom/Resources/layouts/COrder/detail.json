@@ -11,6 +11,14 @@
             ],
             [
                 {
+                    "name": "amount"
+                },
+                {
+                    "name": "savingsPoints"
+                }
+            ],
+            [
+                {
                     "name": "products"
                 }
             ],

@@ -11,7 +11,10 @@
         "cHeight": "Lengte",
         "cNotes": "Notes",
         "cOrders": "Bestellingen",
-        "cBodyMeasurements": "Lichaamsmetingen"
+        "cBodyMeasurements": "Lichaamsmetingen",
+        "cSavingsPointsBalance": "Spaarkaart saldo",
+        "cSavingsPointsRedeemed": "Ingewisselde spaarkaartpunten",
+        "cHomPlanned": "HOM ingepland"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
