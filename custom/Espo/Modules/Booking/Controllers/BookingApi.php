@@ -5,13 +5,16 @@ namespace Espo\Modules\Booking\Controllers;
 use Espo\Core\Api\Request;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Conflict;
+use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Modules\Booking\Services\BookingService;
+use Espo\Modules\Booking\Services\MeetingCancellationService;
 
 readonly class BookingApi
 {
     public function __construct(
-        private BookingService $bookingService
+        private BookingService $bookingService,
+        private MeetingCancellationService $meetingCancellationService
     ){}
 
     /**
@@ -68,5 +71,21 @@ readonly class BookingApi
         }
 
         return $this->bookingService->bookFollowUp((array) $data);
+    }
+
+    /**
+     * @throws BadRequest
+     * @throws Forbidden
+     * @throws NotFound
+     */
+    public function postActionCancelMeeting(Request $request): array
+    {
+        $data = $request->getParsedBody();
+
+        if (empty($data->id)) {
+            throw new BadRequest("Geen afspraak opgegeven.");
+        }
+
+        return $this->meetingCancellationService->cancelAndRemove($data->id);
     }
 }

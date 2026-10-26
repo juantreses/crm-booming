@@ -18,5 +18,24 @@
                 ]
             }
         }
+    },
+    "options": {
+        "status": [
+            {
+                "optionList": [
+                    "Tentative",
+                    "Planned",
+                    "Held",
+                    "Not Held"
+                ],
+                "conditionGroup": [
+                    {
+                        "type": "notEquals",
+                        "attribute": "status",
+                        "value": "Cancelled"
+                    }
+                ]
+            }
+        ]
     }
 }

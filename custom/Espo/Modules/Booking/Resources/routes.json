@@ -23,5 +23,13 @@
       "controller": "BookingApi",
       "action": "bookFollowUp"
     }
+  },
+  {
+    "route": "/booking/cancel-meeting",
+    "method": "post",
+    "params": {
+      "controller": "BookingApi",
+      "action": "cancelMeeting"
+    }
   }
 ]
