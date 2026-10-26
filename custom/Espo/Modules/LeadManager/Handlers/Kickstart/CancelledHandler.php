@@ -89,7 +89,14 @@ class CancelledHandler extends AbstractOutcomeHandler
                 break;
 
             case 'cancel_stop':
-                // No additional action needed
+                $eventId = $this->eventLogService->logEvent(
+                    $leadId,
+                    LeadEventType::CANCELLED_STOP,
+                    $context['eventDate'] ?? null
+                )['eventId'];
+                $result = $result->addEventId($eventId);
+
+                $this->followUpService->clearFollowUpAction($leadId);
                 break;
         }
 

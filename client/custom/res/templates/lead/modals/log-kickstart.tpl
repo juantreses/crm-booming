@@ -30,7 +30,7 @@
                         <option value="">-- Kies actie --</option>
                         <option value="reschedule_now">Direct nieuwe datum inplannen</option>
                         <option value="reschedule_later">Nog geen datum (Terugbellen)</option>
-                        <option value="cancel_stop">Geen nieuwe afspraak (Stoppen)</option>
+                        <option value="cancel_stop">Geen nieuwe afspraak (Stoppen, naar On Hold)</option>
                     </select>
                 </div>
             </div>

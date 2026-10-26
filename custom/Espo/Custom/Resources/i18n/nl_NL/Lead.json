@@ -90,7 +90,8 @@
         "cReasonLost": {
             "wrong_number": "Fout nummer",
             "not_interested": "Geen interesse",
-            "not_converted": "Niet geconverteerd"
+            "not_converted": "Niet geconverteerd",
+            "appointment_cancelled": "Afspraak geannuleerd"
         }
     }
 }

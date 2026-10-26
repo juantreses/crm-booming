@@ -69,6 +69,11 @@ readonly class LeadStatusService
             'cStage' => null,
             'cReasonLost' => LeadReasonLost::NOT_CONVERTED->value
         ],
+        LeadEventType::CANCELLED_STOP->value => [
+            'status' => LeadStatus::DEAD->value,
+            'cStage' => null,
+            'cReasonLost' => LeadReasonLost::APPOINTMENT_CANCELLED->value
+        ],
         LeadEventType::STILL_THINKING->value => [
             'status' => LeadStatus::ASSIGNED->value,
             'cStage' => LeadStage::KS_DOUBT->value

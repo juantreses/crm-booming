@@ -167,12 +167,14 @@
             "options": [
                 "wrong_number",
                 "not_interested",
-                "not_converted"
+                "not_converted",
+                "appointment_cancelled"
             ],
             "style": {
                 "wrong_number": null,
                 "not_interested": null,
-                "not_converted": null
+                "not_converted": null,
+                "appointment_cancelled": null
             },
             "default": "wrong_number",
             "inlineEditDisabled": true,
