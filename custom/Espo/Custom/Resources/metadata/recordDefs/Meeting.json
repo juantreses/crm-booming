@@ -1,0 +1,6 @@
+{
+    "beforeUpdateHookClassNameList": [
+        "__APPEND__",
+        "Espo\\Modules\\Booking\\Classes\\RecordHooks\\Meeting\\BeforeUpdatePreventCancel"
+    ]
+}

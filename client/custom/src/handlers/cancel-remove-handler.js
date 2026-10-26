@@ -15,24 +15,26 @@ define('custom:handlers/cancel-remove-handler', ['action-handler'], (Dep) => {
                     confirmText: 'Ja, annuleer & stuur mail',
                     cancelText: 'Terug',
                     confirmStyle: 'danger',
-                    isHtml: true
+                    isHtml: true,
+                    cancelCallback: () => this.view.enableMenuItem('cancelAndRemove')
                 }, 
                 () => { 
                     Espo.Ui.notify('Bezig met annuleren...', 'info');
 
-                    model.save({
-                        status: 'Cancelled'
-                    }, {
-                        patch: true,
-                        success: () => { 
-                            model.destroy({
-                                success: () => { 
-                                    Espo.Ui.notify('Afspraak succesvol geannuleerd en verwijderd.', 'success');
-                                    
-                                    this.view.getRouter().navigate('#Meeting', { trigger: true });
-                                }
-                            });
+                    Espo.Ajax.postRequest('booking/cancel-meeting', {
+                        id: model.id
+                    })
+                    .then(response => {
+                        if (response.mailError) {
+                            Espo.Ui.error('Afspraak verwijderd, maar de annulatiemail is niet verstuurd: ' + response.mailError, true);
+                        } else {
+                            Espo.Ui.notify('Afspraak succesvol geannuleerd en verwijderd.', 'success');
                         }
+
+                        this.view.getRouter().navigate('#Meeting', { trigger: true });
+                    })
+                    .catch(() => {
+                        this.view.enableMenuItem('cancelAndRemove');
                     });
                 }
             );
