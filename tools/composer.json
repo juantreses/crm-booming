@@ -1,15 +1,16 @@
 {
     "name": "booming/crm-qa-tools",
-    "description": "Dev-only code quality tools (Rector, PHP_CodeSniffer). Kept apart from EspoCRM's vendor/ so Espo upgrades never touch them.",
+    "description": "Dev-only code quality tools (Rector, PHPStan, PHP_CodeSniffer). Kept apart from EspoCRM's vendor/ so Espo upgrades never touch them.",
     "type": "project",
     "license": "proprietary",
     "require": {
         "php": "^8.3"
     },
     "require-dev": {
+        "phpstan/phpstan": "^2.3",
         "rector/rector": "^2.2",
-        "squizlabs/php_codesniffer": "^3.13",
-        "slevomat/coding-standard": "^8.22"
+        "slevomat/coding-standard": "^8.22",
+        "squizlabs/php_codesniffer": "^3.13"
     },
     "config": {
         "sort-packages": true,

@@ -1,0 +1,16 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 5
+    phpVersion: 80300
+    paths:
+        - custom/Espo
+    excludePaths:
+        - custom/Espo/Modules/*/vendor/*
+        # Licensed EspoCRM extension: replaced on extension updates, not our code.
+        - custom/Espo/Modules/Google/*
+    # Espo's autoloader knows Espo\, Espo\Custom\ and Espo\Modules\.
+    bootstrapFiles:
+        - vendor/autoload.php
+    tmpDir: data/tmp/phpstan

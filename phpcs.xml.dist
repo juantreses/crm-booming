@@ -4,6 +4,8 @@
 
     <file>custom/Espo</file>
     <exclude-pattern>custom/Espo/Modules/*/vendor/*</exclude-pattern>
+    <!-- Licensed EspoCRM extension: replaced on extension updates, not our code. -->
+    <exclude-pattern>custom/Espo/Modules/Google/*</exclude-pattern>
 
     <arg name="extensions" value="php"/>
     <arg name="colors"/>
