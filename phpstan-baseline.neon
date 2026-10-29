@@ -1,0 +1,103 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#1 \$select of method Espo\\ORM\\QueryBuilder\:\:select\(\) expects array\<Espo\\ORM\\Query\\Part\\Selection\|string\>\|Espo\\ORM\\Query\\Part\\Expression\|Espo\\ORM\\Query\\Part\\Selection\|string\|null, array\<int, list\<string\>\|string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: custom/Espo/Custom/Services/CTeamStatisticsService.php
+
+		-
+			message: '#^Left side of \|\| is always false\.$#'
+			identifier: booleanOr.leftAlwaysFalse
+			count: 1
+			path: custom/Espo/Custom/Services/EntitySyncService.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: custom/Espo/Modules/Booking/Hooks/Meeting/CancellationEmail.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Espo\\ORM\\Entity\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: custom/Espo/Modules/Booking/Hooks/Meeting/TelegramNotification.php
+
+		-
+			message: '#^Parameter \#1 \$attachmentList of method Espo\\Core\\Mail\\Sender\:\:withAttachments\(\) expects iterable\<Espo\\Entities\\Attachment\>, array\<Espo\\ORM\\Entity\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: custom/Espo/Modules/Booking/Services/BookingEmailService.php
+
+		-
+			message: '#^Parameter \#1 \$email of method Espo\\Core\\Mail\\Sender\:\:send\(\) expects Espo\\Entities\\Email, Espo\\ORM\\Entity given\.$#'
+			identifier: argument.type
+			count: 1
+			path: custom/Espo/Modules/Booking/Services/BookingEmailService.php
+
+		-
+			message: '#^Parameter \#1 \$template of method Espo\\Tools\\EmailTemplate\\Processor\:\:process\(\) expects Espo\\Entities\\EmailTemplate, Espo\\ORM\\Entity given\.$#'
+			identifier: argument.type
+			count: 1
+			path: custom/Espo/Modules/Booking/Services/BookingEmailService.php
+
+		-
+			message: '#^Variable \$targetSlot might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: custom/Espo/Modules/Booking/Services/BookingService.php
+
+		-
+			message: '#^Call to function is_countable\(\) with Espo\\ORM\\EntityCollection\|Espo\\ORM\\SthCollection will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: custom/Espo/Modules/Calendar/Services/CalendarService.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: custom/Espo/Modules/Calendar/Services/CalendarService.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: custom/Espo/Modules/Calendar/Services/CalendarService.php
+
+		-
+			message: '#^Variable \$data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 10
+			path: custom/Espo/Modules/LeadManager/Controllers/LeadEventApi.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: custom/Espo/Modules/LeadManager/Controllers/WidgetApi.php
+
+		-
+			message: '#^Parameter \#3 \$value of function curl_setopt expects bool, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: custom/Espo/Modules/Telegram/Services/TelegramService.php
+
+		-
+			message: '#^Method Espo\\Modules\\Vanko\\Controllers\\VankoApi\:\:logInfo\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: custom/Espo/Modules/Vanko/Controllers/VankoApi.php
+
+		-
+			message: '#^Call to function is_object\(\) with object will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: custom/Espo/Modules/Vanko/Services/LeadDataValidator.php
+
+		-
+			message: '#^Call to an undefined method Espo\\ORM\\Repository\\Repository\<Espo\\ORM\\Entity\>\:\:where\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: custom/Espo/Modules/Vanko/Services/Util/EntityFactory.php

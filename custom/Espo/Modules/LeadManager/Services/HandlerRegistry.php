@@ -36,7 +36,7 @@ readonly class HandlerRegistry
         Kickstart\NotConvertedHandler $notConvertedHandler,
         Kickstart\StillThinkingHandler $stillThinkingHandler,
         Kickstart\CancelledHandler $cancelledHandler,
-        KickStartFollowUp\BecameClientFollowUpHandler $becameClientFollowUpHandler,
+        KickstartFollowUp\BecameClientFollowUpHandler $becameClientFollowUpHandler,
         KickstartFollowUp\NotConvertedFollowUpHandler $notConvertedFollowUpHandler,
         Message\InvitedHandler $messageInvitedHandler,
         Message\NotInterestedHandler $messageNotInterestedHandler,

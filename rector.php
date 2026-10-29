@@ -23,6 +23,8 @@ return RectorConfig::configure()
     ])
     ->withSkip([
         __DIR__ . '/custom/Espo/Modules/*/vendor',
+        // Licensed EspoCRM extension: replaced on extension updates, not our code.
+        __DIR__ . '/custom/Espo/Modules/Google',
         // Changes runtime behaviour (scalar coercion -> TypeError). Enable deliberately, module by module.
         SafeDeclareStrictTypesRector::class,
         // isset() is false for null values, property_exists() is not; also breaks on Espo's magic entity props.

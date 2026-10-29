@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Code quality tools (Rector + PHP_CodeSniffer) for our own code in custom/.
+# Code quality tools (Rector, PHPStan, PHP_CodeSniffer) for our own code in custom/.
 #
 # Runs inside the espocrm Docker container when called from the host,
 # or directly when php is already available (e.g. inside the container).
@@ -8,9 +8,11 @@
 #   bin/qa lint        php -l syntax check on custom/
 #   bin/qa cs          PHP_CodeSniffer report
 #   bin/qa cs-fix      auto-fix what phpcbf can fix
+#   bin/qa stan        PHPStan static analysis (errors in phpstan-baseline.neon are ignored)
+#   bin/qa stan-baseline  regenerate phpstan-baseline.neon (only after fixing errors, or deliberately)
 #   bin/qa rector      Rector dry-run (shows the diff, changes nothing)
 #   bin/qa rector-fix  apply Rector changes
-#   bin/qa all         lint + cs + rector dry-run (good before every commit)
+#   bin/qa all         lint + cs + stan + rector dry-run (good before every commit)
 #
 # Extra arguments are passed to the tool, e.g. `bin/qa cs custom/Espo/Modules/Booking`.
 set -euo pipefail
@@ -33,7 +35,7 @@ cmd="${1:-all}"
 shift || true
 
 require_tools() {
-    if [[ ! -x "$BIN/rector" || ! -x "$BIN/phpcs" ]]; then
+    if [[ ! -x "$BIN/rector" || ! -x "$BIN/phpcs" || ! -x "$BIN/phpstan" ]]; then
         echo "Tools not installed. Run: bin/qa install" >&2
         exit 1
     fi
@@ -62,17 +64,20 @@ case "$cmd" in
         ;;
     cs)         require_tools; "$BIN/phpcs" "$@" ;;
     cs-fix)     require_tools; "$BIN/phpcbf" "$@" ;;
+    stan)       require_tools; "$BIN/phpstan" analyse --memory-limit=1G "$@" ;;
+    stan-baseline) require_tools; "$BIN/phpstan" analyse --memory-limit=1G --generate-baseline phpstan-baseline.neon "$@" ;;
     rector)     require_tools; "$BIN/rector" process --dry-run "$@" ;;
     rector-fix) require_tools; "$BIN/rector" process "$@" ;;
     all)
         rc=0
         "$0" lint || rc=1
         "$0" cs "$@" || rc=1
+        "$0" stan "$@" || rc=1
         "$0" rector "$@" || rc=1
         exit $rc
         ;;
     *)
-        sed -n '2,15p' "$0"
+        sed -n '2,17p' "$0"
         exit 1
         ;;
 esac
