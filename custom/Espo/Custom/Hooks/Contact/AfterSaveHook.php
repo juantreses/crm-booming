@@ -8,6 +8,7 @@ use Espo\ORM\Entity;
 use Espo\Core\Utils\Log;
 use Espo\Custom\Services\EntitySyncService;
 use Espo\Custom\Services\GroupAssignmentService;
+use Espo\Modules\ClientManager\Services\SavingsCardService;
 
 class AfterSaveHook implements AfterSave
 {
@@ -15,6 +16,7 @@ class AfterSaveHook implements AfterSave
         private readonly Log $log,
         private readonly EntitySyncService $entitySyncService,
         private readonly GroupAssignmentService $groupAssignmentService,
+        private readonly SavingsCardService $savingsCardService,
     ) {}
 
     public function afterSave(Entity $contact, SaveOptions $options): void
@@ -24,6 +26,11 @@ class AfterSaveHook implements AfterSave
 
             if ($this->shouldSyncRelatedTeams($contact)) {
                 $this->groupAssignmentService->syncRelatedTeamsFromContact($contact);
+            }
+
+            // PCX and distributor clients lose their savings card points
+            if (!$contact->isNew() && $contact->isAttributeChanged('cTypeKlant')) {
+                $this->savingsCardService->recalculateBalance($contact->getId());
             }
         } catch (\Exception $e) {
             $this->log->error('Contact After Save Hook error: ' . $e->getMessage());

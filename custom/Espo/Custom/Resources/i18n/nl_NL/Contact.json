@@ -14,7 +14,10 @@
         "cNotes": "Notes",
         "cSavingsPointsBalance": "Spaarkaart saldo",
         "cSavingsPointsRedeemed": "Ingewisselde spaarkaartpunten",
-        "cHomPlanned": "HOM ingepland"
+        "cHomPlanned": "HOM ingepland",
+        "cSavingsCardStart": "Spaarkaart gestart",
+        "cSavingsCardEnd": "Spaarkaart geldig t/m",
+        "cRiStatus": "RI status"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
@@ -57,6 +60,13 @@
             "": "",
             "Mr.": "Dhr.",
             "Mrs.": "Mevr."
+        },
+        "cRiStatus": {
+            "": "",
+            "ri_planned": "RI ingepland",
+            "doubt": "RI twijfel",
+            "not_interested": "RI geen interesse",
+            "distributor": "Distributeur geworden"
         }
     }
 }

@@ -14,6 +14,10 @@ define(['action-handler'], (Dep) => {
             this.openModal('logContactHom', 'custom:views/contact/modals/log-hom');
         }
 
+        async logContactRoyalty(data, e) {
+            this.openModal('logContactRoyalty', 'custom:views/contact/modals/log-royalty');
+        }
+
         openModal(menuItem, viewName) {
             this.view.disableMenuItem(menuItem);
 
@@ -35,14 +39,21 @@ define(['action-handler'], (Dep) => {
 
         isBookContactHomVisible() {
             const model = this.view.model;
+            const cardEnd = model.get('cSavingsCardEnd');
+            const today = this.view.getDateTime().getToday();
 
             return !model.get('cHomPlanned')
+                && !!cardEnd && cardEnd >= today
                 && !NO_ORDER_HISTORY_TYPES.includes(model.get('cTypeKlant'))
                 && (model.get('cSavingsPointsBalance') || 0) >= HOM_POINTS;
         }
 
         isLogContactHomVisible() {
             return !!this.view.model.get('cHomPlanned');
+        }
+
+        isLogContactRoyaltyVisible() {
+            return ['ri_planned', 'doubt'].includes(this.view.model.get('cRiStatus'));
         }
     }
 });

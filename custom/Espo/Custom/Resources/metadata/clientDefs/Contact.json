@@ -99,6 +99,16 @@
                     "handler": "custom:handlers/contact-hom-action-handler",
                     "actionFunction": "logContactHom",
                     "checkVisibilityFunction": "isLogContactHomVisible"
+                },
+                {
+                    "label": "RI",
+                    "name": "logContactRoyalty",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Contact",
+                    "handler": "custom:handlers/contact-hom-action-handler",
+                    "actionFunction": "logContactRoyalty",
+                    "checkVisibilityFunction": "isLogContactRoyaltyVisible"
                 }
             ]
         }

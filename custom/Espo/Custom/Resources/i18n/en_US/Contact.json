@@ -14,7 +14,10 @@
         "cBodyMeasurements": "Lichaamsmetingen",
         "cSavingsPointsBalance": "Spaarkaart saldo",
         "cSavingsPointsRedeemed": "Ingewisselde spaarkaartpunten",
-        "cHomPlanned": "HOM ingepland"
+        "cHomPlanned": "HOM ingepland",
+        "cSavingsCardStart": "Spaarkaart gestart",
+        "cSavingsCardEnd": "Spaarkaart geldig t/m",
+        "cRiStatus": "RI status"
     },
     "links": {
         "cSlimFitCenter": "SlimFit-Center",
@@ -54,6 +57,13 @@
             "21_day_sta": "STA",
             "21_day_stap": "STAP",
             "21_day_stamp": "STAMP"
+        },
+        "cRiStatus": {
+            "": "",
+            "ri_planned": "RI ingepland",
+            "doubt": "RI twijfel",
+            "not_interested": "RI geen interesse",
+            "distributor": "Distributeur geworden"
         }
     }
 }

@@ -31,6 +31,22 @@ readonly class ContactHomApi
         }
     }
 
+    public function postActionLogRoyalty(Request $request): array
+    {
+        try {
+            return $this->contactHomService->logRoyalty($request->getParsedBody());
+        } catch (Conflict $e) {
+            throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
+        } catch (BadRequest | Forbidden | NotFound $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            $GLOBALS['log']->error('Contact RI Log Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new BadRequest('RI loggen mislukt: ' . $e->getMessage());
+        }
+    }
+
     public function postActionLog(Request $request): array
     {
         try {

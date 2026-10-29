@@ -14,5 +14,13 @@
             "controller": "ContactHomApi",
             "action": "log"
         }
+    },
+    {
+        "route": "/contactHom/logRoyalty",
+        "method": "post",
+        "params": {
+            "controller": "ContactHomApi",
+            "action": "logRoyalty"
+        }
     }
 ]

@@ -40,6 +40,20 @@
                 {
                     "name": "cSavingsPointsRedeemed"
                 }
+            ],
+            [
+                {
+                    "name": "cSavingsCardStart"
+                },
+                {
+                    "name": "cSavingsCardEnd"
+                }
+            ],
+            [
+                {
+                    "name": "cRiStatus"
+                },
+                false
             ]
         ],
         "style": "default",

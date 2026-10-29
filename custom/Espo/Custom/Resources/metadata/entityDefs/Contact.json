@@ -43,6 +43,36 @@
             "default": 0,
             "isCustom": true
         },
+        "cSavingsCardStart": {
+            "type": "date",
+            "readOnly": true,
+            "isCustom": true
+        },
+        "cSavingsCardEnd": {
+            "type": "date",
+            "readOnly": true,
+            "isCustom": true
+        },
+        "cRiStatus": {
+            "type": "enum",
+            "options": [
+                "",
+                "ri_planned",
+                "doubt",
+                "not_interested",
+                "distributor"
+            ],
+            "style": {
+                "": null,
+                "ri_planned": "primary",
+                "doubt": "warning",
+                "not_interested": "default",
+                "distributor": "success"
+            },
+            "default": "",
+            "readOnly": true,
+            "isCustom": true
+        },
         "cHomPlanned": {
             "type": "bool",
             "readOnly": true,
