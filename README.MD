@@ -158,3 +158,42 @@ Now that the application files and database are in place, you need to update the
 1. Add a config-internal file
 
     Add a `config-internal.php` file similar to what is in production. Replace the DB settings with the DB settings from the `docker-compose.yml` file and replace the Vanko Webhooks with dummy-urls so the calls will silently fail.
+
+***
+
+## Code quality: Rector & PHP_CodeSniffer
+
+The QA tools live in `tools/` with their own `composer.json`, separate from Espo's `vendor/`.
+An Espo upgrade replaces `vendor/` and `application/`, so the tools are kept out of it.
+`tools/vendor/` is git-ignored and never deployed.
+
+Both tools only look at our own code in `custom/Espo`. Espo core is never rewritten.
+
+Run `bin/qa` from the host (inside `app/`). If a container named `espocrm` is running, the script runs itself
+inside that container as `www-data`, so it uses the PHP version Espo runs on.
+Use `ESPO_CONTAINER=...` to point it at a different container name.
+
+```bash
+bin/qa install      # once: installs Rector + PHPCS into tools/vendor
+bin/qa all          # lint + coding standard + Rector dry-run (run before committing)
+bin/qa cs-fix       # auto-fix coding standard issues
+bin/qa rector       # show what Rector would change (dry-run)
+bin/qa rector-fix   # apply Rector changes; review the diff with git afterwards
+bin/qa cs custom/Espo/Modules/Booking   # limit to one module
+```
+
+Config: `rector.php` and `phpcs.xml.dist` in the repo root.
+
+### PHP / Espo upgrades
+
+`rector.php` targets the PHP version production runs **today** (`withPhpSets(php83: true)`).
+Upgrade path:
+
+1. Upgrade the local container (Espo image / PHP version) and run `bin/qa lint` + test the app.
+2. Upgrade production.
+3. Only then bump `withPhpSets(...)` to the new version (e.g. `php85: true`), run `bin/qa rector-fix`
+   and commit that as a separate commit.
+
+Rector resolves Espo's classes through `vendor/autoload.php`, so it needs the matching Espo `vendor/` to be present.
+Rector and PHPCS do **not** detect calls to Espo APIs that were removed or changed. For that, read the Espo
+release notes and test the app.
