@@ -13,3 +13,9 @@ deployment.log
 
 /node_modules
 db.sanitized.sql
+
+# Dev-only QA tools (see bin/qa)
+/tools/vendor/
+/tools/composer.phar
+/tools/.composer/
+/.phpcs-cache
