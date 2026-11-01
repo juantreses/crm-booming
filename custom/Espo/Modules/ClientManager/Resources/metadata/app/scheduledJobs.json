@@ -1,7 +1,7 @@
 {
     "ExpireSavingsCards": {
         "name": "Expire savings cards",
-        "isSystem": true,
+        "isSystem": false,
         "scheduling": "17 1 * * *",
         "jobClassName": "Espo\\Modules\\ClientManager\\Jobs\\ExpireSavingsCards"
     }
