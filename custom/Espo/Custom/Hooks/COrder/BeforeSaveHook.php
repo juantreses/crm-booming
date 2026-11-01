@@ -35,7 +35,7 @@ class BeforeSaveHook implements BeforeSave
         // Points are fixed when the order is registered; a later change of client type keeps them
         if (
             !$entity->isNew()
-            && !$entity->isAttributeChanged('volumePoints')
+            && !$entity->isAttributeChanged('amount')
             && !$entity->isAttributeChanged('contactId')
         ) {
             return;
@@ -45,7 +45,7 @@ class BeforeSaveHook implements BeforeSave
         $contact = $contactId ? $this->entityManager->getEntityById('Contact', $contactId) : null;
 
         $points = $contact && $this->savingsCardService->hasOrderHistory($contact)
-            ? $this->savingsCardService->calculatePoints($entity->get('volumePoints'))
+            ? $this->savingsCardService->calculatePoints($entity->get('amount'))
             : 0;
 
         $entity->set('savingsPoints', $points);

@@ -8,7 +8,7 @@ use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
 /**
- * Spaarkaart: clients earn 1 point per 10 volume points ordered (rounded down).
+ * Spaarkaart: clients earn 1 point per 10 euro ordered (order amount, rounded down).
  * A card is valid for 1 year from its first order; the first order after that
  * starts a new card at 0. From HOM_POINTS on, a HOM can be booked; outcome A
  * redeems those points. PCX and distributor (DT) clients have no order history:
@@ -18,7 +18,7 @@ readonly class SavingsCardService
 {
     public const HOM_POINTS = 40;
 
-    private const VOLUME_POINTS_PER_SAVINGS_POINT = 10;
+    private const CENTS_PER_SAVINGS_POINT = 1000;
     private const CARD_VALIDITY = '+1 year';
 
     private const NO_ORDER_HISTORY_TYPES = [
@@ -38,9 +38,12 @@ readonly class SavingsCardService
         return !in_array($contact->get('cTypeKlant'), self::NO_ORDER_HISTORY_TYPES, true);
     }
 
-    public function calculatePoints(?float $volumePoints): int
+    public function calculatePoints(?float $amount): int
     {
-        return (int) floor(($volumePoints ?? 0) / self::VOLUME_POINTS_PER_SAVINGS_POINT);
+        // Work in cents so e.g. 30.00 never ends up as 2.999...
+        $cents = (int) round(max(0, $amount ?? 0) * 100);
+
+        return intdiv($cents, self::CENTS_PER_SAVINGS_POINT);
     }
 
     public function canBookHom(Entity $contact): bool

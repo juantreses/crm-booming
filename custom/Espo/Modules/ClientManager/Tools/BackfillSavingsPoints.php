@@ -9,7 +9,7 @@ use Espo\Modules\ClientManager\Services\SavingsCardService;
 use Espo\ORM\EntityManager;
 
 /**
- * One-time backfill: calculate savings card points for existing orders
+ * Backfill: (re)calculate savings card points for all orders from their amount
  * and the savings card balance of every client.
  * Run after Admin > Rebuild adds the new columns:
  *   php command.php backfill-savings-points
@@ -36,7 +36,7 @@ class BackfillSavingsPoints implements Command
             $contact = $contactId ? $this->entityManager->getEntityById('Contact', $contactId) : null;
 
             $points = $contact && $this->savingsCardService->hasOrderHistory($contact)
-                ? $this->savingsCardService->calculatePoints($order->get('volumePoints'))
+                ? $this->savingsCardService->calculatePoints($order->get('amount'))
                 : 0;
 
             $order->set('savingsPoints', $points);

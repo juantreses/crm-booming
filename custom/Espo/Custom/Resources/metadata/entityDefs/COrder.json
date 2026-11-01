@@ -54,6 +54,7 @@
         },
         "amount": {
             "type": "float",
+            "required": true,
             "decimal": true,
             "decimalPlaces": 2,
             "min": 0,
