@@ -11,6 +11,12 @@
             ],
             [
                 {
+                    "name": "amount"
+                },
+                false
+            ],
+            [
+                {
                     "name": "products"
                 }
             ]
