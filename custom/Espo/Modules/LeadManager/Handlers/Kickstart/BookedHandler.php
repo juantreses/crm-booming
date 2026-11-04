@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\LeadManager\Handlers\Kickstart;
 
+use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
@@ -52,8 +53,10 @@ class BookedHandler extends AbstractOutcomeHandler
             throw new \RuntimeException("Calendar not found: {$context['calendarId']}");
         }
 
-        if ($calendar->get('type') !== static::CALENDAR_TYPE) {
-            throw new \InvalidArgumentException("Calendar type '{$calendar->get('type')}' is not " . static::CALENDAR_TYPE);
+        $calendarType = (string) $calendar->get('type');
+
+        if (!$this->isAllowedCalendarType($calendarType)) {
+            throw new \InvalidArgumentException("Calendar type '{$calendarType}' is not " . static::CALENDAR_TYPE);
         }
 
         $this->meetingService->createInternalMeeting(
@@ -73,11 +76,16 @@ class BookedHandler extends AbstractOutcomeHandler
             $context['eventDate'] ?? null
         );
 
-        $lead->set('cMeetingType', static::CALENDAR_TYPE);
+        $lead->set('cMeetingType', $calendarType);
         $lead->set('cStage', static::PLANNED_STAGE->value);
         $this->entityManager->saveEntity($lead);
         $this->followUpService->clearFollowUpAction($leadId);
 
         return $result;
+    }
+
+    protected function isAllowedCalendarType(string $calendarType): bool
+    {
+        return KickstartCalendarType::isKickstart($calendarType);
     }
 }

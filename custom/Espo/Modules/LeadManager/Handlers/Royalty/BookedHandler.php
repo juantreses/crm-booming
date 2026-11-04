@@ -15,4 +15,9 @@ class BookedHandler extends KickstartBookedHandler
     {
         return [LeadEventType::ROYALTY_BOOKED];
     }
+
+    protected function isAllowedCalendarType(string $calendarType): bool
+    {
+        return $calendarType === static::CALENDAR_TYPE;
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\LeadManager\Handlers\Kickstart;
 
+use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
 use Espo\Modules\LeadManager\Services\LeadEventLogService;
@@ -9,6 +10,8 @@ use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\Services\LeadFollowUpService;
 use Espo\Modules\LeadManager\Services\LeadMeetingService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
+use Espo\Modules\Utils\SlugService;
+use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
 class CancelledHandler extends AbstractOutcomeHandler
@@ -23,6 +26,7 @@ class CancelledHandler extends AbstractOutcomeHandler
         LeadFollowUpService $followUpService,
         private readonly LeadMeetingService $meetingService,
         private readonly EntityManager $entityManager,
+        private readonly SlugService $slugService,
     ) {
         parent::__construct($eventLogService, $notesService, $followUpService);
     }
@@ -60,6 +64,8 @@ class CancelledHandler extends AbstractOutcomeHandler
                             $context['selectedTime'] ?? '',
                             $context['coachNote'] ?? null
                         );
+
+                        $this->syncMeetingType($lead, $context['calendarId']);
 
                         $eventId = $this->eventLogService->logEvent(
                             $leadId,
@@ -101,5 +107,23 @@ class CancelledHandler extends AbstractOutcomeHandler
         }
 
         return $result;
+    }
+
+    /**
+     * Keep the lead's meeting type in line with the calendar it was rescheduled on,
+     * e.g. when a kickstart is moved to an online kickstart (or vice versa).
+     */
+    protected function syncMeetingType(Entity $lead, string $calendarIdentifier): void
+    {
+        $calendarId = $this->slugService->resolve('CCalendar', $calendarIdentifier);
+        $calendar = $calendarId ? $this->entityManager->getEntityById('CCalendar', $calendarId) : null;
+        $calendarType = $calendar ? (string) $calendar->get('type') : null;
+
+        if (!KickstartCalendarType::isKickstart($calendarType) || $lead->get('cMeetingType') === $calendarType) {
+            return;
+        }
+
+        $lead->set('cMeetingType', $calendarType);
+        $this->entityManager->saveEntity($lead);
     }
 }

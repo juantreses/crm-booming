@@ -4,6 +4,7 @@ namespace Espo\Modules\LeadManager\Handlers\IntroMeeting;
 
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Custom\Enums\HomRating;
+use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Custom\Enums\IntroMeetingType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
@@ -124,7 +125,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
 
         $allowed = $homRating->leadsToRoyalty()
             ? ['royalty' => 'RI']
-            : ['spark' => 'SPARK', 'kickstart' => 'Kickstart'];
+            : ['spark' => 'SPARK', 'kickstart' => 'Kickstart', 'online' => 'Online Kickstart'];
 
         if (!array_key_exists($nextCalendarType, $allowed)) {
             throw new BadRequest("Na een HOM met uitkomst {$homRating->value} kan je enkel " . implode(' of ', $allowed) . ' boeken.');
@@ -188,10 +189,11 @@ class AttendanceHandler extends AbstractOutcomeHandler
             null
         );
 
-        if ($nextCalendarType === 'kickstart') {
+        if (KickstartCalendarType::isKickstart($nextCalendarType)) {
+            $kickstartType = KickstartCalendarType::from(strtolower($nextCalendarType));
             $lead->set('cStage', LeadStage::KS_PLANNED->value);
-            $lead->set('cMeetingType', 'kickstart');
-            $bookingNote = "Direct Kickstart geboekt na {$attendedType->value}";
+            $lead->set('cMeetingType', $kickstartType->value);
+            $bookingNote = "Direct {$kickstartType->getLabel()} geboekt na {$attendedType->value}";
         } else if ($nextCalendarType === 'royalty') {
             $lead->set('cStage', LeadStage::RI_PLANNED->value);
             $lead->set('cMeetingType', 'royalty');
@@ -218,9 +220,9 @@ class AttendanceHandler extends AbstractOutcomeHandler
             $context['eventDate'] ?? null
         );
 
-        $bookingEventType = match ($nextCalendarType) {
-            'kickstart' => LeadEventType::KICKSTART_BOOKED,
-            'royalty' => LeadEventType::ROYALTY_BOOKED,
+        $bookingEventType = match (true) {
+            KickstartCalendarType::isKickstart($nextCalendarType) => LeadEventType::KICKSTART_BOOKED,
+            $nextCalendarType === 'royalty' => LeadEventType::ROYALTY_BOOKED,
             default => LeadEventType::BOOK_INTRO,
         };
 

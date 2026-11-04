@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\Booking\Hooks\Meeting;
 
+use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Core\Hook\Hook\AfterSave;
 use Espo\Modules\Telegram\Services\TelegramService;
 use Espo\ORM\Entity;
@@ -34,8 +35,8 @@ class TelegramNotification implements AfterSave
         switch ($status) {
             case 'Tentative':
             case 'Planned':
-                if ($isNew && $calendar && strtolower($calendar->get('type')) === 'kickstart') {
-                    $this->sendKickstartAlert($meeting, $parent);
+                if ($isNew && $calendar && KickstartCalendarType::isKickstart($calendar->get('type'))) {
+                    $this->sendKickstartAlert($meeting, $parent, $calendar);
                 }
                 break;
 
@@ -47,13 +48,14 @@ class TelegramNotification implements AfterSave
         }
     }
 
-    private function sendKickstartAlert(Entity $meeting, ?Entity $parent): void
+    private function sendKickstartAlert(Entity $meeting, ?Entity $parent, Entity $calendar): void
     {
         if (!$parent) return;
 
         $formattedDate = $this->formatDate($meeting->get('dateStart'));
+        $label = KickstartCalendarType::from(strtolower($calendar->get('type')))->getLabel();
 
-        $msg = "🚀 <b>Nieuwe Kickstart Gepland!</b>\n\n";
+        $msg = "🚀 <b>Nieuwe {$label} Gepland!</b>\n\n";
         
         $msg .= "👤 {$parent->get('name')}\n";
         
@@ -81,7 +83,12 @@ class TelegramNotification implements AfterSave
             $tag = " " . $coach->get('cTelegramUsername'); 
         }
 
-        $type = $calendar?->get('type') ? ucfirst($calendar?->get('type')): 'Afspraak';
+        $calendarType = $calendar?->get('type');
+        $type = match (true) {
+            KickstartCalendarType::isKickstart($calendarType) => KickstartCalendarType::from(strtolower($calendarType))->getLabel(),
+            (bool) $calendarType => ucfirst($calendarType),
+            default => 'Afspraak',
+        };
         $msg = "🚨 <b>{$type} Geannuleerd!</b>{$tag}\n\n";
         
         if ($parent) {

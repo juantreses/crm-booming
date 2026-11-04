@@ -8,6 +8,7 @@ use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Custom\Enums\IntroMeetingType;
+use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Custom\Enums\LeadStatus;
 use Espo\Modules\Calendar\Repositories\CalendarRepository;
@@ -181,6 +182,7 @@ readonly class BookingService
         $typeLabel = match (true) {
             $isSparkCup => 'SPARK cup',
             $calendar->get('type') === 'followup' => 'FU',
+            $calendar->get('type') === KickstartCalendarType::ONLINE->value => KickstartCalendarType::ONLINE->getLabel(),
             default => ucfirst($calendar->get('type')),
         };
 

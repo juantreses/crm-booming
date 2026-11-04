@@ -64,6 +64,7 @@
         },
         "cMeetingType": {
             "kickstart": "Kickstart",
+            "online": "Online Kickstart",
             "bws": "Beauty Workshop",
             "spark": "SPARK",
             "hom": "HOM",

@@ -9,6 +9,7 @@ define('custom:views/lead/modals/book-royalty', [
         successMessage: 'RI geboekt.',
         errorMessage: 'RI boeken mislukt.',
         calendarType: 'royalty',
+        calendarTypes: ['royalty'],
         meetingLabel: 'RI'
     });
 });

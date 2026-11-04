@@ -10,6 +10,8 @@ define('custom:views/lead/modals/book-kickstart', [
         successMessage: 'Kickstart geboekt.',
         errorMessage: 'Kickstart boeken mislukt.',
         calendarType: 'kickstart',
+        // Online kickstarts follow the exact same flow as regular kickstarts
+        calendarTypes: ['kickstart', 'online'],
         meetingLabel: 'Kickstart',
 
         setup: function () {
@@ -39,15 +41,25 @@ define('custom:views/lead/modals/book-kickstart', [
                 .then(response => {
                     $calSelect.empty().append('<option value="">-- Kies Agenda --</option>');
 
-                    const kickstartCalendars = response.filter(cal => cal.type === this.calendarType);
-                    if (kickstartCalendars.length === 0) {
+                    const allowedTypes = this.getAllowedCalendarTypes();
+                    const calendars = response.filter(cal => allowedTypes.includes(cal.type));
+                    if (calendars.length === 0) {
                         Espo.Ui.error(`Geen ${this.meetingLabel} agenda beschikbaar.`);
                         $calSelect.prop('disabled', true);
                         return;
                     }
 
-                    const selected = kickstartCalendars[0];
-                    $calSelect.append(`<option value="${selected.id}">${selected.name}</option>`);
+                    if (calendars.length > 1) {
+                        calendars.forEach(cal => {
+                            $calSelect.append($('<option>').val(cal.id).text(cal.name));
+                        });
+                        $calSelect.prop('disabled', false);
+                        $calField.show();
+                        return;
+                    }
+
+                    const selected = calendars[0];
+                    $calSelect.append($('<option>').val(selected.id).text(selected.name));
                     $calSelect.val(selected.id);
                     $calSelect.prop('disabled', true);
                     $calField.hide();
@@ -58,6 +70,10 @@ define('custom:views/lead/modals/book-kickstart', [
                     console.error('Failed to load bookable calendars:', e);
                     $calSelect.empty().append('<option value="">Fout bij laden</option>');
                 });
+        },
+
+        getAllowedCalendarTypes: function() {
+            return this.calendarTypes || [this.calendarType];
         },
 
         getFormData: function() {

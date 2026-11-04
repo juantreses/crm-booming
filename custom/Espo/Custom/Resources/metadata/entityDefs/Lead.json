@@ -96,6 +96,7 @@
             "options": [
                 "",
                 "kickstart",
+                "online",
                 "bws",
                 "spark",
                 "hom",
@@ -108,6 +109,7 @@
             "style": {
                 "": null,
                 "kickstart": null,
+                "online": null,
                 "bws": null,
                 "spark": null,
                 "hom": null,

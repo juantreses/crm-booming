@@ -4,6 +4,9 @@ define('custom:views/lead/modals/log-intro-meeting', [
     'custom:utils/form-validation-utils'
 ], function (Dep, MeetingSchedulerMixin, ValidationUtils) {
 
+    // Online kickstarts follow the exact same flow as regular kickstarts
+    const KICKSTART_TYPES = ['kickstart', 'online'];
+
     const LogIntroMeetingView = Dep.extend({
         template: 'custom:lead/modals/log-intro-meeting',
         apiEndpoint: 'leadEvent/logIntroMeeting',
@@ -81,6 +84,8 @@ define('custom:views/lead/modals/log-intro-meeting', [
                     return 'HOM';
                 case 'kickstart':
                     return 'Kickstart';
+                case 'online':
+                    return 'Online Kickstart';
                 case 'royalty':
                     return 'RI';
                 default:
@@ -203,7 +208,7 @@ define('custom:views/lead/modals/log-intro-meeting', [
             if (this.bookingMode === 'reschedule') {
                 if (introType === 'spark') {
                     if (sparksUsed >= 2) {
-                        return ['kickstart'];
+                        return [...KICKSTART_TYPES];
                     }
                     return ['spark'];
                 }
@@ -212,7 +217,7 @@ define('custom:views/lead/modals/log-intro-meeting', [
                     return [introType];
                 }
 
-                return ['kickstart'];
+                return [...KICKSTART_TYPES];
             }
 
             if (this.bookingMode === 'next') {
@@ -221,18 +226,18 @@ define('custom:views/lead/modals/log-intro-meeting', [
                         return ['royalty'];
                     }
                     // HOM does not count as a SPARK session
-                    return sparksUsed >= 2 ? ['kickstart'] : ['spark', 'kickstart'];
+                    return sparksUsed >= 2 ? [...KICKSTART_TYPES] : ['spark', ...KICKSTART_TYPES];
                 }
 
                 if (introType === 'spark') {
                     const usedAfterAttendance = sparksUsed + (outcome === 'attended' ? 1 : 0);
                     if (usedAfterAttendance < 2) {
-                        return ['spark', 'kickstart'];
+                        return ['spark', ...KICKSTART_TYPES];
                     }
-                    return ['kickstart'];
+                    return [...KICKSTART_TYPES];
                 }
 
-                return ['kickstart'];
+                return [...KICKSTART_TYPES];
             }
 
             return [];
