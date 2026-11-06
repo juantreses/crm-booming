@@ -19,12 +19,6 @@ parameters:
 			path: custom/Espo/Modules/Booking/Hooks/Meeting/CancellationEmail.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Espo\\ORM\\Entity\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: custom/Espo/Modules/Booking/Hooks/Meeting/TelegramNotification.php
-
-		-
 			message: '#^Parameter \#1 \$attachmentList of method Espo\\Core\\Mail\\Sender\:\:withAttachments\(\) expects iterable\<Espo\\Entities\\Attachment\>, array\<Espo\\ORM\\Entity\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -83,21 +77,3 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: custom/Espo/Modules/Telegram/Services/TelegramService.php
-
-		-
-			message: '#^Method Espo\\Modules\\Vanko\\Controllers\\VankoApi\:\:logInfo\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: custom/Espo/Modules/Vanko/Controllers/VankoApi.php
-
-		-
-			message: '#^Call to function is_object\(\) with object will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: custom/Espo/Modules/Vanko/Services/LeadDataValidator.php
-
-		-
-			message: '#^Call to an undefined method Espo\\ORM\\Repository\\Repository\<Espo\\ORM\\Entity\>\:\:where\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: custom/Espo/Modules/Vanko/Services/Util/EntityFactory.php

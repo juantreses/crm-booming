@@ -157,7 +157,7 @@ Now that the application files and database are in place, you need to update the
 
 1. Add a config-internal file
 
-    Add a `config-internal.php` file similar to what is in production. Replace the DB settings with the DB settings from the `docker-compose.yml` file and replace the Vanko Webhooks with dummy-urls so the calls will silently fail.
+    Add a `config-internal.php` file similar to what is in production. Replace the DB settings with the DB settings from the `docker-compose.yml` file.
 
 ***
 
