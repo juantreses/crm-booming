@@ -13,6 +13,8 @@ use Espo\Modules\LeadManager\Handlers\IntroMeeting;
 use Espo\Modules\LeadManager\Handlers\Kickstart;
 use Espo\Modules\LeadManager\Handlers\KickstartFollowUp;
 use Espo\Modules\LeadManager\Handlers\Message;
+use Espo\Modules\LeadManager\Handlers\Royalty;
+use Espo\Modules\LeadManager\Handlers\RoyaltyFollowUp;
 
 readonly class HandlerRegistry
 {
@@ -22,6 +24,9 @@ readonly class HandlerRegistry
     private array $kickstartFollowUpHandlers;
     private array $introMeetingHandlers;
     private Kickstart\BookedHandler $kickstartBookingHandler;
+    private array $royaltyHandlers;
+    private array $royaltyFollowUpHandlers;
+    private Royalty\BookedHandler $royaltyBookingHandler;
 
     public function __construct(
         Call\CalledHandler $calledHandler,
@@ -44,6 +49,14 @@ readonly class HandlerRegistry
         IntroMeeting\AttendanceHandler $introAttendanceHandler,
         IntroMeeting\NoShowHandler $introNoShowHandler,
         IntroMeeting\CancelledHandler $introCancelledHandler,
+        Royalty\BecameClientHandler $royaltyBecameClientHandler,
+        Royalty\BookedHandler $royaltyBookedHandler,
+        Royalty\NoShowHandler $royaltyNoShowHandler,
+        Royalty\NotConvertedHandler $royaltyNotConvertedHandler,
+        Royalty\StillThinkingHandler $royaltyStillThinkingHandler,
+        Royalty\CancelledHandler $royaltyCancelledHandler,
+        RoyaltyFollowUp\BecameClientFollowUpHandler $royaltyBecameClientFollowUpHandler,
+        RoyaltyFollowUp\NotConvertedFollowUpHandler $royaltyNotConvertedFollowUpHandler,
     ) {
         $this->callHandlers = [
             CallOutcome::CALLED->value => $calledHandler,
@@ -79,6 +92,20 @@ readonly class HandlerRegistry
             IntroMeetingOutcome::NO_SHOW->value => $introNoShowHandler,
             IntroMeetingOutcome::CANCELLED->value => $introCancelledHandler,
         ];
+
+        $this->royaltyHandlers = [
+            KickstartOutcome::BECAME_CLIENT->value => $royaltyBecameClientHandler,
+            KickstartOutcome::NO_SHOW->value => $royaltyNoShowHandler,
+            KickstartOutcome::NOT_CONVERTED->value => $royaltyNotConvertedHandler,
+            KickstartOutcome::STILL_THINKING->value => $royaltyStillThinkingHandler,
+            KickstartOutcome::CANCELLED->value => $royaltyCancelledHandler,
+        ];
+        $this->royaltyBookingHandler = $royaltyBookedHandler;
+
+        $this->royaltyFollowUpHandlers = [
+            KickstartOutcome::BECAME_CLIENT->value => $royaltyBecameClientFollowUpHandler,
+            KickstartOutcome::NOT_CONVERTED->value => $royaltyNotConvertedFollowUpHandler,
+        ];
     }
 
     public function getCallHandler(string $outcome): OutcomeHandler
@@ -111,6 +138,29 @@ readonly class HandlerRegistry
         }
 
         return $this->kickstartFollowUpHandlers[$outcome];
+    }
+
+    public function getRoyaltyHandler(string $outcome): OutcomeHandler
+    {
+        if (!isset($this->royaltyHandlers[$outcome])) {
+            throw new BadRequest("Invalid royalty outcome: $outcome");
+        }
+
+        return $this->royaltyHandlers[$outcome];
+    }
+
+    public function getRoyaltyBookingHandler(): OutcomeHandler
+    {
+        return $this->royaltyBookingHandler;
+    }
+
+    public function getRoyaltyFollowUpHandler(string $outcome): OutcomeHandler
+    {
+        if (!isset($this->royaltyFollowUpHandlers[$outcome])) {
+            throw new BadRequest("Invalid royalty follow-up outcome: $outcome");
+        }
+
+        return $this->royaltyFollowUpHandlers[$outcome];
     }
 
     public function getMessageHandler(string $outcome): OutcomeHandler

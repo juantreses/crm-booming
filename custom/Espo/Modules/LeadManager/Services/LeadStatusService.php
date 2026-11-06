@@ -69,6 +69,11 @@ readonly class LeadStatusService
             'cStage' => null,
             'cReasonLost' => LeadReasonLost::NOT_CONVERTED->value
         ],
+        LeadEventType::CANCELLED_STOP->value => [
+            'status' => LeadStatus::DEAD->value,
+            'cStage' => null,
+            'cReasonLost' => LeadReasonLost::APPOINTMENT_CANCELLED->value
+        ],
         LeadEventType::STILL_THINKING->value => [
             'status' => LeadStatus::ASSIGNED->value,
             'cStage' => LeadStage::KS_DOUBT->value
@@ -80,6 +85,14 @@ readonly class LeadStatusService
         LeadEventType::KICKSTART_NO_SHOW->value => [
             'status' => LeadStatus::ASSIGNED->value,
             'cStage' => LeadStage::FOLLOW_UP->value
+        ],
+        LeadEventType::ROYALTY_BOOKED->value => [
+            'status' => LeadStatus::ASSIGNED->value,
+            'cStage' => LeadStage::RI_PLANNED->value
+        ],
+        LeadEventType::ROYALTY_STILL_THINKING->value => [
+            'status' => LeadStatus::ASSIGNED->value,
+            'cStage' => LeadStage::RI_DOUBT->value
         ],
     ];
 

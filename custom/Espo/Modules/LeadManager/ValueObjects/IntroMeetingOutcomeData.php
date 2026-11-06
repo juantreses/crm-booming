@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\LeadManager\ValueObjects;
 
+use Espo\Custom\Enums\HomRating;
 use Espo\Custom\Enums\IntroMeetingOutcome;
 
 readonly class IntroMeetingOutcomeData
@@ -17,6 +18,7 @@ readonly class IntroMeetingOutcomeData
         public ?string $selectedDate = null,
         public ?string $selectedTime = null,
         public ?array $nextBooking = null,
+        public ?HomRating $homRating = null,
     ) {}
 
     public static function fromStdClass(\StdClass $data): self
@@ -60,6 +62,7 @@ readonly class IntroMeetingOutcomeData
             selectedDate: $data->selectedDate ?? null,
             selectedTime: $data->selectedTime ?? null,
             nextBooking: $nextBooking,
+            homRating: !empty($data->homRating) ? HomRating::from($data->homRating) : null,
         );
     }
 }

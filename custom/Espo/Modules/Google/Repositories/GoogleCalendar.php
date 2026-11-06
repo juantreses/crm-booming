@@ -21,6 +21,7 @@ namespace Espo\Modules\Google\Repositories;
 use DateTime;
 use Espo\Core\ORM\Entity;
 use Espo\Core\Repositories\Database;
+use Espo\Entities\ExternalAccount;
 use Espo\Modules\Google\Core\Google\Items\Event;
 use Espo\ORM\Query\DeleteBuilder;
 use Espo\ORM\Query\SelectBuilder;
@@ -598,8 +599,9 @@ class GoogleCalendar extends Database
         $userWithIntegrationIdList = [];
 
         foreach ($userList as $user) {
-            $ea = $this->entityManager->getRepository('ExternalAccount')
-                ->get('Google__' . $user->get('id'));
+            $ea = $this->entityManager
+                ->getRepositoryByClass(ExternalAccount::class)
+                ->getById('Google__' . $user->get('id'));
 
             if ($ea->get('googleCalendarEnabled') && $ea->get('calendarDirection') !== 'GCToEspo') {
                 $userWithIntegrationIdList[] = $user->get('id');
@@ -758,21 +760,6 @@ class GoogleCalendar extends Database
 
     public function deleteRecurrentInstancesFromEspo($calendarId, $googleCalendarEventId, $eventTypes)
     {
-        // #region agent log
-        $agentLogPayload = [
-            'sessionId' => 'c8d6ce',
-            'timestamp' => (int) round(microtime(true) * 1000),
-            'location' => 'GoogleCalendar.php:deleteRecurrentInstancesFromEspo',
-            'message' => 'bulk soft-delete instances matching master prefix',
-            'hypothesisId' => 'H5',
-            'data' => [
-                'googleCalendarEventIdPrefix' => $googleCalendarEventId,
-                'instancePattern' => $googleCalendarEventId . '_%',
-            ],
-        ];
-        $GLOBALS['log']->warning('AGENT_DEBUG[c8d6ce] ' . json_encode($agentLogPayload, JSON_UNESCAPED_UNICODE));
-        // #endregion
-
         $eventTypes = $this->validateEventTypes($eventTypes);
 
         foreach ($eventTypes as $eventType) {

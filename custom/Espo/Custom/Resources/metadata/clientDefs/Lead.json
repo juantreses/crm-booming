@@ -131,6 +131,36 @@
                     "checkVisibilityFunction": "isLogKickstartFollowUpVisible"
                 },
                 {
+                    "label": "RI",
+                    "name": "logRoyalty",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/royalty-action-handler",
+                    "actionFunction": "logRoyalty",
+                    "checkVisibilityFunction": "isLogRoyaltyVisible"
+                },
+                {
+                    "label": "RI Boeken",
+                    "name": "bookRoyalty",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/book-royalty-action-handler",
+                    "actionFunction": "bookRoyalty",
+                    "checkVisibilityFunction": "isBookRoyaltyVisible"
+                },
+                {
+                    "label": "RI - Opvolging",
+                    "name": "logRoyaltyFollowUp",
+                    "style": "default",
+                    "acl": "edit",
+                    "aclScope": "Lead",
+                    "handler": "custom:handlers/log-royalty-follow-up-handler",
+                    "actionFunction": "logRoyaltyFollowUp",
+                    "checkVisibilityFunction": "isLogRoyaltyFollowUpVisible"
+                },
+                {
                     "label": "Reset Lead",
                     "name": "resetLead",
                     "style": "danger",

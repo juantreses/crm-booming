@@ -21,6 +21,7 @@ namespace Espo\Modules\Google\Services;
 use Espo\Core\AclManager;
 use Espo\Core\InjectableFactory;
 use Espo\Core\ServiceFactory;
+use Espo\Entities\ExternalAccount;
 use Espo\Entities\User;
 use Espo\ORM\Entity;
 
@@ -31,25 +32,13 @@ class GoogleCalendar
 {
     private ?Calendar $googleCalendarManager = null;
 
-    private EntityManager $entityManager;
-    private InjectableFactory $injectableFactory;
-    private AclManager $aclManager;
-    private User $user;
-    private ServiceFactory $serviceFactory;
-
     public function __construct(
-        EntityManager $entityManager,
-        InjectableFactory $injectableFactory,
-        AclManager $aclManager,
-        User $user,
-        ServiceFactory $serviceFactory
-    ) {
-        $this->entityManager = $entityManager;
-        $this->injectableFactory = $injectableFactory;
-        $this->aclManager = $aclManager;
-        $this->user = $user;
-        $this->serviceFactory = $serviceFactory;
-    }
+        private EntityManager $entityManager,
+        private InjectableFactory $injectableFactory,
+        private AclManager $aclManager,
+        private User $user,
+        private ServiceFactory $serviceFactory,
+    ) {}
 
     protected function getGoogleCalendarManager(): Calendar
     {
@@ -66,7 +55,7 @@ class GoogleCalendar
     public function usersCalendars(): array
     {
         $calendarManager = $this->getGoogleCalendarManager();
-        $calendarManager->setUserId($this->user->get('id'));
+        $calendarManager->setUserId($this->user->getId());
 
         return $calendarManager->getCalendarList();
     }
@@ -74,7 +63,7 @@ class GoogleCalendar
     public function syncCalendar(Entity $calendar): void
     {
         /** @var ?User $user */
-        $user = $this->entityManager->getEntityById('User', $calendar->get('userId'));
+        $user = $this->entityManager->getEntityById(User::ENTITY_TYPE, $calendar->get('userId'));
 
         if (!$user || !$user->get('isActive')) {
             return;
@@ -84,10 +73,17 @@ class GoogleCalendar
             return;
         }
 
-        $externalAccount = $this->entityManager
-            ->getEntityById('ExternalAccount', 'Google__' . $calendar->get('userId'));
+        $userId = $calendar->get('userId');
 
-        $enabled = $externalAccount->get('enabled') &&
+        if (!$userId) {
+            return;
+        }
+
+        $externalAccount = $this->entityManager
+            ->getRepositoryByClass(ExternalAccount::class)
+            ->getById('Google__' . $userId);
+
+        $enabled = $externalAccount->isEnabled() &&
             ($externalAccount->get('calendarEnabled') || $externalAccount->get('googleCalendarEnabled'));
 
         if (!$enabled || !$calendar->get('userId')) {
@@ -99,11 +95,10 @@ class GoogleCalendar
             ->ping('Google', $calendar->get('userId'));
 
         if (!$isConnected) {
-            $GLOBALS['log']
-                ->error('Google Calendar Synchronization: \'' . $calendar->get('userName') .
-                    '\' user could not connect to Google Server when synchronizing the calendar "' .
-                    $calendar->get('googleCalendarName') . '"'
-                );
+            $GLOBALS['log']->error('Google Calendar Synchronization: \'' . $calendar->get('userName') .
+                '\' user could not connect to Google Server when synchronizing the calendar "' .
+                $calendar->get('googleCalendarName') . '"'
+            );
         }
 
         $calendarManager = $this->getGoogleCalendarManager();

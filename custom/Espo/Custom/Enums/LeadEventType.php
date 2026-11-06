@@ -31,6 +31,12 @@ enum LeadEventType: string
     case STILL_THINKING = 'still_thinking';
     case ATTENDED = 'attended';
     case NO_SHOW = 'no_show';
+    case CANCELLED_STOP = 'cancelled_stop';
+
+    // Royalty (RI) events
+    case ROYALTY_BOOKED = 'royalty_booked';
+    case ROYALTY_CANCELLED = 'royalty_cancelled';
+    case ROYALTY_STILL_THINKING = 'royalty_still_thinking';
     
     // Assignment
     case ASSIGNED = 'assigned';

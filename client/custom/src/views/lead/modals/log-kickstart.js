@@ -10,6 +10,7 @@ define('custom:views/lead/modals/log-kickstart', [
         apiEndpoint: 'leadEvent/logKickstart',
         successMessage: 'Kickstart logged successfully',
         errorMessage: 'Failed to log kickstart',
+        meetingLabel: 'Kickstart',
 
         setup: function () {
             Dep.prototype.setup.call(this);
@@ -26,11 +27,11 @@ define('custom:views/lead/modals/log-kickstart', [
         },
 
         getSaveButtonLabel: function() {
-            return 'Log Kickstart';
+            return `Log ${this.meetingLabel}`;
         },
 
         getHeaderText: function() {
-            return 'Log Kickstart';
+            return `Log ${this.meetingLabel}`;
         },
 
         handleOutcomeChange: function() {
@@ -106,7 +107,7 @@ define('custom:views/lead/modals/log-kickstart', [
                 }
 
                 if (cancellationAction === 'reschedule_now') {
-                    if (!this.validateMeetingSelection('Nieuwe Kickstart datum is verplicht.')) {
+                    if (!this.validateMeetingSelection(`Nieuwe ${this.meetingLabel} datum is verplicht.`)) {
                         return false;
                     }
                 }
@@ -124,7 +125,7 @@ define('custom:views/lead/modals/log-kickstart', [
                 }
             }
 
-            if (!ValidationUtils.validateEventDateTime(kickstartDateTime, 'kickstart')) {
+            if (!ValidationUtils.validateEventDateTime(kickstartDateTime, this.meetingLabel)) {
                 return false;
             }
 
@@ -137,7 +138,7 @@ define('custom:views/lead/modals/log-kickstart', [
 
             if (response && response.data && response.data.eventIds) {
                 const eventCount = response.data.eventIds.length;
-                Espo.Ui.success(`Kickstart logged successfully. Created ${eventCount} event(s).`);
+                Espo.Ui.success(`${this.meetingLabel} logged successfully. Created ${eventCount} event(s).`);
             } else {
                 Espo.Ui.success(this.successMessage);
             }

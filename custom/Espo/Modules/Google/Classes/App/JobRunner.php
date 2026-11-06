@@ -160,7 +160,6 @@ class JobRunner implements Job
         /** @var string $result */
         $result = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         if ($httpCode === 200) {
             return json_decode($result, true);

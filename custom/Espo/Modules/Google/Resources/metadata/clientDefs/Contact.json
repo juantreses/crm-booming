@@ -14,9 +14,7 @@
         "__APPEND__",
         {
             "name": "pushToGoogle",
-            "data": {
-                "handler": "google:google-contacts-action-handler"
-            },
+            "handler": "google:google-contacts-action-handler",
             "aclScope": "GoogleContacts",
             "configCheck": "integrations.Google"
         }

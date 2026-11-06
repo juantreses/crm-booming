@@ -12,6 +12,9 @@ use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 
 class StillThinkingHandler extends AbstractOutcomeHandler
 {
+    protected const NOTE_SOURCE = 'Kickstart';
+    protected const FOLLOW_UP_NOTE = 'KS twijfel - Opvolging';
+
     public function __construct(
         LeadEventLogService $eventLogService,
         LeadNotesService $notesService,
@@ -33,14 +36,14 @@ class StillThinkingHandler extends AbstractOutcomeHandler
         $this->addCoachNoteIfProvided(
             $leadId,
             $context['coachNote'] ?? null,
-            'Kickstart',
+            static::NOTE_SOURCE,
             $context['eventDate'] ?? null
         );
 
         $this->handleFollowUp(
             $leadId,
             $context['callAgainDateTime'] ?? null,
-            'KS twijfel - Opvolging'
+            static::FOLLOW_UP_NOTE
         );
 
         $meeting = $this->meetingService->findPlannedMeeting($leadId);

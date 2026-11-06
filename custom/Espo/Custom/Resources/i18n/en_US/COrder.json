@@ -5,7 +5,9 @@
         "products": "Producten",
         "programEnd": "Programma tot",
         "contact": "Klant",
-        "programType": "Welk programma"
+        "programType": "Welk programma",
+        "amount": "Bedrag (€)",
+        "savingsPoints": "Spaarkaartpunten"
     },
     "links": {
         "contact": "Klant"

@@ -52,6 +52,20 @@
             "isCustom": true,
             "min": 0
         },
+        "amount": {
+            "type": "float",
+            "required": true,
+            "decimal": true,
+            "decimalPlaces": 2,
+            "min": 0,
+            "isCustom": true
+        },
+        "savingsPoints": {
+            "type": "int",
+            "readOnly": true,
+            "default": 0,
+            "isCustom": true
+        },
         "products": {
             "type": "text",
             "rowsMin": 2,
