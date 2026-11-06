@@ -32,6 +32,28 @@
                 {
                     "name": "cHeight"
                 }
+            ],
+            [
+                {
+                    "name": "cSavingsPointsBalance"
+                },
+                {
+                    "name": "cSavingsPointsRedeemed"
+                }
+            ],
+            [
+                {
+                    "name": "cSavingsCardStart"
+                },
+                {
+                    "name": "cSavingsCardEnd"
+                }
+            ],
+            [
+                {
+                    "name": "cRiStatus"
+                },
+                false
             ]
         ],
         "style": "default",

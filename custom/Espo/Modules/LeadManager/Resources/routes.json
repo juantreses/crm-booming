@@ -65,6 +65,30 @@
       }
     },
     {
+      "route": "/leadEvent/logRoyalty",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "logRoyalty"
+      }
+    },
+    {
+      "route": "/leadEvent/logRoyaltyFollowUp",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "logRoyaltyFollowUp"
+      }
+    },
+    {
+      "route": "/leadEvent/bookRoyalty",
+      "method": "post",
+      "params": {
+          "controller": "LeadEventApi",
+          "action": "bookRoyalty"
+      }
+    },
+    {
       "route": "/leadEvent/resetLead",
       "method": "post",
       "params": {

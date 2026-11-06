@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
+use Espo\Custom\Enums\HomRating;
 use Espo\Custom\Enums\IntroMeetingType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\ORM\Entity;
@@ -23,17 +24,22 @@ readonly class IntroMeetingService
         return true;
     }
 
-    public function recordAttendance(Entity $lead, IntroMeetingType $meetingType): LeadStage
+    public function recordAttendance(Entity $lead, IntroMeetingType $meetingType, ?HomRating $homRating = null): LeadStage
     {
         if ($meetingType === IntroMeetingType::SPARK) {
             $this->incrementSparkUsage($lead);
         }
         
-        return $this->determineNextStage($lead, $meetingType);
+        return $this->determineNextStage($lead, $meetingType, $homRating);
     }
 
-    private function determineNextStage(Entity $lead, IntroMeetingType $meetingType): LeadStage
+    private function determineNextStage(Entity $lead, IntroMeetingType $meetingType, ?HomRating $homRating): LeadStage
     {
+        if ($meetingType === IntroMeetingType::HOM && $homRating) {
+            // A/B choose SPARK or Kickstart next, C/D go to a Royalty meeting
+            return $homRating->leadsToRoyalty() ? LeadStage::BOOK_RI : LeadStage::INTRO_ATTENDED;
+        }
+
         if ($meetingType === IntroMeetingType::SPARK) {
             $sparksUsed = $lead->get('cSparksUsed') ?? 0;
             
@@ -89,7 +95,7 @@ readonly class IntroMeetingService
             return false;
         }
         
-        $meetingType = IntroMeetingType::tryFrom($introType);
+        $meetingType = IntroMeetingType::fromCalendarType($introType);
         
         if (!$meetingType) {
             return false;
@@ -106,6 +112,6 @@ readonly class IntroMeetingService
             return null;
         }
         
-        return IntroMeetingType::tryFrom($type);
+        return IntroMeetingType::fromCalendarType($type);
     }
 }

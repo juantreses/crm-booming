@@ -10,13 +10,14 @@ define('custom:views/lead/modals/log-kickstart-follow-up', [
         apiEndpoint: 'leadEvent/logKickstartFollowUp',
         successMessage: 'KS Opvolging opgeslagen.',
         errorMessage: 'KS Opvolging opslaan mislukt.',
+        meetingLabel: 'KS',
 
         getSaveButtonLabel: function() {
             return 'Opslaan';
         },
 
         getHeaderText: function() {
-            return 'Log KS Opvolging';
+            return `Log ${this.meetingLabel} Opvolging`;
         },
 
         getFormData: function() {

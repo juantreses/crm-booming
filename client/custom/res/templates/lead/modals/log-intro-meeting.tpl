@@ -35,6 +35,22 @@
             </div>
         </div>
 
+        <div class="row" data-field="hom-rating" style="display: none;">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>HOM-uitkomst *</label>
+                    <select name="homRating" class="form-control">
+                        <option value="">-- Kies uitkomst --</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                    <small class="form-text text-muted" data-role="hom-rating-hint">A/B: SPARK of Kickstart, C/D: RI</small>
+                </div>
+            </div>
+        </div>
+
         <div class="row" data-field="book-next-meeting" style="display: none;">
             <div class="col-md-12">
                 <div class="form-group">

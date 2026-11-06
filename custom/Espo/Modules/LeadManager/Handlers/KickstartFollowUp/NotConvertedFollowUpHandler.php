@@ -8,6 +8,8 @@ use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 
 class NotConvertedFollowUpHandler extends AbstractOutcomeHandler
 {
+    protected const NOTE_SOURCE = 'KS - Opvolging';
+
     public function getEventTypes(): array
     {
         return [LeadEventType::NOT_CONVERTED];
@@ -20,7 +22,7 @@ class NotConvertedFollowUpHandler extends AbstractOutcomeHandler
         $this->addCoachNoteIfProvided(
             $leadId,
             $context['coachNote'] ?? null,
-            'KS - Opvolging',
+            static::NOTE_SOURCE,
             $context['eventDate'] ?? null
         );
 

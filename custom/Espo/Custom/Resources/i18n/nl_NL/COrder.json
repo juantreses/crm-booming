@@ -17,6 +17,8 @@
         }
     },
     "fields": {
-        "dateOrdered": "Programma Start"
+        "dateOrdered": "Programma Start",
+        "amount": "Bedrag (€)",
+        "savingsPoints": "Spaarkaartpunten"
     }
 }

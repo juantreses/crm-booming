@@ -230,6 +230,94 @@ readonly class LeadEventApi
         }
     }
 
+    public function postActionLogRoyalty(Request $request): array
+    {
+        try {
+            $data = $request->getParsedBody();
+
+            $validator = new LogKickstartValidator('RI');
+            $validator->validate($data);
+
+            $result = $this->leadEventService->logRoyalty($data);
+
+            return [
+                'success' => true,
+                'message' => 'Royalty logged successfully',
+                'data' => $result
+            ];
+
+        } catch (Conflict $e) {
+            throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
+        } catch (BadRequest $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            $GLOBALS['log']->error('Lead Log Royalty Error: ' . $e->getMessage(), [
+                'leadId' => $data->id ?? null,
+                'outcome' => $data->outcome ?? null,
+                'eventDate' => $data->kickstartDateTime ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new BadRequest('Failed to log royalty: ' . $e->getMessage());
+        }
+    }
+
+    public function postActionLogRoyaltyFollowUp(Request $request): array
+    {
+        try {
+            $data = $request->getParsedBody();
+
+            $validator = new LogKickstartValidator('RI');
+            $validator->validate($data);
+
+            $result = $this->leadEventService->logRoyaltyFollowUp($data);
+
+            return [
+                'success' => true,
+                'message' => 'Follow-up logged successfully',
+                'data' => $result
+            ];
+
+        } catch (BadRequest $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            $GLOBALS['log']->error('Lead Log Royalty Follow Up Error: ' . $e->getMessage(), [
+                'leadId' => $data->id ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new BadRequest('Failed to log royalty follow up: ' . $e->getMessage());
+        }
+    }
+
+    public function postActionBookRoyalty(Request $request): array
+    {
+        try {
+            $data = $request->getParsedBody();
+
+            $validator = new LogKickstartBookingValidator();
+            $validator->validate($data);
+
+            $result = $this->leadEventService->bookRoyalty($data);
+
+            return [
+                'success' => true,
+                'message' => 'Royalty booked successfully',
+                'data' => $result
+            ];
+
+        } catch (Conflict $e) {
+            throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
+        } catch (BadRequest $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            $GLOBALS['log']->error('Lead Book Royalty Error: ' . $e->getMessage(), [
+                'leadId' => $data->id ?? null,
+                'eventDate' => $data->eventDate ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new BadRequest('Failed to book royalty: ' . $e->getMessage());
+        }
+    }
+
     public function postActionResetLead(Request $request): array
     {
         try {

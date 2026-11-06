@@ -3,6 +3,7 @@
 namespace Espo\Modules\LeadManager\Handlers\Message;
 
 use Espo\Custom\Enums\IntroMeetingType;
+use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
@@ -81,8 +82,12 @@ class InvitedHandler extends AbstractOutcomeHandler
             $context['coachNote'] ?? null
         );
 
-        if ($calendarType === 'kickstart') {
-            return $this->handleKickstartBooking($lead, $result, $context['eventDate'] ?? null);
+        if (KickstartCalendarType::isKickstart($calendarType)) {
+            return $this->handleKickstartBooking($lead, $result, $calendarType, $context['eventDate'] ?? null);
+        }
+
+        if ($calendarType === 'royalty') {
+            return $this->handleRoyaltyBooking($lead, $result, $context['eventDate'] ?? null);
         }
 
         if ($meetingType) {
@@ -110,12 +115,27 @@ class InvitedHandler extends AbstractOutcomeHandler
     private function handleKickstartBooking(
         Entity $lead,
         OutcomeResult $result,
+        string $calendarType,
         ?string $eventDate = null
     ): OutcomeResult {
         $result = $this->logBookingEvent($lead, $result, LeadEventType::KICKSTART_BOOKED, $eventDate);
 
         $lead->set('cStage', LeadStage::KS_PLANNED->value);
-        $lead->set('cMeetingType', 'kickstart');
+        $lead->set('cMeetingType', $calendarType);
+        $this->entityManager->saveEntity($lead);
+
+        return $result;
+    }
+
+    private function handleRoyaltyBooking(
+        Entity $lead,
+        OutcomeResult $result,
+        ?string $eventDate = null
+    ): OutcomeResult {
+        $result = $this->logBookingEvent($lead, $result, LeadEventType::ROYALTY_BOOKED, $eventDate);
+
+        $lead->set('cStage', LeadStage::RI_PLANNED->value);
+        $lead->set('cMeetingType', 'royalty');
         $this->entityManager->saveEntity($lead);
 
         return $result;
