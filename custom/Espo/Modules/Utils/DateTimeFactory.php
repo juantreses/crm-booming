@@ -4,8 +4,8 @@ namespace Espo\Modules\Utils;
 
 class DateTimeFactory
 {
-    private const TIMEZONE_UTC = 'UTC';
-    private const TIMEZONE_BRUSSELS = 'Europe/Brussels';
+    private const string TIMEZONE_UTC = 'UTC';
+    private const string TIMEZONE_BRUSSELS = 'Europe/Brussels';
 
     public static function nowUtc(): \DateTime
     {
