@@ -21,6 +21,6 @@ readonly class CalendarLink
             'subtext' => $this->subtext,
             'isLocation' => $this->isLocation,
             'isVariant' => $this->isVariant,
-        ], fn($value) => $value !== null && $value !== false);
+        ], fn(string|bool|null $value): bool => $value !== null && $value !== false);
     }
 }

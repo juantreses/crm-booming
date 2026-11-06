@@ -7,7 +7,7 @@ use Espo\Modules\Links\ValueObjects\WidgetLink;
 
 readonly class WidgetLinkBuilder
 {
-    private const WIDGET_TYPES = [
+    private const array WIDGET_TYPES = [
         ['type' => 'survey', 'label' => 'Enquête', 'icon' => 'fas fa-clipboard-list'],
         ['type' => 'voucher', 'label' => 'Voucher', 'icon' => 'fas fa-ticket-alt'],
         ['type' => 'direct', 'label' => 'Direct Boeken', 'icon' => 'fas fa-bolt'],

@@ -17,8 +17,8 @@ readonly class LinkCollection
     public function toArray(): array
     {
         return [
-            'widgets' => array_map(fn($link) => $link->toArray(), $this->widgets),
-            'calendars' => array_map(fn($link) => $link->toArray(), $this->calendars),
+            'widgets' => array_map(fn(WidgetLink $link): array => $link->toArray(), $this->widgets),
+            'calendars' => array_map(fn(CalendarLink $link): array => $link->toArray(), $this->calendars),
         ];
     }
 

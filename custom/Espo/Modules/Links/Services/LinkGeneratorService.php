@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\Links\Services;
 
+use Espo\ORM\Entity;
 use Espo\Modules\Links\ValueObjects\LinkCollection;
 use Espo\ORM\EntityManager;
 
@@ -16,14 +17,11 @@ readonly class LinkGeneratorService
 
     /**
      * Generate all links for a specific team
-     *
-     * @param string $teamId
-     * @return LinkCollection
      */
     public function getLinksForTeam(string $teamId): LinkCollection
     {
         $team = $this->entityManager->getEntityById('CTeam', $teamId);
-        if (!$team) {
+        if (!$team instanceof Entity) {
             return new LinkCollection([], []);
         }
 
@@ -37,8 +35,6 @@ readonly class LinkGeneratorService
 
     /**
      * Generate all links for the center (no specific team/coach)
-     *
-     * @return LinkCollection
      */
     public function getLinksForCenter(): LinkCollection
     {
@@ -51,11 +47,8 @@ readonly class LinkGeneratorService
     /**
      * Get the coach identifier (slug) from team
      * Falls back to team ID if no slug is set
-     *
-     * @param \Espo\ORM\Entity $team
-     * @return string|null
      */
-    private function getCoachIdentifier($team): ?string
+    private function getCoachIdentifier(Entity $team): ?string
     {
         $assignedUserId = $team->get('assignedUserId');
         if (!$assignedUserId) {
@@ -63,7 +56,7 @@ readonly class LinkGeneratorService
         }
 
         $user = $this->entityManager->getEntityById('User', $assignedUserId);
-        if (!$user) {
+        if (!$user instanceof Entity) {
             return $team->get('id');
         }
 

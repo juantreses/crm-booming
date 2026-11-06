@@ -21,8 +21,6 @@ readonly class CalendarLinkBuilder
     /**
      * Build calendar links for a team
      *
-     * @param string $teamId
-     * @param string|null $coachIdentifier
      * @return CalendarLink[]
      */
     public function buildForTeam(string $teamId, ?string $coachIdentifier): array
@@ -45,9 +43,6 @@ readonly class CalendarLinkBuilder
     /**
      * Build calendar links from calendar entities
      *
-     * @param EntityCollection $calendars
-     * @param string|null $teamId
-     * @param string|null $coachIdentifier
      * @return CalendarLink[]
      */
     private function buildLinksFromCalendars(EntityCollection $calendars, ?string $teamId, ?string $coachIdentifier): array
@@ -63,10 +58,10 @@ readonly class CalendarLinkBuilder
             $calendarId = $calendar->get('id');
             $baseCalendarUrl = "{$baseWidgetUrl}&type=calendar&id={$calendarIdentifier}{$coachParam}";
             $locationStructure = $this->calendarRepository->getPublicLinkStructureForCalendar($calendarId, $teamId);
-            $locationCount = count(array_filter($locationStructure, fn(array $row) => !empty($row['id'])));
+            $locationCount = count(array_filter($locationStructure, fn(array $row): bool => !empty($row['id'])));
             $hasVariants = count(array_filter(
                 $locationStructure,
-                fn(array $row) => count($row['variants']) > 0,
+                fn(array $row): bool => count($row['variants']) > 0,
             )) > 0;
 
             if ($locationCount < 2 && !$hasVariants) {
