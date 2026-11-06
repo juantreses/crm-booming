@@ -161,7 +161,7 @@ Now that the application files and database are in place, you need to update the
 
 ***
 
-## Code quality: Rector, PHPStan & PHP_CodeSniffer
+## Code quality: Rector, PHPStan, PHP_CodeSniffer & PHPUnit
 
 The QA tools live in `tools/` with their own `composer.json`, separate from Espo's `vendor/`.
 An Espo upgrade replaces `vendor/` and `application/`, so the tools are kept out of it.
@@ -175,16 +175,34 @@ inside that container as `www-data`, so it uses the PHP version Espo runs on.
 Use `ESPO_CONTAINER=...` to point it at a different container name.
 
 ```bash
-bin/qa install      # once: installs Rector, PHPStan + PHPCS into tools/vendor
-bin/qa all          # lint + coding standard + PHPStan + Rector dry-run (run before committing)
+bin/qa install      # once: installs Rector, PHPStan, PHPCS + PHPUnit into tools/vendor
+bin/qa all          # lint + coding standard + PHPStan + tests + Rector dry-run (run before committing)
 bin/qa stan         # PHPStan static analysis
+bin/qa test         # PHPUnit tests (tests/)
 bin/qa cs-fix       # auto-fix coding standard issues
 bin/qa rector       # show what Rector would change (dry-run)
 bin/qa rector-fix   # apply Rector changes; review the diff with git afterwards
 bin/qa cs custom/Espo/Modules/Booking   # limit to one module
 ```
 
-Config: `rector.php`, `phpstan.neon.dist` and `phpcs.xml.dist` in the repo root.
+Config: `rector.php`, `phpstan.neon.dist`, `phpcs.xml.dist` and `phpunit.xml.dist` in the repo root.
+
+### Tests
+
+Unit tests live in `tests/Unit`, mirroring `custom/Espo` (e.g. `tests/Unit/Modules/Links/...`).
+They mock Espo classes (`EntityManager`, `Metadata`, `Config`, repositories), so they need no database.
+`tests/Support/EntityStubs.php` has a helper to build `Entity` stubs with fixed attribute values.
+
+Covered so far: `Utils` and `Links`.
+
+Before running `bin/qa rector-fix` on a module, first write tests that capture its **current** behaviour,
+then run Rector and the tests again. A failing test means Rector changed behaviour:
+
+```bash
+bin/qa test
+bin/qa rector-fix custom/Espo/Modules/Links
+bin/qa test
+```
 
 ### PHPStan baseline
 
