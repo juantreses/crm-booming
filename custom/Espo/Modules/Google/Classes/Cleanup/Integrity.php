@@ -34,7 +34,7 @@ class Integrity implements Cleanup
     private string $class;
     private string $fieldStatus;
 
-    private string $hash = '0c40625c07795c752dbb23f295fd5a70';
+    private string $hash = 'c2f9ce14e9135b6577bc96914e4e8ac9';
     private string $packagePath = 'data/upload/extensions';
 
     private FileManager $fileManager;

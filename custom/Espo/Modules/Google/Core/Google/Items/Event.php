@@ -36,6 +36,13 @@ class Event
 
     private $defaults = [];
 
+    /** @var string<string, string> */
+    private $timezoneMap = [
+        'Europe/Kiev' => 'Europe/Kyiv',
+        'Europe/Uzhgorod' => 'Europe/Uzhhorod',
+        'Europe/Zaporozhye' => 'Europe/Zaporozhye',
+    ];
+
     /**
      * @param array<string, mixed> $item
      */
@@ -477,6 +484,7 @@ class Event
             }
         } else {
             $calendarTZ = $date['timeZone'];
+            $calendarTZ = $this->timezoneMap[$calendarTZ] ?? $calendarTZ;
         }
 
         if (!$calendarTZ) {
