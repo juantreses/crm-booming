@@ -15,7 +15,9 @@
 #   bin/qa rector-fix  apply Rector changes
 #   bin/qa all         lint + cs + stan + test + rector dry-run (good before every commit)
 #
-# Extra arguments are passed to the tool, e.g. `bin/qa cs custom/Espo/Modules/Booking`.
+# Extra arguments are passed to the tool. A module name works as a path:
+#   bin/qa rector-fix Utils    (= custom/Espo/Modules/Utils)
+#   bin/qa test Links          (= tests/Unit/Modules/Links)
 set -euo pipefail
 
 CONTAINER="${ESPO_CONTAINER:-espocrm}"
@@ -34,6 +36,29 @@ cd "$(dirname "$0")/.."
 BIN=tools/vendor/bin
 cmd="${1:-all}"
 shift || true
+
+# Lets you pass a module name instead of a path: `bin/qa rector-fix Utils`
+# becomes custom/Espo/Modules/Utils (tests/Unit/Modules/Utils for `test`), `Custom` becomes custom/Espo/Custom.
+resolve_paths() {
+    local base="$1" arg
+    shift
+    resolved=()
+    for arg in "$@"; do
+        if [[ "$arg" != -* && ! -e "$arg" ]]; then
+            if [[ "$arg" == "Custom" && "$base" == "custom/Espo/Modules" ]]; then
+                arg="custom/Espo/Custom"
+            elif [[ -d "$base/$arg" ]]; then
+                arg="$base/$arg"
+            fi
+        fi
+        resolved+=("$arg")
+    done
+}
+
+case "$cmd" in
+    cs|cs-fix|stan|rector|rector-fix) resolve_paths custom/Espo/Modules "$@"; set -- "${resolved[@]}" ;;
+    test) resolve_paths tests/Unit/Modules "$@"; set -- "${resolved[@]}" ;;
+esac
 
 require_tools() {
     if [[ ! -x "$BIN/rector" || ! -x "$BIN/phpcs" || ! -x "$BIN/phpstan" || ! -x "$BIN/phpunit" ]]; then
@@ -80,7 +105,7 @@ case "$cmd" in
         exit $rc
         ;;
     *)
-        sed -n '2,18p' "$0"
+        sed -n '2,20p' "$0"
         exit 1
         ;;
 esac
