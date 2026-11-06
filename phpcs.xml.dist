@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <ruleset name="crm-booming">
-    <description>Coding standard for our own code in custom/ (PSR-12 + a few Slevomat rules).</description>
+    <description>Coding standard for our own code in custom/ and the tests (PSR-12 + a few Slevomat rules).</description>
 
     <file>custom/Espo</file>
+    <file>tests</file>
     <exclude-pattern>custom/Espo/Modules/*/vendor/*</exclude-pattern>
     <!-- Licensed EspoCRM extension: replaced on extension updates, not our code. -->
     <exclude-pattern>custom/Espo/Modules/Google/*</exclude-pattern>
@@ -14,6 +15,11 @@
     <arg value="sp"/>
 
     <rule ref="PSR12"/>
+
+    <!-- Data providers and expected values in tests read better on one line. -->
+    <rule ref="Generic.Files.LineLength">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
 
     <!-- Keep imports tidy (also what Rector's removeUnusedImports expects). -->
     <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses">

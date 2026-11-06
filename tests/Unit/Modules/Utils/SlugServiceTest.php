@@ -110,7 +110,7 @@ final class SlugServiceTest extends TestCase
                 && $path[1] === $entityType
                 && in_array($path[3], $fields, true)
                     ? ['type' => 'varchar']
-                    : null
+                    : null,
         );
 
         return $metadata;

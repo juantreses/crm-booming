@@ -191,9 +191,17 @@ Config: `rector.php`, `phpstan.neon.dist`, `phpcs.xml.dist` and `phpunit.xml.dis
 
 Unit tests live in `tests/Unit`, mirroring `custom/Espo` (e.g. `tests/Unit/Modules/Links/...`).
 They mock Espo classes (`EntityManager`, `Metadata`, `Config`, repositories), so they need no database.
-`tests/Support/EntityStubs.php` has a helper to build `Entity` stubs with fixed attribute values.
+Helpers in `tests/Support/`:
 
-Covered so far: `Utils` and `Links`.
+- `EntityStubs`: `Entity` stubs with fixed attribute values (read-only).
+- `FakeEntity`: a real in-memory Espo entity, for code that also writes fields (`$lead->set('cStage', ...)`).
+  Add an attribute to its list when your code uses a new field, otherwise `set()` silently ignores it.
+- `InMemoryEntityManager`: an `EntityManager` stub backed by `FakeEntity` records; it records what was saved.
+
+`tests/Unit/Modules/LeadManager/Handlers/HandlerTestCase.php` wires a lead outcome handler with recording
+collaborators, so a test compares the logged events, notes, follow-ups and meeting changes as plain lists.
+
+Covered so far: `Utils`, `Links`, `LeadManager` (all but the controllers) and the lead enums in `Custom/Enums`.
 
 Before running `bin/qa rector-fix` on a module, first write tests that capture its **current** behaviour,
 then run Rector and the tests again. A failing test means Rector changed behaviour:

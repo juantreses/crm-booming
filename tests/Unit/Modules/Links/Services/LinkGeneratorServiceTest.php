@@ -87,7 +87,7 @@ final class LinkGeneratorServiceTest extends TestCase
     {
         $entityManager = $this->createStub(EntityManager::class);
         $entityManager->method('getEntityById')->willReturnCallback(
-            static fn (string $type, string $id) => $entitiesByType[$type][$id] ?? null
+            static fn (string $type, string $id) => $entitiesByType[$type][$id] ?? null,
         );
 
         $config = $this->createStub(Config::class);
