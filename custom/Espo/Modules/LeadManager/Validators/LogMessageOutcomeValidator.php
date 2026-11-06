@@ -17,15 +17,15 @@ class LogMessageOutcomeValidator
         if (!$outcome || !MessageSentOutcome::isValid($outcome)) {
             throw new BadRequest('Invalid message outcome.');
         }
-    
+
         if ($outcome === MessageSentOutcome::CALL_AGAIN->value) {
             if (empty($data->callAgainDateTime)) {
                 throw new BadRequest('Datum/tijd opnieuw bellen is verplicht.');
             }
-    
+
             $callAgain = new \DateTime($data->callAgainDateTime);
             $now = new \DateTime('now', new \DateTimeZone('UTC'));
-    
+
             if ($callAgain <= $now) {
                 throw new BadRequest('Datum/tijd opnieuw bellen moet in de toekomst zijn.');
             }

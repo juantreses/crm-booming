@@ -18,7 +18,8 @@ readonly class LeadService
         private EntityManager $entityManager,
         private SlugService $slug,
         private PhoneFormatterService $phoneFormatter,
-    ) {}
+    ) {
+    }
 
     public function findOrCreate(array $data): Entity
     {
@@ -114,7 +115,7 @@ readonly class LeadService
     {
         $oldCoach = $this->entityManager->getEntityById('CTeam', $oldCoachId);
         $msg = "Toewijzing gefaald: Lead is nog actief bij coach " . ($oldCoach?->get('name') ?? 'onbekend');
-        
+
         $existingNotes = (string) ($person->get('cNotes') ?? '');
         $timezone = new \DateTimeZone('Europe/Brussels');
         $dt = new \DateTime('now', $timezone);
@@ -128,16 +129,16 @@ readonly class LeadService
 
     private function performAssignment(Entity $person, string $newCoachId, ?string $oldCoachId, string $newCoachName): void
     {
-        $oldCoachName = $oldCoachId 
-            ? ($this->entityManager->getEntityById('CTeam', $oldCoachId)?->get('name') ?? 'Onbekend') 
+        $oldCoachName = $oldCoachId
+            ? ($this->entityManager->getEntityById('CTeam', $oldCoachId)?->get('name') ?? 'Onbekend')
             : 'null';
 
         $person->set('assignedUserId', $newCoachId);
-        
+
         $team = $this->entityManager->getRDBRepository('CTeam')
             ->where('assignedUserId', $newCoachId)
             ->findOne();
-            
+
         if ($team) {
             $person->set('cTeamId', $team->getId());
             $person->set('status', LeadStatus::ASSIGNED->value);
@@ -149,7 +150,7 @@ readonly class LeadService
                 $person->set('cSlimFitCenterId', $sfcId);
             }
         }
-        
+
         $this->entityManager->saveEntity($person);
 
         $this->createAssignmentEvent($person, $oldCoachName, $newCoachName);
@@ -160,15 +161,15 @@ readonly class LeadService
         $event = $this->entityManager->getNewEntity('CLeadEvent');
         $timezone = new \DateTimeZone('UTC');
         $dt = new \DateTime('now', $timezone);
-        
+
         $event->set([
             'eventType' => LeadEventType::ASSIGNED->value,
             'eventDate' => $dt->format('Y-m-d H:i:s'),
             'description' => "{$oldCoachName} -> {$newCoachName}",
         ]);
-        
+
         $this->entityManager->saveEntity($event);
-        
+
         $this->entityManager->getRDBRepository('CLeadEvent')
             ->getRelation($event, 'lead')
             ->relate($person);
@@ -203,8 +204,8 @@ readonly class LeadService
             ->order('eventDate', 'DESC')
             ->findOne();
 
-        $lastActivityDate = $lastEvent 
-            ? new DateTime($lastEvent->get('eventDate')) 
+        $lastActivityDate = $lastEvent
+            ? new DateTime($lastEvent->get('eventDate'))
             : new DateTime($lead->get('createdAt'));
 
         $thirtyDaysAgo = new DateTime('-30 days');

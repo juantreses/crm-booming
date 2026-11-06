@@ -13,7 +13,8 @@ class AfterSaveHook implements AfterSave
     public function __construct(
         private readonly Log $log,
         private readonly GroupAssignmentService $groupAssignmentService,
-    ) {}
+    ) {
+    }
 
     public function afterSave(Entity $cTeam, SaveOptions $options): void
     {

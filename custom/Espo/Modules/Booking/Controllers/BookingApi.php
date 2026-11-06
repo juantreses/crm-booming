@@ -14,8 +14,9 @@ readonly class BookingApi
 {
     public function __construct(
         private BookingService $bookingService,
-        private MeetingCancellationService $meetingCancellationService
-    ){}
+        private MeetingCancellationService $meetingCancellationService,
+    ) {
+    }
 
     /**
      * @throws BadRequest

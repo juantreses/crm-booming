@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Espo\Modules\Vanko\Services\Util;
 
+use Espo\Core\Utils\Log;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
-use Espo\Core\Utils\Log;
-use Espo\Core\ORM\Repository\Option\SaveOption;
 
 /**
  * A generic helper service to find or create entities by name.
@@ -17,7 +16,8 @@ class EntityFactory
     public function __construct(
         private readonly EntityManager $entityManager,
         private readonly Log $log,
-    ) {}
+    ) {
+    }
 
     /**
      * Finds an entity by its name, or creates it if it does not exist.

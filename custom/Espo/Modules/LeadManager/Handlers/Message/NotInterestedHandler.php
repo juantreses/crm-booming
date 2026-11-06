@@ -16,11 +16,11 @@ class NotInterestedHandler extends AbstractOutcomeHandler
     public function handle(string $leadId, array $context): OutcomeResult
     {
         $result = $this->logEvents($leadId);
-        
+
         $this->addCoachNoteIfProvided(
             $leadId,
             $context['coachNote'] ?? null,
-            'Bericht'
+            'Bericht',
         );
 
         $this->followUpService->clearFollowUpAction($leadId);

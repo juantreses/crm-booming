@@ -2,11 +2,11 @@
 
 namespace Espo\Modules\Downlines\Controllers;
 
+use Espo\Core\Api\Request;
 use Espo\Core\Controllers\Base;
 use Espo\Core\Exceptions\BadRequest;
-use Espo\Core\Api\Request;
 
-class DownlinesApi extends Base 
+class DownlinesApi extends Base
 {
     public function getActionDownlines(Request $request)
     {
@@ -20,13 +20,13 @@ class DownlinesApi extends Base
 
             $service = $this->getServiceFactory()->create('DownlinesApi');
             return $service->getDownlines($id, $maxDepth);
-        }  catch (BadRequest $e) {
+        } catch (BadRequest $e) {
                 // Return proper error response
                 http_response_code(400);
                 return [
                     'success' => false,
                     'error' => $e->getMessage(),
-                    'code' => 400
+                    'code' => 400,
                 ];
         } catch (\Exception $e) {
             // Log unexpected errors
@@ -35,10 +35,8 @@ class DownlinesApi extends Base
             return [
                 'success' => false,
                 'error' => 'Internal server error',
-                'code' => 500
+                'code' => 500,
             ];
         }
-
     }
 }
-

@@ -28,7 +28,8 @@ readonly class BookingService
         private LeadService $leadService,
         private SlugService $slug,
         private PublicCalendarAccess $publicCalendarAccess,
-    ) {}
+    ) {
+    }
 
     /**
      * @throws Conflict
@@ -44,7 +45,7 @@ readonly class BookingService
 
         $person = $this->leadService->findOrCreate($data);
 
-        $dateStartString = $data['date'] . ' ' . $data['time'] .':00';
+        $dateStartString = $data['date'] . ' ' . $data['time'] . ':00';
         $meeting = $this->createMeeting($calendar, $person, $dateStartString, $targetSlot, $data['note']);
         $this->applyLeadStatusForBooking($person, (string) $calendar->get('type'));
 
@@ -104,7 +105,7 @@ readonly class BookingService
             $data['selectedDate'],
             $data['selectedTime'],
             $data['coachNote'] ?? null,
-            $isSparkCup
+            $isSparkCup,
         );
 
         return ['id' => $meeting->get('id')];
@@ -142,7 +143,7 @@ readonly class BookingService
             $person,
             $data['selectedDate'],
             $data['selectedTime'],
-            $data['coachNote'] ?? null
+            $data['coachNote'] ?? null,
         );
 
         return ['id' => $meeting->get('id')];
@@ -208,7 +209,7 @@ readonly class BookingService
             ->getRDBRepository('Meeting')
             ->getRelation($meeting, $relationName)
             ->relate($person, [
-                'status' => 'Accepted'
+                'status' => 'Accepted',
             ]);
 
         if ($person->get('assignedUserId')) {

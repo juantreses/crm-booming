@@ -14,7 +14,8 @@ class ExpireSavingsCards implements JobDataLess
     public function __construct(
         private EntityManager $entityManager,
         private SavingsCardService $savingsCardService,
-    ) {}
+    ) {
+    }
 
     public function run(): void
     {

@@ -13,7 +13,8 @@ readonly class MeetingCancellationService
     public function __construct(
         private EntityManager $entityManager,
         private Acl $acl,
-    ) {}
+    ) {
+    }
 
     /**
      * Sets the meeting to 'Cancelled' (the CancellationEmail hook sends the mail)

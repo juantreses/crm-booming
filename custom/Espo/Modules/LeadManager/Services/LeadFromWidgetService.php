@@ -9,11 +9,12 @@ readonly class LeadFromWidgetService
     public function __construct(
         private EntityManager $entityManager,
         private LeadService $leadService,
-    ) {}
+    ) {
+    }
 
     /**
      * Create or update a lead from widget submission
-     * 
+     *
      * @param array $data Raw form data from widget
      * @return array Result with lead ID and success status
      */
@@ -21,8 +22,8 @@ readonly class LeadFromWidgetService
     {
         if (empty($data['email'])) {
             return [
-                'success' => false, 
-                'error' => 'Email is verplicht'
+                'success' => false,
+                'error' => 'Email is verplicht',
             ];
         }
 
@@ -43,7 +44,8 @@ readonly class LeadFromWidgetService
         ];
     }
 
-    private function extractSurveyData($data) {
+    private function extractSurveyData($data)
+    {
         $surveyResults = [
             'Wat had je vanmorgen als ontbijt?' => $data['ontbijt'] ?? [],
             'Ontbijt Andere:' => $data['ontbijtAndere'] ?? '',

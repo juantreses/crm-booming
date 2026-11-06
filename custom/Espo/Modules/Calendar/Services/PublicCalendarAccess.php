@@ -16,7 +16,8 @@ readonly class PublicCalendarAccess
         private SlugService $slugService,
         private CalendarRepository $calendarRepository,
         private User $user,
-    ) {}
+    ) {
+    }
 
     /**
      * @throws NotFound

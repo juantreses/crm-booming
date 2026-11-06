@@ -3,10 +3,10 @@
 namespace Espo\Custom\Hooks\Lead;
 
 use Espo\Core\Hook\Hook\BeforeSave;
-use Espo\ORM\Repository\Option\SaveOptions;
-use Espo\ORM\Entity;
 use Espo\Core\Utils\Log;
 use Espo\Custom\Services\GroupAssignmentService;
+use Espo\ORM\Entity;
+use Espo\ORM\Repository\Option\SaveOptions;
 
 class BeforeSaveHook implements BeforeSave
 {
@@ -17,7 +17,8 @@ class BeforeSaveHook implements BeforeSave
     public function __construct(
         private readonly Log $log,
         private readonly GroupAssignmentService $groupAssignmentService,
-    ) {}
+    ) {
+    }
 
     public function beforeSave(Entity $lead, SaveOptions $options): void
     {

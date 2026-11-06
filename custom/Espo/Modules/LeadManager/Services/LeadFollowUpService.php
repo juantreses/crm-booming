@@ -9,12 +9,13 @@ readonly class LeadFollowUpService
 {
     public function __construct(
         private EntityManager $entityManager,
-    ) {}
+    ) {
+    }
 
     public function addFollowUpAction(
         string $leadId,
         string $callAgainDateTime,
-        string $followUpNote = 'Opnieuw bellen'
+        string $followUpNote = 'Opnieuw bellen',
     ): void {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
         if (!$lead) {
@@ -24,7 +25,7 @@ readonly class LeadFollowUpService
         $dt = new \DateTime($callAgainDateTime);
         $formatted = DateTimeFactory::formatBrussels($dt);
         $line = "$followUpNote: $formatted";
-        
+
         $lead->set('cFollowUpAction', $line);
         $this->entityManager->saveEntity($lead);
     }

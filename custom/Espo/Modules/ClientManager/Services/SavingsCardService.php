@@ -31,7 +31,8 @@ readonly class SavingsCardService
 
     public function __construct(
         private EntityManager $entityManager,
-    ) {}
+    ) {
+    }
 
     public function hasOrderHistory(Entity $contact): bool
     {

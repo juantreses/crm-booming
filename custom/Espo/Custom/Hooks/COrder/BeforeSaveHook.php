@@ -4,16 +4,17 @@ namespace Espo\Custom\Hooks\COrder;
 
 use Espo\Core\Hook\Hook\BeforeSave;
 use Espo\Modules\ClientManager\Services\SavingsCardService;
-use Espo\ORM\Repository\Option\SaveOptions;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
+use Espo\ORM\Repository\Option\SaveOptions;
 
 class BeforeSaveHook implements BeforeSave
 {
     public function __construct(
         private readonly EntityManager $entityManager,
         private readonly SavingsCardService $savingsCardService,
-    ) {}
+    ) {
+    }
 
     public function beforeSave(Entity $entity, SaveOptions $options): void
     {

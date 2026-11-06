@@ -10,7 +10,8 @@ readonly class CalendarLink
         public ?string $subtext = null,
         public bool $isLocation = false,
         public bool $isVariant = false,
-    ) {}
+    ) {
+    }
 
     public function toArray(): array
     {

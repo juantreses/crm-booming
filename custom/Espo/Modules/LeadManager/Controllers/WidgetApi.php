@@ -9,7 +9,8 @@ class WidgetApi
 {
     public function __construct(
         private LeadFromWidgetService $leadFromWidgetService,
-    ) {}
+    ) {
+    }
 
     public function postActionSubmit(Request $request): array
     {
@@ -17,8 +18,8 @@ class WidgetApi
 
         if (!$data) {
             return [
-                'success' => false, 
-                'error' => 'Geen data ontvangen'
+                'success' => false,
+                'error' => 'Geen data ontvangen',
             ];
         }
 

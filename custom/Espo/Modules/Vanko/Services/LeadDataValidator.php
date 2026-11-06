@@ -12,10 +12,10 @@ use Espo\Core\Exceptions\BadRequest;
 class LeadDataValidator
 {
     private const REQUIRED_FIELDS = [
-        'contact_id', 
-        'first_name', 
-        'last_name', 
-        'phone'
+        'contact_id',
+        'first_name',
+        'last_name',
+        'phone',
     ];
 
     /**

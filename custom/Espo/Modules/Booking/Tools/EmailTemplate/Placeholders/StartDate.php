@@ -27,4 +27,3 @@ class StartDate implements Placeholder
         }
     }
 }
-

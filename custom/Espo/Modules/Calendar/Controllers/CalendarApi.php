@@ -16,7 +16,8 @@ readonly class CalendarApi
         private Log $log,
         private CalendarService $calendarService,
         private PublicCalendarAccess $publicCalendarAccess,
-    ) {}
+    ) {
+    }
 
     /**
      * Get calendar settings
@@ -36,20 +37,19 @@ readonly class CalendarApi
             $calendar = $this->publicCalendarAccess->resolveAccessible($id);
 
             return $this->calendarService->getSettings($calendar->getId(), $location, $coach, $variant);
-
         } catch (BadRequest $e) {
             http_response_code(400);
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'code' => 400
+                'code' => 400,
             ];
         } catch (NotFound $e) {
             http_response_code(404);
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'code' => 404
+                'code' => 404,
             ];
         } catch (Exception $e) {
             $this->log->error('Calendar API Error (getSettings): ' . $e->getMessage());
@@ -57,7 +57,7 @@ readonly class CalendarApi
             return [
                 'success' => false,
                 'error' => 'Internal server error',
-                'code' => 500
+                'code' => 500,
             ];
         }
     }
@@ -86,22 +86,21 @@ readonly class CalendarApi
                 $date,
                 $location,
                 $coach,
-                $variant
+                $variant,
             );
-
         } catch (BadRequest $e) {
             http_response_code(400);
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'code' => 400
+                'code' => 400,
             ];
         } catch (NotFound $e) {
             http_response_code(404);
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'code' => 404
+                'code' => 404,
             ];
         } catch (Exception $e) {
             $this->log->error('Calendar API Error (getSlots): ' . $e->getMessage());
@@ -109,7 +108,7 @@ readonly class CalendarApi
             return [
                 'success' => false,
                 'error' => 'Internal server error',
-                'code' => 500
+                'code' => 500,
             ];
         }
     }
@@ -140,22 +139,21 @@ readonly class CalendarApi
                 (int)$month,
                 $location,
                 $coach,
-                $variant
+                $variant,
             );
-
         } catch (BadRequest $e) {
             http_response_code(400);
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'code' => 400
+                'code' => 400,
             ];
         } catch (NotFound $e) {
             http_response_code(404);
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'code' => 404
+                'code' => 404,
             ];
         } catch (Exception $e) {
             $this->log->error('Calendar API Error (getAvailability): ' . $e->getMessage());
@@ -163,7 +161,7 @@ readonly class CalendarApi
             return [
                 'success' => false,
                 'error' => 'Internal server error',
-                'code' => 500
+                'code' => 500,
             ];
         }
     }
@@ -181,20 +179,19 @@ readonly class CalendarApi
             }
 
             return $this->calendarService->getCalendarByType($type);
-
         } catch (BadRequest $e) {
             http_response_code(400);
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'code' => 400
+                'code' => 400,
             ];
         } catch (NotFound $e) {
             http_response_code(404);
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'code' => 404
+                'code' => 404,
             ];
         } catch (Exception $e) {
             $this->log->error('Calendar API Error (getByType): ' . $e->getMessage());
@@ -202,7 +199,7 @@ readonly class CalendarApi
             return [
                 'success' => false,
                 'error' => 'Internal server error',
-                'code' => 500
+                'code' => 500,
             ];
         }
     }
@@ -214,14 +211,13 @@ readonly class CalendarApi
     {
         try {
             return $this->calendarService->getBookableCalendars();
-
         } catch (Exception $e) {
             $this->log->error('Calendar API Error (getBookableList): ' . $e->getMessage());
             http_response_code(500);
             return [
                 'success' => false,
                 'error' => 'Internal server error',
-                'code' => 500
+                'code' => 500,
             ];
         }
     }
@@ -241,20 +237,19 @@ readonly class CalendarApi
             $coach = $request->getQueryParam('coach');
 
             return $this->calendarService->getUpcomingSlots($id, $coach);
-
         } catch (BadRequest $e) {
             http_response_code(400);
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'code' => 400
+                'code' => 400,
             ];
         } catch (NotFound $e) {
             http_response_code(404);
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'code' => 404
+                'code' => 404,
             ];
         } catch (Exception $e) {
             $this->log->error('Calendar API Error (getUpcomingSlots): ' . $e->getMessage());
@@ -262,7 +257,7 @@ readonly class CalendarApi
             return [
                 'success' => false,
                 'error' => 'Internal server error',
-                'code' => 500
+                'code' => 500,
             ];
         }
     }

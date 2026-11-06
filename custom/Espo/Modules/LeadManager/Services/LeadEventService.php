@@ -9,12 +9,12 @@ use Espo\Core\Utils\Language;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStatus;
 use Espo\Entities\User;
-use Espo\ORM\EntityManager;
 use Espo\Modules\LeadManager\ValueObjects\CallOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\IntroMeetingOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\KickstartFollowUpOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\KickstartOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\MessageOutcomeData;
+use Espo\ORM\EntityManager;
 
 readonly class LeadEventService
 {
@@ -26,13 +26,14 @@ readonly class LeadEventService
         private Acl $acl,
         private User $user,
         private Language $language,
-    ) {}
+    ) {
+    }
 
     public function logEvent(
         string $leadId,
         LeadEventType $eventType,
         ?string $eventDate = null,
-        ?string $description = null
+        ?string $description = null,
     ): array {
         return $this->eventLogService->logEvent($leadId, $eventType, $eventDate, $description);
     }
@@ -40,13 +41,13 @@ readonly class LeadEventService
     public function logCall(\StdClass $data): array
     {
         $callData = CallOutcomeData::fromStdClass($data);
-        
+
         $this->callCountService->increment($callData->leadId);
 
         $handler = $this->handlerRegistry->getCallHandler($callData->outcome->value);
 
         $GLOBALS['log']->info('Handler: ' . get_class($handler));
-        
+
         $context = [
             'eventDate' => $callData->callDateTime,
             'callAgainDateTime' => $callData->callAgainDateTime,
@@ -57,16 +58,16 @@ readonly class LeadEventService
         ];
 
         $result = $handler->handle($callData->leadId, $context);
-        
+
         return $result->toArray();
     }
 
     public function logKickstart(\StdClass $data): array
     {
         $kickstartData = KickstartOutcomeData::fromStdClass($data);
-        
+
         $handler = $this->handlerRegistry->getKickstartHandler($kickstartData->outcome->value);
-        
+
         $context = [
             'eventDate' => $kickstartData->kickstartDateTime,
             'callAgainDateTime' => $kickstartData->callAgainDateTime,
@@ -78,7 +79,7 @@ readonly class LeadEventService
         ];
 
         $result = $handler->handle($kickstartData->leadId, $context);
-        
+
         return $result->toArray();
     }
 
@@ -92,9 +93,9 @@ readonly class LeadEventService
             'eventDate' => $kickstartFollowUpData->followUpDateTime,
             'coachNote' => $kickstartFollowUpData->coachNote,
         ];
-        
+
         $result = $handler->handle($kickstartFollowUpData->leadId, $context);
-        
+
         return $result->toArray();
     }
 
@@ -208,9 +209,9 @@ readonly class LeadEventService
     public function logMessageOutcome(\StdClass $data): array
     {
         $messageData = MessageOutcomeData::fromStdClass($data);
-        
+
         $handler = $this->handlerRegistry->getMessageHandler($messageData->outcome->value);
-        
+
         $context = [
             'callAgainDateTime' => $messageData->callAgainDateTime,
             'coachNote' => $messageData->coachNote,
@@ -256,7 +257,7 @@ readonly class LeadEventService
             $this->translateLeadOption('cStage', 'to_call'),
             $previousStatus,
             $previousStage,
-            $previousCallCount
+            $previousCallCount,
         );
 
         return $this->logEvent($leadId, LeadEventType::RESET, null, $description);

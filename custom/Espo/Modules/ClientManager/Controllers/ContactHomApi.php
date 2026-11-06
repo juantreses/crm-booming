@@ -13,7 +13,8 @@ readonly class ContactHomApi
 {
     public function __construct(
         private ContactHomService $contactHomService,
-    ) {}
+    ) {
+    }
 
     public function postActionBook(Request $request): array
     {
@@ -25,7 +26,7 @@ readonly class ContactHomApi
             throw $e;
         } catch (\Throwable $e) {
             $GLOBALS['log']->error('Contact HOM Book Error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('HOM boeken mislukt: ' . $e->getMessage());
         }
@@ -41,7 +42,7 @@ readonly class ContactHomApi
             throw $e;
         } catch (\Throwable $e) {
             $GLOBALS['log']->error('Contact RI Log Error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('RI loggen mislukt: ' . $e->getMessage());
         }
@@ -57,7 +58,7 @@ readonly class ContactHomApi
             throw $e;
         } catch (\Throwable $e) {
             $GLOBALS['log']->error('Contact HOM Log Error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('HOM loggen mislukt: ' . $e->getMessage());
         }

@@ -16,7 +16,8 @@ class BackfillHasPublicLink implements Command
 {
     public function __construct(
         private EntityManager $entityManager,
-    ) {}
+    ) {
+    }
 
     public function run(Params $params, IO $io): void
     {

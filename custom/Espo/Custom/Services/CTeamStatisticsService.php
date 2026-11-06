@@ -2,17 +2,17 @@
 
 namespace Espo\Custom\Services;
 
-use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\NotFound;
-use Espo\ORM\EntityManager;
-use Espo\ORM\Entity;
 use Espo\Custom\Enums\LeadEventType;
+use Espo\ORM\Entity;
+use Espo\ORM\EntityManager;
 
 class CTeamStatisticsService
 {
     public function __construct(
-        private readonly EntityManager $entityManager
-    ) {}
+        private readonly EntityManager $entityManager,
+    ) {
+    }
 
     public function getTeamStatistics(string $teamId, ?string $startDate = null, ?string $endDate = null): array
     {
@@ -24,7 +24,7 @@ class CTeamStatisticsService
 
         $dateFilter = [
             'startDate' => $startDate,
-            'endDate' => $endDate
+            'endDate' => $endDate,
         ];
 
         return [
@@ -80,7 +80,7 @@ class CTeamStatisticsService
             ->from('CLeadEvent', 'cle')
             ->leftJoin('lead', 'l')
             ->leftJoin(
-                'cTeam', 
+                'cTeam',
                 'ct',
                 [
                     'l.cTeamId:' => 'ct.id',
@@ -112,7 +112,7 @@ class CTeamStatisticsService
             'cle.deleted' => false,
             'cle.eventType' => LeadEventType::CALLED->value,
         ];
-        
+
         // Add date filters to JOIN conditions
         $joinCleConditions = array_merge($joinCleConditions, $this->buildEventDateConditions($dateFilter, 'cle'));
 
@@ -180,7 +180,7 @@ class CTeamStatisticsService
             'cle.deleted' => false,
             'cle.eventType' => LeadEventType::BECAME_CLIENT->value,
         ];
-        
+
         // Add date filters to JOIN conditions
         $joinCleConditions = array_merge($joinCleConditions, $this->buildEventDateConditions($dateFilter, 'cle'));
 
@@ -231,7 +231,7 @@ class CTeamStatisticsService
     {
         $whereClause = [
             'cTeam.id' => $team->getId(),
-            'deleted' => false
+            'deleted' => false,
         ];
 
         if (!empty($dateFilter['startDate'])) {

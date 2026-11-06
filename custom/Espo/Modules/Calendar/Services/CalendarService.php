@@ -18,20 +18,21 @@ readonly class CalendarService
         private EntityManager $entityManager,
         private CalendarRepository $calendarRepository,
         private SlugService $slugService,
-    ) {}
+    ) {
+    }
 
     /**
      * Get available slots for a calendar on a specific date
-     * 
+     *
      * @throws BadRequest
      * @throws NotFound
      */
     public function getAvailableSlots(
-        string $identifier, 
-        string $dateString, 
+        string $identifier,
+        string $dateString,
         ?string $locationIdentifier = null,
         ?string $coachIdentifier = null,
-        ?string $variantIdentifier = null
+        ?string $variantIdentifier = null,
     ): array {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         if (!$calendarId) {
@@ -47,9 +48,9 @@ readonly class CalendarService
             $dateString,
             $locationId,
             $teamId,
-            $variantIdentifier
+            $variantIdentifier,
         );
-        
+
         if (!$availabilities || (is_countable($availabilities) && count($availabilities) === 0)) {
             return [];
         }
@@ -59,7 +60,7 @@ readonly class CalendarService
         $locationIds = $this->extractLocationIds($availabilities);
         $locationMap = $this->calendarRepository->getLocationsByIds($locationIds);
         $calendarConfig = $this->buildCalendarConfig($calendar, $dateString);
-        
+
         $allSlots = [];
         foreach ($availabilities as $availability) {
             $locId = $availability->get('locationId');
@@ -69,7 +70,7 @@ readonly class CalendarService
                 $availability,
                 $dateString,
                 $calendarConfig,
-                $locationData
+                $locationData,
             );
             $allSlots = array_merge($allSlots, $slots);
         }
@@ -90,10 +91,10 @@ readonly class CalendarService
                 'id' => $calendar->get('id'),
                 'name' => $calendar->get('name'),
                 'type' => $calendar->get('type'),
-                'identifier' => $calendar->get('slug')
+                'identifier' => $calendar->get('slug'),
             ];
         }
-        
+
         return $result;
     }
 
@@ -129,23 +130,23 @@ readonly class CalendarService
         if (!$calendarId) {
             throw new BadRequest("Calendar identifier not found: $identifier");
         }
-        
+
         $calendar = $this->calendarRepository->findCalendarById($calendarId);
         if (!$calendar) {
             throw new NotFound("Calendar not found");
         }
 
         $daysRange = min($calendar->get('maxBookingRange') ?? 14, 60);
-        
+
         $slots = [];
         $currentDate = new DateTime();
 
         for ($i = 0; $i < $daysRange; $i++) {
             $dateString = $currentDate->format('Y-m-d');
-            
+
             try {
                 $daySlots = $this->getAvailableSlots($identifier, $dateString, null, $coachIdentifier);
-                
+
                 if (!empty($daySlots)) {
                     $slots[$dateString] = $daySlots;
                 }
@@ -153,7 +154,7 @@ readonly class CalendarService
                 // Log but continue processing other dates
                 error_log('Calendar slots error for ' . $dateString . ': ' . $e->getMessage());
             }
-            
+
             $currentDate->modify('+1 day');
         }
 
@@ -162,17 +163,17 @@ readonly class CalendarService
 
     /**
      * Get month availability
-     * 
+     *
      * @throws BadRequest
      * @throws NotFound
      */
     public function getMonthAvailability(
-        string $identifier, 
-        int $year, 
-        int $month, 
+        string $identifier,
+        int $year,
+        int $month,
         ?string $locationIdentifier = null,
         ?string $coachIdentifier = null,
-        ?string $variantIdentifier = null
+        ?string $variantIdentifier = null,
     ): array {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         if (!$calendarId) {
@@ -199,7 +200,7 @@ readonly class CalendarService
                 $dateString,
                 $this->slugService->resolve('CLocation', $locationIdentifier),
                 $coachIdentifier,
-                $variantIdentifier
+                $variantIdentifier,
             );
 
             foreach ($slots as $slot) {
@@ -215,7 +216,7 @@ readonly class CalendarService
 
     /**
      * Get calendar settings
-     * 
+     *
      * @throws BadRequest
      * @throws NotFound
      */
@@ -223,9 +224,8 @@ readonly class CalendarService
         string $identifier,
         ?string $locationIdentifier = null,
         ?string $coachIdentifier = null,
-        ?string $variantIdentifier = null
-    ): array
-    {
+        ?string $variantIdentifier = null,
+    ): array {
         $calendarId = $this->slugService->resolve('CCalendar', $identifier);
         if (!$calendarId) {
             throw new BadRequest("Calendar identifier not found: $identifier");
@@ -249,13 +249,13 @@ readonly class CalendarService
 
     /**
      * Get and validate calendar
-     * 
+     *
      * @throws NotFound
      */
     private function getValidatedCalendar(string $calendarId): Entity
     {
         $calendar = $this->calendarRepository->findCalendarById($calendarId);
-        
+
         if (!$calendar) {
             throw new NotFound("Calendar not found");
         }
@@ -295,7 +295,7 @@ readonly class CalendarService
     private function extractLocationIds(array $availabilities): array
     {
         $locationIds = [];
-        foreach($availabilities as $availability) {
+        foreach ($availabilities as $availability) {
             if ($lid = $availability->get('locationId')) {
                 $locationIds[] = $lid;
             }
@@ -311,7 +311,7 @@ readonly class CalendarService
         if ($availabilities instanceof Entity) {
             return [$availabilities];
         }
-        
+
         return is_array($availabilities) ? $availabilities : iterator_to_array($availabilities);
     }
 
@@ -324,14 +324,14 @@ readonly class CalendarService
         $tzUTC = new DateTimeZone('UTC');
         $now = new DateTime();
         $minLeadTime = $calendar->get('minLeadTime') ?? 0;
-        
+
         $blockedByCalendarIds = $this->calendarRepository->getBlockedByCalendarIds($calendar);
         $relationshipBlockingAvailabilities = $this->calendarRepository->getBlockingCalendarAvailabilities($blockedByCalendarIds, $dateString);
         $relationshipBlockingMeetings = $this->calendarRepository->getBlockingCalendarMeetings($blockedByCalendarIds, $dateString);
-        
+
         $allBlockingPeriods = array_merge(
             $relationshipBlockingAvailabilities,
-            $relationshipBlockingMeetings
+            $relationshipBlockingMeetings,
         );
 
         return [
@@ -354,7 +354,7 @@ readonly class CalendarService
         Entity $availability,
         string $dateString,
         array $config,
-        ?array $locationData
+        ?array $locationData,
     ): array {
         $startTime = $availability->get('startTime');
         $endTime = $availability->get('endTime');

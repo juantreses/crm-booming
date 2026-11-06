@@ -3,9 +3,9 @@
 namespace Espo\Custom\Services;
 
 use Espo\Core\ORM\Repository\Option\SaveOption;
+use Espo\Entities\Team;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
-use Espo\Entities\Team;
 
 class GroupAssignmentService
 {
@@ -18,7 +18,8 @@ class GroupAssignmentService
 
     public function __construct(
         private readonly EntityManager $entityManager,
-    ) {}
+    ) {
+    }
 
     /**
      * Synchronizes an entity's assigned groups based on a provided list of fields.
@@ -32,11 +33,10 @@ class GroupAssignmentService
         Entity $destinationEntity,
         array $fieldsToWatch,
         ?Entity $sourceEntity = null,
-        array $extraGroupNames = []
-    ): void
-    {
+        array $extraGroupNames = [],
+    ): void {
         $sourceEntity = $sourceEntity ?? $destinationEntity;
-        
+
         $requiredGroupIds = $this->getGroupsFromFields($sourceEntity, $fieldsToWatch);
         $requiredGroupIds = array_merge($requiredGroupIds, $this->getGroupsFromNames($extraGroupNames));
 
@@ -44,7 +44,7 @@ class GroupAssignmentService
             $cTeam = $this->entityManager->getRelation($sourceEntity, 'cTeam')->findOne();
             $requiredGroupIds = array_merge(
                 $requiredGroupIds,
-                $this->getGroupsFromNames($this->getSponsorChainGroupNames($cTeam))
+                $this->getGroupsFromNames($this->getSponsorChainGroupNames($cTeam)),
             );
         }
 
@@ -76,7 +76,7 @@ class GroupAssignmentService
         $coachGroupName = trim(sprintf(
             '%s %s',
             (string) $contact->get('firstName'),
-            (string) $contact->get('lastName')
+            (string) $contact->get('lastName'),
         ));
 
         return $coachGroupName !== '' ? [$coachGroupName] : [];
@@ -163,9 +163,8 @@ class GroupAssignmentService
     private function propagateTeamsToRelation(
         Entity $contact,
         string $relationName,
-        array $extraGroupNames
-    ): void
-    {
+        array $extraGroupNames,
+    ): void {
         $relatedEntities = $this->entityManager
             ->getRelation($contact, $relationName)
             ->find();
@@ -185,16 +184,15 @@ class GroupAssignmentService
     private function applyGroupSyncFromContact(
         Entity $entity,
         Entity $contact,
-        array $extraGroupNames
-    ): bool
-    {
+        array $extraGroupNames,
+    ): bool {
         $previousTeamsIds = $this->normalizeTeamIds($entity->get('teamsIds') ?? []);
 
         $this->syncGroupsFromFields(
             $entity,
             self::CONTACT_TEAM_FIELDS,
             $contact,
-            $extraGroupNames
+            $extraGroupNames,
         );
 
         $newTeamsIds = $this->normalizeTeamIds($entity->get('teamsIds') ?? []);

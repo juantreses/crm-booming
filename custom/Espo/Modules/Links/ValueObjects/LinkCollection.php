@@ -11,7 +11,8 @@ readonly class LinkCollection
     public function __construct(
         public array $widgets,
         public array $calendars,
-    ) {}
+    ) {
+    }
 
     public function toArray(): array
     {

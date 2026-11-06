@@ -16,10 +16,10 @@ use Espo\Modules\LeadManager\Validators\LogMessageOutcomeValidator;
 
 readonly class LeadEventApi
 {
-
     public function __construct(
-        private LeadEventService $leadEventService
-    ) {}
+        private LeadEventService $leadEventService,
+    ) {
+    }
 
     public function postActionLogCall(Request $request): array
     {
@@ -27,15 +27,14 @@ readonly class LeadEventApi
             $data = $request->getParsedBody();
             $validator = new LogCallValidator();
             $validator->validate($data);
-            
+
             $result = $this->leadEventService->logCall($data);
 
             return [
                 'success' => true,
                 'message' => 'Call logged successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (Conflict $e) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
@@ -47,13 +46,13 @@ readonly class LeadEventApi
                 'outcome' => $data->outcome,
                 'eventDate' => $data->callDateTime ?? null,
                 'callAgainDateTime' => $data->callAgainDateTime ?? null,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log call: ' . $e->getMessage());
         }
     }
 
-	public function postActionLogKickstart(Request $request): array
+    public function postActionLogKickstart(Request $request): array
     {
         try {
             $data = $request->getParsedBody();
@@ -66,9 +65,8 @@ readonly class LeadEventApi
             return [
                 'success' => true,
                 'message' => 'Kickstart logged successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (BadRequest $e) {
             // Re-throw BadRequest exceptions as-is
             throw $e;
@@ -77,7 +75,7 @@ readonly class LeadEventApi
                 'leadId' => $data->id,
                 'outcome' => $data->outcome,
                 'eventDate' => $data->kickstartDateTime ?? null,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log kickstart: ' . $e->getMessage());
         }
@@ -97,16 +95,15 @@ readonly class LeadEventApi
             return [
                 'success' => true,
                 'message' => 'Message sent logged successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (BadRequest $e) {
             // Re-throw BadRequest exceptions as-is
             throw $e;
         } catch (\Exception $e) {
             $GLOBALS['log']->error('Lead Log Message Sent Error: ' . $e->getMessage(), [
                 'leadId' => $data->id,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log message sent: ' . $e->getMessage());
         }
@@ -125,9 +122,8 @@ readonly class LeadEventApi
             return [
                 'success' => true,
                 'message' => 'Message outcome logged successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (BadRequest $e) {
             throw $e;
         } catch (\Exception $e) {
@@ -135,7 +131,7 @@ readonly class LeadEventApi
                 'leadId' => $data->id,
                 'outcome' => $data->outcome,
                 'callAgainDateTime' => $data->callAgainDateTime,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log message outcome: ' . $e->getMessage());
         }
@@ -148,22 +144,21 @@ readonly class LeadEventApi
 
             $validator = new LogKickstartValidator();
             $validator->validate($data);
-            
+
             $result = $this->leadEventService->logKickstartFollowUp($data);
 
             return [
                 'success' => true,
                 'message' => 'Follow-up logged successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (BadRequest $e) {
             throw $e;
         } catch (\Exception $e) {
             $GLOBALS['log']->error('Lead Log Kickstart Follow Up Error: ' . $e->getMessage(), [
                 'leadId' => $data->id,
                 'callAgainDateTime' => $data->callAgainDateTime,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log kickstart follow up: ' . $e->getMessage());
         }
@@ -182,9 +177,8 @@ readonly class LeadEventApi
             return [
                 'success' => true,
                 'message' => 'Intro meeting logged successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (Conflict $e) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
@@ -194,7 +188,7 @@ readonly class LeadEventApi
                 'leadId' => $data->id ?? null,
                 'outcome' => $data->outcome ?? null,
                 'eventDate' => $data->introDateTime ?? null,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log intro meeting: ' . $e->getMessage());
         }
@@ -213,9 +207,8 @@ readonly class LeadEventApi
             return [
                 'success' => true,
                 'message' => 'Kickstart booked successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (Conflict $e) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
@@ -224,7 +217,7 @@ readonly class LeadEventApi
             $GLOBALS['log']->error('Lead Book Kickstart Error: ' . $e->getMessage(), [
                 'leadId' => $data->id ?? null,
                 'eventDate' => $data->eventDate ?? null,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to book kickstart: ' . $e->getMessage());
         }
@@ -243,9 +236,8 @@ readonly class LeadEventApi
             return [
                 'success' => true,
                 'message' => 'Royalty logged successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (Conflict $e) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
@@ -255,7 +247,7 @@ readonly class LeadEventApi
                 'leadId' => $data->id ?? null,
                 'outcome' => $data->outcome ?? null,
                 'eventDate' => $data->kickstartDateTime ?? null,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log royalty: ' . $e->getMessage());
         }
@@ -274,15 +266,14 @@ readonly class LeadEventApi
             return [
                 'success' => true,
                 'message' => 'Follow-up logged successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (BadRequest $e) {
             throw $e;
         } catch (\Throwable $e) {
             $GLOBALS['log']->error('Lead Log Royalty Follow Up Error: ' . $e->getMessage(), [
                 'leadId' => $data->id ?? null,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log royalty follow up: ' . $e->getMessage());
         }
@@ -301,9 +292,8 @@ readonly class LeadEventApi
             return [
                 'success' => true,
                 'message' => 'Royalty booked successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (Conflict $e) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
@@ -312,7 +302,7 @@ readonly class LeadEventApi
             $GLOBALS['log']->error('Lead Book Royalty Error: ' . $e->getMessage(), [
                 'leadId' => $data->id ?? null,
                 'eventDate' => $data->eventDate ?? null,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to book royalty: ' . $e->getMessage());
         }
@@ -332,19 +322,16 @@ readonly class LeadEventApi
             return [
                 'success' => true,
                 'message' => 'Lead reset successfully',
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (BadRequest | Forbidden | NotFound $e) {
             throw $e;
         } catch (\Throwable $e) {
             $GLOBALS['log']->error('Lead Reset Error: ' . $e->getMessage(), [
                 'leadId' => $data->id ?? null,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to reset lead: ' . $e->getMessage());
         }
     }
 }
-
-?>

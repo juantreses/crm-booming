@@ -2,8 +2,8 @@
 
 namespace Espo\Modules\Links\Services;
 
-use Espo\ORM\EntityManager;
 use Espo\Modules\Links\ValueObjects\LinkCollection;
+use Espo\ORM\EntityManager;
 
 readonly class LinkGeneratorService
 {
@@ -11,11 +11,12 @@ readonly class LinkGeneratorService
         private EntityManager $entityManager,
         private WidgetLinkBuilder $widgetLinkBuilder,
         private CalendarLinkBuilder $calendarLinkBuilder,
-    ) {}
+    ) {
+    }
 
     /**
      * Generate all links for a specific team
-     * 
+     *
      * @param string $teamId
      * @return LinkCollection
      */
@@ -36,7 +37,7 @@ readonly class LinkGeneratorService
 
     /**
      * Generate all links for the center (no specific team/coach)
-     * 
+     *
      * @return LinkCollection
      */
     public function getLinksForCenter(): LinkCollection
@@ -50,7 +51,7 @@ readonly class LinkGeneratorService
     /**
      * Get the coach identifier (slug) from team
      * Falls back to team ID if no slug is set
-     * 
+     *
      * @param \Espo\ORM\Entity $team
      * @return string|null
      */

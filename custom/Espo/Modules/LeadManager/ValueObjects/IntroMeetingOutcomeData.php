@@ -19,7 +19,8 @@ readonly class IntroMeetingOutcomeData
         public ?string $selectedTime = null,
         public ?array $nextBooking = null,
         public ?HomRating $homRating = null,
-    ) {}
+    ) {
+    }
 
     public static function fromStdClass(\StdClass $data): self
     {
@@ -42,11 +43,13 @@ readonly class IntroMeetingOutcomeData
                 ];
             }
 
-            if ($nextBooking && (
+            if (
+                $nextBooking && (
                 empty($nextBooking['calendarId'])
                 || empty($nextBooking['selectedDate'])
                 || empty($nextBooking['selectedTime'])
-            )) {
+                )
+            ) {
                 $nextBooking = null;
             }
         }

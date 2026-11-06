@@ -12,7 +12,8 @@ readonly class IntroMeetingService
 {
     public function __construct(
         private EntityManager $entityManager,
-    ) {}
+    ) {
+    }
 
     public function canBook(Entity $lead, IntroMeetingType $meetingType): bool
     {
@@ -20,7 +21,7 @@ readonly class IntroMeetingService
             $used = $this->getUsageCount($lead, $meetingType);
             return $used < $meetingType->getMaxUsage();
         }
-        
+
         return true;
     }
 
@@ -29,7 +30,7 @@ readonly class IntroMeetingService
         if ($meetingType === IntroMeetingType::SPARK) {
             $this->incrementSparkUsage($lead);
         }
-        
+
         return $this->determineNextStage($lead, $meetingType, $homRating);
     }
 
@@ -42,14 +43,14 @@ readonly class IntroMeetingService
 
         if ($meetingType === IntroMeetingType::SPARK) {
             $sparksUsed = $lead->get('cSparksUsed') ?? 0;
-            
+
             if ($sparksUsed < $meetingType->getMaxUsage()) {
                 return LeadStage::INTRO_ATTENDED;
             }
 
             return LeadStage::BOOK_KS;
         }
-        
+
         return LeadStage::BOOK_KS;
     }
 
@@ -58,7 +59,7 @@ readonly class IntroMeetingService
         if ($meetingType === IntroMeetingType::SPARK) {
             return (int) ($lead->get('cSparksUsed') ?? 0);
         }
-        
+
         return 0;
     }
 
@@ -67,21 +68,21 @@ readonly class IntroMeetingService
         if (!$meetingType->hasUsageLimit()) {
             return 999; // Unlimited
         }
-        
+
         $used = $this->getUsageCount($lead, $meetingType);
         $max = $meetingType->getMaxUsage();
-        
+
         return max(0, $max - $used);
     }
 
     private function incrementSparkUsage(Entity $lead): void
     {
         $current = (int) ($lead->get('cSparksUsed') ?? 0);
-        
+
         if ($current >= 2) {
             throw new \RuntimeException("Lead has already used the maximum number of SPARK sessions (2)");
         }
-        
+
         $lead->set('cSparksUsed', $current + 1);
         $this->entityManager->saveEntity($lead);
     }
@@ -90,28 +91,28 @@ readonly class IntroMeetingService
     public function shouldOfferAnotherIntro(Entity $lead): bool
     {
         $introType = $lead->get('cMeetingType');
-        
+
         if (!$introType) {
             return false;
         }
-        
+
         $meetingType = IntroMeetingType::fromCalendarType($introType);
-        
+
         if (!$meetingType) {
             return false;
         }
-        
+
         return $this->canBook($lead, $meetingType);
     }
 
     public function getIntroMeetingType(Entity $lead): ?IntroMeetingType
     {
         $type = $lead->get('cMeetingType');
-        
+
         if (!$type) {
             return null;
         }
-        
+
         return IntroMeetingType::fromCalendarType($type);
     }
 }

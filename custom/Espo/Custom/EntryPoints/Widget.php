@@ -22,7 +22,8 @@ class Widget implements EntryPoint
         private PublicCalendarAccess $publicCalendarAccess,
         private AuthTokenManager $authTokenManager,
         private EntityManager $entityManager,
-    ) {}
+    ) {
+    }
 
     public function run(Request $request, Response $response): void
     {
@@ -47,7 +48,7 @@ class Widget implements EntryPoint
             try {
                 $this->publicCalendarAccess->resolveAccessible(
                     $calendarIdentifier,
-                    $this->hasAuthenticatedCrmUser($request)
+                    $this->hasAuthenticatedCrmUser($request),
                 );
             } catch (NotFound) {
                 $this->serveLayout(self::NOT_FOUND_LAYOUT, $response, 404);

@@ -9,7 +9,8 @@ class LogKickstartValidator
 {
     public function __construct(
         private readonly string $meetingLabel = 'Kickstart',
-    ) {}
+    ) {
+    }
 
     public function validate(\StdClass $data): void
     {
@@ -25,7 +26,7 @@ class LogKickstartValidator
         if (!empty($data->kickstartDateTime)) {
             $kickstart = new \DateTime($data->kickstartDateTime);
             $now = new \DateTime('now', new \DateTimeZone('UTC'));
-    
+
             if ($kickstart > $now) {
                 throw new BadRequest("{$this->meetingLabel} datum/tijd mag niet in de toekomst zijn.");
             }
@@ -33,7 +34,7 @@ class LogKickstartValidator
 
         if ($outcome === KickstartOutcome::CANCELLED->value) {
             $action = $data->cancellationAction ?? null;
-            
+
             if (!$action) {
                 throw new BadRequest('Vervolgactie is verplicht bij annulering.');
             }
@@ -46,7 +47,7 @@ class LogKickstartValidator
                 throw new BadRequest('Datum voor terugbellen is verplicht.');
             }
         }
-    
+
         if ($outcome === KickstartOutcome::STILL_THINKING->value) {
             if (empty($data->callAgainDateTime)) {
                 throw new BadRequest('Datum/tijd opnieuw bellen is verplicht.');
@@ -56,11 +57,10 @@ class LogKickstartValidator
         if (!empty($data->callAgainDateTime)) {
             $callAgain = new \DateTime($data->callAgainDateTime);
             $now = new \DateTime('now', new \DateTimeZone('UTC'));
-    
+
             if ($callAgain <= $now) {
                 throw new BadRequest('Datum/tijd opnieuw bellen moet in de toekomst zijn.');
             }
         }
-        
     }
 }

@@ -7,12 +7,12 @@ use Espo\Custom\Enums\CallOutcome;
 use Espo\Custom\Enums\IntroMeetingOutcome;
 use Espo\Custom\Enums\KickstartOutcome;
 use Espo\Custom\Enums\MessageSentOutcome;
-use Espo\Modules\LeadManager\Handlers\OutcomeHandler;
 use Espo\Modules\LeadManager\Handlers\Call;
 use Espo\Modules\LeadManager\Handlers\IntroMeeting;
 use Espo\Modules\LeadManager\Handlers\Kickstart;
 use Espo\Modules\LeadManager\Handlers\KickstartFollowUp;
 use Espo\Modules\LeadManager\Handlers\Message;
+use Espo\Modules\LeadManager\Handlers\OutcomeHandler;
 use Espo\Modules\LeadManager\Handlers\Royalty;
 use Espo\Modules\LeadManager\Handlers\RoyaltyFollowUp;
 

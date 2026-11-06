@@ -9,13 +9,14 @@ readonly class LeadNotesService
 {
     public function __construct(
         private EntityManager $entityManager,
-    ) {}
+    ) {
+    }
 
     public function addCoachNote(
         string $leadId,
         string $coachNote,
         string $source,
-        ?string $eventDate = null
+        ?string $eventDate = null,
     ): void {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
         if (!$lead) {

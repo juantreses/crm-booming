@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Espo\Modules\Vanko\Services;
 
-use Espo\Modules\Crm\Entities\Lead;
-use Espo\ORM\Entity;
 use Espo\Core\Utils\Log;
+use Espo\Modules\Crm\Entities\Lead;
 use Espo\Modules\Vanko\Services\Util\EntityFactory;
+use Espo\ORM\Entity;
 
 /**
  * Handles assigning a Campaign to a Lead and applying RoundRobin logic.
@@ -19,7 +19,8 @@ class CampaignAssignmentService
     public function __construct(
         private readonly Log $log,
         private readonly EntityFactory $entityFactory,
-    ) {}
+    ) {
+    }
 
     public function assignCampaignByName(Lead $lead, string $campaignName): void
     {
@@ -44,7 +45,7 @@ class CampaignAssignmentService
         $campaign = $this->entityFactory->findOrCreate(
             self::ENTITY_CAMPAIGN,
             $campaignName,
-            ['status' => 'Active']
+            ['status' => 'Active'],
         );
 
         if ($campaign === null) {
@@ -56,7 +57,7 @@ class CampaignAssignmentService
     private function assignCampaign(Lead $lead, Entity $campaign): void
     {
         try {
-            $lead->set('campaignId',$campaign->getId());
+            $lead->set('campaignId', $campaign->getId());
             $this->log->info("Assigned Campaign {$campaign->getId()} to lead {$lead->getId()}");
         } catch (\Exception $e) {
             $this->log->error("Failed to assign Campaign {$campaign->getId()} to lead {$lead->getId()}: " . $e->getMessage());

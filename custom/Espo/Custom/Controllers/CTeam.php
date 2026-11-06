@@ -11,13 +11,13 @@ class CTeam extends \Espo\Core\Templates\Controllers\Base
 {
     /**
      * Get statistics for a specific team
-     * 
+     *
      * GET /api/v1/CTeam/{id}/statistics?startDate=2024-01-01&endDate=2024-01-31
      */
     public function getActionStatistics(Request $request, Response $response): array
     {
         $id = $request->getRouteParam('id');
-        
+
         if (!$id) {
             throw new BadRequest('Team ID is required');
         }
@@ -32,7 +32,6 @@ class CTeam extends \Espo\Core\Templates\Controllers\Base
         $endDate = $request->getQueryParam('endDate');
 
         try {
-
             $statsService = $this->getServiceFactory()->create('CTeamStatisticsService');
 
             $statistics = $statsService->getTeamStatistics($id, $startDate, $endDate);
@@ -41,15 +40,14 @@ class CTeam extends \Espo\Core\Templates\Controllers\Base
                 'success' => true,
                 'data' => $statistics,
             ];
-
         } catch (\Exception $e) {
             $GLOBALS['log']->error('CTeam Statistics Error: ' . $e->getMessage(), [
                 'teamId' => $id,
                 'startDate' => $startDate,
                 'endDate' => $endDate,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             throw new BadRequest('Failed to get team statistics: ' . $e->getMessage());
         }
     }

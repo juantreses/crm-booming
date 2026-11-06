@@ -3,16 +3,16 @@
 namespace Espo\Modules\Booking\Hooks\Meeting;
 
 use Espo\Core\Hook\Hook\AfterSave;
+use Espo\Modules\Booking\Services\BookingEmailService;
 use Espo\ORM\Entity;
 use Espo\ORM\Repository\Option\SaveOptions;
-use Espo\Modules\Booking\Services\BookingEmailService;
 
 class ConfirmationEmail implements AfterSave
 {
-
     public function __construct(
-        private readonly BookingEmailService $emailService
-    ) {}
+        private readonly BookingEmailService $emailService,
+    ) {
+    }
 
     /**
      * @inheritDoc
@@ -23,7 +23,7 @@ class ConfirmationEmail implements AfterSave
         $status = $entity->get('status');
         $oldStatus = $entity->getFetched('status');
 
-        $shouldSend = ($isNew && $status === 'Planned') || 
+        $shouldSend = ($isNew && $status === 'Planned') ||
                       (!$isNew && $status === 'Planned' && $oldStatus === 'Tentative');
 
         if ($shouldSend) {
@@ -36,7 +36,7 @@ class ConfirmationEmail implements AfterSave
             $templateId = $this->emailService->getTemplateIdForMeeting($entity, 'confirmation');
             if (!$templateId) {
                 $entity->set('cMailError', "Bevestiging fout: Geen bevestiging email gelinkt aan beschikbaarheid of kalender");
-                return;                
+                return;
             }
 
             try {

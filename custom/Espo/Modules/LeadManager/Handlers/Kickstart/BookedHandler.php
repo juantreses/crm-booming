@@ -64,7 +64,7 @@ class BookedHandler extends AbstractOutcomeHandler
             $lead,
             $context['selectedDate'],
             $context['selectedTime'],
-            $context['coachNote'] ?? null
+            $context['coachNote'] ?? null,
         );
 
         $result = $this->logEvents($leadId, $context['eventDate'] ?? null);
@@ -73,7 +73,7 @@ class BookedHandler extends AbstractOutcomeHandler
             $leadId,
             $context['coachNote'] ?? null,
             'Afspraak',
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         );
 
         $lead->set('cMeetingType', $calendarType);

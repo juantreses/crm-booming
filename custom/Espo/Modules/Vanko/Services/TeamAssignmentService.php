@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Espo\Modules\Vanko\Services;
 
+use Espo\Core\Utils\Log;
 use Espo\Modules\Crm\Entities\Lead;
+use Espo\Modules\Vanko\Services\Util\EntityFactory;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
-use Espo\Core\Utils\Log;
-use Espo\Modules\Vanko\Services\Util\EntityFactory;
 
 /**
  * Handles assigning a CTeam (Coach) to a Lead.
@@ -21,7 +21,8 @@ class TeamAssignmentService
         private readonly EntityManager $entityManager,
         private readonly Log $log,
         private readonly EntityFactory $entityFactory,
-    ) {}
+    ) {
+    }
 
     /**
      * Assigns a CTeam to a lead based on the team's name.
@@ -42,7 +43,7 @@ class TeamAssignmentService
             $this->log->error("Could not find or create team '{$teamName}' for lead {$lead->getId()}.");
             return false;
         }
-        
+
         if ($lead->get('cTeamId') === $team->getId()) {
             $this->log->info("Lead {$lead->getId()} is already assigned to team {$teamName}.");
             return false;
@@ -68,7 +69,7 @@ class TeamAssignmentService
         if (empty($lead->get('cTeamId'))) {
             return;
         }
-        
+
         try {
             $this->entityManager->getRDBRepository(Lead::ENTITY_TYPE)->getRelation($lead, 'cTeam')->unrelate($lead->get('cTeam'));
             $this->log->info("Removed team relationship from lead {$lead->getId()}");

@@ -3,14 +3,11 @@
 namespace Espo\Modules\Vanko\Controllers;
 
 use Espo\Core\Controllers\RecordBase;
-use Espo\Core\Exceptions\BadRequest;
-use Espo\Custom\Enums\LeadEventType;
-use Espo\Modules\Crm\Entities\Lead;
 
 class VankoApi extends RecordBase
 {
     /*public function postActionLead($params, $data)
-    {        
+    {
         try {
             if (!$data) {
                 throw new BadRequest('No data provided');
@@ -144,7 +141,7 @@ class VankoApi extends RecordBase
                 return $lead;
             }
         }
-        
+
         // Strategy 3: Find by name and contact details
         if (!empty($data->first_name) && !empty($data->last_name)) {
             $potentialLead = null;
@@ -160,13 +157,13 @@ class VankoApi extends RecordBase
                     $lead = $potentialLead;
                 }
             }
-            
+
             if ($lead) {
                 $this->logInfo("Found lead by name/contact details: " . $lead->getId());
                 return $lead;
             }
         }
-        
+
         $this->logInfo("Could not find a matching lead for the provided data.");
         return null;
     }*/
@@ -178,5 +175,4 @@ class VankoApi extends RecordBase
     {
         $GLOBALS['log']->info("Vanko: {$message}");
     }
-
 }

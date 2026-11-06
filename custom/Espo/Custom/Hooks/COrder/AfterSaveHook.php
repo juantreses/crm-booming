@@ -11,7 +11,8 @@ class AfterSaveHook implements AfterSave
 {
     public function __construct(
         private readonly SavingsCardService $savingsCardService,
-    ) {}
+    ) {
+    }
 
     public function afterSave(Entity $entity, SaveOptions $options): void
     {

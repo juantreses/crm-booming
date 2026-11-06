@@ -19,7 +19,8 @@ class BackfillSavingsPoints implements Command
     public function __construct(
         private EntityManager $entityManager,
         private SavingsCardService $savingsCardService,
-    ) {}
+    ) {
+    }
 
     public function run(Params $params, IO $io): void
     {

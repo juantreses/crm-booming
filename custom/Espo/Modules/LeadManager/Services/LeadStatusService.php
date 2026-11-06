@@ -11,50 +11,49 @@ use Espo\ORM\EntityManager;
 
 readonly class LeadStatusService
 {
-
     private const STATUS_MAP = [
         LeadEventType::ASSIGNED->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::TO_CALL->value
+            'cStage' => LeadStage::TO_CALL->value,
         ],
         LeadEventType::RESET->value => [
             'status' => LeadStatus::ASSIGNED->value,
             'cStage' => LeadStage::TO_CALL->value,
-            'cReasonLost' => null
+            'cReasonLost' => null,
         ],
         LeadEventType::CALL_AGAIN->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::FOLLOW_UP->value
+            'cStage' => LeadStage::FOLLOW_UP->value,
         ],
         LeadEventType::WRONG_NUMBER->value => [
             'status' => LeadStatus::DEAD->value,
             'cStage' => null,
-            'cReasonLost' => LeadReasonLost::WRONG_NUMBER->value
+            'cReasonLost' => LeadReasonLost::WRONG_NUMBER->value,
         ],
         LeadEventType::NOT_INTERESTED->value => [
             'status' => LeadStatus::DEAD->value,
             'cStage' => null,
-            'cReasonLost' => LeadReasonLost::NOT_INTERESTED->value
+            'cReasonLost' => LeadReasonLost::NOT_INTERESTED->value,
         ],
         LeadEventType::MESSAGE_TO_BE_SENT->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::MESSAGE_TO_BE_SENT->value
+            'cStage' => LeadStage::MESSAGE_TO_BE_SENT->value,
         ],
         LeadEventType::MESSAGE_SENT->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::MESSAGE_SENT->value
+            'cStage' => LeadStage::MESSAGE_SENT->value,
         ],
         LeadEventType::BOOK_INTRO->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::INTRO_SCHEDULED->value
+            'cStage' => LeadStage::INTRO_SCHEDULED->value,
         ],
         LeadEventType::INTRO_NO_SHOW->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::FOLLOW_UP->value
+            'cStage' => LeadStage::FOLLOW_UP->value,
         ],
         LeadEventType::KICKSTART_BOOKED->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::KS_PLANNED->value
+            'cStage' => LeadStage::KS_PLANNED->value,
         ],
         LeadEventType::BECAME_CLIENT->value => [
             'status' => LeadStatus::BECAME_CLIENT->value,
@@ -62,48 +61,49 @@ readonly class LeadStatusService
         ],
         LeadEventType::BECAME_COACH->value => [
             'status' => LeadStatus::CONVERTED->value,
-            'cStage' => null
+            'cStage' => null,
         ],
         LeadEventType::NOT_CONVERTED->value => [
             'status' => LeadStatus::DEAD->value,
             'cStage' => null,
-            'cReasonLost' => LeadReasonLost::NOT_CONVERTED->value
+            'cReasonLost' => LeadReasonLost::NOT_CONVERTED->value,
         ],
         LeadEventType::CANCELLED_STOP->value => [
             'status' => LeadStatus::DEAD->value,
             'cStage' => null,
-            'cReasonLost' => LeadReasonLost::APPOINTMENT_CANCELLED->value
+            'cReasonLost' => LeadReasonLost::APPOINTMENT_CANCELLED->value,
         ],
         LeadEventType::STILL_THINKING->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::KS_DOUBT->value
+            'cStage' => LeadStage::KS_DOUBT->value,
         ],
         LeadEventType::NO_SHOW->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::FOLLOW_UP->value
+            'cStage' => LeadStage::FOLLOW_UP->value,
         ],
         LeadEventType::KICKSTART_NO_SHOW->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::FOLLOW_UP->value
+            'cStage' => LeadStage::FOLLOW_UP->value,
         ],
         LeadEventType::ROYALTY_BOOKED->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::RI_PLANNED->value
+            'cStage' => LeadStage::RI_PLANNED->value,
         ],
         LeadEventType::ROYALTY_STILL_THINKING->value => [
             'status' => LeadStatus::ASSIGNED->value,
-            'cStage' => LeadStage::RI_DOUBT->value
+            'cStage' => LeadStage::RI_DOUBT->value,
         ],
     ];
 
     public function __construct(
         private EntityManager $entityManager,
         private LeadCallCountService $callCountService,
-    ) {}
+    ) {
+    }
 
     /**
      * Update lead status based on event type
-     * 
+     *
      * @param Entity $lead
      * @param LeadEventType $eventType
      * @return void
@@ -124,7 +124,7 @@ readonly class LeadStatusService
 
     /**
      * Handle NO_ANSWER event with call count logic
-     * 
+     *
      * @param Entity $lead
      * @return void
      */
@@ -137,12 +137,12 @@ readonly class LeadStatusService
         if ($currentCallCount >= $maxCallAttempts) {
             $lead->set([
                 'status' => LeadStatus::ASSIGNED->value,
-                'cStage' => LeadStage::MESSAGE_TO_BE_SENT->value
+                'cStage' => LeadStage::MESSAGE_TO_BE_SENT->value,
             ]);
         } else {
             $lead->set([
                 'status' => LeadStatus::ASSIGNED->value,
-                'cStage' => LeadStage::FOLLOW_UP->value
+                'cStage' => LeadStage::FOLLOW_UP->value,
             ]);
         }
 

@@ -16,16 +16,16 @@ class CallAgainHandler extends AbstractOutcomeHandler
     public function handle(string $leadId, array $context): OutcomeResult
     {
         $result = $this->logEvents($leadId);
-        
+
         $this->addCoachNoteIfProvided(
             $leadId,
             $context['coachNote'] ?? null,
-            'Bericht'
+            'Bericht',
         );
 
         $this->handleFollowUp(
             $leadId,
-            $context['callAgainDateTime'] ?? null
+            $context['callAgainDateTime'] ?? null,
         );
 
         return $result;

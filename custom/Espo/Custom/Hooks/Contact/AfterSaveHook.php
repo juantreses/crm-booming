@@ -3,12 +3,12 @@
 namespace Espo\Custom\Hooks\Contact;
 
 use Espo\Core\Hook\Hook\AfterSave;
-use Espo\ORM\Repository\Option\SaveOptions;
-use Espo\ORM\Entity;
 use Espo\Core\Utils\Log;
 use Espo\Custom\Services\EntitySyncService;
 use Espo\Custom\Services\GroupAssignmentService;
 use Espo\Modules\ClientManager\Services\SavingsCardService;
+use Espo\ORM\Entity;
+use Espo\ORM\Repository\Option\SaveOptions;
 
 class AfterSaveHook implements AfterSave
 {
@@ -17,7 +17,8 @@ class AfterSaveHook implements AfterSave
         private readonly EntitySyncService $entitySyncService,
         private readonly GroupAssignmentService $groupAssignmentService,
         private readonly SavingsCardService $savingsCardService,
-    ) {}
+    ) {
+    }
 
     public function afterSave(Entity $contact, SaveOptions $options): void
     {

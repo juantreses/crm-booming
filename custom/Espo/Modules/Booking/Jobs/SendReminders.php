@@ -2,19 +2,20 @@
 
 namespace Espo\Modules\Booking\Jobs;
 
-use Espo\Core\Job\JobDataLess;
-use Espo\ORM\EntityManager;
-use Espo\Modules\Crm\Entities\Meeting;
 use DateTime;
 use DateTimeZone;
+use Espo\Core\Job\JobDataLess;
 use Espo\Modules\Booking\Services\BookingEmailService;
+use Espo\Modules\Crm\Entities\Meeting;
+use Espo\ORM\EntityManager;
 
 class SendReminders implements JobDataLess
 {
     public function __construct(
         private EntityManager $entityManager,
         private BookingEmailService $emailService,
-    ) {}
+    ) {
+    }
 
     public function run(): void
     {

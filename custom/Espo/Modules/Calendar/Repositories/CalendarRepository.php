@@ -3,9 +3,9 @@
 namespace Espo\Modules\Calendar\Repositories;
 
 use DateTimeZone;
-use Espo\ORM\EntityManager;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityCollection;
+use Espo\ORM\EntityManager;
 use Espo\ORM\SthCollection;
 
 /**
@@ -16,7 +16,8 @@ readonly class CalendarRepository
 {
     public function __construct(
         private EntityManager $entityManager,
-    ) {}
+    ) {
+    }
 
     public function findCalendarById(string $calendarId): ?Entity
     {
@@ -55,7 +56,7 @@ readonly class CalendarRepository
 
     /**
      * Get availabilities for a specific date
-     * 
+     *
      * @param string $calendarId
      * @param string $dateString Date in Y-m-d format
      * @param string|null $locationId Optional location filter
@@ -66,7 +67,7 @@ readonly class CalendarRepository
         string $dateString,
         ?string $locationId = null,
         ?string $teamId = null,
-        ?string $publicSlug = null
+        ?string $publicSlug = null,
     ): SthCollection|EntityCollection {
         $dayNum = (string) date('w', strtotime($dateString));
 
@@ -76,14 +77,14 @@ readonly class CalendarRepository
                 'OR' => [
                     [
                         'type' => 'specific',
-                        'date' => $dateString
+                        'date' => $dateString,
                     ],
                     [
                         'type' => 'recurrent',
-                        'daysOfWeek*' => '%' . $dayNum . '%'
-                    ]
-                ]
-            ]
+                        'daysOfWeek*' => '%' . $dayNum . '%',
+                    ],
+                ],
+            ],
         ];
 
         if ($locationId) {
@@ -103,8 +104,8 @@ readonly class CalendarRepository
                 ->where([
                     'OR' => [
                         ['teamJoin.id' => $teamId],
-                        ['teamJoin.id' => null]
-                    ]
+                        ['teamJoin.id' => null],
+                    ],
                 ])
                 ->distinct()
                 ->find();
@@ -133,7 +134,7 @@ readonly class CalendarRepository
 
     /**
      * Get availabilities from blocking calendars for a specific date
-     * 
+     *
      * @param array $calendarIds Array of blocking calendar IDs
      * @param string $dateString Date in Y-m-d format
      * @return array Array of availability data with buffer time
@@ -153,39 +154,39 @@ readonly class CalendarRepository
                 'OR' => [
                     [
                         'type' => 'specific',
-                        'date' => $dateString
+                        'date' => $dateString,
                     ],
                     [
                         'type' => 'recurrent',
-                        'daysOfWeek*' => '%' . $dayNum . '%'
-                    ]
-                ]
+                        'daysOfWeek*' => '%' . $dayNum . '%',
+                    ],
+                ],
             ])
             ->find();
 
         $result = [];
-        
+
         foreach ($collection as $entity) {
             $data = (array) $entity->getValueMap();
-            
+
             $blockingCalId = $entity->get('calendarId');
-            
+
             if ($blockingCalId) {
                 $blockingCal = $this->entityManager->getEntityById('CCalendar', $blockingCalId);
                 $data['_bufferTime'] = $blockingCal ? $blockingCal->get('bufferTime') : 0;
             } else {
                 $data['_bufferTime'] = 0;
             }
-            
+
             $result[] = $data;
         }
-        
+
         return $result;
     }
 
     /**
      * Get meetings from blocking calendars for a specific date
-     * 
+     *
      * @param array $calendarIds Array of blocking calendar IDs
      * @param string $dateString Date in Y-m-d format
      * @return array Array of meeting data with buffer time
@@ -202,7 +203,7 @@ readonly class CalendarRepository
                 'cCalendarId' => $calendarIds,
                 'dateStart>=' => $dateString . ' 00:00:00',
                 'dateStart<=' => $dateString . ' 23:59:59',
-                'status!=' => ['Cancelled', 'Tentative']
+                'status!=' => ['Cancelled', 'Tentative'],
             ])
             ->find();
 
@@ -211,10 +212,10 @@ readonly class CalendarRepository
         foreach ($meetings as $meeting) {
             $startTime = (new \DateTime($meeting->get('dateStart')))->setTimezone(new DateTimeZone('Europe/Brussels'));
             $endTime = (new \DateTime($meeting->get('dateEnd')))->setTimezone(new DateTimeZone('Europe/Brussels'));
-            
+
             $blockingCalId = $meeting->get('cCalendarId');
             $bufferTime = 0;
-            
+
             if ($blockingCalId) {
                 $blockingCal = $this->entityManager->getEntityById('CCalendar', $blockingCalId);
                 $bufferTime = $blockingCal ? $blockingCal->get('bufferTime') : 0;
@@ -224,7 +225,7 @@ readonly class CalendarRepository
                 'startTime' => $startTime->format('H:i'),
                 'endTime' => $endTime->format('H:i'),
                 '_bufferTime' => $bufferTime,
-                '_isMeeting' => true
+                '_isMeeting' => true,
             ];
         }
 
@@ -243,7 +244,7 @@ readonly class CalendarRepository
                 'cCalendarId' => $calendarId,
                 'dateStart>=' => $dateString . ' 00:00:00',
                 'dateStart<=' => $dateString . ' 23:59:59',
-                'status!=' => ['Cancelled', 'Tentative']
+                'status!=' => ['Cancelled', 'Tentative'],
             ])
             ->find();
 
@@ -276,9 +277,9 @@ readonly class CalendarRepository
             ->getRDBRepository('CLocation')
             ->where(['id' => array_unique($locationIds)])
             ->find();
-        
+
         $locationMap = [];
-        foreach($locations as $loc) {
+        foreach ($locations as $loc) {
             $locationMap[$loc->getId()] = [
                 'id' => $loc->getId(),
                 'name' => $loc->get('name'),
@@ -306,8 +307,8 @@ readonly class CalendarRepository
                 'deleted' => 0,
                 'OR' => [
                     ['teamJoin.id' => $teamId],
-                    ['teamJoin.id' => null]
-                ]
+                    ['teamJoin.id' => null],
+                ],
             ])
             ->distinct()
             ->find();
@@ -330,7 +331,7 @@ readonly class CalendarRepository
             ->where([
                 'isActive' => true,
                 'hasPublicLink' => true,
-                'id' => $calendarIds
+                'id' => $calendarIds,
             ])
             ->order('name')
             ->find();
@@ -357,13 +358,13 @@ readonly class CalendarRepository
     {
         $where = [
             'calendarId' => $calendarId,
-            'deleted' => 0
+            'deleted' => 0,
         ];
 
         if ($teamId) {
             $where['OR'] = [
                 ['teamJoin.id' => $teamId],
-                ['teamJoin.id' => null]
+                ['teamJoin.id' => null],
             ];
         }
 
@@ -384,7 +385,7 @@ readonly class CalendarRepository
                 $locationIds[] = $locId;
             }
         }
-        
+
         $locationIds = array_unique($locationIds);
 
         if (empty($locationIds)) {
@@ -401,7 +402,7 @@ readonly class CalendarRepository
         foreach ($locations as $loc) {
             $result[] = [
                 'name' => $loc->get('name'),
-                'slug' => $loc->get('slug') ?: $loc->get('id')
+                'slug' => $loc->get('slug') ?: $loc->get('id'),
             ];
         }
 
@@ -415,13 +416,13 @@ readonly class CalendarRepository
     {
         $where = [
             'calendarId' => $calendarId,
-            'deleted' => 0
+            'deleted' => 0,
         ];
 
         if ($teamId) {
             $where['OR'] = [
                 ['teamJoin.id' => $teamId],
-                ['teamJoin.id' => null]
+                ['teamJoin.id' => null],
             ];
         }
 
@@ -469,7 +470,7 @@ readonly class CalendarRepository
 
         $locationIds = array_values(array_filter(array_map(
             static fn(array $row) => $row['id'],
-            $locationRows
+            $locationRows,
         )));
 
         if (!empty($locationIds)) {
@@ -515,7 +516,7 @@ readonly class CalendarRepository
         string $calendarId,
         string $publicSlug,
         ?string $locationId = null,
-        ?string $teamId = null
+        ?string $teamId = null,
     ): ?Entity {
         $where = [
             'calendarId' => $calendarId,
@@ -536,8 +537,8 @@ readonly class CalendarRepository
             $query = $query->where([
                 'OR' => [
                     ['teamJoin.id' => $teamId],
-                    ['teamJoin.id' => null]
-                ]
+                    ['teamJoin.id' => null],
+                ],
             ]);
         }
 

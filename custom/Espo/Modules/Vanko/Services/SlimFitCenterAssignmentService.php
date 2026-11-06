@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Espo\Modules\Vanko\Services;
 
+use Espo\Core\Utils\Log;
 use Espo\Modules\Crm\Entities\Lead;
+use Espo\Modules\Vanko\Services\Util\EntityFactory;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
-use Espo\Core\Utils\Log;
-use Espo\Modules\Vanko\Services\Util\EntityFactory;
 
 /**
  * Handles assigning a CSlimFitCenter to a Lead.
@@ -21,7 +21,8 @@ class SlimFitCenterAssignmentService
         private readonly EntityManager $entityManager,
         private readonly Log $log,
         private readonly EntityFactory $entityFactory,
-    ) {}
+    ) {
+    }
 
     /**
      * Assigns a CSlimFitCenter to a lead based on the center's name.
@@ -68,7 +69,7 @@ class SlimFitCenterAssignmentService
         if (empty($sfcId)) {
             return;
         }
-        
+
         try {
             $this->entityManager->getRDBRepository(Lead::ENTITY_TYPE)->getRelation($lead, 'cSlimFitCenter')->unrelateById($sfcId);
             $this->log->info("Removed SlimFitCenter relationship from lead {$lead->getId()}");

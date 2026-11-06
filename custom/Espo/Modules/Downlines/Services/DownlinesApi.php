@@ -8,11 +8,10 @@ use Espo\ORM\EntityManager;
 
 readonly class DownlinesApi
 {
-
     public function __construct(
         private EntityManager $entityManager,
-    )
-    {}
+    ) {
+    }
 
     public function getDownlines(string $teamId, int $maxDepth = 6): array
     {
@@ -28,7 +27,7 @@ readonly class DownlinesApi
     {
         if ($depth >= $maxDepth) {
             return [];
-    	}
+        }
 
         $downlines = $this->entityManager->getRDBRepository('CTeam')->getRelation($team, 'downlines')->find();
 
@@ -39,11 +38,10 @@ readonly class DownlinesApi
                 'id'   => $downline->getId(),
                 'name' => $downline->get('name'),
                 'depth' => $depth + 1,
-                'children' => $this->collectDownlines($downline, $depth + 1, $maxDepth)
+                'children' => $this->collectDownlines($downline, $depth + 1, $maxDepth),
             ];
         }
 
         return $result;
-
     }
 }

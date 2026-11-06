@@ -3,17 +3,17 @@
 namespace Espo\Modules\Booking\Hooks\Meeting;
 
 use Espo\Core\Hook\Hook\AfterSave;
-use Espo\ORM\Entity;
-use Espo\ORM\Repository\Option\SaveOptions;
 use Espo\Modules\Booking\Services\BookingEmailService;
 use Espo\Modules\Crm\Business\Event\Ics;
+use Espo\ORM\Entity;
+use Espo\ORM\Repository\Option\SaveOptions;
 
 class CancellationEmail implements AfterSave
 {
-
     public function __construct(
-        private readonly BookingEmailService $emailService
-    ) {}
+        private readonly BookingEmailService $emailService,
+    ) {
+    }
 
     /**
      * @inheritDoc
@@ -33,9 +33,9 @@ class CancellationEmail implements AfterSave
             $templateId = $this->emailService->getTemplateIdForMeeting($entity, 'cancellation');
             if (!$templateId) {
                 $entity->set('cMailError', "Annulering fout: Geen annulerings email gelinkt aan beschikbaarheid of kalender");
-                return;                
+                return;
             }
-            
+
             if ($templateId) {
                 try {
                     $this->emailService->sendMeetingEmail($entity, $templateId, Ics::METHOD_CANCEL);

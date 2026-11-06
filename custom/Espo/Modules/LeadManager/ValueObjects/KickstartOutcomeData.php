@@ -16,7 +16,8 @@ readonly class KickstartOutcomeData
         public ?string $calendarId = null,
         public ?string $selectedDate = null,
         public ?string $selectedTime = null,
-    ) {}
+    ) {
+    }
 
     public static function fromStdClass(\StdClass $data): self
     {

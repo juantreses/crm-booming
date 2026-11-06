@@ -16,11 +16,12 @@ readonly class WidgetLinkBuilder
 
     public function __construct(
         private Config $config,
-    ) {}
+    ) {
+    }
 
     /**
      * Build widget links
-     * 
+     *
      * @param string|null $coachIdentifier Coach slug or null for center-wide links
      * @return WidgetLink[]
      */
@@ -36,7 +37,7 @@ readonly class WidgetLinkBuilder
                 type: $widget['type'],
                 label: $widget['label'],
                 url: "{$baseWidgetUrl}&type={$widget['type']}{$coachParam}",
-                icon: $widget['icon']
+                icon: $widget['icon'],
             );
         }
 

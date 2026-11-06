@@ -3,11 +3,11 @@
 namespace Espo\Custom\Hooks\CNote;
 
 use Espo\Core\Hook\Hook\BeforeSave;
-use Espo\ORM\Repository\Option\SaveOptions;
-use Espo\ORM\Entity;
 use Espo\Core\Utils\Log;
 use Espo\Custom\Services\GroupAssignmentService;
+use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
+use Espo\ORM\Repository\Option\SaveOptions;
 
 class BeforeSaveHook implements BeforeSave
 {
@@ -19,7 +19,8 @@ class BeforeSaveHook implements BeforeSave
         private readonly Log $log,
         private readonly GroupAssignmentService $groupAssignmentService,
         private readonly EntityManager $entityManager,
-    ) {}
+    ) {
+    }
 
     public function beforeSave(Entity $entity, SaveOptions $options): void
     {
@@ -29,7 +30,7 @@ class BeforeSaveHook implements BeforeSave
                 $entity,
                 self::FIELDS_TO_WATCH,
                 $contact,
-                $this->groupAssignmentService->getCoachExtraGroupNamesFromContact($contact)
+                $this->groupAssignmentService->getCoachExtraGroupNamesFromContact($contact),
             );
         } catch (\Exception $e) {
             $this->log->error('Lead Before Save Hook error: ' . $e->getMessage());

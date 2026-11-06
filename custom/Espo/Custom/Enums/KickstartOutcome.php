@@ -12,7 +12,7 @@ enum KickstartOutcome: string
 
     public function getLabel(): string
     {
-        return match($this) {
+        return match ($this) {
             self::BECAME_CLIENT => 'Became Client',
             self::NO_SHOW => 'No Show',
             self::NOT_CONVERTED => 'Not Converted',

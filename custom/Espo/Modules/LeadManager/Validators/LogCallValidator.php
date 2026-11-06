@@ -21,20 +21,20 @@ class LogCallValidator
         if (!empty($data->callDateTime)) {
             $callDate = new \DateTime($data->callDateTime);
             $now = new \DateTime('now', new \DateTimeZone('UTC'));
-    
+
             if ($callDate > $now) {
                 throw new BadRequest('Gesprek datum/tijd mag niet in de toekomst zijn.');
             }
         }
-    
+
         if ($outcome === CallOutcome::CALL_AGAIN->value) {
             if (empty($data->callAgainDateTime)) {
                 throw new BadRequest('Datum/tijd opnieuw bellen is verplicht.');
             }
-    
+
             $callAgain = new \DateTime($data->callAgainDateTime);
             $now = new \DateTime('now', new \DateTimeZone('UTC'));
-    
+
             if ($callAgain <= $now) {
                 throw new BadRequest('Datum/tijd opnieuw bellen moet in de toekomst zijn.');
             }

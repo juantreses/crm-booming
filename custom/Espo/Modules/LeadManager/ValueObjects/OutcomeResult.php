@@ -7,7 +7,8 @@ readonly class OutcomeResult
     public function __construct(
         public array $eventIds = [],
         public bool $success = true,
-    ) {}
+    ) {
+    }
 
     public function addEventId(string $eventId): self
     {

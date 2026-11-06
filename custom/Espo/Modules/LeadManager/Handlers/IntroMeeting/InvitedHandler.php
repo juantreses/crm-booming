@@ -8,9 +8,9 @@ use Espo\Custom\Enums\LeadStage;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
 use Espo\Modules\LeadManager\Services\IntroMeetingService;
 use Espo\Modules\LeadManager\Services\LeadEventLogService;
-use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\Services\LeadFollowUpService;
 use Espo\Modules\LeadManager\Services\LeadMeetingService;
+use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 use Espo\Modules\Utils\SlugService;
 use Espo\ORM\EntityManager;
@@ -47,14 +47,14 @@ class InvitedHandler extends AbstractOutcomeHandler
 
         $calendarId = $this->slugService->resolve('CCalendar', $context['calendarId']);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
-        
+
         if (!$calendar) {
             throw new \RuntimeException("Calendar not found: {$context['calendarId']}");
         }
 
         $calendarType = $calendar->get('type');
         $meetingType = IntroMeetingType::fromCalendarType($calendarType);
-        
+
         if (!$meetingType) {
             throw new \InvalidArgumentException("Calendar type '{$calendarType}' is not an intro meeting");
         }
@@ -69,20 +69,20 @@ class InvitedHandler extends AbstractOutcomeHandler
             $lead,
             $context['selectedDate'],
             $context['selectedTime'],
-            $context['coachNote'] ?? null
+            $context['coachNote'] ?? null,
         );
 
         $result = $this->logEvents($leadId, $context['eventDate'] ?? null);
 
         $usageCount = $this->introMeetingService->getUsageCount($lead, $meetingType) + 1;
         $noteText = "{$meetingType->value}";
-        
+
         if ($meetingType->hasUsageLimit()) {
             $noteText .= " #{$usageCount}";
         }
-        
+
         $noteText .= " geboekt voor {$context['selectedDate']} om {$context['selectedTime']}";
-        
+
         if ($context['coachNote'] ?? null) {
             $noteText .= "\n" . $context['coachNote'];
         }
@@ -91,7 +91,7 @@ class InvitedHandler extends AbstractOutcomeHandler
             $leadId,
             $noteText,
             $context['fromCall'] ?? false ? 'Telefoon' : 'Afspraak',
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         );
 
         $lead->set('cStage', LeadStage::INTRO_SCHEDULED->value);

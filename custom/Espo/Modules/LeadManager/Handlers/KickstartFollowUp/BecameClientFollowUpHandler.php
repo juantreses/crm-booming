@@ -18,12 +18,12 @@ class BecameClientFollowUpHandler extends AbstractOutcomeHandler
     public function handle(string $leadId, array $context): OutcomeResult
     {
         $result = $this->logEvents($leadId, $context['eventDate'] ?? null);
-        
+
         $this->addCoachNoteIfProvided(
             $leadId,
             $context['coachNote'] ?? null,
             static::NOTE_SOURCE,
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         );
 
         $this->followUpService->clearFollowUpAction($leadId);

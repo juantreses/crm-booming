@@ -10,7 +10,6 @@ use Espo\ORM\Repository\Option\SaveOptions;
 
 class GroupAssignment implements BeforeSave
 {
-
     private const FIELDS_TO_WATCH = [
         'cTeam',
     ];
@@ -18,7 +17,8 @@ class GroupAssignment implements BeforeSave
     public function __construct(
         private readonly EntityManager $entityManager,
         private readonly GroupAssignmentService $groupAssignmentService,
-    ) {}
+    ) {
+    }
 
     /**
      * @inheritDoc

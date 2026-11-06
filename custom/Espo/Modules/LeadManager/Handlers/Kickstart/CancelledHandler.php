@@ -6,9 +6,9 @@ use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
 use Espo\Modules\LeadManager\Services\LeadEventLogService;
-use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\Services\LeadFollowUpService;
 use Espo\Modules\LeadManager\Services\LeadMeetingService;
+use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 use Espo\Modules\Utils\SlugService;
 use Espo\ORM\Entity;
@@ -39,19 +39,19 @@ class CancelledHandler extends AbstractOutcomeHandler
     public function handle(string $leadId, array $context): OutcomeResult
     {
         $result = $this->logEvents($leadId, $context['eventDate'] ?? null);
-        
+
         $this->addCoachNoteIfProvided(
             $leadId,
             $context['coachNote'] ?? null,
             static::NOTE_SOURCE,
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         );
 
         $meeting = $this->meetingService->findPlannedMeeting($leadId);
         $this->meetingService->markAsCancelled($meeting);
 
         $cancellationAction = $context['cancellationAction'] ?? null;
-        
+
         switch ($cancellationAction) {
             case 'reschedule_now':
                 if (!empty($context['calendarId']) && !empty($context['selectedDate'])) {
@@ -62,7 +62,7 @@ class CancelledHandler extends AbstractOutcomeHandler
                             $lead,
                             $context['selectedDate'],
                             $context['selectedTime'] ?? '',
-                            $context['coachNote'] ?? null
+                            $context['coachNote'] ?? null,
                         );
 
                         $this->syncMeetingType($lead, $context['calendarId']);
@@ -70,10 +70,10 @@ class CancelledHandler extends AbstractOutcomeHandler
                         $eventId = $this->eventLogService->logEvent(
                             $leadId,
                             static::BOOKED_EVENT,
-                            $context['eventDate'] ?? null
+                            $context['eventDate'] ?? null,
                         )['eventId'];
                         $result = $result->addEventId($eventId);
-                        
+
                         $this->followUpService->clearFollowUpAction($leadId);
                     }
                 }
@@ -83,14 +83,14 @@ class CancelledHandler extends AbstractOutcomeHandler
                 $eventId = $this->eventLogService->logEvent(
                     $leadId,
                     LeadEventType::CALL_AGAIN,
-                    $context['eventDate'] ?? null
+                    $context['eventDate'] ?? null,
                 )['eventId'];
                 $result = $result->addEventId($eventId);
-                
+
                 $this->handleFollowUp(
                     $leadId,
                     $context['callAgainDateTime'] ?? null,
-                    static::FOLLOW_UP_NOTE
+                    static::FOLLOW_UP_NOTE,
                 );
                 break;
 
@@ -98,7 +98,7 @@ class CancelledHandler extends AbstractOutcomeHandler
                 $eventId = $this->eventLogService->logEvent(
                     $leadId,
                     LeadEventType::CANCELLED_STOP,
-                    $context['eventDate'] ?? null
+                    $context['eventDate'] ?? null,
                 )['eventId'];
                 $result = $result->addEventId($eventId);
 

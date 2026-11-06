@@ -7,14 +7,12 @@ namespace Espo\Modules\Vanko\Services;
 use Espo\Core\Utils\Log;
 use Espo\Modules\Crm\Entities\Lead;
 use Espo\ORM\EntityManager;
-use Espo\ORM\Repository\Option\SaveOption;
 
 /**
  * Creates and updates Lead entities from API data.
  */
 class LeadFactory
 {
-
     /**
      * Unified field mapping structure that supports both simple and fallback mappings.
      * For simple mappings, use a single-element array.
@@ -29,7 +27,7 @@ class LeadFactory
         'emailAddress' => ['email'],
         'phoneNumber' => ['phone'],
         'cDateOfBirth' => ['date_of_birth'],
-        
+
         // Fallback field mappings (multiple source fields in priority order)
         'cExternalCreatedAt' => [
             'CC_SlimFitCenter_Campagne_Registratie', // Primary field
@@ -40,7 +38,7 @@ class LeadFactory
 
     /**
      * Mapping of SlimFit Centers to their specific survey questions.
-     * Keys must match EXACTLY what is in the incoming JSON data, 
+     * Keys must match EXACTLY what is in the incoming JSON data,
      * including exact spacing and special characters (like non-breaking spaces).
      *
      * Pay close attention to exact characters (like the en-dash '–' or non-breaking space ' ').
@@ -66,7 +64,8 @@ class LeadFactory
     public function __construct(
         private readonly EntityManager $entityManager,
         private readonly Log $log,
-    ) {}
+    ) {
+    }
 
     /**
      * Creates a new Lead entity instance from the provided data.
@@ -84,9 +83,9 @@ class LeadFactory
 
             // Set a runtime flag to stop the AfterSaveHook from syncing to Vanko just yet
             $lead->set('suppressVankoSync', true);
-            
+
             $this->entityManager->saveEntity(
-                $lead
+                $lead,
             );
 
             $this->log->info("Successfully instantiated lead {$lead->getId()} for Vanko ID {$data->contact_id}");
@@ -120,8 +119,8 @@ class LeadFactory
 
         $currentSurveyJson = $lead->get('cSurveyData') ?? '';
         $newSurveyData = $this->extractSurveyData($data);
-        $newSurveyJson = empty((array)$newSurveyData) 
-        ? '' 
+        $newSurveyJson = empty((array)$newSurveyData)
+        ? ''
         : json_encode($newSurveyData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         if ($currentSurveyJson !== $newSurveyJson) {
             if ($newSurveyJson !== '') {
@@ -145,13 +144,12 @@ class LeadFactory
         foreach (self::FIELD_MAPPING as $espoField => $sourceFields) {
             foreach ($sourceFields as $vankoField) {
                 if (isset($data->$vankoField) && trim((string) $data->$vankoField) !== '') {
-
                     $value = trim((string) $data->$vankoField);
 
                     if ($espoField === 'cExternalCreatedAt') {
                         try {
                             $dt = new \DateTime($value);
-                            $dt->setTimezone(new \DateTimeZone('UTC')); 
+                            $dt->setTimezone(new \DateTimeZone('UTC'));
                             $value = $dt->format('Y-m-d H:i:s');
                         } catch (\Exception $e) {
                             $this->log->warning("Failed to parse date for field $espoField: $value");
@@ -172,7 +170,7 @@ class LeadFactory
         foreach (self::SURVEY_MAPPING as $questionKey) {
             if (property_exists($data, $questionKey)) {
                 $answer = $data->$questionKey;
-                
+
                 if ($answer === '' || $answer === null) {
                     continue;
                 }

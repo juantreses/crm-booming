@@ -9,7 +9,8 @@ readonly class WidgetLink
         public string $label,
         public string $url,
         public string $icon,
-    ) {}
+    ) {
+    }
 
     public function toArray(): array
     {

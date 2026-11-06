@@ -3,26 +3,27 @@
 namespace Espo\Modules\LeadManager\Services;
 
 use Espo\Core\Exceptions\NotFound;
-use Espo\ORM\EntityManager;
-use Espo\ORM\Entity;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Modules\Utils\DateTimeFactory;
+use Espo\ORM\Entity;
+use Espo\ORM\EntityManager;
 
 readonly class LeadEventLogService
 {
     public function __construct(
         private EntityManager $entityManager,
         private LeadStatusService $statusService,
-    ) {}
+    ) {
+    }
 
     public function logEvent(
         string $leadId,
         LeadEventType $eventType,
         ?string $eventDate = null,
-        ?string $description = null
+        ?string $description = null,
     ): array {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        
+
         if (!$lead) {
             throw new NotFound('Lead not found');
         }
@@ -42,7 +43,7 @@ readonly class LeadEventLogService
     private function createEvent(
         LeadEventType $eventType,
         ?string $eventDate,
-        ?string $description
+        ?string $description,
     ): Entity {
         $event = $this->entityManager->getNewEntity('CLeadEvent');
         $dt = DateTimeFactory::parseToUtc($eventDate);

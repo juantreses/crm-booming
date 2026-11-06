@@ -11,7 +11,8 @@ class AfterRemoveHook implements AfterRemove
 {
     public function __construct(
         private readonly SavingsCardService $savingsCardService,
-    ) {}
+    ) {
+    }
 
     public function afterRemove(Entity $entity, RemoveOptions $options): void
     {

@@ -5,9 +5,9 @@ namespace Espo\Modules\LeadManager\Handlers\Kickstart;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
 use Espo\Modules\LeadManager\Services\LeadEventLogService;
-use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\Services\LeadFollowUpService;
 use Espo\Modules\LeadManager\Services\LeadMeetingService;
+use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 
 class NotConvertedHandler extends AbstractOutcomeHandler
@@ -31,12 +31,12 @@ class NotConvertedHandler extends AbstractOutcomeHandler
     public function handle(string $leadId, array $context): OutcomeResult
     {
         $result = $this->logEvents($leadId, $context['eventDate'] ?? null);
-        
+
         $this->addCoachNoteIfProvided(
             $leadId,
             $context['coachNote'] ?? null,
             static::NOTE_SOURCE,
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         );
 
         $this->followUpService->clearFollowUpAction($leadId);

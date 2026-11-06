@@ -27,4 +27,4 @@ enum CallOutcome: string
     {
         return (bool) self::tryFrom($outcome);
     }
-} 
+}

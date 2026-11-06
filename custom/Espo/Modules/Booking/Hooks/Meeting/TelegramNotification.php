@@ -2,20 +2,20 @@
 
 namespace Espo\Modules\Booking\Hooks\Meeting;
 
-use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Core\Hook\Hook\AfterSave;
+use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Modules\Telegram\Services\TelegramService;
 use Espo\ORM\Entity;
-use Espo\ORM\Repository\Option\SaveOptions;
 use Espo\ORM\EntityManager;
+use Espo\ORM\Repository\Option\SaveOptions;
 
 class TelegramNotification implements AfterSave
 {
-
     public function __construct(
         private readonly EntityManager $entityManager,
         private readonly TelegramService $telegramService,
-    ) {}
+    ) {
+    }
 
     /**
      * @inheritDoc
@@ -50,37 +50,39 @@ class TelegramNotification implements AfterSave
 
     private function sendKickstartAlert(Entity $meeting, ?Entity $parent, Entity $calendar): void
     {
-        if (!$parent) return;
+        if (!$parent) {
+            return;
+        }
 
         $formattedDate = $this->formatDate($meeting->get('dateStart'));
         $label = KickstartCalendarType::from(strtolower($calendar->get('type')))->getLabel();
 
         $msg = "🚀 <b>Nieuwe {$label} Gepland!</b>\n\n";
-        
+
         $msg .= "👤 {$parent->get('name')}\n";
-        
+
         if ($parent->get('emailAddress')) {
             $msg .= "✉️ {$parent->get('emailAddress')}\n";
         }
-        
+
         $msg .= "📅 {$formattedDate}\n";
-        
+
         $msg .= "🎓 {$parent->get('assignedUserName')}\n\n";
-        
-        
+
+
         $this->telegramService->sendMessage($msg);
     }
 
     private function sendCancellationAlert(Entity $meeting, ?Entity $parent, ?Entity $calendar): void
     {
         $formattedDate = $this->formatDate($meeting->get('dateStart'));
-        
+
         $coachId = $parent?->get('assignedUserId');
         $coach = $coachId ? $this->entityManager->getEntityById('User', $coachId) : null;
-        
+
         $tag = "";
         if ($coach && $coach->get('cTelegramUsername')) {
-            $tag = " " . $coach->get('cTelegramUsername'); 
+            $tag = " " . $coach->get('cTelegramUsername');
         }
 
         $calendarType = $calendar?->get('type');
@@ -90,11 +92,11 @@ class TelegramNotification implements AfterSave
             default => 'Afspraak',
         };
         $msg = "🚨 <b>{$type} Geannuleerd!</b>{$tag}\n\n";
-        
+
         if ($parent) {
             $msg .= "👤 {$parent->get('name')}\n";
         }
-        
+
         $msg .= "📅 {$formattedDate}\n";
 
         $this->telegramService->sendMessage($msg);
@@ -102,13 +104,14 @@ class TelegramNotification implements AfterSave
 
     private function formatDate(?string $dateString): string
     {
-        if (!$dateString) return 'Onbekend';
+        if (!$dateString) {
+            return 'Onbekend';
+        }
 
         $tz = new \DateTimeZone('Europe/Brussels');
         $date = new \DateTime($dateString);
         $date->setTimezone($tz);
-        
+
         return $date->format('d/m/Y H:i');
     }
-
 }

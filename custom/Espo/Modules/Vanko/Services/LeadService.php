@@ -10,13 +10,12 @@ use Espo\Core\Utils\Log;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Custom\Enums\LeadStatus;
 use Espo\Modules\Crm\Entities\Lead;
+use Espo\Modules\Vanko\Services\CampaignAssignmentService;
 use Espo\Modules\Vanko\Services\LeadDataValidator;
 use Espo\Modules\Vanko\Services\LeadFactory;
-use Espo\Modules\Vanko\Services\TeamAssignmentService;
 use Espo\Modules\Vanko\Services\SlimFitCenterAssignmentService;
-use Espo\Modules\Vanko\Services\CampaignAssignmentService;
+use Espo\Modules\Vanko\Services\TeamAssignmentService;
 use Espo\ORM\EntityManager;
-use Espo\ORM\Repository\Option\SaveOption;
 
 /**
  * Orchestrates the processing of incoming leads from the Vanko API.
@@ -36,8 +35,9 @@ class LeadService
         private readonly LeadFactory $leadFactory,
         private readonly TeamAssignmentService $teamAssigner,
         private readonly SlimFitCenterAssignmentService $centerAssigner,
-        private readonly CampaignAssignmentService $campaignAssigner
-    ) {}
+        private readonly CampaignAssignmentService $campaignAssigner,
+    ) {
+    }
 
     /**
      * @throws BadRequest
@@ -69,9 +69,8 @@ class LeadService
                 success: true,
                 action: $action,
                 leadId: $lead->getId(),
-                vankoId: $data->contact_id
+                vankoId: $data->contact_id,
             );
-
         } catch (BadRequest $e) {
             $this->log->error("Bad request processing lead: " . $e->getMessage());
             throw $e;
@@ -80,7 +79,7 @@ class LeadService
             throw new Error("Failed to process lead: " . $e->getMessage());
         }
     }
-    
+
     private function handleAssignments(Lead $lead, object $data): void
     {
         $coachName = $this->getTrimmedValue($data, self::COACH_FIELD);
@@ -112,7 +111,7 @@ class LeadService
             return null;
         }
     }
-    
+
     private function getTrimmedValue(object $data, string $field): string
     {
         return isset($data->$field) ? trim((string) $data->$field) : '';
@@ -125,7 +124,7 @@ class LeadService
             'action' => $action,
             'id' => $leadId,
             'vanko_id' => $vankoId,
-            'timestamp' => date('Y-m-d H:i:s')
+            'timestamp' => date('Y-m-d H:i:s'),
         ];
     }
 }

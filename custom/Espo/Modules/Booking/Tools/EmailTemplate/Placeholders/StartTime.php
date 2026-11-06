@@ -27,4 +27,3 @@ class StartTime implements Placeholder
         }
     }
 }
-

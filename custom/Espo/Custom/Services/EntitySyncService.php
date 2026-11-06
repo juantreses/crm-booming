@@ -5,30 +5,31 @@ namespace Espo\Custom\Services;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
-class EntitySyncService {
-
+class EntitySyncService
+{
     private const BASE_FIELDS_TO_WATCH = [
         'firstName',
         'lastName',
         'emailAddress',
         'phoneNumber',
         'cTeamId',
-        'cSlimFitCenterId'
+        'cSlimFitCenterId',
     ];
-    
+
     public function __construct(
         private readonly EntityManager $entityManager,
-    ) {}
+    ) {
+    }
 
     public function syncFromLead(Entity $sourceEntity): void
     {
-        if($this->hasFieldsChanged($sourceEntity) && $this->getRelatedContact($sourceEntity)){
+        if ($this->hasFieldsChanged($sourceEntity) && $this->getRelatedContact($sourceEntity)) {
             $this->syncBaseData($sourceEntity, $this->getRelatedContact($sourceEntity));
         }
     }
     public function syncFromContact(Entity $sourceEntity): void
     {
-        if($this->hasFieldsChanged($sourceEntity) && $this->getRelatedLead($sourceEntity)){
+        if ($this->hasFieldsChanged($sourceEntity) && $this->getRelatedLead($sourceEntity)) {
             $this->syncBaseData($sourceEntity, $this->getRelatedLead($sourceEntity));
         }
     }
@@ -45,14 +46,14 @@ class EntitySyncService {
 
     private function syncBaseData(Entity $sourceEntity, Entity $destinationEntity): void
     {
-        foreach(self::BASE_FIELDS_TO_WATCH as $field){
-            if($this->hasFieldChanged($sourceEntity, $field)){
+        foreach (self::BASE_FIELDS_TO_WATCH as $field) {
+            if ($this->hasFieldChanged($sourceEntity, $field)) {
                 $destinationEntity->set($field, $sourceEntity->get($field));
             }
         }
 
         $this->entityManager->saveEntity(
-            $destinationEntity
+            $destinationEntity,
         );
     }
 
@@ -61,7 +62,7 @@ class EntitySyncService {
         $changed = false;
         foreach (self::BASE_FIELDS_TO_WATCH as $field) {
             $changed = $changed || $this->hasFieldChanged($entity, $field);
-            if($changed){
+            if ($changed) {
                 return $changed;
             }
         }

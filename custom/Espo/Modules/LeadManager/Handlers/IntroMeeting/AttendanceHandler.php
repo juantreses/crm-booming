@@ -4,16 +4,16 @@ namespace Espo\Modules\LeadManager\Handlers\IntroMeeting;
 
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Custom\Enums\HomRating;
-use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Custom\Enums\IntroMeetingType;
+use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
 use Espo\Modules\LeadManager\Services\IntroMeetingService;
 use Espo\Modules\LeadManager\Services\LeadEventLogService;
-use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\Services\LeadFollowUpService;
 use Espo\Modules\LeadManager\Services\LeadMeetingService;
+use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 use Espo\Modules\Utils\SlugService;
 use Espo\ORM\Entity;
@@ -21,7 +21,7 @@ use Espo\ORM\EntityManager;
 
 /**
  * Intro Meeting Attendance Handler
- * 
+ *
  * Handles when lead attends an intro meeting
  * Determines next stage based on:
  * - Meeting type (SPARK, BWS, HOM)
@@ -57,7 +57,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
 
         // Get intro meeting type
         $meetingType = $this->introMeetingService->getIntroMeetingType($lead);
-        
+
         if (!$meetingType) {
             throw new \RuntimeException("Lead does not have an intro meeting type set");
         }
@@ -70,13 +70,13 @@ class AttendanceHandler extends AbstractOutcomeHandler
         if ($hasImmediateBooking) {
             $this->assertNextBookingAllowed(
                 $homRating,
-                $this->getNextBookingCalendar($context)->get('type')
+                $this->getNextBookingCalendar($context)->get('type'),
             );
         }
 
         // Record attendance and get suggested next stage
         $nextStage = $this->introMeetingService->recordAttendance($lead, $meetingType, $homRating);
-        
+
         if ($hasImmediateBooking) {
             return $this->handleImmediateBooking($lead, $context, $meetingType, $homRating);
         } else {
@@ -150,35 +150,35 @@ class AttendanceHandler extends AbstractOutcomeHandler
     private function handleImmediateBooking(Entity $lead, array $context, IntroMeetingType $attendedType, ?HomRating $homRating): OutcomeResult
     {
         $leadId = $lead->getId();
-        
+
         $nextCalendarType = $this->getNextBookingCalendar($context)->get('type');
-        
+
         $result = $this->logEvents($leadId, $context['eventDate'] ?? null);
 
         $usageCount = $this->introMeetingService->getUsageCount($lead, $attendedType);
         $remaining = $this->introMeetingService->getRemainingUsage($lead, $attendedType);
-        
+
         $noteText = "{$attendedType->value}";
         if ($attendedType->hasUsageLimit()) {
             $noteText .= " #{$usageCount}";
         }
         $noteText .= " aanwezig";
-        
+
         if ($remaining > 0 && $attendedType->hasUsageLimit()) {
             $noteText .= ". Nog {$remaining} sessie(s) beschikbaar";
         }
 
         $noteText = $this->buildAttendanceNote($homRating, $noteText);
-        
+
         if ($context['coachNote'] ?? null) {
             $noteText .= "\n" . $context['coachNote'];
         }
-        
+
         $this->addCoachNoteIfProvided(
             $leadId,
             $noteText,
             'Afspraak',
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         );
 
         $this->meetingService->createInternalMeeting(
@@ -186,7 +186,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
             $lead,
             $context['nextBooking']['selectedDate'],
             $context['nextBooking']['selectedTime'],
-            null
+            null,
         );
 
         if (KickstartCalendarType::isKickstart($nextCalendarType)) {
@@ -194,7 +194,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
             $lead->set('cStage', LeadStage::KS_PLANNED->value);
             $lead->set('cMeetingType', $kickstartType->value);
             $bookingNote = "Direct {$kickstartType->getLabel()} geboekt na {$attendedType->value}";
-        } else if ($nextCalendarType === 'royalty') {
+        } elseif ($nextCalendarType === 'royalty') {
             $lead->set('cStage', LeadStage::RI_PLANNED->value);
             $lead->set('cMeetingType', 'royalty');
             $bookingNote = "Direct RI geboekt na {$attendedType->value}";
@@ -217,7 +217,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
             $leadId,
             $bookingNote,
             'Afspraak',
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         );
 
         $bookingEventType = match (true) {
@@ -229,7 +229,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
         $eventId = $this->eventLogService->logEvent(
             $leadId,
             $bookingEventType,
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         )['eventId'];
 
         $result = $result->addEventId($eventId);
@@ -251,30 +251,30 @@ class AttendanceHandler extends AbstractOutcomeHandler
 
         $usageCount = $this->introMeetingService->getUsageCount($lead, $meetingType);
         $remaining = $this->introMeetingService->getRemainingUsage($lead, $meetingType);
-        
+
         $noteText = "{$meetingType->value}";
         if ($meetingType->hasUsageLimit()) {
             $noteText .= " #{$usageCount}";
         }
         $noteText .= " aanwezig";
-        
+
         if ($remaining > 0 && $meetingType->hasUsageLimit()) {
             $noteText .= ". Nog {$remaining} sessie(s) beschikbaar.";
-        } else if ($remaining === 0 && $meetingType->hasUsageLimit()) {
+        } elseif ($remaining === 0 && $meetingType->hasUsageLimit()) {
             $noteText .= ". Alle sessies gebruikt. Klaar voor Kickstart!";
         }
 
         $noteText = $this->buildAttendanceNote($homRating, $noteText);
-        
+
         if ($context['coachNote'] ?? null) {
             $noteText .= "\n" . $context['coachNote'];
         }
-        
+
         $this->addCoachNoteIfProvided(
             $leadId,
             $noteText,
             'Afspraak',
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         );
 
         // Update stage
@@ -283,14 +283,14 @@ class AttendanceHandler extends AbstractOutcomeHandler
 
         if ($nextStage === LeadStage::INTRO_ATTENDED && $homRating) {
             $this->followUpService->setFollowUpActionText($leadId, "SPARK of Kickstart boeken");
-        } else if ($nextStage === LeadStage::INTRO_ATTENDED) {
+        } elseif ($nextStage === LeadStage::INTRO_ATTENDED) {
             $this->followUpService->setFollowUpActionText(
                 $leadId,
-                "Opnieuw {$meetingType->value} boeken of Kickstart"
+                "Opnieuw {$meetingType->value} boeken of Kickstart",
             );
-        } else if ($nextStage === LeadStage::BOOK_KS) {
+        } elseif ($nextStage === LeadStage::BOOK_KS) {
             $this->followUpService->setFollowUpActionText($leadId, "Kickstart boeken");
-        } else if ($nextStage === LeadStage::BOOK_RI) {
+        } elseif ($nextStage === LeadStage::BOOK_RI) {
             $this->followUpService->setFollowUpActionText($leadId, "RI boeken");
         }
 

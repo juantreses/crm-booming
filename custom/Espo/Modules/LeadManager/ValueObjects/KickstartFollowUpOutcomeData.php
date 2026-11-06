@@ -11,7 +11,8 @@ readonly class KickstartFollowUpOutcomeData
         public KickstartOutcome $outcome,
         public ?string $followUpDateTime = null,
         public ?string $coachNote = null,
-    ) {}
+    ) {
+    }
 
     public static function fromStdClass(\StdClass $data): self
     {

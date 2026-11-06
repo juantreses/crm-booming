@@ -2,23 +2,24 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
-use Espo\ORM\EntityManager;
-use Espo\ORM\Entity;
 use Espo\Modules\Booking\Services\BookingService;
+use Espo\ORM\Entity;
+use Espo\ORM\EntityManager;
 
 readonly class LeadMeetingService
 {
     public function __construct(
         private EntityManager $entityManager,
         private BookingService $bookingService,
-    ) {}
+    ) {
+    }
 
     public function createInternalMeetingForLeadId(
         string $calendarId,
         string $leadId,
         string $selectedDate,
         string $selectedTime,
-        ?string $coachNote = null
+        ?string $coachNote = null,
     ): void {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
         if (!$lead) {
@@ -33,14 +34,14 @@ readonly class LeadMeetingService
         Entity $lead,
         string $selectedDate,
         string $selectedTime,
-        ?string $coachNote = null
+        ?string $coachNote = null,
     ): void {
         $this->bookingService->createInternalMeeting(
             $calendarId,
             $lead,
             $selectedDate,
             $selectedTime,
-            $coachNote
+            $coachNote,
         );
     }
 

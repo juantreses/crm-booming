@@ -7,9 +7,9 @@ use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
+use Espo\Modules\LeadManager\Services\IntroMeetingService;
 use Espo\Modules\LeadManager\Services\LeadEventLogService;
 use Espo\Modules\LeadManager\Services\LeadFollowUpService;
-use Espo\Modules\LeadManager\Services\IntroMeetingService;
 use Espo\Modules\LeadManager\Services\LeadMeetingService;
 use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
@@ -39,12 +39,12 @@ class InvitedHandler extends AbstractOutcomeHandler
     public function handle(string $leadId, array $context): OutcomeResult
     {
         $result = new OutcomeResult();
-        
+
         $this->addCoachNoteIfProvided(
             $leadId,
             $context['coachNote'] ?? null,
             'Bericht',
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         );
 
         $this->followUpService->clearFollowUpAction($leadId);
@@ -62,7 +62,7 @@ class InvitedHandler extends AbstractOutcomeHandler
 
         $calendarId = $this->slugService->resolve('CCalendar', $context['calendarId']);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
-        
+
         if (!$calendar) {
             throw new \RuntimeException("Calendar not found: {$context['calendarId']}");
         }
@@ -79,7 +79,7 @@ class InvitedHandler extends AbstractOutcomeHandler
             $lead,
             $context['selectedDate'],
             $context['selectedTime'],
-            $context['coachNote'] ?? null
+            $context['coachNote'] ?? null,
         );
 
         if (KickstartCalendarType::isKickstart($calendarType)) {
@@ -101,7 +101,7 @@ class InvitedHandler extends AbstractOutcomeHandler
         Entity $lead,
         OutcomeResult $result,
         IntroMeetingType $meetingType,
-        ?string $eventDate = null
+        ?string $eventDate = null,
     ): OutcomeResult {
         $result = $this->logBookingEvent($lead, $result, LeadEventType::BOOK_INTRO, $eventDate);
 
@@ -116,7 +116,7 @@ class InvitedHandler extends AbstractOutcomeHandler
         Entity $lead,
         OutcomeResult $result,
         string $calendarType,
-        ?string $eventDate = null
+        ?string $eventDate = null,
     ): OutcomeResult {
         $result = $this->logBookingEvent($lead, $result, LeadEventType::KICKSTART_BOOKED, $eventDate);
 
@@ -130,7 +130,7 @@ class InvitedHandler extends AbstractOutcomeHandler
     private function handleRoyaltyBooking(
         Entity $lead,
         OutcomeResult $result,
-        ?string $eventDate = null
+        ?string $eventDate = null,
     ): OutcomeResult {
         $result = $this->logBookingEvent($lead, $result, LeadEventType::ROYALTY_BOOKED, $eventDate);
 
@@ -145,12 +145,12 @@ class InvitedHandler extends AbstractOutcomeHandler
         Entity $lead,
         OutcomeResult $result,
         LeadEventType $eventType,
-        ?string $eventDate = null
+        ?string $eventDate = null,
     ): OutcomeResult {
         $eventId = $this->eventLogService->logEvent(
             $lead->getId(),
             $eventType,
-            $eventDate
+            $eventDate,
         )['eventId'];
 
         return $result->addEventId($eventId);

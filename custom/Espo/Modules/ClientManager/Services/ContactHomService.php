@@ -34,7 +34,8 @@ readonly class ContactHomService
         private SavingsCardService $savingsCardService,
         private SlugService $slugService,
         private Acl $acl,
-    ) {}
+    ) {
+    }
 
     /**
      * @throws BadRequest
@@ -52,7 +53,7 @@ readonly class ContactHomService
         if (!$this->savingsCardService->canBookHom($contact)) {
             throw new BadRequest(
                 'Een HOM kan pas geboekt worden vanaf ' . SavingsCardService::HOM_POINTS .
-                ' geldige spaarkaartpunten, en niet voor PCX of distributeurs.'
+                ' geldige spaarkaartpunten, en niet voor PCX of distributeurs.',
             );
         }
 
@@ -64,7 +65,7 @@ readonly class ContactHomService
             $contact,
             $booking['selectedDate'],
             $booking['selectedTime'],
-            $data->coachNote ?? null
+            $data->coachNote ?? null,
         );
 
         $contact->set('cHomPlanned', true);
@@ -129,7 +130,7 @@ readonly class ContactHomService
                 $data->riBooking->calendarId ?? null,
                 $data->riBooking->selectedDate ?? null,
                 $data->riBooking->selectedTime ?? null,
-                'Een RI-afspraak is verplicht bij uitkomst C of D.'
+                'Een RI-afspraak is verplicht bij uitkomst C of D.',
             );
             $this->assertCalendarType($riBooking['calendarId'], 'royalty');
         }
@@ -151,7 +152,7 @@ readonly class ContactHomService
                 $riBooking['calendarId'],
                 $contact,
                 $riBooking['selectedDate'],
-                $riBooking['selectedTime']
+                $riBooking['selectedTime'],
             );
             $contact->set('cRiStatus', self::RI_PLANNED);
             $noteText .= "\nRI geboekt op {$riBooking['selectedDate']} om {$riBooking['selectedTime']}";
@@ -184,12 +185,12 @@ readonly class ContactHomService
                 $booking['calendarId'],
                 $contact,
                 $booking['selectedDate'],
-                $booking['selectedTime']
+                $booking['selectedTime'],
             );
             $this->addNote(
                 $contact,
                 "HOM geannuleerd, opnieuw geboekt op {$booking['selectedDate']} om {$booking['selectedTime']}",
-                $data->coachNote ?? null
+                $data->coachNote ?? null,
             );
 
             return ['success' => true];
@@ -272,13 +273,13 @@ readonly class ContactHomService
                 $booking['calendarId'],
                 $contact,
                 $booking['selectedDate'],
-                $booking['selectedTime']
+                $booking['selectedTime'],
             );
             $this->addNote(
                 $contact,
                 "$label, opnieuw geboekt op {$booking['selectedDate']} om {$booking['selectedTime']}",
                 $data->coachNote ?? null,
-                'RI'
+                'RI',
             );
 
             return ['success' => true];

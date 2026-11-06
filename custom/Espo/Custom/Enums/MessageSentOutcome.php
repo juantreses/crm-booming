@@ -4,7 +4,6 @@ namespace Espo\Custom\Enums;
 
 enum MessageSentOutcome: string
 {
-
     case INVITED = 'invited';
     case CALL_AGAIN = 'call_again';
     case NOT_INTERESTED = 'not_interested';
@@ -22,4 +21,4 @@ enum MessageSentOutcome: string
     {
         return (bool) self::tryFrom($outcome);
     }
-} 
+}

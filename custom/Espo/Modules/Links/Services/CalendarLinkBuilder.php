@@ -15,11 +15,12 @@ readonly class CalendarLinkBuilder
     public function __construct(
         private Config $config,
         private CalendarRepository $calendarRepository,
-    ) {}
+    ) {
+    }
 
     /**
      * Build calendar links for a team
-     * 
+     *
      * @param string $teamId
      * @param string|null $coachIdentifier
      * @return CalendarLink[]
@@ -32,7 +33,7 @@ readonly class CalendarLinkBuilder
 
     /**
      * Build calendar links for center (all active calendars)
-     * 
+     *
      * @return CalendarLink[]
      */
     public function buildForCenter(): array
@@ -43,7 +44,7 @@ readonly class CalendarLinkBuilder
 
     /**
      * Build calendar links from calendar entities
-     * 
+     *
      * @param EntityCollection $calendars
      * @param string|null $teamId
      * @param string|null $coachIdentifier
@@ -65,7 +66,7 @@ readonly class CalendarLinkBuilder
             $locationCount = count(array_filter($locationStructure, fn(array $row) => !empty($row['id'])));
             $hasVariants = count(array_filter(
                 $locationStructure,
-                fn(array $row) => count($row['variants']) > 0
+                fn(array $row) => count($row['variants']) > 0,
             )) > 0;
 
             if ($locationCount < 2 && !$hasVariants) {
@@ -77,7 +78,7 @@ readonly class CalendarLinkBuilder
                 $links[] = new CalendarLink(
                     label: $calendarName,
                     url: $baseCalendarUrl,
-                    subtext: $locationCount > 1 ? 'Alle locaties' : 'Alle sessies'
+                    subtext: $locationCount > 1 ? 'Alle locaties' : 'Alle sessies',
                 );
 
                 foreach ($locationStructure as $location) {
@@ -89,7 +90,7 @@ readonly class CalendarLinkBuilder
                         $links[] = new CalendarLink(
                             label: "{$calendarName} - {$location['name']}",
                             url: $locationUrl,
-                            isLocation: true
+                            isLocation: true,
                         );
                     }
 
@@ -97,7 +98,7 @@ readonly class CalendarLinkBuilder
                         $links[] = new CalendarLink(
                             label: $variant['label'],
                             url: "{$locationUrl}&variant={$variant['slug']}",
-                            isVariant: true
+                            isVariant: true,
                         );
                     }
                 }

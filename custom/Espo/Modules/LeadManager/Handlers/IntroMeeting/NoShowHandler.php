@@ -13,7 +13,6 @@ use Espo\Modules\LeadManager\Services\LeadNotesService;
 use Espo\Modules\LeadManager\ValueObjects\OutcomeResult;
 use Espo\ORM\EntityManager;
 
-
 class NoShowHandler extends AbstractOutcomeHandler
 {
     public function __construct(
@@ -40,7 +39,7 @@ class NoShowHandler extends AbstractOutcomeHandler
         }
 
         $meetingType = $this->introMeetingService->getIntroMeetingType($lead);
-        
+
         if (!$meetingType) {
             throw new \RuntimeException("Lead does not have an intro meeting type set");
         }
@@ -49,11 +48,11 @@ class NoShowHandler extends AbstractOutcomeHandler
 
         $result = $this->logEvents($leadId, $context['eventDate'] ?? null);
         $noteText = "{$meetingType->value} no-show";
-        
+
         if ($remaining > 0 && $meetingType->hasUsageLimit()) {
             $noteText .= ". Nog {$remaining} sessie(s) beschikbaar voor herboeking";
         }
-        
+
         if ($context['coachNote'] ?? null) {
             $noteText .= "\n" . $context['coachNote'];
         }
@@ -62,7 +61,7 @@ class NoShowHandler extends AbstractOutcomeHandler
             $leadId,
             $noteText,
             'Afspraak',
-            $context['eventDate'] ?? null
+            $context['eventDate'] ?? null,
         );
 
         $lead->set('cStage', LeadStage::FOLLOW_UP->value);
@@ -71,7 +70,7 @@ class NoShowHandler extends AbstractOutcomeHandler
         $this->handleFollowUp(
             $leadId,
             $context['callAgainDateTime'] ?? null,
-            "Niet opgedaagd {$meetingType->value} - Opnieuw boeken"
+            "Niet opgedaagd {$meetingType->value} - Opnieuw boeken",
         );
 
         $meeting = $this->meetingService->findPlannedMeeting($leadId);

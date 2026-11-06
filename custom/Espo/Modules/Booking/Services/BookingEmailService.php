@@ -2,14 +2,14 @@
 
 namespace Espo\Modules\Booking\Services;
 
-use Espo\ORM\EntityManager;
-use Espo\ORM\Entity;
-use Espo\Tools\EmailTemplate\Processor as MailTemplateProcessor;
 use Espo\Core\Mail\EmailSender;
-use Espo\Tools\EmailTemplate\Params as EmailTemplateParams;
-use Espo\Tools\EmailTemplate\Data as EmailTemplateData;
-use Espo\Modules\Crm\Entities\Meeting;
 use Espo\Modules\Crm\Business\Event\Ics;
+use Espo\Modules\Crm\Entities\Meeting;
+use Espo\ORM\Entity;
+use Espo\ORM\EntityManager;
+use Espo\Tools\EmailTemplate\Data as EmailTemplateData;
+use Espo\Tools\EmailTemplate\Params as EmailTemplateParams;
+use Espo\Tools\EmailTemplate\Processor as MailTemplateProcessor;
 
 readonly class BookingEmailService
 {
@@ -23,8 +23,8 @@ readonly class BookingEmailService
         private EntityManager $entityManager,
         private MailTemplateProcessor $mailTemplateProcessor,
         private EmailSender $emailSender,
-    )
-    {}
+    ) {
+    }
 
     public function getTemplateIdForMeeting(Entity $meeting, string $templateType): ?string
     {
@@ -76,7 +76,7 @@ readonly class BookingEmailService
             'endDate' => strtotime($meeting->get('dateEnd')),
             'uid' => $meeting->get('id'),
             'summary' => $meeting->get('name'),
-            'description' => $meeting->get('description')
+            'description' => $meeting->get('description'),
         ]);
 
         $icsContent = $ics->get();
@@ -86,7 +86,7 @@ readonly class BookingEmailService
             'name' =>  $meeting->get('name') . '.ics',
             'type' => 'text/calendar',
             'role' => 'Attachment',
-            'contents' => $icsContent
+            'contents' => $icsContent,
         ]);
         $this->entityManager->saveEntity($attachment);
 
@@ -96,7 +96,7 @@ readonly class BookingEmailService
             EmailTemplateData::create()->withEntityHash([
                 Meeting::ENTITY_TYPE => $meeting,
                 'Person' => $person,
-            ])
+            ]),
         );
 
         $attachments = $emailData->getAttachmentList();
@@ -110,7 +110,7 @@ readonly class BookingEmailService
             'parentType' => $person->getEntityType(),
             'parentId' => $person->get('id'),
             'to' => $person->get('emailAddress'),
-            'attachmentsIds' => array_map(fn($a) => $a->get('id'), $attachments) 
+            'attachmentsIds' => array_map(fn($a) => $a->get('id'), $attachments),
         ]);
 
         $this->emailSender
