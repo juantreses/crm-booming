@@ -5,6 +5,7 @@
 /data/config.php
 /data/config-internal.php
 /data/state.php
+/data/.backup/
 /install/
 .env
 
