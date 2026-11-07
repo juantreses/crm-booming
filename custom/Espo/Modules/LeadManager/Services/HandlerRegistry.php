@@ -2,15 +2,27 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
+use Espo\Modules\LeadManager\Handlers\Call\CalledHandler;
+use Espo\Modules\LeadManager\Handlers\Call\InvitedHandler;
+use Espo\Modules\LeadManager\Handlers\Call\CallAgainHandler;
+use Espo\Modules\LeadManager\Handlers\Call\NoAnswerHandler;
+use Espo\Modules\LeadManager\Handlers\Call\WrongNumberHandler;
+use Espo\Modules\LeadManager\Handlers\Call\NotInterestedHandler;
+use Espo\Modules\LeadManager\Handlers\Kickstart\BecameClientHandler;
+use Espo\Modules\LeadManager\Handlers\Kickstart\BookedHandler;
+use Espo\Modules\LeadManager\Handlers\Kickstart\NoShowHandler;
+use Espo\Modules\LeadManager\Handlers\Kickstart\NotConvertedHandler;
+use Espo\Modules\LeadManager\Handlers\Kickstart\StillThinkingHandler;
+use Espo\Modules\LeadManager\Handlers\Kickstart\CancelledHandler;
+use Espo\Modules\LeadManager\Handlers\KickstartFollowUp\BecameClientFollowUpHandler;
+use Espo\Modules\LeadManager\Handlers\KickstartFollowUp\NotConvertedFollowUpHandler;
+use Espo\Modules\LeadManager\Handlers\IntroMeeting\AttendanceHandler;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Custom\Enums\CallOutcome;
 use Espo\Custom\Enums\IntroMeetingOutcome;
 use Espo\Custom\Enums\KickstartOutcome;
 use Espo\Custom\Enums\MessageSentOutcome;
-use Espo\Modules\LeadManager\Handlers\Call;
 use Espo\Modules\LeadManager\Handlers\IntroMeeting;
-use Espo\Modules\LeadManager\Handlers\Kickstart;
-use Espo\Modules\LeadManager\Handlers\KickstartFollowUp;
 use Espo\Modules\LeadManager\Handlers\Message;
 use Espo\Modules\LeadManager\Handlers\OutcomeHandler;
 use Espo\Modules\LeadManager\Handlers\Royalty;
@@ -23,34 +35,32 @@ readonly class HandlerRegistry
     private array $messageHandlers;
     private array $kickstartFollowUpHandlers;
     private array $introMeetingHandlers;
-    private Kickstart\BookedHandler $kickstartBookingHandler;
     private array $royaltyHandlers;
     private array $royaltyFollowUpHandlers;
-    private Royalty\BookedHandler $royaltyBookingHandler;
 
     public function __construct(
-        Call\CalledHandler $calledHandler,
-        Call\InvitedHandler $callInvitedHandler,
-        Call\CallAgainHandler $callAgainHandler,
-        Call\NoAnswerHandler $noAnswerHandler,
-        Call\WrongNumberHandler $wrongNumberHandler,
-        Call\NotInterestedHandler $callNotInterestedHandler,
-        Kickstart\BecameClientHandler $becameClientHandler,
-        Kickstart\BookedHandler $kickstartBookedHandler,
-        Kickstart\NoShowHandler $noShowHandler,
-        Kickstart\NotConvertedHandler $notConvertedHandler,
-        Kickstart\StillThinkingHandler $stillThinkingHandler,
-        Kickstart\CancelledHandler $cancelledHandler,
-        KickstartFollowUp\BecameClientFollowUpHandler $becameClientFollowUpHandler,
-        KickstartFollowUp\NotConvertedFollowUpHandler $notConvertedFollowUpHandler,
+        CalledHandler $calledHandler,
+        InvitedHandler $callInvitedHandler,
+        CallAgainHandler $callAgainHandler,
+        NoAnswerHandler $noAnswerHandler,
+        WrongNumberHandler $wrongNumberHandler,
+        NotInterestedHandler $callNotInterestedHandler,
+        BecameClientHandler $becameClientHandler,
+        private BookedHandler $kickstartBookingHandler,
+        NoShowHandler $noShowHandler,
+        NotConvertedHandler $notConvertedHandler,
+        StillThinkingHandler $stillThinkingHandler,
+        CancelledHandler $cancelledHandler,
+        BecameClientFollowUpHandler $becameClientFollowUpHandler,
+        NotConvertedFollowUpHandler $notConvertedFollowUpHandler,
         Message\InvitedHandler $messageInvitedHandler,
         Message\NotInterestedHandler $messageNotInterestedHandler,
         Message\CallAgainHandler $messageCallAgainHandler,
-        IntroMeeting\AttendanceHandler $introAttendanceHandler,
+        AttendanceHandler $introAttendanceHandler,
         IntroMeeting\NoShowHandler $introNoShowHandler,
         IntroMeeting\CancelledHandler $introCancelledHandler,
         Royalty\BecameClientHandler $royaltyBecameClientHandler,
-        Royalty\BookedHandler $royaltyBookedHandler,
+        private Royalty\BookedHandler $royaltyBookingHandler,
         Royalty\NoShowHandler $royaltyNoShowHandler,
         Royalty\NotConvertedHandler $royaltyNotConvertedHandler,
         Royalty\StillThinkingHandler $royaltyStillThinkingHandler,
@@ -74,7 +84,6 @@ readonly class HandlerRegistry
             KickstartOutcome::STILL_THINKING->value => $stillThinkingHandler,
             KickstartOutcome::CANCELLED->value => $cancelledHandler,
         ];
-        $this->kickstartBookingHandler = $kickstartBookedHandler;
 
         $this->messageHandlers = [
             MessageSentOutcome::INVITED->value => $messageInvitedHandler,
@@ -100,7 +109,6 @@ readonly class HandlerRegistry
             KickstartOutcome::STILL_THINKING->value => $royaltyStillThinkingHandler,
             KickstartOutcome::CANCELLED->value => $royaltyCancelledHandler,
         ];
-        $this->royaltyBookingHandler = $royaltyBookedHandler;
 
         $this->royaltyFollowUpHandlers = [
             KickstartOutcome::BECAME_CLIENT->value => $royaltyBecameClientFollowUpHandler,

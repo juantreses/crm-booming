@@ -24,7 +24,7 @@ readonly class LeadEventLogService
     ): array {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
 
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             throw new NotFound('Lead not found');
         }
 

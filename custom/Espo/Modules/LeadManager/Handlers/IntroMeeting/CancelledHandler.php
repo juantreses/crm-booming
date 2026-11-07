@@ -36,13 +36,13 @@ class CancelledHandler extends AbstractOutcomeHandler
     public function handle(string $leadId, array $context): OutcomeResult
     {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             throw new \RuntimeException("Lead not found: {$leadId}");
         }
 
         $meetingType = $this->introMeetingService->getIntroMeetingType($lead);
 
-        if (!$meetingType) {
+        if (!$meetingType instanceof IntroMeetingType) {
             throw new \RuntimeException("Lead does not have an intro meeting type set");
         }
 
@@ -61,23 +61,17 @@ class CancelledHandler extends AbstractOutcomeHandler
         );
 
         $meeting = $this->meetingService->findPlannedMeeting($leadId);
-        if ($meeting) {
+        if ($meeting instanceof Entity) {
             $this->meetingService->markAsCancelled($meeting);
         }
 
         $cancellationAction = $context['cancellationAction'] ?? 'cancel_stop';
 
-        switch ($cancellationAction) {
-            case 'reschedule_now':
-                return $this->handleRescheduleNow($lead, $context, $result);
-
-            case 'reschedule_later':
-                return $this->handleRescheduleLater($lead, $context, $result, $meetingType);
-
-            case 'cancel_stop':
-            default:
-                return $this->handleCancelStop($lead, $meetingType, $result);
-        }
+        return match ($cancellationAction) {
+            'reschedule_now' => $this->handleRescheduleNow($lead, $context, $result),
+            'reschedule_later' => $this->handleRescheduleLater($lead, $context, $result, $meetingType),
+            default => $this->handleCancelStop($lead, $meetingType, $result),
+        };
     }
 
     /**
@@ -90,13 +84,13 @@ class CancelledHandler extends AbstractOutcomeHandler
         }
 
         $calendar = $this->entityManager->getEntityById('CCalendar', $context['calendarId']);
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             throw new \RuntimeException("Calendar not found: {$context['calendarId']}");
         }
 
         $calendarType = $calendar->get('type');
         $nextMeetingType = IntroMeetingType::fromCalendarType($calendarType);
-        if (!$nextMeetingType) {
+        if (!$nextMeetingType instanceof IntroMeetingType) {
             throw new \InvalidArgumentException("Calendar type '{$calendarType}' is not an intro meeting");
         }
 
@@ -109,7 +103,6 @@ class CancelledHandler extends AbstractOutcomeHandler
             $lead,
             $context['selectedDate'],
             $context['selectedTime'],
-            null,
         );
 
         $eventId = $this->eventLogService->logEvent(

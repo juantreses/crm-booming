@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
+use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
 readonly class LeadCallCountService
@@ -15,7 +16,7 @@ readonly class LeadCallCountService
     {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
 
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             return 0;
         }
 
@@ -26,7 +27,7 @@ readonly class LeadCallCountService
     {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
 
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             throw new \RuntimeException("Lead not found: {$leadId}");
         }
 
@@ -43,7 +44,7 @@ readonly class LeadCallCountService
     {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
 
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             return;
         }
 

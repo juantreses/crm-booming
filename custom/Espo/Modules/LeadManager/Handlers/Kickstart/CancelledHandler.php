@@ -56,7 +56,7 @@ class CancelledHandler extends AbstractOutcomeHandler
             case 'reschedule_now':
                 if (!empty($context['calendarId']) && !empty($context['selectedDate'])) {
                     $lead = $this->entityManager->getEntityById('Lead', $leadId);
-                    if ($lead) {
+                    if ($lead instanceof Entity) {
                         $this->meetingService->createInternalMeeting(
                             $context['calendarId'],
                             $lead,
@@ -117,7 +117,7 @@ class CancelledHandler extends AbstractOutcomeHandler
     {
         $calendarId = $this->slugService->resolve('CCalendar', $calendarIdentifier);
         $calendar = $calendarId ? $this->entityManager->getEntityById('CCalendar', $calendarId) : null;
-        $calendarType = $calendar ? (string) $calendar->get('type') : null;
+        $calendarType = $calendar instanceof Entity ? (string) $calendar->get('type') : null;
 
         if (!KickstartCalendarType::isKickstart($calendarType) || $lead->get('cMeetingType') === $calendarType) {
             return;

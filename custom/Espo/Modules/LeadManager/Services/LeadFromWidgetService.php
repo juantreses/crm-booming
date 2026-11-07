@@ -44,7 +44,7 @@ readonly class LeadFromWidgetService
         ];
     }
 
-    private function extractSurveyData($data)
+    private function extractSurveyData(array $data): array
     {
         $surveyResults = [
             'Wat had je vanmorgen als ontbijt?' => $data['ontbijt'] ?? [],

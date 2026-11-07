@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
+use Espo\ORM\Entity;
 use Espo\Core\Acl;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
@@ -46,7 +47,7 @@ readonly class LeadEventService
 
         $handler = $this->handlerRegistry->getCallHandler($callData->outcome->value);
 
-        $GLOBALS['log']->info('Handler: ' . get_class($handler));
+        $GLOBALS['log']->info('Handler: ' . $handler::class);
 
         $context = [
             'eventDate' => $callData->callDateTime,
@@ -231,7 +232,7 @@ readonly class LeadEventService
 
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
 
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             throw new NotFound('Lead not found');
         }
 

@@ -2,6 +2,8 @@
 
 namespace Espo\Modules\LeadManager\Handlers\IntroMeeting;
 
+use Espo\ORM\Entity;
+use Espo\Custom\Enums\IntroMeetingType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
 use Espo\Modules\LeadManager\Handlers\AbstractOutcomeHandler;
@@ -34,13 +36,13 @@ class NoShowHandler extends AbstractOutcomeHandler
     public function handle(string $leadId, array $context): OutcomeResult
     {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             throw new \RuntimeException("Lead not found: {$leadId}");
         }
 
         $meetingType = $this->introMeetingService->getIntroMeetingType($lead);
 
-        if (!$meetingType) {
+        if (!$meetingType instanceof IntroMeetingType) {
             throw new \RuntimeException("Lead does not have an intro meeting type set");
         }
 
@@ -74,7 +76,7 @@ class NoShowHandler extends AbstractOutcomeHandler
         );
 
         $meeting = $this->meetingService->findPlannedMeeting($leadId);
-        if ($meeting) {
+        if ($meeting instanceof Entity) {
             $this->meetingService->markAsNotHeld($meeting);
         }
 

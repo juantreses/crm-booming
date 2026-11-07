@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\LeadManager\Handlers\IntroMeeting;
 
+use Espo\ORM\Entity;
 use Espo\Custom\Enums\IntroMeetingType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
@@ -41,21 +42,21 @@ class InvitedHandler extends AbstractOutcomeHandler
         }
 
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             throw new \RuntimeException("Lead not found: {$leadId}");
         }
 
         $calendarId = $this->slugService->resolve('CCalendar', $context['calendarId']);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
 
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             throw new \RuntimeException("Calendar not found: {$context['calendarId']}");
         }
 
         $calendarType = $calendar->get('type');
         $meetingType = IntroMeetingType::fromCalendarType($calendarType);
 
-        if (!$meetingType) {
+        if (!$meetingType instanceof IntroMeetingType) {
             throw new \InvalidArgumentException("Calendar type '{$calendarType}' is not an intro meeting");
         }
 

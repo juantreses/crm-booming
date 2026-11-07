@@ -11,7 +11,7 @@ use Espo\ORM\EntityManager;
 
 readonly class LeadStatusService
 {
-    private const STATUS_MAP = [
+    private const array STATUS_MAP = [
         LeadEventType::ASSIGNED->value => [
             'status' => LeadStatus::ASSIGNED->value,
             'cStage' => LeadStage::TO_CALL->value,
@@ -103,10 +103,6 @@ readonly class LeadStatusService
 
     /**
      * Update lead status based on event type
-     *
-     * @param Entity $lead
-     * @param LeadEventType $eventType
-     * @return void
      */
     public function updateStatus(Entity $lead, LeadEventType $eventType): void
     {
@@ -124,9 +120,6 @@ readonly class LeadStatusService
 
     /**
      * Handle NO_ANSWER event with call count logic
-     *
-     * @param Entity $lead
-     * @return void
      */
     private function handleNoAnswerStatus(Entity $lead): void
     {

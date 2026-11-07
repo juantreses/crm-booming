@@ -35,7 +35,7 @@ readonly class LeadEventApi
                 'message' => 'Call logged successfully',
                 'data' => $result,
             ];
-        } catch (Conflict $e) {
+        } catch (Conflict) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
             // Re-throw BadRequest exceptions as-is (Validation errors)
@@ -48,7 +48,7 @@ readonly class LeadEventApi
                 'callAgainDateTime' => $data->callAgainDateTime ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to log call: ' . $e->getMessage());
+            throw new BadRequest('Failed to log call: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -77,7 +77,7 @@ readonly class LeadEventApi
                 'eventDate' => $data->kickstartDateTime ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to log kickstart: ' . $e->getMessage());
+            throw new BadRequest('Failed to log kickstart: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -105,7 +105,7 @@ readonly class LeadEventApi
                 'leadId' => $data->id,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to log message sent: ' . $e->getMessage());
+            throw new BadRequest('Failed to log message sent: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -133,7 +133,7 @@ readonly class LeadEventApi
                 'callAgainDateTime' => $data->callAgainDateTime,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to log message outcome: ' . $e->getMessage());
+            throw new BadRequest('Failed to log message outcome: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -160,7 +160,7 @@ readonly class LeadEventApi
                 'callAgainDateTime' => $data->callAgainDateTime,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to log kickstart follow up: ' . $e->getMessage());
+            throw new BadRequest('Failed to log kickstart follow up: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -179,7 +179,7 @@ readonly class LeadEventApi
                 'message' => 'Intro meeting logged successfully',
                 'data' => $result,
             ];
-        } catch (Conflict $e) {
+        } catch (Conflict) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
             throw $e;
@@ -190,7 +190,7 @@ readonly class LeadEventApi
                 'eventDate' => $data->introDateTime ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to log intro meeting: ' . $e->getMessage());
+            throw new BadRequest('Failed to log intro meeting: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -209,7 +209,7 @@ readonly class LeadEventApi
                 'message' => 'Kickstart booked successfully',
                 'data' => $result,
             ];
-        } catch (Conflict $e) {
+        } catch (Conflict) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
             throw $e;
@@ -219,7 +219,7 @@ readonly class LeadEventApi
                 'eventDate' => $data->eventDate ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to book kickstart: ' . $e->getMessage());
+            throw new BadRequest('Failed to book kickstart: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -238,7 +238,7 @@ readonly class LeadEventApi
                 'message' => 'Royalty logged successfully',
                 'data' => $result,
             ];
-        } catch (Conflict $e) {
+        } catch (Conflict) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
             throw $e;
@@ -249,7 +249,7 @@ readonly class LeadEventApi
                 'eventDate' => $data->kickstartDateTime ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to log royalty: ' . $e->getMessage());
+            throw new BadRequest('Failed to log royalty: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -275,7 +275,7 @@ readonly class LeadEventApi
                 'leadId' => $data->id ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to log royalty follow up: ' . $e->getMessage());
+            throw new BadRequest('Failed to log royalty follow up: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -294,7 +294,7 @@ readonly class LeadEventApi
                 'message' => 'Royalty booked successfully',
                 'data' => $result,
             ];
-        } catch (Conflict $e) {
+        } catch (Conflict) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest $e) {
             throw $e;
@@ -304,7 +304,7 @@ readonly class LeadEventApi
                 'eventDate' => $data->eventDate ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to book royalty: ' . $e->getMessage());
+            throw new BadRequest('Failed to book royalty: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -331,7 +331,7 @@ readonly class LeadEventApi
                 'leadId' => $data->id ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('Failed to reset lead: ' . $e->getMessage());
+            throw new BadRequest('Failed to reset lead: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 }

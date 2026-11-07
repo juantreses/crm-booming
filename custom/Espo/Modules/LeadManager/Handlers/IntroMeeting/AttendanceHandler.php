@@ -51,14 +51,14 @@ class AttendanceHandler extends AbstractOutcomeHandler
     public function handle(string $leadId, array $context): OutcomeResult
     {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             throw new \RuntimeException("Lead not found: {$leadId}");
         }
 
         // Get intro meeting type
         $meetingType = $this->introMeetingService->getIntroMeetingType($lead);
 
-        if (!$meetingType) {
+        if (!$meetingType instanceof IntroMeetingType) {
             throw new \RuntimeException("Lead does not have an intro meeting type set");
         }
 
@@ -79,22 +79,21 @@ class AttendanceHandler extends AbstractOutcomeHandler
 
         if ($hasImmediateBooking) {
             return $this->handleImmediateBooking($lead, $context, $meetingType, $homRating);
-        } else {
-            return $this->handleStandardAttendance($lead, $context, $meetingType, $nextStage, $homRating);
         }
+        return $this->handleStandardAttendance($lead, $context, $meetingType, $nextStage, $homRating);
     }
 
     private function resolveHomRating(IntroMeetingType $meetingType, ?HomRating $homRating): ?HomRating
     {
         if ($meetingType !== IntroMeetingType::HOM) {
-            if ($homRating) {
+            if ($homRating instanceof HomRating) {
                 throw new BadRequest('HOM-uitkomst is enkel mogelijk bij een HOM.');
             }
 
             return null;
         }
 
-        if (!$homRating) {
+        if (!$homRating instanceof HomRating) {
             throw new BadRequest('HOM-uitkomst (A/B/C/D) is verplicht.');
         }
 
@@ -103,7 +102,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
 
     private function buildAttendanceNote(?HomRating $homRating, string $noteText): string
     {
-        if ($homRating) {
+        if ($homRating instanceof HomRating) {
             $noteText .= "\nHOM-uitkomst: {$homRating->value}";
         }
 
@@ -115,7 +114,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
      */
     private function assertNextBookingAllowed(?HomRating $homRating, string $nextCalendarType): void
     {
-        if (!$homRating) {
+        if (!$homRating instanceof HomRating) {
             if ($nextCalendarType === 'royalty') {
                 throw new BadRequest('Een RI kan enkel geboekt worden na een HOM met uitkomst C of D.');
             }
@@ -137,7 +136,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
         $nextCalendarId = $this->slugService->resolve('CCalendar', $context['nextBooking']['calendarId']);
         $nextCalendar = $this->entityManager->getEntityById('CCalendar', $nextCalendarId);
 
-        if (!$nextCalendar) {
+        if (!$nextCalendar instanceof Entity) {
             throw new \RuntimeException("Next booking calendar not found");
         }
 
@@ -186,7 +185,6 @@ class AttendanceHandler extends AbstractOutcomeHandler
             $lead,
             $context['nextBooking']['selectedDate'],
             $context['nextBooking']['selectedTime'],
-            null,
         );
 
         if (KickstartCalendarType::isKickstart($nextCalendarType)) {
@@ -200,7 +198,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
             $bookingNote = "Direct RI geboekt na {$attendedType->value}";
         } else {
             $nextMeetingType = IntroMeetingType::fromCalendarType($nextCalendarType);
-            if ($nextMeetingType) {
+            if ($nextMeetingType instanceof IntroMeetingType) {
                 if (!$this->introMeetingService->canBook($lead, $nextMeetingType)) {
                     throw new \RuntimeException("Lead cannot book {$nextMeetingType->value}");
                 }
@@ -281,7 +279,7 @@ class AttendanceHandler extends AbstractOutcomeHandler
         $lead->set('cStage', $nextStage->value);
         $this->entityManager->saveEntity($lead);
 
-        if ($nextStage === LeadStage::INTRO_ATTENDED && $homRating) {
+        if ($nextStage === LeadStage::INTRO_ATTENDED && $homRating instanceof HomRating) {
             $this->followUpService->setFollowUpActionText($leadId, "SPARK of Kickstart boeken");
         } elseif ($nextStage === LeadStage::INTRO_ATTENDED) {
             $this->followUpService->setFollowUpActionText(

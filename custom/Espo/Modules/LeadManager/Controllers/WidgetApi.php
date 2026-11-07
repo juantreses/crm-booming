@@ -8,7 +8,7 @@ use Espo\Modules\LeadManager\Services\LeadFromWidgetService;
 class WidgetApi
 {
     public function __construct(
-        private LeadFromWidgetService $leadFromWidgetService,
+        private readonly LeadFromWidgetService $leadFromWidgetService,
     ) {
     }
 

@@ -10,7 +10,7 @@ namespace Espo\Modules\LeadManager\Services;
  */
 class PhoneFormatterService
 {
-    private const DEFAULT_COUNTRY_CODE = '32'; // Belgium
+    private const string DEFAULT_COUNTRY_CODE = '32'; // Belgium
 
     /**
      * Format phone number to E.164 format
@@ -51,7 +51,6 @@ class PhoneFormatterService
      * Must be: +[country code][number] (max 15 digits total)
      *
      * @param string $phone Phone number to validate
-     * @return bool
      */
     private function validateE164(string $phone): bool
     {
@@ -62,7 +61,6 @@ class PhoneFormatterService
      * Validate Belgian phone number specifically
      *
      * @param string $phone Phone number to validate
-     * @return bool
      */
     public function isValidBelgianNumber(string $phone): bool
     {

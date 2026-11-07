@@ -22,7 +22,7 @@ readonly class LeadMeetingService
         ?string $coachNote = null,
     ): void {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             return;
         }
 
@@ -65,21 +65,21 @@ readonly class LeadMeetingService
 
     public function markAsHeld(?Entity $meeting): void
     {
-        if ($meeting) {
+        if ($meeting instanceof Entity) {
             $this->setMeetingStatus($meeting, 'Held');
         }
     }
 
     public function markAsNotHeld(?Entity $meeting): void
     {
-        if ($meeting) {
+        if ($meeting instanceof Entity) {
             $this->setMeetingStatus($meeting, 'Not Held');
         }
     }
 
     public function markAsCancelled(?Entity $meeting): void
     {
-        if ($meeting) {
+        if ($meeting instanceof Entity) {
             $this->setMeetingStatus($meeting, 'Cancelled');
         }
     }

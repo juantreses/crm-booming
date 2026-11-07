@@ -54,14 +54,14 @@ class InvitedHandler extends AbstractOutcomeHandler
         }
 
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             throw new \RuntimeException("Lead not found: {$leadId}");
         }
 
         $calendarId = $this->slugService->resolve('CCalendar', $context['calendarId']);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
 
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             throw new \RuntimeException("Calendar not found: {$context['calendarId']}");
         }
 
@@ -121,7 +121,7 @@ class InvitedHandler extends AbstractOutcomeHandler
     {
         $meetingType = IntroMeetingType::fromCalendarType($calendarType);
 
-        if (!$meetingType) {
+        if (!$meetingType instanceof IntroMeetingType) {
             return $result;
         }
 

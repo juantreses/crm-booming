@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
+use Espo\ORM\Entity;
 use Espo\Modules\Utils\DateTimeFactory;
 use Espo\ORM\EntityManager;
 
@@ -19,7 +20,7 @@ readonly class LeadNotesService
         ?string $eventDate = null,
     ): void {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             return;
         }
 

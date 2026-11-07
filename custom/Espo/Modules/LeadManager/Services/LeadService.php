@@ -34,7 +34,7 @@ readonly class LeadService
             $person = $this->lookupBy('phoneNumber', $formattedPhone);
         }
 
-        if (!$person) {
+        if (!$person instanceof Entity) {
             $person = $this->createLead($data);
         }
 
@@ -57,7 +57,7 @@ readonly class LeadService
             ->where([$fieldName => $value])
             ->findOne();
 
-        if ($contact) {
+        if ($contact instanceof Entity) {
             return $contact;
         }
 
@@ -104,7 +104,7 @@ readonly class LeadService
         }
 
         $newCoach = $this->entityManager->getEntityById('User', $newCoachId);
-        if (!$newCoach) {
+        if (!$newCoach instanceof Entity) {
             return;
         }
 
@@ -139,7 +139,7 @@ readonly class LeadService
             ->where('assignedUserId', $newCoachId)
             ->findOne();
 
-        if ($team) {
+        if ($team instanceof Entity) {
             $person->set('cTeamId', $team->getId());
             $person->set('status', LeadStatus::ASSIGNED->value);
             if (!$person->get('cStage')) {
@@ -190,7 +190,7 @@ readonly class LeadService
 
         $team = $this->entityManager->getEntityById('CTeam', $cTeamId);
 
-        return $team && $team->get('assignedUserId') === $coachUserId;
+        return $team instanceof Entity && $team->get('assignedUserId') === $coachUserId;
     }
 
     private function isLeadEligibleForReassignment(Entity $lead): bool
@@ -204,7 +204,7 @@ readonly class LeadService
             ->order('eventDate', 'DESC')
             ->findOne();
 
-        $lastActivityDate = $lastEvent
+        $lastActivityDate = $lastEvent instanceof Entity
             ? new DateTime($lastEvent->get('eventDate'))
             : new DateTime($lead->get('createdAt'));
 

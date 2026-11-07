@@ -56,21 +56,21 @@ class InvitedHandler extends AbstractOutcomeHandler
         }
 
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             throw new \RuntimeException("Lead not found: {$leadId}");
         }
 
         $calendarId = $this->slugService->resolve('CCalendar', $context['calendarId']);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
 
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             throw new \RuntimeException("Calendar not found: {$context['calendarId']}");
         }
 
         $calendarType = $calendar->get('type');
         $meetingType = IntroMeetingType::fromCalendarType($calendarType);
 
-        if ($meetingType && !$this->introMeetingService->canBook($lead, $meetingType)) {
+        if ($meetingType instanceof IntroMeetingType && !$this->introMeetingService->canBook($lead, $meetingType)) {
             throw new \RuntimeException("Lead cannot book {$meetingType->value}");
         }
 
@@ -90,7 +90,7 @@ class InvitedHandler extends AbstractOutcomeHandler
             return $this->handleRoyaltyBooking($lead, $result, $context['eventDate'] ?? null);
         }
 
-        if ($meetingType) {
+        if ($meetingType instanceof IntroMeetingType) {
             return $this->handleIntroBooking($lead, $result, $meetingType, $context['eventDate'] ?? null);
         }
 

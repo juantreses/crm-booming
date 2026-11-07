@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
+use Espo\ORM\Entity;
 use Espo\Modules\Utils\DateTimeFactory;
 use Espo\ORM\EntityManager;
 
@@ -18,7 +19,7 @@ readonly class LeadFollowUpService
         string $followUpNote = 'Opnieuw bellen',
     ): void {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             return;
         }
 
@@ -33,7 +34,7 @@ readonly class LeadFollowUpService
     public function setFollowUpActionText(string $leadId, string $text): void
     {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             return;
         }
 
@@ -44,7 +45,7 @@ readonly class LeadFollowUpService
     public function clearFollowUpAction(string $leadId): void
     {
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             return;
         }
 

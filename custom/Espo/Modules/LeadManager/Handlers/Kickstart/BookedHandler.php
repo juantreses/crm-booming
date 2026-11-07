@@ -2,6 +2,7 @@
 
 namespace Espo\Modules\LeadManager\Handlers\Kickstart;
 
+use Espo\ORM\Entity;
 use Espo\Custom\Enums\KickstartCalendarType;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\Custom\Enums\LeadStage;
@@ -42,14 +43,14 @@ class BookedHandler extends AbstractOutcomeHandler
         }
 
         $lead = $this->entityManager->getEntityById('Lead', $leadId);
-        if (!$lead) {
+        if (!$lead instanceof Entity) {
             throw new \RuntimeException("Lead not found: {$leadId}");
         }
 
         $calendarId = $this->slugService->resolve('CCalendar', $context['calendarId']);
         $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
 
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             throw new \RuntimeException("Calendar not found: {$context['calendarId']}");
         }
 

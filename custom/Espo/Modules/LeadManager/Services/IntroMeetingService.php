@@ -36,7 +36,7 @@ readonly class IntroMeetingService
 
     private function determineNextStage(Entity $lead, IntroMeetingType $meetingType, ?HomRating $homRating): LeadStage
     {
-        if ($meetingType === IntroMeetingType::HOM && $homRating) {
+        if ($meetingType === IntroMeetingType::HOM && $homRating instanceof HomRating) {
             // A/B choose SPARK or Kickstart next, C/D go to a Royalty meeting
             return $homRating->leadsToRoyalty() ? LeadStage::BOOK_RI : LeadStage::INTRO_ATTENDED;
         }
@@ -98,7 +98,7 @@ readonly class IntroMeetingService
 
         $meetingType = IntroMeetingType::fromCalendarType($introType);
 
-        if (!$meetingType) {
+        if (!$meetingType instanceof IntroMeetingType) {
             return false;
         }
 
