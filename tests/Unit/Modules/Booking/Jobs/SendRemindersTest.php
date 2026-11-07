@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Modules\Booking\Jobs;
 
 use DateTime;
+use DateTimeImmutable;
 use DateTimeZone;
 use Espo\Modules\Booking\Jobs\SendReminders;
 use Espo\Modules\Booking\Services\BookingEmailService;
@@ -14,6 +15,7 @@ use Espo\ORM\EntityCollection;
 use Espo\ORM\Repository\RDBRepository;
 use Espo\ORM\Repository\RDBSelectBuilder;
 use Exception;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\FakeEntity;
 use Tests\Support\InMemoryEntityManager;
@@ -28,16 +30,73 @@ final class SendRemindersTest extends TestCase
     /** @var list<string> */
     private array $sent = [];
 
-    public function testSelectsPlannedMeetingsFromTomorrowUntilTwentyFourHoursFromNow(): void
+    public function testSelectsPlannedMeetingsWithoutReminderInTheWindow(): void
     {
         $this->runJob([]);
 
         self::assertNotNull($this->where);
         self::assertSame(['dateStart>=', 'dateStart<=', 'status', 'cReminderSent'], array_keys($this->where));
         self::assertSame((new DateTime('tomorrow', new DateTimeZone('UTC')))->format('Y-m-d H:i:s'), $this->where['dateStart>=']);
-        self::assertEqualsWithDelta(time() + 86400, strtotime($this->where['dateStart<='] . ' UTC'), 5);
+        self::assertEqualsWithDelta(time() + 25 * 3600, strtotime($this->where['dateStart<='] . ' UTC'), 5);
         self::assertSame('Planned', $this->where['status']);
         self::assertFalse($this->where['cReminderSent']);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string}>
+     */
+    public static function windows(): iterable
+    {
+        yield 'morning' => ['2026-01-19 08:00:00', '2026-01-20 00:00:00', '2026-01-20 09:00:00'];
+        yield 'last run of the day reaches the end of tomorrow' => ['2026-01-19 23:00:00', '2026-01-20 00:00:00', '2026-01-21 00:00:00'];
+        yield 'first run of the day' => ['2026-01-20 00:00:00', '2026-01-21 00:00:00', '2026-01-21 01:00:00'];
+        // 01:30 in Brussels (summer) is 23:30 UTC the day before.
+        yield 'given in another timezone' => ['2026-07-01 01:30:00 Europe/Brussels', '2026-07-01 00:00:00', '2026-07-02 00:30:00'];
+    }
+
+    #[DataProvider('windows')]
+    public function testWindow(string $now, string $from, string $until): void
+    {
+        self::assertSame([$from, $until], $this->job()->getWindow(new DateTimeImmutable($now)));
+    }
+
+    public function testEveryMeetingOfTomorrowGetsOneTimelyReminderFromTheHourlyRuns(): void
+    {
+        $job = $this->job();
+        $utc = new DateTimeZone('UTC');
+        $runs = [];
+        for ($run = new DateTimeImmutable('2026-01-18 00:00:00', $utc); $run < new DateTimeImmutable('2026-01-22 00:00:00', $utc); $run = $run->modify('+1 hour')) {
+            $runs[] = [$run, ...$job->getWindow($run)];
+        }
+
+        // Every 5 minutes on 20 January, including the last hour before midnight.
+        for ($meeting = new DateTimeImmutable('2026-01-20 00:00:00', $utc); $meeting < new DateTimeImmutable('2026-01-21 00:00:00', $utc); $meeting = $meeting->modify('+5 minutes')) {
+            $start = $meeting->format('Y-m-d H:i:s');
+            $first = null;
+
+            foreach ($runs as [$run, $from, $until]) {
+                if ($start >= $from && $start <= $until) {
+                    $first = $run;
+                    break;
+                }
+            }
+
+            self::assertNotNull($first, "No reminder for a meeting at $start");
+            $hoursBefore = ($meeting->getTimestamp() - $first->getTimestamp()) / 3600;
+            self::assertGreaterThanOrEqual(24, $hoursBefore, "Reminder for $start too late");
+            self::assertLessThanOrEqual(25, $hoursBefore, "Reminder for $start too early");
+        }
+    }
+
+    public function testMeetingsOfTodayAreNeverInTheWindow(): void
+    {
+        $job = $this->job();
+
+        foreach (['00:00', '09:00', '22:00', '23:00'] as $time) {
+            [$from] = $job->getWindow(new DateTimeImmutable("2026-01-20 $time:00", new DateTimeZone('UTC')));
+
+            self::assertSame('2026-01-21 00:00:00', $from);
+        }
     }
 
     public function testSendsReminderAndMarksMeeting(): void
@@ -115,5 +174,10 @@ final class SendRemindersTest extends TestCase
         });
 
         (new SendReminders($entityManager, $emailService))->run();
+    }
+
+    private function job(): SendReminders
+    {
+        return new SendReminders($this->inMemoryEntityManager(), $this->createStub(BookingEmailService::class));
     }
 }

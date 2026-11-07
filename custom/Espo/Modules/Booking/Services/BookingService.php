@@ -58,10 +58,10 @@ readonly class BookingService
     public function createInternalMeeting(string $calendarIdentifier, Entity $person, string $date, string $time, ?string $notes = null, bool $isSparkCup = false): Entity
     {
         $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
-        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
+        $calendar = $calendarId ? $this->entityManager->getEntityById('CCalendar', $calendarId) : null;
 
         if (!$calendar) {
-            throw new NotFound("Kalender met ID '$calendarId' niet gevonden.");
+            throw new NotFound("Kalender met ID '$calendarIdentifier' niet gevonden.");
         }
 
         $targetSlot = $this->findSlot($calendarId, $date, $time);

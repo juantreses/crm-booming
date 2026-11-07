@@ -20,7 +20,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\FakeEntity;
 use Tests\Support\InMemoryEntityManager;
-use TypeError;
 
 final class BookingServiceTest extends TestCase
 {
@@ -225,13 +224,16 @@ final class BookingServiceTest extends TestCase
         $this->service(slugService: $slugService)->createInternalMeeting('missing', $this->person, '2026-01-20', '18:00');
     }
 
-    public function testInternalMeetingWithUnknownCalendarSlugFailsWithTypeError(): void
+    public function testInternalMeetingWithUnknownCalendarSlug(): void
     {
-        // Same issue as fixed in LeadManager: SlugService returns null for an unknown slug,
-        // and getEntityById() requires a string, so the NotFound message is never reached.
-        $this->expectException(TypeError::class);
+        $this->expectException(NotFound::class);
+        $this->expectExceptionMessage("Kalender met ID 'bestaat-niet' niet gevonden.");
 
-        $this->service()->createInternalMeeting('bestaat-niet', $this->person, '2026-01-20', '18:00');
+        try {
+            $this->service()->createInternalMeeting('bestaat-niet', $this->person, '2026-01-20', '18:00');
+        } finally {
+            self::assertSame([], $this->created);
+        }
     }
 
     public function testWorkoutForLeadIsAlwaysASparkCup(): void

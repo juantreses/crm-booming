@@ -9,6 +9,7 @@
 #   bin/qa cs          PHP_CodeSniffer report
 #   bin/qa cs-fix      auto-fix what phpcbf can fix
 #   bin/qa stan        PHPStan static analysis (errors in phpstan-baseline.neon are ignored)
+#   bin/qa stan-all    PHPStan without the baseline: also the existing errors, with file and line
 #   bin/qa stan-baseline  regenerate phpstan-baseline.neon (only after fixing errors, or deliberately)
 #   bin/qa test        PHPUnit tests in tests/ (extra args go to phpunit, e.g. --filter SlugService)
 #   bin/qa rector      Rector dry-run (shows the diff, changes nothing)
@@ -56,7 +57,7 @@ resolve_paths() {
 }
 
 case "$cmd" in
-    cs|cs-fix|stan|rector|rector-fix) resolve_paths custom/Espo/Modules "$@"; set -- "${resolved[@]}" ;;
+    cs|cs-fix|stan|stan-all|rector|rector-fix) resolve_paths custom/Espo/Modules "$@"; set -- "${resolved[@]}" ;;
     test) resolve_paths tests/Unit/Modules "$@"; set -- "${resolved[@]}" ;;
 esac
 
@@ -91,6 +92,7 @@ case "$cmd" in
     cs)         require_tools; "$BIN/phpcs" "$@" ;;
     cs-fix)     require_tools; "$BIN/phpcbf" "$@" ;;
     stan)       require_tools; "$BIN/phpstan" analyse --memory-limit=1G "$@" ;;
+    stan-all)   require_tools; "$BIN/phpstan" analyse -c phpstan-base.neon --memory-limit=1G "$@" ;;
     stan-baseline) require_tools; "$BIN/phpstan" analyse --memory-limit=1G --generate-baseline phpstan-baseline.neon "$@" ;;
     test)       require_tools; "$BIN/phpunit" "$@" ;;
     rector)     require_tools; "$BIN/rector" process --dry-run "$@" ;;
@@ -105,7 +107,7 @@ case "$cmd" in
         exit $rc
         ;;
     *)
-        sed -n '2,20p' "$0"
+        sed -n '2,21p' "$0"
         exit 1
         ;;
 esac

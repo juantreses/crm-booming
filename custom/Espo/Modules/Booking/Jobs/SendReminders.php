@@ -2,7 +2,7 @@
 
 namespace Espo\Modules\Booking\Jobs;
 
-use DateTime;
+use DateTimeImmutable;
 use DateTimeZone;
 use Espo\Core\Job\JobDataLess;
 use Espo\Modules\Booking\Services\BookingEmailService;
@@ -11,6 +11,8 @@ use Espo\ORM\EntityManager;
 
 class SendReminders implements JobDataLess
 {
+    private const HOURS_AHEAD = 25;
+
     public function __construct(
         private EntityManager $entityManager,
         private BookingEmailService $emailService,
@@ -19,10 +21,7 @@ class SendReminders implements JobDataLess
 
     public function run(): void
     {
-        $tzUTC = new DateTimeZone('UTC');
-
-        $tomorrowStart = (new DateTime('tomorrow', $tzUTC))->format('Y-m-d H:i:s');
-        $tomorrowEnd = (new DateTime('now + 24 hours', $tzUTC))->format('Y-m-d H:i:s');
+        [$tomorrowStart, $tomorrowEnd] = $this->getWindow(new DateTimeImmutable('now'));
 
         $meetings = $this->entityManager->getRDBRepositoryByClass(Meeting::class)
             ->where([
@@ -54,5 +53,23 @@ class SendReminders implements JobDataLess
 
             $this->entityManager->saveEntity($meeting);
         }
+    }
+
+    /**
+     * Meetings (in UTC) that get their reminder in a run at $now: from tomorrow on, up to 25 hours ahead.
+     * The job runs every hour; looking 25 instead of 24 hours ahead makes the last run of the day
+     * also reach the meetings in the last hour of tomorrow, which would otherwise never get a reminder.
+     * Meetings of today get no reminder.
+     *
+     * @return array{string, string}
+     */
+    public function getWindow(DateTimeImmutable $now): array
+    {
+        $now = $now->setTimezone(new DateTimeZone('UTC'));
+
+        return [
+            $now->modify('tomorrow')->format('Y-m-d H:i:s'),
+            $now->modify('+' . self::HOURS_AHEAD . ' hours')->format('Y-m-d H:i:s'),
+        ];
     }
 }

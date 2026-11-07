@@ -178,6 +178,7 @@ Use `ESPO_CONTAINER=...` to point it at a different container name.
 bin/qa install      # once: installs Rector, PHPStan, PHPCS + PHPUnit into tools/vendor
 bin/qa all          # lint + coding standard + PHPStan + tests + Rector dry-run (run before committing)
 bin/qa stan         # PHPStan static analysis
+bin/qa stan-all     # PHPStan without baseline: also existing errors, with line numbers
 bin/qa test         # PHPUnit tests (tests/)
 bin/qa cs-fix       # auto-fix coding standard issues
 bin/qa rector       # show what Rector would change (dry-run)
@@ -185,7 +186,7 @@ bin/qa rector-fix   # apply Rector changes; review the diff with git afterwards
 bin/qa cs custom/Espo/Modules/Booking   # limit to one module
 ```
 
-Config: `rector.php`, `phpstan.neon.dist`, `phpcs.xml.dist` and `phpunit.xml.dist` in the repo root.
+Config: `rector.php`, `phpstan.neon.dist` (+ `phpstan-base.neon`), `phpcs.xml.dist` and `phpunit.xml.dist` in the repo root.
 
 ### Tests
 
@@ -221,6 +222,13 @@ bin/qa test
 PHPStan runs at level 5. The errors that already existed when it was added are listed in `phpstan-baseline.neon`
 and ignored, so `bin/qa stan` only fails on **new** errors. When you fix an error from the baseline, run
 `bin/qa stan-baseline` to remove it from the list. Don't regenerate the baseline just to hide a new error.
+
+The baseline only stores the message and file, not the line. To see the baselined errors with their line,
+run PHPStan without the baseline (settings in `phpstan-base.neon`, `phpstan.neon.dist` adds the baseline):
+
+```bash
+bin/qa stan-all Booking
+```
 
 ### PHP / Espo upgrades
 
