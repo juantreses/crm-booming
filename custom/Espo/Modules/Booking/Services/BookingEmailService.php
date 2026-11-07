@@ -3,6 +3,9 @@
 namespace Espo\Modules\Booking\Services;
 
 use Espo\Core\Mail\EmailSender;
+use Espo\Entities\Attachment;
+use Espo\Entities\Email;
+use Espo\Entities\EmailTemplate;
 use Espo\Modules\Crm\Business\Event\Ics;
 use Espo\Modules\Crm\Entities\Meeting;
 use Espo\ORM\Entity;
@@ -53,8 +56,8 @@ readonly class BookingEmailService
 
     public function sendMeetingEmail(Entity $meeting, string $templateId, string $icsMethod = Ics::METHOD_REQUEST): void
     {
-        $template = $this->entityManager->getEntityById('EmailTemplate', $templateId);
-        if (!$template instanceof Entity) {
+        $template = $this->entityManager->getRDBRepositoryByClass(EmailTemplate::class)->getById($templateId);
+        if (!$template instanceof EmailTemplate) {
             throw new \Exception("Email met id $templateId niet teruggevonden");
         }
 
@@ -81,7 +84,7 @@ readonly class BookingEmailService
 
         $icsContent = $ics->get();
 
-        $attachment = $this->entityManager->getNewEntity('Attachment');
+        $attachment = $this->entityManager->getRDBRepositoryByClass(Attachment::class)->getNew();
         $attachment->set([
             'name' =>  $meeting->get('name') . '.ics',
             'type' => 'text/calendar',
@@ -102,7 +105,7 @@ readonly class BookingEmailService
         $attachments = $emailData->getAttachmentList();
         $attachments[] = $attachment;
 
-        $email = $this->entityManager->getNewEntity('Email');
+        $email = $this->entityManager->getRDBRepositoryByClass(Email::class)->getNew();
         $email->set([
             'subject' => $emailData->getSubject(),
             'body' => $emailData->getBody(),

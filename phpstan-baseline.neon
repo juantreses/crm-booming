@@ -13,24 +13,6 @@ parameters:
 			path: custom/Espo/Custom/Services/EntitySyncService.php
 
 		-
-			message: '#^Parameter \#1 \$attachmentList of method Espo\\Core\\Mail\\Sender\:\:withAttachments\(\) expects iterable\<Espo\\Entities\\Attachment\>, array\<Espo\\ORM\\Entity\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: custom/Espo/Modules/Booking/Services/BookingEmailService.php
-
-		-
-			message: '#^Parameter \#1 \$email of method Espo\\Core\\Mail\\Sender\:\:send\(\) expects Espo\\Entities\\Email, Espo\\ORM\\Entity given\.$#'
-			identifier: argument.type
-			count: 1
-			path: custom/Espo/Modules/Booking/Services/BookingEmailService.php
-
-		-
-			message: '#^Parameter \#1 \$template of method Espo\\Tools\\EmailTemplate\\Processor\:\:process\(\) expects Espo\\Entities\\EmailTemplate, Espo\\ORM\\Entity given\.$#'
-			identifier: argument.type
-			count: 1
-			path: custom/Espo/Modules/Booking/Services/BookingEmailService.php
-
-		-
 			message: '#^Call to function is_countable\(\) with Espo\\ORM\\EntityCollection\|Espo\\ORM\\SthCollection will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1

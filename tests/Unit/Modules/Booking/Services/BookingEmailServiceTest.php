@@ -11,6 +11,7 @@ use Espo\Entities\EmailTemplate;
 use Espo\Modules\Booking\Services\BookingEmailService;
 use Espo\Modules\Crm\Business\Event\Ics;
 use Espo\ORM\Entity;
+use Espo\ORM\Repository\RDBRepository;
 use Espo\Tools\EmailTemplate\Data;
 use Espo\Tools\EmailTemplate\Processor;
 use Espo\Tools\EmailTemplate\Result;
@@ -222,6 +223,22 @@ final class BookingEmailServiceTest extends TestCase
             return $sender;
         });
 
-        return new BookingEmailService($this->inMemoryEntityManager(), $processor, $emailSender);
+        // The service gets the template and creates the attachment and email through typed repositories.
+        $entityManager = $this->inMemoryEntityManager();
+        $entityManager->method('getRDBRepositoryByClass')->willReturnCallback(function (string $class): RDBRepository {
+            $entityType = $class::ENTITY_TYPE;
+            $repository = $this->createStub(RDBRepository::class);
+            $repository->method('getById')->willReturnCallback(fn (string $id) => $this->records[$entityType][$id] ?? null);
+            $repository->method('getNew')->willReturnCallback(function () use ($entityType): Entity {
+                $entity = $this->newEntity($entityType, 'new' . (count($this->created) + 1));
+                $this->created[] = $entity;
+
+                return $entity;
+            });
+
+            return $repository;
+        });
+
+        return new BookingEmailService($entityManager, $processor, $emailSender);
     }
 }
