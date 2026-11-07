@@ -22,7 +22,7 @@ class StartDate implements Placeholder
             // Convert from UTC to Europe/Brussels timezone
             $dateTime->setTimezone(new \DateTimeZone('Europe/Brussels'));
             return $dateTime->format('d/m/Y');
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return '';
         }
     }

@@ -13,7 +13,7 @@ use Espo\Tools\EmailTemplate\Processor as MailTemplateProcessor;
 
 readonly class BookingEmailService
 {
-    private const TEMPLATE_FIELD_MAP = [
+    private const array TEMPLATE_FIELD_MAP = [
         'confirmation' => 'confirmationTemplateId',
         'reminder' => 'reminderTemplateId',
         'cancellation' => 'cancellationTemplateId',
@@ -36,7 +36,7 @@ readonly class BookingEmailService
         $availabilityId = $meeting->get('cAvailabilityId');
         if ($availabilityId) {
             $availability = $this->entityManager->getEntityById('CAvailability', $availabilityId);
-            if ($availability && $availability->get($templateField)) {
+            if ($availability instanceof Entity && $availability->get($templateField)) {
                 return $availability->get($templateField);
             }
         }
@@ -54,7 +54,7 @@ readonly class BookingEmailService
     public function sendMeetingEmail(Entity $meeting, string $templateId, string $icsMethod = Ics::METHOD_REQUEST): void
     {
         $template = $this->entityManager->getEntityById('EmailTemplate', $templateId);
-        if (!$template) {
+        if (!$template instanceof Entity) {
             throw new \Exception("Email met id $templateId niet teruggevonden");
         }
 
@@ -63,7 +63,7 @@ readonly class BookingEmailService
             throw new \Exception("Meeting niet gekoppeld aan lead/contact");
         }
         $person = $this->entityManager->getEntityById($meeting->get('parentType'), $parentId);
-        if (!$person) {
+        if (!$person instanceof Entity) {
             throw new \Exception("Lead/Contact met id $parentId niet teruggevonden");
         }
 

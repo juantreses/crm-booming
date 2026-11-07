@@ -35,7 +35,7 @@ class TelegramNotification implements AfterSave
         switch ($status) {
             case 'Tentative':
             case 'Planned':
-                if ($isNew && $calendar && KickstartCalendarType::isKickstart($calendar->get('type'))) {
+                if ($isNew && $calendar instanceof Entity && KickstartCalendarType::isKickstart($calendar->get('type'))) {
                     $this->sendKickstartAlert($meeting, $parent, $calendar);
                 }
                 break;
@@ -50,7 +50,7 @@ class TelegramNotification implements AfterSave
 
     private function sendKickstartAlert(Entity $meeting, ?Entity $parent, Entity $calendar): void
     {
-        if (!$parent) {
+        if (!$parent instanceof Entity) {
             return;
         }
 
@@ -81,7 +81,7 @@ class TelegramNotification implements AfterSave
         $coach = $coachId ? $this->entityManager->getEntityById('User', $coachId) : null;
 
         $tag = "";
-        if ($coach && $coach->get('cTelegramUsername')) {
+        if ($coach instanceof Entity && $coach->get('cTelegramUsername')) {
             $tag = " " . $coach->get('cTelegramUsername');
         }
 
@@ -93,7 +93,7 @@ class TelegramNotification implements AfterSave
         };
         $msg = "🚨 <b>{$type} Geannuleerd!</b>{$tag}\n\n";
 
-        if ($parent) {
+        if ($parent instanceof Entity) {
             $msg .= "👤 {$parent->get('name')}\n";
         }
 

@@ -60,8 +60,13 @@ readonly class BookingService
         $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
         $calendar = $calendarId ? $this->entityManager->getEntityById('CCalendar', $calendarId) : null;
 
+<<<<<<< HEAD
         if (!$calendar) {
             throw new NotFound("Kalender met ID '$calendarIdentifier' niet gevonden.");
+=======
+        if (!$calendar instanceof Entity) {
+            throw new NotFound("Kalender met ID '$calendarId' niet gevonden.");
+>>>>>>> 56bbb3ae (Rector fixes Booking)
         }
 
         $targetSlot = $this->findSlot($calendarId, $date, $time);
@@ -86,13 +91,13 @@ readonly class BookingService
         }
 
         $person = $this->entityManager->getEntityById($entityType, $entityId);
-        if (!$person) {
+        if (!$person instanceof Entity) {
             throw new NotFound("$entityType niet gevonden.");
         }
 
         // Er is maar één workout agenda; deze wordt niet door de gebruiker gekozen.
         $calendar = $this->calendarRepository->findActiveCalendarByType('workout');
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             throw new NotFound('Geen actieve workout agenda gevonden.');
         }
 
@@ -128,13 +133,13 @@ readonly class BookingService
         }
 
         $person = $this->entityManager->getEntityById($entityType, $entityId);
-        if (!$person) {
+        if (!$person instanceof Entity) {
             throw new NotFound("$entityType niet gevonden.");
         }
 
         // Er is maar één follow-up agenda; deze wordt niet door de gebruiker gekozen.
         $calendar = $this->calendarRepository->findActiveCalendarByType('followup');
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             throw new NotFound('Geen actieve follow-up agenda gevonden.');
         }
 
@@ -172,7 +177,7 @@ readonly class BookingService
         return $targetSlot;
     }
 
-    private function createMeeting($calendar, $person, string $dateStartString, array $targetSlot, ?string $notes = null, bool $isSparkCup = false): Entity
+    private function createMeeting(Entity $calendar, Entity $person, string $dateStartString, array $targetSlot, ?string $notes = null, bool $isSparkCup = false): Entity
     {
         $duration = $calendar->get('duration') ?? 60;
 
@@ -234,7 +239,7 @@ readonly class BookingService
             'status' => LeadStatus::ASSIGNED->value,
         ];
 
-        if ($meetingType) {
+        if ($meetingType instanceof IntroMeetingType) {
             $updates['cStage'] = LeadStage::INTRO_SCHEDULED->value;
             $updates['cMeetingType'] = $meetingType->value;
         } elseif (!$person->get('cStage')) {

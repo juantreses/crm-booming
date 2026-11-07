@@ -10,7 +10,7 @@ use Espo\ORM\Repository\Option\SaveOptions;
 
 class GroupAssignment implements BeforeSave
 {
-    private const FIELDS_TO_WATCH = [
+    private const array FIELDS_TO_WATCH = [
         'cTeam',
     ];
 
@@ -29,7 +29,7 @@ class GroupAssignment implements BeforeSave
             return;
         }
         $person = $this->entityManager->getEntityById($entity->get('parentType'), $entity->get('parentId'));
-        if (!$person) {
+        if (!$person instanceof Entity) {
             return;
         }
         try {

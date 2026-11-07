@@ -14,8 +14,8 @@ class SendReminders implements JobDataLess
     private const HOURS_AHEAD = 25;
 
     public function __construct(
-        private EntityManager $entityManager,
-        private BookingEmailService $emailService,
+        private readonly EntityManager $entityManager,
+        private readonly BookingEmailService $emailService,
     ) {
     }
 
@@ -46,7 +46,7 @@ class SendReminders implements JobDataLess
 
                 $this->emailService->sendMeetingEmail($meeting, $templateId);
                 $meeting->set('cReminderSent', true);
-                $meeting->set('cMailError', null);
+                $meeting->set('cMailError');
             } catch (\Exception $e) {
                 $meeting->set('cMailError', $e->getMessage());
             }

@@ -6,6 +6,7 @@ use Espo\Core\Acl;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
+use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
 readonly class MeetingCancellationService
@@ -27,7 +28,7 @@ readonly class MeetingCancellationService
     public function cancelAndRemove(string $meetingId): array
     {
         $meeting = $this->entityManager->getEntityById('Meeting', $meetingId);
-        if (!$meeting) {
+        if (!$meeting instanceof Entity) {
             throw new NotFound("Afspraak niet gevonden.");
         }
 
