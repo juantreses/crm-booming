@@ -60,13 +60,8 @@ readonly class BookingService
         $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
         $calendar = $calendarId ? $this->entityManager->getEntityById('CCalendar', $calendarId) : null;
 
-<<<<<<< HEAD
-        if (!$calendar) {
-            throw new NotFound("Kalender met ID '$calendarIdentifier' niet gevonden.");
-=======
         if (!$calendar instanceof Entity) {
             throw new NotFound("Kalender met ID '$calendarId' niet gevonden.");
->>>>>>> 56bbb3ae (Rector fixes Booking)
         }
 
         $targetSlot = $this->findSlot($calendarId, $date, $time);
