@@ -2,8 +2,6 @@
 
 namespace Espo\Modules\Calendar\Services;
 
-use Espo\ORM\SthCollection;
-use Espo\ORM\EntityCollection;
 use DateTime;
 use DateTimeZone;
 use Espo\Core\Exceptions\BadRequest;
@@ -11,7 +9,9 @@ use Espo\Core\Exceptions\NotFound;
 use Espo\Modules\Calendar\Repositories\CalendarRepository;
 use Espo\Modules\Utils\SlugService;
 use Espo\ORM\Entity;
+use Espo\ORM\EntityCollection;
 use Espo\ORM\EntityManager;
+use Espo\ORM\SthCollection;
 use Exception;
 
 readonly class CalendarService
