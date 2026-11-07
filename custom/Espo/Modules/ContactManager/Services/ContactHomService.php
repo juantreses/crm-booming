@@ -1,6 +1,6 @@
 <?php
 
-namespace Espo\Modules\ClientManager\Services;
+namespace Espo\Modules\ContactManager\Services;
 
 use Espo\Core\Acl;
 use Espo\Core\Exceptions\BadRequest;

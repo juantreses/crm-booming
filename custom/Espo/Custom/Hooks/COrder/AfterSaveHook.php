@@ -3,7 +3,7 @@
 namespace Espo\Custom\Hooks\COrder;
 
 use Espo\Core\Hook\Hook\AfterSave;
-use Espo\Modules\ClientManager\Services\SavingsCardService;
+use Espo\Modules\ContactManager\Services\SavingsCardService;
 use Espo\ORM\Entity;
 use Espo\ORM\Repository\Option\SaveOptions;
 

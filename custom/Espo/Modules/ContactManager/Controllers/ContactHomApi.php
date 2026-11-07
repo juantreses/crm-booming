@@ -1,13 +1,13 @@
 <?php
 
-namespace Espo\Modules\ClientManager\Controllers;
+namespace Espo\Modules\ContactManager\Controllers;
 
 use Espo\Core\Api\Request;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
-use Espo\Modules\ClientManager\Services\ContactHomService;
+use Espo\Modules\ContactManager\Services\ContactHomService;
 
 readonly class ContactHomApi
 {

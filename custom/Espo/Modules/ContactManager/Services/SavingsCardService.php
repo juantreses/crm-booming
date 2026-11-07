@@ -1,6 +1,6 @@
 <?php
 
-namespace Espo\Modules\ClientManager\Services;
+namespace Espo\Modules\ContactManager\Services;
 
 use DateTimeImmutable;
 use Espo\Core\Exceptions\BadRequest;

@@ -1,9 +1,9 @@
 <?php
 
-namespace Espo\Modules\ClientManager\Jobs;
+namespace Espo\Modules\ContactManager\Jobs;
 
 use Espo\Core\Job\JobDataLess;
-use Espo\Modules\ClientManager\Services\SavingsCardService;
+use Espo\Modules\ContactManager\Services\SavingsCardService;
 use Espo\ORM\EntityManager;
 
 /**

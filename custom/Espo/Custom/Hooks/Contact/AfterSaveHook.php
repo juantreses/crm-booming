@@ -6,7 +6,7 @@ use Espo\Core\Hook\Hook\AfterSave;
 use Espo\Core\Utils\Log;
 use Espo\Custom\Services\EntitySyncService;
 use Espo\Custom\Services\GroupAssignmentService;
-use Espo\Modules\ClientManager\Services\SavingsCardService;
+use Espo\Modules\ContactManager\Services\SavingsCardService;
 use Espo\ORM\Entity;
 use Espo\ORM\Repository\Option\SaveOptions;
 
