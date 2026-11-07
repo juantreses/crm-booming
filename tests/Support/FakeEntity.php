@@ -32,6 +32,8 @@ final class FakeEntity
         'confirmationTemplateId', 'reminderTemplateId', 'cancellationTemplateId',
         // Email and attachment.
         'subject', 'body', 'isHtml', 'to', 'attachmentsIds', 'role', 'contents',
+        // Notes.
+        'note', 'contactId',
     ];
 
     /**
