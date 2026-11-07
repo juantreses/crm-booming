@@ -13,7 +13,8 @@ use PHPUnit\Framework\TestCase;
  * Builds an EntityManager stub backed by a list of FakeEntity records.
  *
  * getEntityById() looks up the records, saveEntity() records which entities were saved
- * (read them with savedEntities()), getNewEntity() hands out new FakeEntity instances with ids new1, new2, ...
+ * (read them with savedEntities()), removeEntity() collects them in $removed,
+ * getNewEntity() hands out new FakeEntity instances with ids new1, new2, ...
  *
  * @mixin TestCase
  */
@@ -27,6 +28,9 @@ trait InMemoryEntityManager
 
     /** @var list<Entity> */
     protected array $created = [];
+
+    /** @var list<Entity> */
+    protected array $removed = [];
 
     protected function addRecord(Entity $entity): Entity
     {
@@ -45,6 +49,11 @@ trait InMemoryEntityManager
         $entityManager->method('saveEntity')->willReturnCallback(
             function (Entity $entity): void {
                 $this->saved[] = $entity;
+            },
+        );
+        $entityManager->method('removeEntity')->willReturnCallback(
+            function (Entity $entity): void {
+                $this->removed[] = $entity;
             },
         );
         $entityManager->method('getNewEntity')->willReturnCallback(
