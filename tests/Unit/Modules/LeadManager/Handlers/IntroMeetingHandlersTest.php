@@ -218,24 +218,68 @@ final class IntroMeetingHandlersTest extends HandlerTestCase
         }
     }
 
-    public function testImmediateBookingOnUnknownCalendarTypeThrowsAfterAttendanceIsRecorded(): void
+    /**
+     * @return iterable<string, array{array<string, mixed>, string, class-string<\Throwable>, string}>
+     */
+    public static function impossibleImmediateBookings(): iterable
     {
-        $lead = $this->lead(['cMeetingType' => 'spark', 'cSparksUsed' => 0]);
-        $this->calendar('next', 'general', 'volgende');
+        yield 'unsupported calendar type' => [
+            ['cMeetingType' => 'spark', 'cSparksUsed' => 0], 'general',
+            InvalidArgumentException::class, 'Invalid next booking calendar type: general',
+        ];
+        // Attending the second SPARK uses up the last session.
+        yield 'third spark' => [
+            ['cMeetingType' => 'spark', 'cSparksUsed' => 1], 'spark',
+            RuntimeException::class, 'Lead cannot book spark',
+        ];
+        yield 'spark when both are used' => [
+            ['cMeetingType' => 'bws', 'cSparksUsed' => 2], 'spark',
+            RuntimeException::class, 'Lead cannot book spark',
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $leadValues
+     * @param class-string<\Throwable> $exception
+     */
+    #[DataProvider('impossibleImmediateBookings')]
+    public function testImpossibleImmediateBookingSavesNothing(
+        array $leadValues,
+        string $nextCalendarType,
+        string $exception,
+        string $message,
+    ): void {
+        $lead = $this->lead(['cStage' => 'intro_scheduled', ...$leadValues]);
+        $this->calendar('next', $nextCalendarType, 'volgende');
 
         try {
             $this->handler(AttendanceHandler::class)->handle('lead1', [
                 'nextBooking' => ['calendarId' => 'volgende', 'selectedDate' => '2026-01-20', 'selectedTime' => '19:00'],
             ]);
-            self::fail('Expected InvalidArgumentException');
-        } catch (InvalidArgumentException $e) {
-            self::assertSame('Invalid next booking calendar type: general', $e->getMessage());
+            self::fail("Expected $exception");
+        } catch (\Throwable $e) {
+            self::assertInstanceOf($exception, $e);
+            self::assertSame($message, $e->getMessage());
         }
 
-        // The event, note, meeting and SPARK count were already written before the type check.
-        self::assertSame(['attend_intro@-'], $this->events);
-        self::assertSame(['create:volgende 2026-01-20 19:00'], $this->meetings);
-        self::assertSame(1, $lead->get('cSparksUsed'));
+        self::assertSame([], $this->events);
+        self::assertSame([], $this->notes);
+        self::assertSame([], $this->meetings);
+        self::assertSame([], $this->savedEntities());
+        self::assertSame($leadValues['cSparksUsed'], $lead->get('cSparksUsed'));
+        self::assertSame('intro_scheduled', $lead->get('cStage'));
+    }
+
+    public function testImmediateBookingOnUnknownCalendarSlug(): void
+    {
+        $this->lead(['cMeetingType' => 'bws']);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Next booking calendar not found');
+
+        $this->handler(AttendanceHandler::class)->handle('lead1', [
+            'nextBooking' => ['calendarId' => 'bestaat-niet', 'selectedDate' => '2026-01-20', 'selectedTime' => '19:00'],
+        ]);
     }
 
     public function testNoShowForSpark(): void

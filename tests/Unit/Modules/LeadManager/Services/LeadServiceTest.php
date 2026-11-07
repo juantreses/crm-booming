@@ -15,6 +15,7 @@ use Espo\ORM\EntityManager;
 use Espo\ORM\Repository\RDBRelation;
 use Espo\ORM\Repository\RDBRepository;
 use Espo\ORM\Repository\RDBSelectBuilder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\FakeEntity;
 use Tests\Support\InMemoryEntityManager;
@@ -239,13 +240,32 @@ final class LeadServiceTest extends TestCase
         self::assertSame(['Lead:new1', 'Lead:new1'], $this->savedEntities());
     }
 
-    public function testWidgetSurveyDropsScoreZero(): void
+    /**
+     * @return iterable<string, array{mixed, ?int}>
+     */
+    public static function scores(): iterable
     {
-        // array_filter() without callback also removes 0, so a health score of 0 is not stored.
-        (new LeadFromWidgetService($this->inMemoryEntityManager(), $this->service()))
-            ->createFromSubmission(['email' => 'jan@test.be', 'score' => 0]);
+        yield 'lowest' => [1, 1];
+        yield 'highest' => [10, 10];
+        yield 'numeric string' => ['7', 7];
+        yield 'zero' => [0, null];
+        yield 'above ten' => [11, null];
+        yield 'negative' => [-3, null];
+        yield 'decimal' => [7.5, null];
+        yield 'text' => ['zeven', null];
+        yield 'boolean' => [true, null];
+        yield 'missing' => [null, null];
+    }
 
-        self::assertSame([], json_decode($this->created[0]->get('cSurveyData'), true));
+    #[DataProvider('scores')]
+    public function testWidgetSurveyOnlyStoresScoresFromOneToTen(mixed $score, ?int $expected): void
+    {
+        (new LeadFromWidgetService($this->inMemoryEntityManager(), $this->service()))
+            ->createFromSubmission(['email' => 'jan@test.be', 'score' => $score, 'opmerking' => 'x']);
+
+        $survey = json_decode($this->created[0]->get('cSurveyData'), true);
+
+        self::assertSame($expected, $survey['Gezondheidsscore'] ?? null);
     }
 
     /**

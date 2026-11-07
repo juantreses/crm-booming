@@ -8,7 +8,6 @@ use Espo\Modules\LeadManager\Handlers\Kickstart;
 use Espo\Modules\LeadManager\Handlers\Royalty;
 use InvalidArgumentException;
 use RuntimeException;
-use TypeError;
 
 final class BookingAndCancellationHandlersTest extends HandlerTestCase
 {
@@ -105,13 +104,12 @@ final class BookingAndCancellationHandlersTest extends HandlerTestCase
         $this->handler(Kickstart\BookedHandler::class)->handle('lead1', self::BOOKING);
     }
 
-    public function testBookingWithUnknownCalendarSlugFailsWithTypeError(): void
+    public function testBookingWithUnknownCalendarSlug(): void
     {
-        // SlugService returns null for an unknown slug and getEntityById() requires a string,
-        // so the "Calendar not found" message is never reached.
         $this->lead();
 
-        $this->expectException(TypeError::class);
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Calendar not found: ks-gent');
 
         $this->handler(Kickstart\BookedHandler::class)->handle('lead1', self::BOOKING);
     }

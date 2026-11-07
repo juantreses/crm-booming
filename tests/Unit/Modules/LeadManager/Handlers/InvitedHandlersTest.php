@@ -145,6 +145,24 @@ final class InvitedHandlersTest extends HandlerTestCase
         }
     }
 
+    /**
+     * @param class-string<OutcomeHandler> $class
+     */
+    #[DataProvider('invitedHandlers')]
+    public function testUnknownCalendarSlug(string $class): void
+    {
+        $this->lead();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Calendar not found: agenda');
+
+        try {
+            $this->handler($class)->handle('lead1', self::BOOKING);
+        } finally {
+            self::assertSame([], $this->meetings);
+        }
+    }
+
     public function testIntroInvitedBooksSecondSpark(): void
     {
         $lead = $this->lead(['cSparksUsed' => 1, 'cStage' => 'intro_attended']);

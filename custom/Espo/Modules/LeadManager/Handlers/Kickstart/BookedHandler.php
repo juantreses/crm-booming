@@ -48,7 +48,7 @@ class BookedHandler extends AbstractOutcomeHandler
         }
 
         $calendarId = $this->slugService->resolve('CCalendar', $context['calendarId']);
-        $calendar = $this->entityManager->getEntityById('CCalendar', $calendarId);
+        $calendar = $calendarId ? $this->entityManager->getEntityById('CCalendar', $calendarId) : null;
 
         if (!$calendar instanceof Entity) {
             throw new \RuntimeException("Calendar not found: {$context['calendarId']}");

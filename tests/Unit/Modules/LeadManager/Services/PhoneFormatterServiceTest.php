@@ -29,8 +29,8 @@ final class PhoneFormatterServiceTest extends TestCase
         yield 'too long with 0' => ['01234567890123456', ''];
         // Without a prefix an invalid number is returned unchanged, so the input is not lost.
         yield 'too long without prefix keeps input' => ['1234567890123456', '1234567890123456'];
-        // Probably a bug: with all non-digits stripped only the country code remains, which passes the E.164 check.
-        yield 'letters only becomes country code' => ['geen nummer', '+32'];
+        yield 'letters only' => ['geen nummer', ''];
+        yield 'punctuation only' => ['-- / --', ''];
         yield 'plus only is invalid' => ['+', ''];
     }
 
@@ -82,7 +82,7 @@ final class PhoneFormatterServiceTest extends TestCase
     {
         self::assertSame(
             '+32470123456; 1234567890123456',
-            (new PhoneFormatterService())->formatMultiple('0470123456;; +1234567890123456; 1234567890123456'),
+            (new PhoneFormatterService())->formatMultiple('0470123456;; +1234567890123456; geen nummer; 1234567890123456'),
         );
     }
 }

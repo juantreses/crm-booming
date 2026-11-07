@@ -27,6 +27,11 @@ class PhoneFormatterService
 
         $cleaned = preg_replace('/[^\d+]/', '', $phone);
 
+        // Input without any digit is not a phone number (otherwise it would become just the country code).
+        if (!preg_match('/\d/', $cleaned)) {
+            return '';
+        }
+
         if (str_starts_with($cleaned, '+')) {
             return $this->validateE164($cleaned) ? $cleaned : '';
         }

@@ -49,7 +49,7 @@ readonly class LeadFromWidgetService
         $surveyResults = [
             'Wat had je vanmorgen als ontbijt?' => $data['ontbijt'] ?? [],
             'Ontbijt Andere:' => $data['ontbijtAndere'] ?? '',
-            'Gezondheidsscore' => $data['score'] ?? null,
+            'Gezondheidsscore' => $this->validScore($data['score'] ?? null),
             'Doe je aan sport?' => $data['sport'] ?? [],
             'Sport Andere:' => $data['sportAndere'] ?? '',
             'Welk resultaat kies je?' => $data['resultaten'] ?? [],
@@ -60,5 +60,19 @@ readonly class LeadFromWidgetService
         ];
 
         return array_filter($surveyResults);
+    }
+
+    /**
+     * The survey asks for a score from 1 to 10; anything else is not stored.
+     */
+    private function validScore(mixed $score): ?int
+    {
+        if (is_bool($score)) {
+            return null;
+        }
+
+        $value = filter_var($score, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 10]]);
+
+        return $value === false ? null : $value;
     }
 }

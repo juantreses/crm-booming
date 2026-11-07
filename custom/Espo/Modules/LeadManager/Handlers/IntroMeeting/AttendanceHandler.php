@@ -68,10 +68,11 @@ class AttendanceHandler extends AbstractOutcomeHandler
         $hasImmediateBooking = !empty($context['nextBooking']);
 
         if ($hasImmediateBooking) {
-            $this->assertNextBookingAllowed(
-                $homRating,
-                $this->getNextBookingCalendar($context)->get('type'),
-            );
+            $nextCalendarType = (string) $this->getNextBookingCalendar($context)->get('type');
+
+            // Check everything about the next booking before anything is saved.
+            $this->assertNextBookingAllowed($homRating, $nextCalendarType);
+            $this->assertNextBookingPossible($lead, $meetingType, $nextCalendarType);
         }
 
         // Record attendance and get suggested next stage
@@ -131,10 +132,38 @@ class AttendanceHandler extends AbstractOutcomeHandler
         }
     }
 
+    /**
+     * The next calendar must be a kickstart, royalty or intro meeting the lead can still book
+     * once this attendance is recorded (attending a SPARK uses up one SPARK session).
+     */
+    private function assertNextBookingPossible(Entity $lead, IntroMeetingType $attendedType, string $nextCalendarType): void
+    {
+        if (KickstartCalendarType::isKickstart($nextCalendarType) || $nextCalendarType === 'royalty') {
+            return;
+        }
+
+        $nextMeetingType = IntroMeetingType::fromCalendarType($nextCalendarType);
+
+        if (!$nextMeetingType instanceof IntroMeetingType) {
+            throw new \InvalidArgumentException("Invalid next booking calendar type: {$nextCalendarType}");
+        }
+
+        if (!$nextMeetingType->hasUsageLimit()) {
+            return;
+        }
+
+        $usedAfterAttendance = $this->introMeetingService->getUsageCount($lead, $nextMeetingType)
+            + ($nextMeetingType === $attendedType ? 1 : 0);
+
+        if ($usedAfterAttendance >= $nextMeetingType->getMaxUsage()) {
+            throw new \RuntimeException("Lead cannot book {$nextMeetingType->value}");
+        }
+    }
+
     private function getNextBookingCalendar(array $context): Entity
     {
         $nextCalendarId = $this->slugService->resolve('CCalendar', $context['nextBooking']['calendarId']);
-        $nextCalendar = $this->entityManager->getEntityById('CCalendar', $nextCalendarId);
+        $nextCalendar = $nextCalendarId ? $this->entityManager->getEntityById('CCalendar', $nextCalendarId) : null;
 
         if (!$nextCalendar instanceof Entity) {
             throw new \RuntimeException("Next booking calendar not found");
