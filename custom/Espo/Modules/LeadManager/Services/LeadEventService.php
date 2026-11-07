@@ -2,7 +2,6 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
-use Espo\ORM\Entity;
 use Espo\Core\Acl;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
@@ -15,6 +14,7 @@ use Espo\Modules\LeadManager\ValueObjects\IntroMeetingOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\KickstartFollowUpOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\KickstartOutcomeData;
 use Espo\Modules\LeadManager\ValueObjects\MessageOutcomeData;
+use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
 readonly class LeadEventService

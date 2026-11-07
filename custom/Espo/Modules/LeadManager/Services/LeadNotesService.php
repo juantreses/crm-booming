@@ -2,8 +2,8 @@
 
 namespace Espo\Modules\LeadManager\Services;
 
-use Espo\ORM\Entity;
 use Espo\Modules\Utils\DateTimeFactory;
+use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
 readonly class LeadNotesService
