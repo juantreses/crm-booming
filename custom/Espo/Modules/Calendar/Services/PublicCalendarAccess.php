@@ -10,7 +10,7 @@ use Espo\ORM\Entity;
 
 readonly class PublicCalendarAccess
 {
-    private const UNAVAILABLE_MESSAGE = 'Deze boekingslink is niet meer beschikbaar.';
+    private const string UNAVAILABLE_MESSAGE = 'Deze boekingslink is niet meer beschikbaar.';
 
     public function __construct(
         private SlugService $slugService,
@@ -32,12 +32,12 @@ readonly class PublicCalendarAccess
 
         $calendar = $this->calendarRepository->findCalendarById($calendarId);
 
-        if (!$calendar || !$calendar->get('isActive')) {
+        if (!$calendar instanceof Entity || !$calendar->get('isActive')) {
             throw new NotFound(self::UNAVAILABLE_MESSAGE);
         }
 
         if (
-            (bool) $calendar->get('isPubliek') !== true &&
+            !(bool) $calendar->get('isPubliek') &&
             !$allowAuthenticatedCrmUser &&
             !$this->isAuthenticatedCrmUser()
         ) {

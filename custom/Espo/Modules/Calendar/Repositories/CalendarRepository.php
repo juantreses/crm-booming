@@ -57,7 +57,6 @@ readonly class CalendarRepository
     /**
      * Get availabilities for a specific date
      *
-     * @param string $calendarId
      * @param string $dateString Date in Y-m-d format
      * @param string|null $locationId Optional location filter
      * @param string|null $teamId Optional team filter
@@ -141,7 +140,7 @@ readonly class CalendarRepository
      */
     public function getBlockingCalendarAvailabilities(array $calendarIds, string $dateString): array
     {
-        if (empty($calendarIds)) {
+        if ($calendarIds === []) {
             return [];
         }
 
@@ -173,7 +172,7 @@ readonly class CalendarRepository
 
             if ($blockingCalId) {
                 $blockingCal = $this->entityManager->getEntityById('CCalendar', $blockingCalId);
-                $data['_bufferTime'] = $blockingCal ? $blockingCal->get('bufferTime') : 0;
+                $data['_bufferTime'] = $blockingCal instanceof Entity ? $blockingCal->get('bufferTime') : 0;
             } else {
                 $data['_bufferTime'] = 0;
             }
@@ -193,7 +192,7 @@ readonly class CalendarRepository
      */
     public function getBlockingCalendarMeetings(array $calendarIds, string $dateString): array
     {
-        if (empty($calendarIds)) {
+        if ($calendarIds === []) {
             return [];
         }
 
@@ -218,7 +217,7 @@ readonly class CalendarRepository
 
             if ($blockingCalId) {
                 $blockingCal = $this->entityManager->getEntityById('CCalendar', $blockingCalId);
-                $bufferTime = $blockingCal ? $blockingCal->get('bufferTime') : 0;
+                $bufferTime = $blockingCal instanceof Entity ? $blockingCal->get('bufferTime') : 0;
             }
 
             $result[] = [
@@ -254,9 +253,7 @@ readonly class CalendarRepository
             $startTime = (new \DateTime($booking->get('dateStart')))->setTimezone(new DateTimeZone('Europe/Brussels'));
             $timeKey = $startTime->format('H:i');
 
-            if (!isset($counts[$timeKey])) {
-                $counts[$timeKey] = 0;
-            }
+            $counts[$timeKey] ??= 0;
 
             $counts[$timeKey]++;
         }
@@ -269,7 +266,7 @@ readonly class CalendarRepository
      */
     public function getLocationsByIds(array $locationIds): array
     {
-        if (empty($locationIds)) {
+        if ($locationIds === []) {
             return [];
         }
 
@@ -322,7 +319,7 @@ readonly class CalendarRepository
 
         $calendarIds = array_unique($calendarIds);
 
-        if (empty($calendarIds)) {
+        if ($calendarIds === []) {
             return new EntityCollection();
         }
 
@@ -388,7 +385,7 @@ readonly class CalendarRepository
 
         $locationIds = array_unique($locationIds);
 
-        if (empty($locationIds)) {
+        if ($locationIds === []) {
             return [];
         }
 
@@ -439,14 +436,12 @@ readonly class CalendarRepository
         foreach ($availabilities as $availability) {
             $locationKey = $availability->get('locationId') ?: '__none__';
 
-            if (!isset($locationRows[$locationKey])) {
-                $locationRows[$locationKey] = [
-                    'id' => $availability->get('locationId'),
-                    'name' => null,
-                    'slug' => null,
-                    'variants' => [],
-                ];
-            }
+            $locationRows[$locationKey] ??= [
+                'id' => $availability->get('locationId'),
+                'name' => null,
+                'slug' => null,
+                'variants' => [],
+            ];
 
             $publicSlug = trim((string) ($availability->get('publicSlug') ?? ''));
             if ($publicSlug === '') {
@@ -454,14 +449,12 @@ readonly class CalendarRepository
             }
 
             $variantKey = $locationKey . '::' . $publicSlug;
-            if (!isset($variantBuckets[$variantKey])) {
-                $variantBuckets[$variantKey] = [
-                    'locationKey' => $locationKey,
-                    'slug' => $publicSlug,
-                    'label' => $availability->get('name') ?: $publicSlug,
-                    'description' => $availability->get('description') ?: null,
-                ];
-            }
+            $variantBuckets[$variantKey] ??= [
+                'locationKey' => $locationKey,
+                'slug' => $publicSlug,
+                'label' => $availability->get('name') ?: $publicSlug,
+                'description' => $availability->get('description') ?: null,
+            ];
 
             if (!$variantBuckets[$variantKey]['description'] && $availability->get('description')) {
                 $variantBuckets[$variantKey]['description'] = $availability->get('description');
@@ -469,11 +462,11 @@ readonly class CalendarRepository
         }
 
         $locationIds = array_values(array_filter(array_map(
-            static fn(array $row) => $row['id'],
+            static fn(array $row): mixed => $row['id'],
             $locationRows,
         )));
 
-        if (!empty($locationIds)) {
+        if ($locationIds !== []) {
             $locations = $this->entityManager
                 ->getRDBRepository('CLocation')
                 ->where(['id' => array_unique($locationIds)])
@@ -496,14 +489,10 @@ readonly class CalendarRepository
 
         $result = array_values($locationRows);
 
-        usort($result, static function (array $a, array $b): int {
-            return strcmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? ''));
-        });
+        usort($result, static fn(array $a, array $b): int => strcmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? '')));
 
         foreach ($result as &$row) {
-            usort($row['variants'], static function (array $a, array $b): int {
-                return strcmp($a['label'], $b['label']);
-            });
+            usort($row['variants'], static fn(array $a, array $b): int => strcmp($a['label'], $b['label']));
         }
 
         return $result;

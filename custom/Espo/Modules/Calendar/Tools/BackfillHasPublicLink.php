@@ -15,7 +15,7 @@ use Espo\ORM\EntityManager;
 class BackfillHasPublicLink implements Command
 {
     public function __construct(
-        private EntityManager $entityManager,
+        private readonly EntityManager $entityManager,
     ) {
     }
 

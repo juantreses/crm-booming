@@ -14,7 +14,7 @@ use Espo\ORM\Repository\Option\SaveOptions;
 class AssignDefaultCalendar implements BeforeSave
 {
     public function __construct(
-        private EntityManager $entityManager,
+        private readonly EntityManager $entityManager,
     ) {
     }
 
@@ -38,7 +38,7 @@ class AssignDefaultCalendar implements BeforeSave
             ])
             ->findOne();
 
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             return;
         }
 
@@ -54,11 +54,6 @@ class AssignDefaultCalendar implements BeforeSave
         if ($entity->isNew()) {
             return true;
         }
-
-        if ($entity->isAttributeChanged('assignedUserId')) {
-            return true;
-        }
-
-        return false;
+        return $entity->isAttributeChanged('assignedUserId');
     }
 }

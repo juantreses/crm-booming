@@ -2,6 +2,8 @@
 
 namespace Espo\Modules\Calendar\Services;
 
+use Espo\ORM\SthCollection;
+use Espo\ORM\EntityCollection;
 use DateTime;
 use DateTimeZone;
 use Espo\Core\Exceptions\BadRequest;
@@ -51,7 +53,7 @@ readonly class CalendarService
             $variantIdentifier,
         );
 
-        if (!$availabilities || (is_countable($availabilities) && count($availabilities) === 0)) {
+        if (count($availabilities) === 0) {
             return [];
         }
 
@@ -108,7 +110,7 @@ readonly class CalendarService
     {
         $calendar = $this->calendarRepository->findActiveCalendarByType($type);
 
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             throw new NotFound("Geen actieve agenda gevonden voor type '$type'.");
         }
 
@@ -132,7 +134,7 @@ readonly class CalendarService
         }
 
         $calendar = $this->calendarRepository->findCalendarById($calendarId);
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             throw new NotFound("Calendar not found");
         }
 
@@ -147,7 +149,7 @@ readonly class CalendarService
             try {
                 $daySlots = $this->getAvailableSlots($identifier, $dateString, null, $coachIdentifier);
 
-                if (!empty($daySlots)) {
+                if ($daySlots !== []) {
                     $slots[$dateString] = $daySlots;
                 }
             } catch (Exception $e) {
@@ -181,7 +183,7 @@ readonly class CalendarService
         }
 
         $calendar = $this->calendarRepository->findCalendarById($calendarId);
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             return [];
         }
 
@@ -256,7 +258,7 @@ readonly class CalendarService
     {
         $calendar = $this->calendarRepository->findCalendarById($calendarId);
 
-        if (!$calendar) {
+        if (!$calendar instanceof Entity) {
             throw new NotFound("Calendar not found");
         }
 
@@ -306,7 +308,7 @@ readonly class CalendarService
     /**
      * Normalize availabilities to array
      */
-    private function normalizeAvailabilities($availabilities): array
+    private function normalizeAvailabilities(SthCollection|EntityCollection $availabilities): array
     {
         if ($availabilities instanceof Entity) {
             return [$availabilities];
@@ -488,7 +490,7 @@ readonly class CalendarService
      */
     private function deduplicateAndSortSlots(array $slots): array
     {
-        usort($slots, fn($a, $b) => strcmp($a['start'], $b['start']));
+        usort($slots, fn(array $a, array $b): int => strcmp($a['start'], $b['start']));
 
         $uniqueSlots = [];
         $seenStarts = [];
