@@ -200,11 +200,13 @@ Helpers in `tests/Support/`:
   `FakeEntity::fetched()` gives an entity as loaded from the database (for hooks that use `isNew()`,
   `getFetched()` or `isAttributeChanged()`), `FakeEntity::typed()` a specific class such as `Email`.
 - `InMemoryEntityManager`: an `EntityManager` stub backed by `FakeEntity` records; it records what was saved.
+- `RecordingQueries`: repository/query builder stubs for repository code; each query chain is recorded as one
+  line (`CCalendar where {...} order name find`) and returns the entities you set per entity type.
 
 `tests/Unit/Modules/LeadManager/Handlers/HandlerTestCase.php` wires a lead outcome handler with recording
 collaborators, so a test compares the logged events, notes, follow-ups and meeting changes as plain lists.
 
-Covered so far: `Utils`, `Links`, `LeadManager` (all but the controllers), `Booking` and the lead enums in `Custom/Enums`.
+Covered so far: `Utils`, `Links`, `LeadManager` (all but the controllers), `Booking`, `Calendar` and the lead enums in `Custom/Enums`.
 
 The tests run with UTC as PHP's default timezone, like Espo (set in `tests/bootstrap.php`).
 
