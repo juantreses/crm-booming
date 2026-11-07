@@ -36,12 +36,10 @@ class CancellationEmail implements AfterSave
                 return;
             }
 
-            if ($templateId) {
-                try {
-                    $this->emailService->sendMeetingEmail($entity, $templateId, Ics::METHOD_CANCEL);
-                } catch (\Exception $e) {
-                    $entity->set('cMailError', "Annulering mail fout: " . $e->getMessage());
-                }
+            try {
+                $this->emailService->sendMeetingEmail($entity, $templateId, Ics::METHOD_CANCEL);
+            } catch (\Exception $e) {
+                $entity->set('cMailError', "Annulering mail fout: " . $e->getMessage());
             }
         }
     }

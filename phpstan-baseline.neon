@@ -13,12 +13,6 @@ parameters:
 			path: custom/Espo/Custom/Services/EntitySyncService.php
 
 		-
-			message: '#^If condition is always true\.$#'
-			identifier: if.alwaysTrue
-			count: 1
-			path: custom/Espo/Modules/Booking/Hooks/Meeting/CancellationEmail.php
-
-		-
 			message: '#^Parameter \#1 \$attachmentList of method Espo\\Core\\Mail\\Sender\:\:withAttachments\(\) expects iterable\<Espo\\Entities\\Attachment\>, array\<Espo\\ORM\\Entity\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -37,12 +31,6 @@ parameters:
 			path: custom/Espo/Modules/Booking/Services/BookingEmailService.php
 
 		-
-			message: '#^Variable \$targetSlot might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: custom/Espo/Modules/Booking/Services/BookingService.php
-
-		-
 			message: '#^Call to function is_countable\(\) with Espo\\ORM\\EntityCollection\|Espo\\ORM\\SthCollection will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -59,18 +47,6 @@ parameters:
 			identifier: booleanNot.alwaysTrue
 			count: 1
 			path: custom/Espo/Modules/Calendar/Services/CalendarService.php
-
-		-
-			message: '#^Variable \$data might not be defined\.$#'
-			identifier: variable.undefined
-			count: 10
-			path: custom/Espo/Modules/LeadManager/Controllers/LeadEventApi.php
-
-		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: custom/Espo/Modules/LeadManager/Controllers/WidgetApi.php
 
 		-
 			message: '#^Parameter \#3 \$value of function curl_setopt expects bool, int given\.$#'

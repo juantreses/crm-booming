@@ -11,7 +11,7 @@ use Espo\ORM\EntityManager;
 
 class SendReminders implements JobDataLess
 {
-    private const HOURS_AHEAD = 25;
+    private const int HOURS_AHEAD = 25;
 
     public function __construct(
         private readonly EntityManager $entityManager,

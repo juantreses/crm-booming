@@ -23,11 +23,8 @@ readonly class LeadEventApi
 
     public function postActionLogCall(Request $request): array
     {
+        $data = $this->validateData($request);
         try {
-            $data = $request->getParsedBody();
-            $validator = new LogCallValidator();
-            $validator->validate($data);
-
             $result = $this->leadEventService->logCall($data);
 
             return [
@@ -42,8 +39,8 @@ readonly class LeadEventApi
             throw $e;
         } catch (\Throwable $e) {
             $GLOBALS['log']->error('Lead Log Call Error: ' . $e->getMessage(), [
-                'leadId' => $data->id,
-                'outcome' => $data->outcome,
+                'leadId' => $data->id ?? null,
+                'outcome' => $data->outcome ?? null,
                 'eventDate' => $data->callDateTime ?? null,
                 'callAgainDateTime' => $data->callAgainDateTime ?? null,
                 'trace' => $e->getTraceAsString(),
@@ -54,11 +51,9 @@ readonly class LeadEventApi
 
     public function postActionLogKickstart(Request $request): array
     {
-        try {
-            $data = $request->getParsedBody();
+        $data = $this->validateData($request);
 
-            $validator = new LogKickstartValidator();
-            $validator->validate($data);
+        try {
 
             $result = $this->leadEventService->logKickstart($data);
 
@@ -72,8 +67,8 @@ readonly class LeadEventApi
             throw $e;
         } catch (\Exception $e) {
             $GLOBALS['log']->error('Lead Log Kickstart Error: ' . $e->getMessage(), [
-                'leadId' => $data->id,
-                'outcome' => $data->outcome,
+                'leadId' => $data->id ?? null,
+                'outcome' => $data->outcome ?? null,
                 'eventDate' => $data->kickstartDateTime ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -83,13 +78,9 @@ readonly class LeadEventApi
 
     public function postActionLogMessageSent(Request $request): array
     {
+        $data = $this->validateData($request);
+
         try {
-            $data = $request->getParsedBody();
-
-            if (!isset($data->id)) {
-                throw new BadRequest('Lead ID is required');
-            }
-
             $result = $this->leadEventService->logMessageSent($data);
 
             return [
@@ -102,7 +93,7 @@ readonly class LeadEventApi
             throw $e;
         } catch (\Exception $e) {
             $GLOBALS['log']->error('Lead Log Message Sent Error: ' . $e->getMessage(), [
-                'leadId' => $data->id,
+                'leadId' => $data->id ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log message sent: ' . $e->getMessage(), $e->getCode(), $e);
@@ -111,12 +102,8 @@ readonly class LeadEventApi
 
     public function postActionLogMessageOutcome(Request $request): array
     {
+        $data = $this->validateData($request);
         try {
-            $data = $request->getParsedBody();
-
-            $validator = new LogMessageOutcomeValidator();
-            $validator->validate($data);
-
             $result = $this->leadEventService->logMessageOutcome($data);
 
             return [
@@ -128,9 +115,9 @@ readonly class LeadEventApi
             throw $e;
         } catch (\Exception $e) {
             $GLOBALS['log']->error('Lead Log Message Outcome Error: ' . $e->getMessage(), [
-                'leadId' => $data->id,
-                'outcome' => $data->outcome,
-                'callAgainDateTime' => $data->callAgainDateTime,
+                'leadId' => $data->id ?? null,
+                'outcome' => $data->outcome ?? null,
+                'callAgainDateTime' => $data->callAgainDateTime ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log message outcome: ' . $e->getMessage(), $e->getCode(), $e);
@@ -139,12 +126,9 @@ readonly class LeadEventApi
 
     public function postActionLogKickstartFollowUp(Request $request): array
     {
+        $data = $this->validateData($request);
+
         try {
-            $data = $request->getParsedBody();
-
-            $validator = new LogKickstartValidator();
-            $validator->validate($data);
-
             $result = $this->leadEventService->logKickstartFollowUp($data);
 
             return [
@@ -156,8 +140,8 @@ readonly class LeadEventApi
             throw $e;
         } catch (\Exception $e) {
             $GLOBALS['log']->error('Lead Log Kickstart Follow Up Error: ' . $e->getMessage(), [
-                'leadId' => $data->id,
-                'callAgainDateTime' => $data->callAgainDateTime,
+                'leadId' => $data->id ?? null,
+                'callAgainDateTime' => $data->callAgainDateTime ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
             throw new BadRequest('Failed to log kickstart follow up: ' . $e->getMessage(), $e->getCode(), $e);
@@ -166,12 +150,9 @@ readonly class LeadEventApi
 
     public function postActionLogIntroMeeting(Request $request): array
     {
+        $data = $this->validateData($request);
+
         try {
-            $data = $request->getParsedBody();
-
-            $validator = new LogIntroMeetingValidator();
-            $validator->validate($data);
-
             $result = $this->leadEventService->logIntroMeeting($data);
 
             return [
@@ -196,12 +177,9 @@ readonly class LeadEventApi
 
     public function postActionBookKickstart(Request $request): array
     {
+        $data = $this->validateData($request);
+
         try {
-            $data = $request->getParsedBody();
-
-            $validator = new LogKickstartBookingValidator();
-            $validator->validate($data);
-
             $result = $this->leadEventService->bookKickstart($data);
 
             return [
@@ -225,12 +203,9 @@ readonly class LeadEventApi
 
     public function postActionLogRoyalty(Request $request): array
     {
+        $data = $this->validateData($request);
+
         try {
-            $data = $request->getParsedBody();
-
-            $validator = new LogKickstartValidator('RI');
-            $validator->validate($data);
-
             $result = $this->leadEventService->logRoyalty($data);
 
             return [
@@ -255,12 +230,9 @@ readonly class LeadEventApi
 
     public function postActionLogRoyaltyFollowUp(Request $request): array
     {
+        $data = $this->validateData($request);
+
         try {
-            $data = $request->getParsedBody();
-
-            $validator = new LogKickstartValidator('RI');
-            $validator->validate($data);
-
             $result = $this->leadEventService->logRoyaltyFollowUp($data);
 
             return [
@@ -281,12 +253,9 @@ readonly class LeadEventApi
 
     public function postActionBookRoyalty(Request $request): array
     {
+        $data = $this->validateData($request);
+
         try {
-            $data = $request->getParsedBody();
-
-            $validator = new LogKickstartBookingValidator();
-            $validator->validate($data);
-
             $result = $this->leadEventService->bookRoyalty($data);
 
             return [
@@ -310,9 +279,9 @@ readonly class LeadEventApi
 
     public function postActionResetLead(Request $request): array
     {
-        try {
-            $data = $request->getParsedBody();
+        $data = $request->getParsedBody();
 
+        try {
             if (!isset($data->id)) {
                 throw new BadRequest('Lead ID is required');
             }
@@ -333,5 +302,15 @@ readonly class LeadEventApi
             ]);
             throw new BadRequest('Failed to reset lead: ' . $e->getMessage(), $e->getCode(), $e);
         }
+    }
+
+    private function validateData(Request $request): \stdClass
+    {
+        $data = $request->getParsedBody();
+
+        $validator = new LogCallValidator();
+        $validator->validate($data);
+
+        return $data;
     }
 }

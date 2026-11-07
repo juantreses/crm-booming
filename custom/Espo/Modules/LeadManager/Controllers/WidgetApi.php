@@ -16,13 +16,6 @@ class WidgetApi
     {
         $data = $request->getParsedBody();
 
-        if (!$data) {
-            return [
-                'success' => false,
-                'error' => 'Geen data ontvangen',
-            ];
-        }
-
         $dataArray = json_decode(json_encode($data), true);
 
         return $this->leadFromWidgetService->createFromSubmission($dataArray);

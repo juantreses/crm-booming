@@ -156,6 +156,7 @@ readonly class BookingService
     {
         $slots = $this->calendarService->getAvailableSlots($calendarId, $date);
         $isStillAvailable = false;
+        $targetSlot = [];
         foreach ($slots as $slot) {
             $matchesAvailability = !$availabilityId || (($slot['availabilityId'] ?? null) === $availabilityId);
             if ($slot['start'] === $time && $slot['isBookable'] && $matchesAvailability) {
