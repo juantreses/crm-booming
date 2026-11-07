@@ -33,10 +33,10 @@ final class CalendarServiceTest extends TestCase
     /** @var array<string, list<Entity>> date => availabilities (key '*' for every date) */
     private array $availabilities = [];
 
-    /** @var array<string, int> start time => booked seats */
+    /** @var array<string, array<string, int>> location ID ('' for none) => start time => booked seats */
     private array $bookings = [];
 
-    /** @var array<string, array<string, int>> date => booked seats per start time, overrides $bookings */
+    /** @var array<string, array<string, array<string, int>>> date => bookings like $bookings, overrides $bookings */
     private array $bookingsPerDate = [];
 
     /** @var list<array<string, mixed>> */
@@ -84,25 +84,30 @@ final class CalendarServiceTest extends TestCase
         self::assertSame([[self::DATE, null, null, null]], $this->availabilityLookups);
     }
 
-    public function testBufferBetweenSlotsAndLastSlotMayRunPastTheEnd(): void
+    public function testBufferBetweenSlots(): void
     {
         $this->calendar->set(['duration' => 45, 'bufferTime' => 15]);
         $this->availabilities['*'] = [$this->availability('av1', '18:00', '20:00')];
 
-        $slots = $this->service()->getAvailableSlots('kickstart', self::DATE);
+        self::assertSame(['18:00-18:45', '19:00-19:45'], $this->times($this->service()->getAvailableSlots('kickstart', self::DATE)));
+    }
 
-        // A slot only has to start before the end of the availability.
-        self::assertSame(['18:00-18:45', '19:00-19:45'], $this->times($slots));
-
-        $this->calendar->set(['duration' => 60, 'bufferTime' => 0]);
+    public function testSlotsEndWithinTheAvailability(): void
+    {
         $this->availabilities['*'] = [$this->availability('av1', '18:00', '19:30')];
 
-        self::assertSame(['18:00-19:00', '19:00-20:00'], $this->times($this->service()->getAvailableSlots('kickstart', self::DATE)));
+        self::assertSame(['18:00-19:00'], $this->times($this->service()->getAvailableSlots('kickstart', self::DATE)));
+
+        $this->calendar->set(['duration' => 45, 'bufferTime' => 15]);
+        $this->availabilities['*'] = [$this->availability('av1', '18:00', '19:45')];
+
+        // The last slot may end exactly at the end of the availability.
+        self::assertSame(['18:00-18:45', '19:00-19:45'], $this->times($this->service()->getAvailableSlots('kickstart', self::DATE)));
     }
 
     public function testBookedSeats(): void
     {
-        $this->bookings = ['18:00' => 2, '19:00' => 1];
+        $this->bookings = ['' => ['18:00' => 2, '19:00' => 1]];
 
         $slots = $this->service()->getAvailableSlots('kickstart', self::DATE);
 
@@ -155,31 +160,72 @@ final class CalendarServiceTest extends TestCase
         self::assertSame('Na het werk', $slot['variantDescription']);
     }
 
-    public function testSlotsOfAllAvailabilitiesAreSortedAndOnlyTheFirstPerStartTimeIsKept(): void
+    public function testEveryLocationAndVariantKeepsItsSlots(): void
     {
         $this->availabilities['*'] = [
             $this->availability('av-gent', '19:00', '20:00', 'loc-gent'),
             $this->availability('av-brugge', '18:00', '20:00', 'loc-brugge'),
+            $this->availability('av-gent-avond', '19:00', '20:00', 'loc-gent', ['publicSlug' => 'avond']),
         ];
 
         $slots = $this->service()->getAvailableSlots('kickstart', self::DATE);
 
-        // The 19:00 slot of Brugge is dropped because Gent also has one at 19:00.
-        self::assertSame(['18:00 av-brugge', '19:00 av-gent'], array_map(static fn (array $s) => "{$s['start']} {$s['availabilityId']}", $slots));
+        self::assertSame(
+            ['18:00 av-brugge', '19:00 av-gent', '19:00 av-brugge', '19:00 av-gent-avond'],
+            array_map(static fn (array $s) => "{$s['start']} {$s['availabilityId']}", $slots),
+        );
     }
 
-    public function testSeatsAreSharedBetweenLocations(): void
+    public function testOverlappingAvailabilitiesOfTheSameLocationGiveOneSlot(): void
     {
         $this->availabilities['*'] = [
-            $this->availability('av-gent', '18:00', '19:00', 'loc-gent'),
-            $this->availability('av-brugge', '19:00', '20:00', 'loc-brugge'),
+            $this->availability('av-weekly', '18:00', '20:00', 'loc-gent'),
+            $this->availability('av-extra', '19:00', '21:00', 'loc-gent'),
         ];
-        // Bookings are counted per calendar and start time, whatever the location.
-        $this->bookings = ['19:00' => 2];
 
         $slots = $this->service()->getAvailableSlots('kickstart', self::DATE);
 
-        self::assertSame('Vol', $slots[1]['reason']);
+        self::assertSame(
+            ['18:00 av-weekly', '19:00 av-weekly', '20:00 av-extra'],
+            array_map(static fn (array $s) => "{$s['start']} {$s['availabilityId']}", $slots),
+        );
+    }
+
+    public function testSeatsAreCountedPerLocation(): void
+    {
+        $this->availabilities['*'] = [
+            $this->availability('av-gent', '19:00', '20:00', 'loc-gent'),
+            $this->availability('av-brugge', '19:00', '20:00', 'loc-brugge'),
+        ];
+        $this->bookings = ['loc-gent' => ['19:00' => 2], 'loc-brugge' => ['19:00' => 1]];
+
+        $slots = $this->service()->getAvailableSlots('kickstart', self::DATE);
+
+        self::assertSame(['av-gent', 'av-brugge'], array_column($slots, 'availabilityId'));
+        self::assertSame([0, 1], array_column($slots, 'availableSeats'));
+        self::assertSame(['Vol', ''], array_column($slots, 'reason'));
+    }
+
+    public function testBookingWithoutLocationTakesASeatEverywhere(): void
+    {
+        $this->availabilities['*'] = [
+            $this->availability('av-gent', '19:00', '20:00', 'loc-gent'),
+            $this->availability('av-brugge', '19:00', '20:00', 'loc-brugge'),
+        ];
+        $this->bookings = ['' => ['19:00' => 1], 'loc-gent' => ['19:00' => 1]];
+
+        $slots = $this->service()->getAvailableSlots('kickstart', self::DATE);
+
+        self::assertSame([0, 1], array_column($slots, 'availableSeats'));
+    }
+
+    public function testSlotWithoutLocationCountsAllBookings(): void
+    {
+        $this->bookings = ['' => ['18:00' => 1], 'loc-gent' => ['18:00' => 1]];
+
+        $slots = $this->service()->getAvailableSlots('kickstart', self::DATE);
+
+        self::assertSame([0, 2], array_column($slots, 'availableSeats'));
     }
 
     public function testFiltersArePassedToTheRepository(): void
@@ -238,22 +284,45 @@ final class CalendarServiceTest extends TestCase
         $this->service()->getAvailableSlots('weg', self::DATE);
     }
 
-    public function testMinimumLeadTimeComparesSlotTimesAsIfTheyWereUtc(): void
+    public function testMinimumLeadTimeInBrusselsTime(): void
     {
-        // Put the first bookable moment between 12:00 and 13:00 UTC on a day ten days from now.
-        $utc = new DateTimeZone('UTC');
-        $date = (new DateTimeImmutable('today +10 days', $utc))->format('Y-m-d');
-        $target = new DateTimeImmutable("$date 12:00:00", $utc);
+        // Put the first bookable moment between 12:00 and 13:00 Brussels time on a day ten days from now.
+        $brussels = new DateTimeZone('Europe/Brussels');
+        $date = (new DateTimeImmutable('today +10 days', $brussels))->format('Y-m-d');
+        $target = new DateTimeImmutable("$date 12:00:00", $brussels);
         $this->calendar->set('minLeadTime', intdiv($target->getTimestamp() - time(), 3600) + 1);
-        $this->availabilities['*'] = [$this->availability('av1', '12:00', '15:00')];
+        $this->availabilities['*'] = [$this->availability('av1', '11:00', '14:00')];
 
         $slots = $this->service()->getAvailableSlots('kickstart', $date);
 
+        self::assertSame(
+            ['11:00 Te kort op voorhand', '12:00 Te kort op voorhand', '13:00 '],
+            array_map(static fn (array $s) => "{$s['start']} {$s['reason']}", $slots),
+        );
+        self::assertSame([false, false, true], array_column($slots, 'isBookable'));
+    }
+
+    public function testSlotThatStartedThisHourIsNotBookable(): void
+    {
+        // E.g. at 10:20 the 10:00 slot has started. Read as UTC it would still be in the future.
+        $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Brussels'));
+        if ((int) $now->format('i') === 0) {
+            self::markTestSkipped('The slot of this hour starts right now.');
+        }
+
+        $this->calendar->set('duration', 60);
+        $this->availabilities['*'] = [$this->availability('av1', $now->format('H:00'), $now->modify('+1 hour')->format('H:00'))];
+
+        $slots = $this->service()->getAvailableSlots('kickstart', $now->format('Y-m-d'));
+
+        if ($now->format('H') === '23') {
+            // The availability would end at 00:00, before it starts: no slots.
+            self::assertSame([], $slots);
+
+            return;
+        }
+
         self::assertSame([false, 'Te kort op voorhand'], [$slots[0]['isBookable'], $slots[0]['reason']]);
-        // Slot times are Brussels time, but compared as UTC: 13:00 in Brussels is 11:00 or 12:00 UTC,
-        // before the first bookable moment, yet the slot is still bookable.
-        self::assertTrue($slots[1]['isBookable']);
-        self::assertTrue($slots[2]['isBookable']);
     }
 
     public function testBookableCalendars(): void
@@ -371,7 +440,7 @@ final class CalendarServiceTest extends TestCase
         $this->calendar->set('maxBookingRange', 45);
         $fullDay = $month->modify('+4 days')->format('Y-m-d');
         $this->availabilities = ['*' => [$this->availability('av1', '18:00', '19:00')]];
-        $this->bookingsPerDate = [$fullDay => ['18:00' => 2]];
+        $this->bookingsPerDate = [$fullDay => ['' => ['18:00' => 2]]];
 
         $dates = $this->service()->getMonthAvailability('kickstart', (int) $month->format('Y'), (int) $month->format('m'), 'gent');
 

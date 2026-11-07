@@ -154,7 +154,16 @@ readonly class BookingService
      */
     private function findSlot(string $calendarId, string $date, string $time, ?string $availabilityId = null): array
     {
-        $slots = $this->calendarService->getAvailableSlots($calendarId, $date);
+        // Check the slot with the location and variant of the chosen availability, as the widget showed it.
+        $availability = $availabilityId ? $this->entityManager->getEntityById('CAvailability', $availabilityId) : null;
+
+        $slots = $this->calendarService->getAvailableSlots(
+            $calendarId,
+            $date,
+            $availability?->get('locationId'),
+            null,
+            $availability?->get('publicSlug') ?: null,
+        );
         $isStillAvailable = false;
         $targetSlot = [];
         foreach ($slots as $slot) {

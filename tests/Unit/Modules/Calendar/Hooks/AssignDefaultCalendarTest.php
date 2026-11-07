@@ -34,8 +34,8 @@ final class AssignDefaultCalendarTest extends TestCase
 
     public function testNewMeetingWithACalendarAlsoGetsTheCalendarOfItsUser(): void
     {
-        // The class comment says "only if no calendar is already set", but a new meeting
-        // (e.g. booked on the kickstart calendar) gets the calendar of its assigned user.
+        // On purpose: calendars belong to sync users, so a meeting assigned to e.g. the "sync kickstart"
+        // user lands in the kickstart calendar and is synced to its Google calendar.
         $meeting = FakeEntity::create('Meeting', ['id' => 'm1', 'assignedUserId' => 'coach1', 'cCalendarId' => 'cal-kickstart']);
 
         $this->beforeSave($meeting);

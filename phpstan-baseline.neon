@@ -13,18 +13,6 @@ parameters:
 			path: custom/Espo/Custom/Services/EntitySyncService.php
 
 		-
-			message: '#^Call to function is_countable\(\) with Espo\\ORM\\EntityCollection\|Espo\\ORM\\SthCollection will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: custom/Espo/Modules/Calendar/Services/CalendarService.php
-
-		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: custom/Espo/Modules/Calendar/Services/CalendarService.php
-
-		-
 			message: '#^Negated boolean expression is always true\.$#'
 			identifier: booleanNot.alwaysTrue
 			count: 1

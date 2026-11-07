@@ -310,11 +310,7 @@ readonly class CalendarService
      */
     private function normalizeAvailabilities(SthCollection|EntityCollection $availabilities): array
     {
-        if ($availabilities instanceof Entity) {
-            return [$availabilities];
-        }
-
-        return is_array($availabilities) ? $availabilities : iterator_to_array($availabilities);
+        return iterator_to_array($availabilities);
     }
 
     /**
@@ -377,15 +373,22 @@ readonly class CalendarService
             $slotEndTime = (clone $slotTime)->modify("+$duration minutes");
             $slotEnd = $slotEndTime->format('H:i');
 
+            // A slot has to end within the availability.
+            if ($slotEndTime > $endTimeObj) {
+                break;
+            }
+
             $isBlocked = $this->isSlotBlocked($slotStart, $slotEnd, $blockingPeriods);
             if (!$isBlocked) {
                 $isTooSoon = $this->isSlotTooSoon($slotTime, $dateString, $firstBookableMoment);
-                $availableSeats = $this->getAvailableSeats($slotStart, $maxSeats, $bookings);
+                $availableSeats = $this->getAvailableSeats($slotStart, $maxSeats, $bookings, $availability->get('locationId'));
 
                 $isBookable = !$isBlocked && !$isTooSoon && $availableSeats > 0;
                 $reason = $this->getUnavailabilityReason($isBlocked, $isTooSoon, $availableSeats);
 
                 $slot = [
+                    // Only used to deduplicate, removed before returning.
+                    '_key' => $slotStart . '|' . $availability->get('locationId') . '|' . $availability->get('publicSlug'),
                     'availabilityId' => $availability->getId(),
                     'start' => $slotStart,
                     'end' => $slotEnd,
@@ -472,36 +475,46 @@ readonly class CalendarService
      */
     private function isSlotTooSoon(DateTime $slotTime, string $dateString, DateTime $firstBookableMoment): bool
     {
-        $slotStartDateTime = new DateTime($dateString . ' ' . $slotTime->format('H:i'));
+        // The slot time is in the calendar's (Brussels) timezone.
+        $slotStartDateTime = new DateTime($dateString . ' ' . $slotTime->format('H:i'), $slotTime->getTimezone());
         return $slotStartDateTime < $firstBookableMoment;
     }
 
     /**
-     * Calculate available seats for a time slot
+     * Calculate available seats for a time slot at a location.
+     *
+     * Bookings at another location don't take a seat. Bookings without a location take a seat at every location,
+     * and a slot without location counts all bookings.
+     *
+     * @param array<string, array<string, int>> $bookings location ID ('' for none) => start time => count
      */
-    private function getAvailableSeats(string $slotStart, int $maxSeats, array $bookings): int
+    private function getAvailableSeats(string $slotStart, int $maxSeats, array $bookings, ?string $locationId): int
     {
-        $occupiedSeats = $bookings[$slotStart] ?? 0;
+        if ($locationId) {
+            $occupiedSeats = ($bookings[$locationId][$slotStart] ?? 0) + ($bookings[''][$slotStart] ?? 0);
+        } else {
+            $occupiedSeats = array_sum(array_map(static fn (array $counts) => $counts[$slotStart] ?? 0, $bookings));
+        }
+
         return max(0, $maxSeats - $occupiedSeats);
     }
 
     /**
-     * Deduplicate and sort slots by start time
+     * Sort slots by start time and keep one slot per start time, location and variant
+     * (availabilities can overlap). Slots at another location or of another variant stay.
      */
     private function deduplicateAndSortSlots(array $slots): array
     {
         usort($slots, fn(array $a, array $b): int => strcmp($a['start'], $b['start']));
 
         $uniqueSlots = [];
-        $seenStarts = [];
         foreach ($slots as $slot) {
-            if (!in_array($slot['start'], $seenStarts)) {
-                $uniqueSlots[] = $slot;
-                $seenStarts[] = $slot['start'];
-            }
+            $key = $slot['_key'];
+            unset($slot['_key']);
+            $uniqueSlots[$key] ??= $slot;
         }
 
-        return $uniqueSlots;
+        return array_values($uniqueSlots);
     }
 
     /**

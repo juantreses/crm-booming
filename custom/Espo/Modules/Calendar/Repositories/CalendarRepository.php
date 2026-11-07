@@ -232,8 +232,9 @@ readonly class CalendarRepository
     }
 
     /**
-     * Get existing bookings for a calendar on a specific date
-     * Returns array keyed by time string (H:i) with booking counts
+     * Get existing bookings for a calendar on a specific date, counted per location and start time (H:i, Brussels).
+     *
+     * @return array<string, array<string, int>> location ID ('' for meetings without location) => start time => count
      */
     public function getBookingsForDate(string $calendarId, string $dateString): array
     {
@@ -252,10 +253,11 @@ readonly class CalendarRepository
         foreach ($bookingList as $booking) {
             $startTime = (new \DateTime($booking->get('dateStart')))->setTimezone(new DateTimeZone('Europe/Brussels'));
             $timeKey = $startTime->format('H:i');
+            $locationKey = (string) $booking->get('cLocationId');
 
-            $counts[$timeKey] ??= 0;
+            $counts[$locationKey][$timeKey] ??= 0;
 
-            $counts[$timeKey]++;
+            $counts[$locationKey][$timeKey]++;
         }
 
         return $counts;

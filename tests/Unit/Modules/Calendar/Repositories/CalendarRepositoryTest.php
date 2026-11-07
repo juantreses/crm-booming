@@ -112,15 +112,19 @@ final class CalendarRepositoryTest extends TestCase
         ], $this->queries);
     }
 
-    public function testBookingsAreCountedPerBrusselsStartTime(): void
+    public function testBookingsAreCountedPerLocationAndBrusselsStartTime(): void
     {
         $this->queryResults['Meeting'] = [
-            FakeEntity::create('Meeting', ['id' => 'm1', 'dateStart' => '2026-01-20 17:00:00']),
-            FakeEntity::create('Meeting', ['id' => 'm2', 'dateStart' => '2026-01-20 17:00:00']),
-            FakeEntity::create('Meeting', ['id' => 'm3', 'dateStart' => '2026-01-20 18:00:00']),
+            FakeEntity::create('Meeting', ['id' => 'm1', 'dateStart' => '2026-01-20 17:00:00', 'cLocationId' => 'loc-gent']),
+            FakeEntity::create('Meeting', ['id' => 'm2', 'dateStart' => '2026-01-20 17:00:00', 'cLocationId' => 'loc-gent']),
+            FakeEntity::create('Meeting', ['id' => 'm3', 'dateStart' => '2026-01-20 17:00:00', 'cLocationId' => 'loc-brugge']),
+            FakeEntity::create('Meeting', ['id' => 'm4', 'dateStart' => '2026-01-20 18:00:00', 'cLocationId' => null]),
         ];
 
-        self::assertSame(['18:00' => 2, '19:00' => 1], $this->repository()->getBookingsForDate('cal1', '2026-01-20'));
+        self::assertSame(
+            ['loc-gent' => ['18:00' => 2], 'loc-brugge' => ['18:00' => 1], '' => ['19:00' => 1]],
+            $this->repository()->getBookingsForDate('cal1', '2026-01-20'),
+        );
         // The day is selected in UTC, so meetings between 00:00 and 01:00 (02:00 in summer) Brussels time are not counted.
         self::assertSame([
             'Meeting where {"cCalendarId":"cal1","dateStart>=":"2026-01-20 00:00:00","dateStart<=":"2026-01-20 23:59:59",'
