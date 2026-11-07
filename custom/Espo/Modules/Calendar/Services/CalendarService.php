@@ -383,7 +383,7 @@ readonly class CalendarService
                 $isTooSoon = $this->isSlotTooSoon($slotTime, $dateString, $firstBookableMoment);
                 $availableSeats = $this->getAvailableSeats($slotStart, $maxSeats, $bookings, $availability->get('locationId'));
 
-                $isBookable = !$isBlocked && !$isTooSoon && $availableSeats > 0;
+                $isBookable = !$isTooSoon && $availableSeats > 0;
                 $reason = $this->getUnavailabilityReason($isBlocked, $isTooSoon, $availableSeats);
 
                 $slot = [
