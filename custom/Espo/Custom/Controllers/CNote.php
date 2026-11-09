@@ -2,6 +2,8 @@
 
 namespace Espo\Custom\Controllers;
 
-class CNote extends \Espo\Core\Templates\Controllers\Base
+use Espo\Core\Templates\Controllers\Base;
+
+class CNote extends Base
 {
 }

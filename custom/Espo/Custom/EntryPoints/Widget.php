@@ -2,6 +2,7 @@
 
 namespace Espo\Custom\EntryPoints;
 
+use Espo\Core\Authentication\AuthToken\AuthToken;
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
 use Espo\Core\Authentication\AuthToken\Manager as AuthTokenManager;
@@ -16,7 +17,7 @@ class Widget implements EntryPoint
 {
     use NoAuth;
 
-    private const NOT_FOUND_LAYOUT = 'custom/Espo/Custom/Resources/layouts/EntryPoints/not-found.html';
+    private const string NOT_FOUND_LAYOUT = 'custom/Espo/Custom/Resources/layouts/EntryPoints/not-found.html';
 
     public function __construct(
         private PublicCalendarAccess $publicCalendarAccess,
@@ -84,7 +85,7 @@ class Widget implements EntryPoint
 
         $authToken = $this->authTokenManager->get($token);
 
-        if (!$authToken || !$authToken->isActive() || $authToken->getPortalId()) {
+        if (!$authToken instanceof AuthToken || !$authToken->isActive() || $authToken->getPortalId()) {
             return false;
         }
 

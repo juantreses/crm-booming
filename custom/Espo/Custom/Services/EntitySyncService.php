@@ -7,7 +7,7 @@ use Espo\ORM\EntityManager;
 
 class EntitySyncService
 {
-    private const BASE_FIELDS_TO_WATCH = [
+    private const array BASE_FIELDS_TO_WATCH = [
         'firstName',
         'lastName',
         'emailAddress',
@@ -23,13 +23,13 @@ class EntitySyncService
 
     public function syncFromLead(Entity $sourceEntity): void
     {
-        if ($this->hasFieldsChanged($sourceEntity) && $this->getRelatedContact($sourceEntity)) {
+        if ($this->hasFieldsChanged($sourceEntity) && $this->getRelatedContact($sourceEntity) instanceof Entity) {
             $this->syncBaseData($sourceEntity, $this->getRelatedContact($sourceEntity));
         }
     }
     public function syncFromContact(Entity $sourceEntity): void
     {
-        if ($this->hasFieldsChanged($sourceEntity) && $this->getRelatedLead($sourceEntity)) {
+        if ($this->hasFieldsChanged($sourceEntity) && $this->getRelatedLead($sourceEntity) instanceof Entity) {
             $this->syncBaseData($sourceEntity, $this->getRelatedLead($sourceEntity));
         }
     }
@@ -71,9 +71,6 @@ class EntitySyncService
 
     private function hasFieldChanged(Entity $entity, string $field): bool
     {
-        if ($entity->isAttributeChanged($field)) {
-            return true;
-        }
-        return false;
+        return $entity->isAttributeChanged($field);
     }
 }

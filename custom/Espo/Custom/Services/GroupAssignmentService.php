@@ -9,12 +9,12 @@ use Espo\ORM\EntityManager;
 
 class GroupAssignmentService
 {
-    private const CONTACT_TEAM_FIELDS = [
+    private const array CONTACT_TEAM_FIELDS = [
         'cSlimFitCenter',
         'cTeam',
     ];
 
-    private const SPONSOR_CHAIN_MAX_LEVELS = 3;
+    private const int SPONSOR_CHAIN_MAX_LEVELS = 3;
 
     public function __construct(
         private readonly EntityManager $entityManager,
@@ -35,7 +35,7 @@ class GroupAssignmentService
         ?Entity $sourceEntity = null,
         array $extraGroupNames = [],
     ): void {
-        $sourceEntity = $sourceEntity ?? $destinationEntity;
+        $sourceEntity ??= $destinationEntity;
 
         $requiredGroupIds = $this->getGroupsFromFields($sourceEntity, $fieldsToWatch);
         $requiredGroupIds = array_merge($requiredGroupIds, $this->getGroupsFromNames($extraGroupNames));
@@ -56,10 +56,10 @@ class GroupAssignmentService
      */
     public function syncAssignedUserFromTeamFields(Entity $entity, ?Entity $sourceEntity = null): void
     {
-        $sourceEntity = $sourceEntity ?? $entity;
+        $sourceEntity ??= $entity;
 
         $cTeam = $this->entityManager->getRelation($sourceEntity, 'cTeam')->findOne();
-        if ($cTeam && $cTeam->get('assignedUserId')) {
+        if ($cTeam instanceof Entity && $cTeam->get('assignedUserId')) {
             $entity->set('assignedUserId', $cTeam->get('assignedUserId'));
         }
     }
@@ -69,7 +69,7 @@ class GroupAssignmentService
      */
     public function getCoachExtraGroupNamesFromContact(?Entity $contact): array
     {
-        if (!$contact) {
+        if (!$contact instanceof Entity) {
             return [];
         }
 
@@ -101,7 +101,7 @@ class GroupAssignmentService
      */
     private function getSponsorChainGroupNames(?Entity $cTeam): array
     {
-        if (!$cTeam) {
+        if (!$cTeam instanceof Entity) {
             return [];
         }
 
@@ -110,7 +110,7 @@ class GroupAssignmentService
 
         for ($level = 0; $level < self::SPONSOR_CHAIN_MAX_LEVELS; $level++) {
             $sponsor = $this->entityManager->getRelation($currentTeam, 'sponser')->findOne();
-            if (!$sponsor) {
+            if (!$sponsor instanceof Entity) {
                 break;
             }
 
@@ -217,9 +217,9 @@ class GroupAssignmentService
         $requiredGroupIds = [];
         foreach ($fieldsToWatch as $field) {
             $relatedEntity = $this->entityManager->getRelation($entity, $field)->findOne();
-            if ($relatedEntity && $relatedEntity->get('name')) {
+            if ($relatedEntity instanceof Entity && $relatedEntity->get('name')) {
                 $group = $this->getGroupByName($relatedEntity->get('name'));
-                if ($group) {
+                if ($group instanceof Entity) {
                     $requiredGroupIds[] = $group->getId();
                 }
             }
@@ -243,7 +243,7 @@ class GroupAssignmentService
             }
 
             $group = $this->getGroupByName(trim($groupName));
-            if ($group) {
+            if ($group instanceof Entity) {
                 $requiredGroupIds[] = $group->getId();
             }
         }

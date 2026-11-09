@@ -2,6 +2,8 @@
 
 namespace Espo\Custom\Controllers;
 
-class CLocation extends \Espo\Core\Templates\Controllers\Base
+use Espo\Core\Templates\Controllers\Base;
+
+class CLocation extends Base
 {
 }

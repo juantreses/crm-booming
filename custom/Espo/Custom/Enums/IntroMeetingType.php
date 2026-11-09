@@ -23,7 +23,7 @@ enum IntroMeetingType: string
 
     public static function isIntroMeeting(string $calendarType): bool
     {
-        return self::fromCalendarType($calendarType) !== null;
+        return self::fromCalendarType($calendarType) instanceof \Espo\Custom\Enums\IntroMeetingType;
     }
 
     public static function fromCalendarType(string $calendarType): ?self

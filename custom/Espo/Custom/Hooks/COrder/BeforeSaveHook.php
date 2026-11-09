@@ -45,7 +45,7 @@ class BeforeSaveHook implements BeforeSave
         $contactId = $entity->get('contactId');
         $contact = $contactId ? $this->entityManager->getEntityById('Contact', $contactId) : null;
 
-        $points = $contact && $this->savingsCardService->hasOrderHistory($contact)
+        $points = $contact instanceof Entity && $this->savingsCardService->hasOrderHistory($contact)
             ? $this->savingsCardService->calculatePoints($entity->get('amount'))
             : 0;
 

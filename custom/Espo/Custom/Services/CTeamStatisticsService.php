@@ -18,7 +18,7 @@ class CTeamStatisticsService
     {
         $team = $this->fetchTeam($teamId);
 
-        if (!$team) {
+        if (!$team instanceof Entity) {
             throw new NotFound('Team not found');
         }
 
@@ -214,9 +214,7 @@ class CTeamStatisticsService
             if ($type === null || $type === '') {
                 $type = 'Unknown';
             }
-            if (!isset($byType[$type])) {
-                $byType[$type] = 0;
-            }
+            $byType[$type] ??= 0;
             $byType[$type] += 1; // one row per unique (type, lead)
         }
 

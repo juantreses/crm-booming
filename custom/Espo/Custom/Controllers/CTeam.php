@@ -2,12 +2,14 @@
 
 namespace Espo\Custom\Controllers;
 
+use Espo\Core\Templates\Controllers\Base;
+use Espo\ORM\Entity;
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\NotFound;
 
-class CTeam extends \Espo\Core\Templates\Controllers\Base
+class CTeam extends Base
 {
     /**
      * Get statistics for a specific team
@@ -24,7 +26,7 @@ class CTeam extends \Espo\Core\Templates\Controllers\Base
 
         $team = $this->getRecordService()->getEntity($id);
 
-        if (!$team) {
+        if (!$team instanceof Entity) {
             throw new NotFound('Team not found');
         }
 
@@ -48,7 +50,7 @@ class CTeam extends \Espo\Core\Templates\Controllers\Base
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            throw new BadRequest('Failed to get team statistics: ' . $e->getMessage());
+            throw new BadRequest('Failed to get team statistics: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 }

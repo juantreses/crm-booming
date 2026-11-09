@@ -10,7 +10,7 @@ use Espo\ORM\Repository\Option\SaveOptions;
 
 class BeforeSaveHook implements BeforeSave
 {
-    private const FIELDS_TO_WATCH = [
+    private const array FIELDS_TO_WATCH = [
         'cSlimFitCenter',
         'cTeam',
     ];
