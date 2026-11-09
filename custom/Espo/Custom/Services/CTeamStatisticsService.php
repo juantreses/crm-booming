@@ -6,6 +6,8 @@ use Espo\Core\Exceptions\NotFound;
 use Espo\Custom\Enums\LeadEventType;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
+use Espo\ORM\Query\Part\Expression;
+use Espo\ORM\Query\Part\Selection;
 
 class CTeamStatisticsService
 {
@@ -76,7 +78,7 @@ class CTeamStatisticsService
     private function getEventTypeBreakdown(Entity $team, array $dateFilter): array
     {
         $qb = $this->entityManager->getQueryBuilder()
-            ->select(['cle.eventType', ['COUNT:(id)', 'eventCount']])
+            ->select(['cle.eventType', Selection::create(Expression::create('COUNT:(id)'), 'eventCount')])
             ->from('CLeadEvent', 'cle')
             ->leftJoin('lead', 'l')
             ->leftJoin(
