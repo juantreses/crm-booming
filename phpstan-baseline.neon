@@ -1,13 +1,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Left side of \|\| is always false\.$#'
-			identifier: booleanOr.leftAlwaysFalse
-			count: 1
-			path: custom/Espo/Custom/Services/EntitySyncService.php
-
-		-
-			message: '#^Parameter \#3 \$value of function curl_setopt expects bool, int given\.$#'
+			message: '#^Parameter \#1 \$select of method Espo\\ORM\\QueryBuilder\:\:select\(\) expects array\<Espo\\ORM\\Query\\Part\\Selection\|string\>\|Espo\\ORM\\Query\\Part\\Expression\|Espo\\ORM\\Query\\Part\\Selection\|string\|null, array\<int, list\<string\>\|string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: custom/Espo/Modules/Telegram/Services/TelegramService.php
+			path: custom/Espo/Custom/Services/CTeamStatisticsService.php
