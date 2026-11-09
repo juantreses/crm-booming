@@ -2,9 +2,9 @@
 
 namespace Espo\Custom\EntryPoints;
 
-use Espo\Core\Authentication\AuthToken\AuthToken;
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
+use Espo\Core\Authentication\AuthToken\AuthToken;
 use Espo\Core\Authentication\AuthToken\Manager as AuthTokenManager;
 use Espo\Core\EntryPoint\EntryPoint;
 use Espo\Core\EntryPoint\Traits\NoAuth;

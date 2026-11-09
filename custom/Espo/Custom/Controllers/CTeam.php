@@ -2,12 +2,12 @@
 
 namespace Espo\Custom\Controllers;
 
-use Espo\Core\Templates\Controllers\Base;
-use Espo\ORM\Entity;
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\NotFound;
+use Espo\Core\Templates\Controllers\Base;
+use Espo\ORM\Entity;
 
 class CTeam extends Base
 {
