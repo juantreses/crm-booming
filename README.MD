@@ -206,7 +206,9 @@ Helpers in `tests/Support/`:
 `tests/Unit/Modules/LeadManager/Handlers/HandlerTestCase.php` wires a lead outcome handler with recording
 collaborators, so a test compares the logged events, notes, follow-ups and meeting changes as plain lists.
 
-Covered so far: `Utils`, `Links`, `LeadManager` (all but the controllers), `Booking`, `Calendar`, `ContactManager` and the lead enums in `Custom/Enums`.
+Covered so far: `Utils`, `Links`, `LeadManager` (all but the controllers), `Booking`, `Calendar`, `ContactManager`,
+and in `Custom`: the enums, `GroupAssignmentService`, `EntitySyncService`, the `COrder` hooks and the `Widget` entry point.
+The other `Custom` hooks only call these services; the remaining small modules have hardly any logic.
 
 The tests run with UTC as PHP's default timezone, like Espo (set in `tests/bootstrap.php`).
 

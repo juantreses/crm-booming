@@ -34,6 +34,8 @@ final class FakeEntity
         'subject', 'body', 'isHtml', 'to', 'attachmentsIds', 'role', 'contents',
         // Notes.
         'note', 'contactId',
+        // Teams (Espo groups) and orders.
+        'teamsIds', 'sponserId', 'programEnd', 'dateOrdered', 'amount', 'savingsPoints', 'cDateAssigned',
     ];
 
     /**
