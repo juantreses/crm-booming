@@ -18,10 +18,10 @@ readonly class SavingsCardService
 {
     public const HOM_POINTS = 40;
 
-    private const CENTS_PER_SAVINGS_POINT = 1000;
-    private const CARD_VALIDITY = '+1 year';
+    private const int CENTS_PER_SAVINGS_POINT = 1000;
+    private const string CARD_VALIDITY = '+1 year';
 
-    private const NO_ORDER_HISTORY_TYPES = [
+    private const array NO_ORDER_HISTORY_TYPES = [
         'pcx_15',
         'pcx_25',
         'pcx_35',
@@ -71,7 +71,7 @@ readonly class SavingsCardService
             $contact = $this->entityManager->getEntityById('Contact', $contact);
         }
 
-        if (!$contact) {
+        if (!$contact instanceof Entity) {
             return;
         }
 

@@ -20,7 +20,7 @@ readonly class ContactHomApi
     {
         try {
             return $this->contactHomService->book($request->getParsedBody());
-        } catch (Conflict $e) {
+        } catch (Conflict) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest | Forbidden | NotFound $e) {
             throw $e;
@@ -28,7 +28,7 @@ readonly class ContactHomApi
             $GLOBALS['log']->error('Contact HOM Book Error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('HOM boeken mislukt: ' . $e->getMessage());
+            throw new BadRequest('HOM boeken mislukt: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -36,7 +36,7 @@ readonly class ContactHomApi
     {
         try {
             return $this->contactHomService->logRoyalty($request->getParsedBody());
-        } catch (Conflict $e) {
+        } catch (Conflict) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest | Forbidden | NotFound $e) {
             throw $e;
@@ -44,7 +44,7 @@ readonly class ContactHomApi
             $GLOBALS['log']->error('Contact RI Log Error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('RI loggen mislukt: ' . $e->getMessage());
+            throw new BadRequest('RI loggen mislukt: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -52,7 +52,7 @@ readonly class ContactHomApi
     {
         try {
             return $this->contactHomService->log($request->getParsedBody());
-        } catch (Conflict $e) {
+        } catch (Conflict) {
             throw new BadRequest("Helaas, dit tijdstip is zojuist volgeboekt. Kies een ander moment.");
         } catch (BadRequest | Forbidden | NotFound $e) {
             throw $e;
@@ -60,7 +60,7 @@ readonly class ContactHomApi
             $GLOBALS['log']->error('Contact HOM Log Error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new BadRequest('HOM loggen mislukt: ' . $e->getMessage());
+            throw new BadRequest('HOM loggen mislukt: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 }

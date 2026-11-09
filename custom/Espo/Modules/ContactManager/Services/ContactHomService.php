@@ -23,10 +23,10 @@ readonly class ContactHomService
     /** Client types a client can switch to with outcome B */
     public const UPGRADE_TYPES = ['pcx_15', 'distributor'];
 
-    private const RI_PLANNED = 'ri_planned';
-    private const RI_DOUBT = 'doubt';
-    private const RI_NOT_INTERESTED = 'not_interested';
-    private const RI_DISTRIBUTOR = 'distributor';
+    private const string RI_PLANNED = 'ri_planned';
+    private const string RI_DOUBT = 'doubt';
+    private const string RI_NOT_INTERESTED = 'not_interested';
+    private const string RI_DISTRIBUTOR = 'distributor';
 
     public function __construct(
         private EntityManager $entityManager,
@@ -321,7 +321,7 @@ readonly class ContactHomService
                 ? $this->entityManager->getEntityById('CCalendar', $meeting->get('cCalendarId'))
                 : null;
 
-            if ($calendar && $this->isCalendarType((string) $calendar->get('type'), $calendarType)) {
+            if ($calendar instanceof Entity && $this->isCalendarType((string) $calendar->get('type'), $calendarType)) {
                 $meeting->set('status', $status);
                 $this->entityManager->saveEntity($meeting);
 
@@ -358,7 +358,7 @@ readonly class ContactHomService
         }
 
         $contact = $this->entityManager->getEntityById('Contact', (string) $data->id);
-        if (!$contact) {
+        if (!$contact instanceof Entity) {
             throw new NotFound('Klant niet gevonden.');
         }
 
@@ -388,7 +388,7 @@ readonly class ContactHomService
     {
         $calendarId = $this->slugService->resolve('CCalendar', $calendarIdentifier);
         $calendar = $calendarId ? $this->entityManager->getEntityById('CCalendar', $calendarId) : null;
-        $type = $calendar ? (string) $calendar->get('type') : null;
+        $type = $calendar instanceof Entity ? (string) $calendar->get('type') : null;
 
         if ($type === null || !$this->isCalendarType($type, $expectedType)) {
             throw new BadRequest($expectedType === 'hom' ? 'Kies een HOM-agenda.' : 'Kies een Royalty (RI) agenda.');

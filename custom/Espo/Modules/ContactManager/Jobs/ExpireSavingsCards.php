@@ -12,8 +12,8 @@ use Espo\ORM\EntityManager;
 class ExpireSavingsCards implements JobDataLess
 {
     public function __construct(
-        private EntityManager $entityManager,
-        private SavingsCardService $savingsCardService,
+        private readonly EntityManager $entityManager,
+        private readonly SavingsCardService $savingsCardService,
     ) {
     }
 
