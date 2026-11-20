@@ -11,6 +11,7 @@ use ArrayIterator;
 use Iterator;
 use NoRewindIterator;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use ZBateson\MailMimeParser\Header\IHeaderPart;
 use ZBateson\MailMimeParser\Header\Part\HeaderPartFactory;
 use ZBateson\MailMimeParser\Header\Part\MimeToken;
@@ -39,6 +40,11 @@ abstract class AbstractConsumerService implements IConsumerService
     protected array $subConsumers = [];
 
     /**
+     * @var int Maximum number of tokens parsed from a single header value.
+     */
+    protected int $maxHeaderTokenCount;
+
+    /**
      * @var ?string the generated token split pattern on first run, so it doesn't
      *      need to be regenerated every time.
      */
@@ -47,18 +53,27 @@ abstract class AbstractConsumerService implements IConsumerService
     /**
      * @param AbstractConsumerService[] $subConsumers
      */
-    public function __construct(LoggerInterface $logger, HeaderPartFactory $partFactory, array $subConsumers = [])
-    {
+    public function __construct(
+        LoggerInterface $logger,
+        HeaderPartFactory $partFactory,
+        array $subConsumers = [],
+        int $maxHeaderTokenCount = 20000
+    ) {
         $this->logger = $logger;
         $this->partFactory = $partFactory;
         $this->subConsumers = $subConsumers;
+        $this->maxHeaderTokenCount = $maxHeaderTokenCount;
     }
 
-    public function __invoke(string $value) : array
+    /**
+     * @param ?int $maxTokenCount lowers the number of tokens parsed below the
+     *        configured maximum for this call
+     */
+    public function __invoke(string $value, ?int $maxTokenCount = null) : array
     {
         $this->logger->debug('Starting {class} for "{value}"', ['class' => static::class, 'value' => $value]);
         if ($value !== '') {
-            $parts = $this->parseRawValue($value);
+            $parts = $this->parseRawValue($value, $maxTokenCount);
             $this->logger->debug(
                 'Ending {class} for "{value}": parsed into {cnt} header part objects',
                 ['class' => static::class, 'value' => $value, 'cnt' => \count($parts)]
@@ -100,10 +115,36 @@ abstract class AbstractConsumerService implements IConsumerService
      * @return \ZBateson\MailMimeParser\Header\IHeaderPart[] the array of parsed
      *         parts
      */
-    private function parseRawValue(string $value) : array
+    private function parseRawValue(string $value, ?int $maxTokenCount = null) : array
     {
-        $tokens = $this->splitRawValue($value);
-        return $this->parseTokensIntoParts(new NoRewindIterator(new ArrayIterator($tokens)));
+        $limit = \min($maxTokenCount ?? $this->maxHeaderTokenCount, $this->maxHeaderTokenCount);
+        if ($limit <= 0) {
+            // nothing may be parsed, so the whole value is the one unparsed
+            // token, without splitting it or copying it first
+            $tokens = [$value];
+            $truncated = true;
+        } else {
+            $tokens = $this->splitRawValue($value);
+            $truncated = (\count($tokens) > $limit);
+            if ($truncated) {
+                // everything past the limit is kept, but as a single unparsed
+                // token, so the value isn't silently losing content
+                $remainder = \implode('', \array_slice($tokens, $limit));
+                $tokens = \array_slice($tokens, 0, $limit);
+                $tokens[] = $remainder;
+            }
+        }
+        $parts = $this->parseTokensIntoParts(new NoRewindIterator(new ArrayIterator($tokens)));
+        if ($truncated && !empty($parts)) {
+            // a header's parts are its ErrorBag children, so recording this on
+            // the last one surfaces it from IHeader::getAllErrors()
+            $parts[\array_key_last($parts)]->addError(
+                'Header value token limit of ' . $limit
+                    . ' reached, the remainder was not parsed',
+                LogLevel::ERROR
+            );
+        }
+        return $parts;
     }
 
     /**
@@ -313,7 +354,9 @@ abstract class AbstractConsumerService implements IConsumerService
         $parts = [];
         while ($tokens->valid() && !$this->isEndToken($tokens->current())) {
             $this->logger->debug('Parsing token: {token} in class: {consumer}', ['token' => $tokens->current(), 'consumer' => static::class]);
-            $parts = \array_merge($parts, $this->getTokenParts($tokens));
+            foreach ($this->getTokenParts($tokens) as $tokenPart) {
+                $parts[] = $tokenPart;
+            }
             $this->advanceToNextToken($tokens, false);
         }
         return (empty($parts)) ? [] : $this->processParts($parts);

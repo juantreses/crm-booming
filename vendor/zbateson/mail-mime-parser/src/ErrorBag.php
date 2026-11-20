@@ -9,6 +9,7 @@ namespace ZBateson\MailMimeParser;
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 use Throwable;
 
 /**
@@ -67,6 +68,11 @@ abstract class ErrorBag implements IErrorBag
     {
         $error = new Error($message, $psrLogLevel, $this, $exception);
         $this->errors[] = $error;
+        if ($this->logger instanceof NullLogger) {
+            // the context name can be costly to build, e.g. a part parses
+            // headers for it, so don't for a logger that discards it
+            return $this;
+        }
         $this->logger->log(
             $psrLogLevel,
             '{contextName} {message} {exception}',
@@ -77,6 +83,14 @@ abstract class ErrorBag implements IErrorBag
             ]
         );
         return $this;
+    }
+
+    /**
+     * Copies the source bag's own errors into this one without re-logging them.
+     */
+    protected function copyErrorsFrom(ErrorBag $source) : void
+    {
+        $this->errors = \array_merge($this->errors, $source->getErrors(false, LogLevel::DEBUG));
     }
 
     public function getErrors(bool $validate = false, string $minPsrLevel = LogLevel::ERROR) : array

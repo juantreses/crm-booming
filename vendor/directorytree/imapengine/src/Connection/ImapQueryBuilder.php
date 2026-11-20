@@ -12,6 +12,11 @@ use DirectoryTree\ImapEngine\Support\Str;
 class ImapQueryBuilder
 {
     /**
+     * The largest UID value allowed by IMAP.
+     */
+    protected const MAX_UID = '4294967295';
+
+    /**
      * The where conditions for the query.
      */
     protected array $wheres = [];
@@ -174,6 +179,14 @@ class ImapQueryBuilder
     }
 
     /**
+     * Add a where "UNKEYWORD" clause to the query.
+     */
+    public function unkeyword(string $value): static
+    {
+        return $this->where(ImapSearchKey::Unkeyword, $value);
+    }
+
+    /**
      * Add a where "ON" clause to the query.
      */
     public function on(mixed $date): static
@@ -204,6 +217,36 @@ class ImapQueryBuilder
     }
 
     /**
+     * Add a where "SENTON" clause to the query.
+     */
+    public function sentOn(mixed $date): static
+    {
+        return $this->where(ImapSearchKey::SentOn, new RawQueryValue(
+            $this->parseDate($date)->format($this->dateFormat)
+        ));
+    }
+
+    /**
+     * Add a where "SENTSINCE" clause to the query.
+     */
+    public function sentSince(mixed $date): static
+    {
+        return $this->where(ImapSearchKey::SentSince, new RawQueryValue(
+            $this->parseDate($date)->format($this->dateFormat)
+        ));
+    }
+
+    /**
+     * Add a where "SENTBEFORE" clause to the query.
+     */
+    public function sentBefore(mixed $date): static
+    {
+        return $this->where(ImapSearchKey::SentBefore, new RawQueryValue(
+            $this->parseDate($date)->format($this->dateFormat)
+        ));
+    }
+
+    /**
      * Add a where "SUBJECT" clause to the query.
      */
     public function subject(string $value): static
@@ -228,11 +271,39 @@ class ImapQueryBuilder
     }
 
     /**
+     * Add a where "HEADER Message-ID" clause to the query.
+     */
+    public function messageId(string $messageId): static
+    {
+        return $this->header('Message-ID', trim(trim($messageId), '<>'));
+    }
+
+    /**
      * Add a where "UID" clause to the query.
      */
     public function uid(int|string|array $from, int|float|null $to = null): static
     {
+        if ($to === INF) {
+            $to = self::MAX_UID;
+        }
+
         return $this->where(ImapSearchKey::Uid, new RawQueryValue(Str::set($from, $to)));
+    }
+
+    /**
+     * Add a where "LARGER" clause to the query.
+     */
+    public function larger(int $bytes): static
+    {
+        return $this->where(ImapSearchKey::Larger, new RawQueryValue($bytes));
+    }
+
+    /**
+     * Add a where "SMALLER" clause to the query.
+     */
+    public function smaller(int $bytes): static
+    {
+        return $this->where(ImapSearchKey::Smaller, new RawQueryValue($bytes));
     }
 
     /**

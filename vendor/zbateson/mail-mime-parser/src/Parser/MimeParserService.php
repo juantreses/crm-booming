@@ -7,6 +7,7 @@
 
 namespace ZBateson\MailMimeParser\Parser;
 
+use Psr\Log\LogLevel;
 use ZBateson\MailMimeParser\Message\Factory\PartHeaderContainerFactory;
 use ZBateson\MailMimeParser\Message\PartHeaderContainer;
 use ZBateson\MailMimeParser\Parser\Proxy\ParserMessageProxyFactory;
@@ -32,16 +33,30 @@ class MimeParserService extends AbstractParserService
      */
     protected HeaderParserService $headerParser;
 
+    /**
+     * @var int Maximum multipart nesting depth.
+     */
+    protected int $maxMimePartDepth;
+
+    /**
+     * @var int Maximum number of parts in a message.
+     */
+    protected int $maxMessagePartCount;
+
     public function __construct(
         ParserMessageProxyFactory $parserMessageProxyFactory,
         ParserMimePartProxyFactory $parserMimePartProxyFactory,
         PartBuilderFactory $partBuilderFactory,
         PartHeaderContainerFactory $partHeaderContainerFactory,
-        HeaderParserService $headerParser
+        HeaderParserService $headerParser,
+        int $maxMimePartDepth = 256,
+        int $maxMessagePartCount = 10000
     ) {
         parent::__construct($parserMessageProxyFactory, $parserMimePartProxyFactory, $partBuilderFactory);
         $this->partHeaderContainerFactory = $partHeaderContainerFactory;
         $this->headerParser = $headerParser;
+        $this->maxMimePartDepth = $maxMimePartDepth;
+        $this->maxMessagePartCount = $maxMessagePartCount;
     }
 
     /**
@@ -160,8 +175,47 @@ class MimeParserService extends AbstractParserService
         if ($proxy->isParentBoundaryFound()) {
             return null;
         }
-        $headerContainer = $this->partHeaderContainerFactory->newInstance();
+        if ($this->exceedsMaxDepth($proxy)) {
+            $proxy->addError(
+                'Maximum MIME part nesting depth of ' . $this->maxMimePartDepth . ' reached',
+                LogLevel::ERROR
+            );
+            return null;
+        }
+        // isEndBoundaryFound() means there are no more real children to create,
+        // only possible hidden content past the end boundary, so the limit
+        // isn't reached by a message that legitimately has exactly
+        // $maxMessagePartCount parts.
+        if (!$proxy->isEndBoundaryFound() && $proxy->getPartCount() >= $this->maxMessagePartCount) {
+            $proxy->addError(
+                'Maximum message part count of ' . $this->maxMessagePartCount . ' reached',
+                LogLevel::ERROR
+            );
+            return null;
+        }
+        $headerContainer = $this->partHeaderContainerFactory->newInstance(
+            null,
+            $proxy->getHeaderContainer()->getBudget()
+        );
         $child = $this->partBuilderFactory->newChildPartBuilder($headerContainer, $proxy);
-        return $this->createPart($proxy, $headerContainer, $child);
+        $childProxy = $this->createPart($proxy, $headerContainer, $child);
+        if ($childProxy !== null) {
+            $proxy->incrementPartCount();
+        }
+        return $childProxy;
+    }
+
+    /**
+     * Returns true if adding a child to $proxy would exceed $maxMimePartDepth.
+     */
+    private function exceedsMaxDepth(ParserMimePartProxy $proxy) : bool
+    {
+        $depth = 1;
+        for ($p = $proxy->getParent(); $p !== null; $p = $p->getParent()) {
+            if (++$depth >= $this->maxMimePartDepth) {
+                return true;
+            }
+        }
+        return false;
     }
 }

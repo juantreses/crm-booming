@@ -9,6 +9,7 @@ use DirectoryTree\ImapEngine\Connection\Tokens\EmailAddress;
 use DirectoryTree\ImapEngine\Connection\Tokens\ListClose;
 use DirectoryTree\ImapEngine\Connection\Tokens\ListOpen;
 use DirectoryTree\ImapEngine\Connection\Tokens\Literal;
+use DirectoryTree\ImapEngine\Connection\Tokens\Nil;
 use DirectoryTree\ImapEngine\Connection\Tokens\Number;
 use DirectoryTree\ImapEngine\Connection\Tokens\QuotedString;
 use DirectoryTree\ImapEngine\Connection\Tokens\ResponseCodeClose;
@@ -362,7 +363,7 @@ class ImapTokenizer
     /**
      * Reads an atom token.
      *
-     * ATOMs are sequences of printable ASCII characters that do not contain delimiters.
+     * ATOMs are sequences of non-control characters that do not contain delimiters.
      */
     protected function readAtom(): Atom
     {
@@ -384,6 +385,24 @@ class ImapTokenizer
             $value .= $char;
 
             $this->advance();
+        }
+
+        // If no value was read, we will throw an exception since
+        // an atom must contain at least one valid character.
+        if ($value === '') {
+            if ($char === null) {
+                throw new ImapStreamException('Unexpected end of stream while reading atom');
+            }
+
+            throw new ImapParserException(sprintf(
+                'Unexpected byte 0x%02X in response at buffer offset %d',
+                ord($char),
+                $this->position
+            ));
+        }
+
+        if (strcasecmp($value, 'NIL') === 0) {
+            return new Nil($value);
         }
 
         return new Atom($value);
@@ -432,7 +451,9 @@ class ImapTokenizer
         while ((strlen($this->buffer) - $this->position) < $length) {
             $data = $this->stream->fgets();
 
-            if ($data === false) {
+            // If the stream did not return any data, we will stop
+            // filling the buffer until another read is attempted.
+            if ($data === false || $data === '') {
                 return;
             }
 
@@ -475,20 +496,16 @@ class ImapTokenizer
      */
     protected function isValidAtomCharacter(string $char): bool
     {
-        // Get the ASCII code.
         $code = ord($char);
 
-        // Allow only printable ASCII (32-126).
-        if ($code < 32 || $code > 126) {
+        // Reject control characters and DEL while tolerating the
+        // 8-bit response text returned by some IMAP servers.
+        if ($code < 0x20 || $code === 0x7F) {
             return false;
         }
 
         // Delimiters are not allowed inside ATOMs.
-        if ($this->isDelimiter($char)) {
-            return false;
-        }
-
-        return true;
+        return ! $this->isDelimiter($char);
     }
 
     /**

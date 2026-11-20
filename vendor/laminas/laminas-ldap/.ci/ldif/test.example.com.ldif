@@ -1,3 +1,0 @@
-dn: ou=test, {{ LDAP_BASE_DN }}
-objectClass: organizationalUnit
-ou: test

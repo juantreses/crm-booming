@@ -8,6 +8,7 @@ class ColorHelper
 {
     // Convert textual color values, to array of 3 colors 0-255
     // Can be "red", "#333" or "#009945" styles
+    /** @return array{int, int, int} */
     public static function getArrayFromColorString(string $color): array {
         if ($color == 'black') {
             return [0, 0, 0];
@@ -24,20 +25,20 @@ class ColorHelper
         }
 
         // #333 style
-        if (str_starts_with($color, '#') && strlen($color) === 4) {
+        if (preg_match('/\A#[0-9a-fA-F]{3}\z/', $color) === 1) {
             return [
-                hexdec(substr($color, 1, 1) . substr($color, 1, 1)),
-                hexdec(substr($color, 2, 1) . substr($color, 2, 1)),
-                hexdec(substr($color, 3, 1) . substr($color, 3, 1)),
+                (int)hexdec(substr($color, 1, 1) . substr($color, 1, 1)),
+                (int)hexdec(substr($color, 2, 1) . substr($color, 2, 1)),
+                (int)hexdec(substr($color, 3, 1) . substr($color, 3, 1)),
             ];
         }
 
         // #009933 style
-        if (str_starts_with($color, '#') && strlen($color) === 7) {
+        if (preg_match('/\A#[0-9a-fA-F]{6}\z/', $color) === 1) {
             return [
-                hexdec(substr($color, 1, 2)),
-                hexdec(substr($color, 3, 2)),
-                hexdec(substr($color, 5, 2)),
+                (int)hexdec(substr($color, 1, 2)),
+                (int)hexdec(substr($color, 3, 2)),
+                (int)hexdec(substr($color, 5, 2)),
             ];
         }
 

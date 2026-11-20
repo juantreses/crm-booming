@@ -8,6 +8,7 @@
 namespace ZBateson\MailMimeParser\Parser;
 
 use Psr\Log\LogLevel;
+use ZBateson\MailMimeParser\Message\HeaderBudget;
 use ZBateson\MailMimeParser\Message\PartHeaderContainer;
 
 /**
@@ -17,6 +18,16 @@ use ZBateson\MailMimeParser\Message\PartHeaderContainer;
  */
 class HeaderParserService
 {
+    private int $maxHeaderCount;
+
+    private int $maxHeaderSizeBytes;
+
+    public function __construct(int $maxHeaderCount = 1000, int $maxHeaderSizeBytes = 1048576)
+    {
+        $this->maxHeaderCount = $maxHeaderCount;
+        $this->maxHeaderSizeBytes = $maxHeaderSizeBytes;
+    }
+
     /**
      * Ensures the header isn't empty and contains a colon separator character,
      * then splits it and adds it to the passed PartHeaderContainer.
@@ -51,17 +62,60 @@ class HeaderParserService
     public function parse($handle, PartHeaderContainer $container) : static
     {
         $header = '';
+        $count = 0;
+        $start = \ftell($handle);
+        $budget = $container->getBudget();
+        // once a limit is reached the rest of the header block is still read
+        // past, so it isn't mistaken for the part's content
+        $discarding = false;
         do {
             $offset = \ftell($handle);
             $line = MessageParserService::readLine($handle);
-            if ($line === false || $line === '' || $line[0] !== "\t" && $line[0] !== ' ') {
-                $this->addRawHeaderToPart($offset, $header, $container);
+            $trimmed = ($line === false) ? '' : \rtrim($line, "\r\n");
+            $ended = ($trimmed === '');
+            // by position rather than length, since readLine truncates long
+            // lines but still consumes them
+            $budget?->consumeBytes(\ftell($handle) - $offset);
+            if ($ended || ($line[0] !== "\t" && $line[0] !== ' ')) {
+                if ($header !== '') {
+                    ++$count;
+                    $budget?->consumeHeaders(1);
+                    $this->addRawHeaderToPart($offset, $header, $container);
+                }
                 $header = '';
             } else {
-                $line = "\r\n" . $line;
+                $trimmed = "\r\n" . $trimmed;
             }
-            $header .= \rtrim($line, "\r\n");
-        } while ($header !== '');
+            if ($discarding) {
+                continue;
+            }
+            $header .= $trimmed;
+            $limitError = $this->getLimitError($count, \ftell($handle) - $start, $budget);
+            if ($limitError !== null) {
+                $container->addError($limitError, LogLevel::ERROR);
+                $discarding = true;
+                $header = '';
+            }
+        } while (!$ended);
         return $this;
+    }
+
+    /**
+     * Returns an error message if a header limit has been reached, or null.
+     */
+    private function getLimitError(int $count, int $bytes, ?HeaderBudget $budget) : ?string
+    {
+        if ($count >= $this->maxHeaderCount || $bytes >= $this->maxHeaderSizeBytes) {
+            return 'Header count or total size limit reached while parsing headers';
+        }
+        if ($budget !== null && $budget->getRemainingHeaders() === 0) {
+            return 'Message header count limit of ' . $budget->getMaxHeaderCount()
+                . ' reached while parsing headers';
+        }
+        if ($budget !== null && $budget->getRemainingBytes() === 0) {
+            return 'Message header size limit of ' . $budget->getMaxSizeBytes()
+                . ' bytes reached while parsing headers';
+        }
+        return null;
     }
 }
