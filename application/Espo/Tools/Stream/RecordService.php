@@ -141,7 +141,7 @@ class RecordService
         ];
 
         if ($this->user->isPortal()) {
-            $where[] = ['isInternal' => true];
+            $where[] = ['isInternal' => false];
         }
 
         $this->applyPortalAccess($builder, $where);
@@ -463,6 +463,7 @@ class RecordService
             ->create()
             ->from(Attachment::ENTITY_TYPE)
             ->withSearchParams($searchParams)
+            ->withComplexExpressionsForbidden()
             ->buildQueryBuilder()
             ->where(
                 Condition::in(

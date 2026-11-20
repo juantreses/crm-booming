@@ -2994,7 +2994,11 @@ define('crm:views/target-list/record/row-actions/default', ['views/record/row-ac
         getActionList: function () {
             const list = Dep.prototype.getActionList.call(this);
 
-            if (this.options.acl.edit) {
+            if (
+                this.model.collection &&
+                this.model.collection.parentModel &&
+                this.getAcl().checkModel(this.model.collection.parentModel, 'edit')
+            ) {
                 if (this.model.get('targetListIsOptedOut')) {
                     list.push({
                         action: 'cancelOptOut',
@@ -7477,9 +7481,16 @@ define("modules/crm/views/lead/convert", ["exports", "views/main"], function (_e
       let notValid = false;
       scopeList.forEach(scope => {
         const editView = /** @type {import('views/record/edit').default} */this.getView(scope);
-        editView.setConfirmLeaveOut(false);
         editView.model.set(editView.fetch());
         notValid = editView.validate() || notValid;
+      });
+      this.scopeList.forEach(scope => {
+        const editView = /** @type {import('views/record/edit').default} */
+        this.getView(scope);
+        if (!editView) {
+          return;
+        }
+        editView.setConfirmLeaveOut(false);
       });
       const data = {
         id: this.model.id,

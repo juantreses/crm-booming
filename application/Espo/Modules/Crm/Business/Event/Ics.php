@@ -118,11 +118,16 @@ class Ics
             $organizerPart = "ORGANIZER;{$this->preparePerson($this->organizer[0], $this->organizer[1])}";
         }
 
+        $locationValuePart = $this->escapeString($this->formatMultiline($this->address));
+
+        $locationPart = $locationValuePart ?
+            "LOCATION:$locationValuePart\r\n" : '';
+
         $body =
             "DTSTART:{$this->formatTimestamp($this->startDate)}\r\n" .
             "DTEND:{$this->formatTimestamp($this->endDate)}\r\n" .
-            "SUMMARY:{$this->escapeString($this->summary)}\r\n" .
-            "LOCATION:{$this->escapeString($this->address)}\r\n" .
+            "SUMMARY:{$this->escapeString($this->formatMultiline($this->summary))}\r\n" .
+            $locationPart .
             $organizerPart .
             "DESCRIPTION:{$this->escapeString($this->formatMultiline($this->description))}\r\n" .
             "UID:$this->uid\r\n" .
@@ -154,6 +159,7 @@ class Ics
 
         return date('Ymd\THis\Z', $timestamp);
     }
+
 
     private function escapeString(?string $string): string
     {
