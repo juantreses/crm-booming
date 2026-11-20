@@ -2,8 +2,8 @@
 
 namespace Espo\Modules\Links\Services;
 
-use Espo\ORM\Entity;
 use Espo\Modules\Links\ValueObjects\LinkCollection;
+use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
 readonly class LinkGeneratorService
