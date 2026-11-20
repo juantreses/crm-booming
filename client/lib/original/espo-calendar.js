@@ -392,7 +392,6 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
     }
 
     /**
-     * @private
      * @return {string}
      */
     getTitle() {
@@ -417,7 +416,6 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
       if (this.options.userId && this.options.userName) {
         title += ' (' + this.options.userName + ')';
       }
-      title = this.getHelper().escapeString(title);
       return title;
     }
 

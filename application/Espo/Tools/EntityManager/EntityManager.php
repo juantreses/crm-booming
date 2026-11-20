@@ -51,13 +51,20 @@ use RuntimeException;
 
 /**
  * Administration > Entity Manager.
+ *
+ * @todo Rename to EntityTypeManager.
  */
 class EntityManager
 {
-    private const DEFAULT_PARAM_LOCATION = 'scopes';
+    private const string DEFAULT_PARAM_LOCATION = 'scopes';
+
+    /**
+     * @internal
+     */
+    public const string MODULE_CUSTOM = 'Custom';
 
     /** @var string[] */
-    private const ALLOWED_PARAM_LOCATIONS = [
+    private const array ALLOWED_PARAM_LOCATIONS = [
         'scopes',
         'entityDefs',
         'clientDefs',
@@ -75,88 +82,67 @@ class EntityManager
         private DataManager $dataManager,
         private InjectableFactory $injectableFactory,
         private NameUtil $nameUtil,
-        private LinkManager $linkManager
+        private LinkManager $linkManager,
     ) {}
 
     /**
-     * @param array<string, mixed> $params
+     * @param array{
+     *     stream?: bool,
+     *     disabled?: bool,
+     *     labelSingular?: ?string,
+     *     labelPlural?: ?string,
+     *     kanbanStatusIgnoreList?: string[],
+     *     color?: ?string,
+     *     iconClass?: ?string,
+     *     kanbanViewMode?: bool,
+     * } $params
      * @return string An actual name.
      * @throws BadRequest
      * @throws Error
      * @throws Conflict
      */
-    public function create(string $name, string $type, array $params = [], ?CreateParams $createParams = null): string
-    {
+    public function create(
+        string $name,
+        string $type,
+        array $params = [],
+        ?CreateParams $createParams = null,
+    ): string {
+
         $createParams ??= new CreateParams();
 
         $name = ucfirst($name);
         $name = trim($name);
 
-        if (empty($name) || empty($type)) {
+        if (!$name || !$type) {
             throw new BadRequest();
         }
 
-        if (!in_array($type, $this->metadata->get(['app', 'entityTemplateList'], []))) {
-            throw new Error("Type '$type' does not exist.");
-        }
+        $this->assertTypeValid($type);
+        $this->assertSafeName($type);
 
-        /** @var array<string, mixed> $templateDefs */
-        $templateDefs = $this->metadata->get(['app', 'entityTemplates', $type], []);
+        $templateDefs = $this->getTemplateDefs($type) ?? throw new RuntimeException();
 
-        if (!empty($templateDefs['isNotCreatable']) && !$createParams->forceCreate()) {
+        if ($templateDefs['isNotCreatable'] && !$createParams->forceCreate) {
             throw new Error("Type '$type' is not creatable.");
         }
 
-        $name = $this->nameUtil->addCustomPrefix($name, true);
-
-        if ($this->nameUtil->nameIsBad($name)) {
-            throw new Error("Entity name should contain only letters and numbers, " .
-                "start with an upper case letter.");
+        if (!$createParams->skipCustomPrefix) {
+            $name = $this->nameUtil->addCustomPrefix($name, true);
         }
 
-        if ($this->nameUtil->nameIsTooShort($name)) {
-            throw new Error("Entity name should not shorter than " . NameUtil::MIN_ENTITY_NAME_LENGTH . ".");
-        }
-
-        if ($this->nameUtil->nameIsTooLong($name)) {
-            throw Error::createWithBody(
-                "Entity type name should not be longer than " . NameUtil::MAX_ENTITY_NAME_LENGTH . ".",
-                Error\Body::create()
-                    ->withMessageTranslation('nameIsTooLong', 'EntityManager')
-                    ->encode()
-            );
-        }
-
-        if ($this->nameUtil->nameIsUsed($name)) {
-            throw Conflict::createWithBody(
-                "Name '$name' is already used.",
-                Error\Body::create()
-                    ->withMessageTranslation('nameIsAlreadyUsed', 'EntityManager', [
-                        'name' => $name,
-                    ])
-                    ->encode()
-            );
-        }
-
-        if ($this->nameUtil->nameIsNotAllowed($name)) {
-            throw Conflict::createWithBody(
-                "Entity type name '$name' is not allowed.",
-                Error\Body::create()
-                    ->withMessageTranslation('nameIsNotAllowed', 'EntityManager', [
-                        'name' => $name,
-                    ])
-                    ->encode()
-            );
-        }
+        $this->assertEntityTypeNameValid($name);
+        $this->assertSafeName($name);
 
         $normalizedName = Util::normalizeClassName($name);
 
         $templateNamespace = "\Espo\Core\Templates";
 
+        $templateModuleName = $templateDefs['module'];
+
         $templatePath = "application/Espo/Core/Templates";
 
-        if (!empty($templateDefs['module'])) {
-            $templateModuleName = $templateDefs['module'];
+        if ($templateModuleName) {
+            $this->assertSafeName($templateModuleName);
 
             $normalizedTemplateModuleName = Util::normalizeClassName($templateModuleName);
 
@@ -196,39 +182,39 @@ class EntityManager
             $labelPlural = $params['labelPlural'];
         }
 
-        $languageList = $this->metadata->get(['app', 'language', 'list'], []);
+        $languageList = $this->getLanguageListSafe();
 
         foreach ($languageList as $language) {
-            $filePath = $templatePath . '/i18n/' . $language . '/' . $type . '.json';
+            $filePath = "$templatePath/i18n/$language/$type.json";
 
             if (!$this->fileManager->exists($filePath)) {
                 continue;
             }
 
             $languageContents = $this->fileManager->getContents($filePath);
-            $languageContents = $this->replace($languageContents, $name, $createParams->getReplaceData());
+            $languageContents = $this->replace($languageContents, $name, $createParams->replaceData);
             $languageContents = str_replace('{entityTypeTranslated}', $labelSingular, $languageContents);
 
-            $destinationFilePath = 'custom/Espo/Custom/Resources/i18n/' . $language . '/' . $name . '.json';
+            $destinationFilePath = "custom/Espo/Custom/Resources/i18n/$language/$name.json";
 
             $this->fileManager->putContents($destinationFilePath, $languageContents);
         }
 
-        $filePath = $templatePath . "/Metadata/$type/scopes.json";
+        $filePath = "$templatePath/Metadata/$type/scopes.json";
 
         $scopesDataContents = $this->fileManager->getContents($filePath);
-        $scopesDataContents = $this->replace($scopesDataContents, $name, $createParams->getReplaceData());
+        $scopesDataContents = $this->replace($scopesDataContents, $name, $createParams->replaceData);
 
         $scopesData = Json::decode($scopesDataContents, true);
 
         $scopesData['stream'] = $stream;
         $scopesData['disabled'] = $disabled;
         $scopesData['type'] = $type;
-        $scopesData['module'] = 'Custom';
+        $scopesData['module'] = self::MODULE_CUSTOM;
         $scopesData['object'] = true;
         $scopesData['isCustom'] = true;
 
-        if (!empty($templateDefs['isNotRemovable']) || !empty($params['isNotRemovable'])) {
+        if ($createParams->isNotRemovable) {
             $scopesData['isNotRemovable'] = true;
         }
 
@@ -238,10 +224,10 @@ class EntityManager
 
         $this->metadata->set('scopes', $name, $scopesData);
 
-        $filePath = $templatePath . "/Metadata/$type/entityDefs.json";
+        $filePath = "$templatePath/Metadata/$type/entityDefs.json";
 
         $entityDefsDataContents = $this->fileManager->getContents($filePath);
-        $entityDefsDataContents = $this->replace($entityDefsDataContents, $name, $createParams->getReplaceData());
+        $entityDefsDataContents = $this->replace($entityDefsDataContents, $name, $createParams->replaceData);
 
         $entityDefsData = Json::decode($entityDefsDataContents, true);
 
@@ -250,7 +236,7 @@ class EntityManager
         $filePath = $templatePath . "/Metadata/$type/clientDefs.json";
 
         $clientDefsContents = $this->fileManager->getContents($filePath);
-        $clientDefsContents = $this->replace($clientDefsContents, $name, $createParams->getReplaceData());
+        $clientDefsContents = $this->replace($clientDefsContents, $name, $createParams->replaceData);
 
         $clientDefsData = Json::decode($clientDefsContents, true);
 
@@ -270,6 +256,7 @@ class EntityManager
 
         $this->processMetadataCreateSelectDefs($templatePath, $name, $type);
         $this->processMetadataCreateRecordDefs($templatePath, $name, $type);
+        $this->processMetadataCreateLogicDefs($templatePath, $name, $type);
 
         $this->baseLanguage->set('Global', 'scopeNames', $name, $labelSingular);
         $this->baseLanguage->set('Global', 'scopeNamesPlural', $name, $labelPlural);
@@ -277,23 +264,25 @@ class EntityManager
         $this->metadata->save();
         $this->baseLanguage->save();
 
-        $layoutsPath = $templatePath . "/Layouts/$type";
+        $layoutsPath = "$templatePath/Layouts/$type";
 
         if ($this->fileManager->isDir($layoutsPath)) {
-            $this->fileManager->copy($layoutsPath, 'custom/Espo/Custom/Resources/layouts/' . $name);
+            $this->fileManager->copy($layoutsPath, "custom/Espo/Custom/Resources/layouts/$name");
         }
 
         $entityTypeParams = new Params($name, $type, $params);
 
         $this->processCreateHook($entityTypeParams);
 
-        $tabList = $this->config->get('tabList', []);
+        if ($createParams->addTab) {
+            $tabList = $this->config->get('tabList', []);
 
-        if (!in_array($name, $tabList)) {
-            $tabList[] = $name;
+            if (!in_array($name, $tabList)) {
+                $tabList[] = $name;
 
-            $this->configWriter->set('tabList', $tabList);
-            $this->configWriter->save();
+                $this->configWriter->set('tabList', $tabList);
+                $this->configWriter->save();
+            }
         }
 
         $this->dataManager->rebuild();
@@ -322,7 +311,7 @@ class EntityManager
 
     private function processMetadataCreateSelectDefs(string $templatePath, string $name, string $type): void
     {
-        $path = $templatePath . "/Metadata/$type/selectDefs.json";
+        $path = "$templatePath/Metadata/$type/selectDefs.json";
 
         if (!$this->fileManager->isFile($path)) {
             return;
@@ -337,7 +326,7 @@ class EntityManager
 
     private function processMetadataCreateRecordDefs(string $templatePath, string $name, string $type): void
     {
-        $path = $templatePath . "/Metadata/$type/recordDefs.json";
+        $path = "$templatePath/Metadata/$type/recordDefs.json";
 
         if (!$this->fileManager->isFile($path)) {
             return;
@@ -348,6 +337,21 @@ class EntityManager
         $data = Json::decode($contents, true);
 
         $this->metadata->set('recordDefs', $name, $data);
+    }
+
+    private function processMetadataCreateLogicDefs(string $templatePath, string $name, string $type): void
+    {
+        $path = "$templatePath/Metadata/$type/logicDefs.json";
+
+        if (!$this->fileManager->isFile($path)) {
+            return;
+        }
+
+        $contents = $this->fileManager->getContents($path);
+
+        $data = Json::decode($contents, true);
+
+        $this->metadata->set('logicDefs', $name, $data);
     }
 
     /**
@@ -372,7 +376,7 @@ class EntityManager
      */
     public function update(string $name, array $params): void
     {
-        if (!$this->metadata->get('scopes.' . $name)) {
+        if (!$this->metadata->get("scopes.$name")) {
             throw new Error("Entity `$name` does not exist.");
         }
 
@@ -380,10 +384,10 @@ class EntityManager
             throw new Error("Entity type $name is not customizable.");
         }
 
-        $isCustom = $this->metadata->get(['scopes', $name, 'isCustom']);
-        $type = $this->metadata->get(['scopes', $name, 'type']);
+        $isCustom = $this->isScopeCustom($name);
+        $type = $this->getScopeType($name);
 
-        if ($this->metadata->get(['scopes', $name, 'statusFieldLocked'])) {
+        if ($this->getScopeMetadataParam($name, 'statusFieldLocked')) {
             unset($params['statusField']);
         }
 
@@ -396,6 +400,8 @@ class EntityManager
 
         $entityTypeParams = new Params($name, $type, array_merge($this->getCurrentParams($name), $params));
         $previousEntityTypeParams = new Params($name, $type, $this->getCurrentParams($name));
+
+        $this->processBeforeUpdateHook($entityTypeParams, $previousEntityTypeParams);
 
         if (array_key_exists('stream', $params)) {
             $this->metadata->set('scopes', $name, ['stream' => (bool) $params['stream']]);
@@ -489,10 +495,8 @@ class EntityManager
         $this->metadata->save();
         $this->language->save();
 
-        if ($isCustom) {
-            if ($this->isLanguageNotBase()) {
-                $this->baseLanguage->save();
-            }
+        if ($isCustom && $this->isLanguageNotBase()) {
+            $this->baseLanguage->save();
         }
 
         $this->processUpdateHook($entityTypeParams, $previousEntityTypeParams);
@@ -502,9 +506,7 @@ class EntityManager
         if (
             !$initialData['optimisticConcurrencyControl'] &&
             !empty($params['optimisticConcurrencyControl']) &&
-            (
-                empty($params['fullTextSearch']) || $initialData['fullTextSearch']
-            )
+            (empty($params['fullTextSearch']) || $initialData['fullTextSearch'])
         ) {
             $this->dataManager->rebuild();
         }
@@ -518,23 +520,24 @@ class EntityManager
     {
         $deleteParams ??= new DeleteParams();
 
-        if (!$this->isCustom($name)) {
+        if (!$this->isScopeCustom($name)) {
             throw new Forbidden;
         }
 
-        if (!$this->isScopeCustomizable($name)) {
+        $this->assertSafeName($name);
+
+        if (!$this->isScopeCustomizable($name) && !$deleteParams->forceRemove()) {
             throw new Error("Entity type $name is not customizable.");
         }
 
-        $normalizedName = Util::normalizeClassName($name);
+        $type = $this->getScopeType($name);
 
-        $type = $this->metadata->get(['scopes', $name, 'type']);
-        $isNotRemovable = $this->metadata->get(['scopes', $name, 'isNotRemovable']);
-        /** @var array<string, mixed> $templateDefs */
-        $templateDefs = $this->metadata->get(['app', 'entityTemplates', $type], []);
+        $isNotRemovable = $this->getScopeMetadataParam($name, 'isNotRemovable');
+
+        $templateDefs = $type ? $this->getTemplateDefs($type) : null;
 
         if (
-            (!empty($templateDefs['isNotRemovable']) || $isNotRemovable) &&
+            ($templateDefs && $templateDefs['isNotRemovable'] || $isNotRemovable) &&
             !$deleteParams->forceRemove()
         ) {
             throw new Error("Type '$type' is not removable.");
@@ -555,35 +558,7 @@ class EntityManager
             } catch (Exception) {}
         }
 
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/entityDefs/$name.json");
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/clientDefs/$name.json");
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/recordDefs/$name.json");
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/selectDefs/$name.json");
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/scopes/$name.json");
-
-        $this->fileManager->removeFile("custom/Espo/Custom/Entities/$normalizedName.php");
-        $this->fileManager->removeFile("custom/Espo/Custom/Services/$normalizedName.php");
-        $this->fileManager->removeFile("custom/Espo/Custom/Controllers/$normalizedName.php");
-        $this->fileManager->removeFile("custom/Espo/Custom/Repositories/$normalizedName.php");
-
-        if (file_exists("custom/Espo/Custom/SelectManagers/$normalizedName.php")) {
-            $this->fileManager->removeFile("custom/Espo/Custom/SelectManagers/$normalizedName.php");
-        }
-
-        $this->fileManager->removeInDir("custom/Espo/Custom/Resources/layouts/$normalizedName");
-        $this->fileManager->removeDir("custom/Espo/Custom/Resources/layouts/$normalizedName");
-
-        $languageList = $this->metadata->get(['app', 'language', 'list'], []);
-
-        foreach ($languageList as $language) {
-            $filePath = 'custom/Espo/Custom/Resources/i18n/' . $language . '/' . $normalizedName . '.json';
-
-            if (!file_exists($filePath)) {
-                continue;
-            }
-
-            $this->fileManager->removeFile($filePath);
-        }
+        $this->removeFiles($name);
 
         try {
             $this->language->delete('Global', 'scopeNames', $name);
@@ -633,9 +608,9 @@ class EntityManager
         $this->configWriter->set($param, $list);
     }
 
-    private function isCustom(string $name): bool
+    private function isScopeCustom(string $scope): bool
     {
-        return (bool) $this->metadata->get('scopes.' . $name . '.isCustom');
+        return (bool) $this->getScopeMetadataParam($scope, 'isCustom');
     }
 
     /**
@@ -652,6 +627,18 @@ class EntityManager
         $this->metadata->save();
 
         $this->dataManager->clearCache();
+    }
+
+    private function processBeforeUpdateHook(Params $params, Params $previousParams): void
+    {
+        /** @var class-string<UpdateHook>[] $classNameList */
+        $classNameList = $this->metadata->get(['app', 'entityManager', 'beforeUpdateHookClassNameList']) ?? [];
+
+        foreach ($classNameList as $className) {
+            $hook = $this->injectableFactory->create($className);
+
+            $hook->process($params, $previousParams);
+        }
     }
 
     private function processUpdateHook(Params $params, Params $previousParams): void
@@ -695,11 +682,11 @@ class EntityManager
      */
     public function resetToDefaults(string $name): void
     {
-        if ($this->isCustom($name)) {
+        if ($this->isScopeCustom($name)) {
             throw new Error("Can't reset to defaults custom entity type '$name.'");
         }
 
-        $type = $this->metadata->get(['scopes', $name, 'type']);
+        $type = $this->getScopeType($name);
 
         $previousEntityTypeParams = new Params($name, $type, $this->getCurrentParams($name));
 
@@ -737,6 +724,7 @@ class EntityManager
 
         $this->language->delete('Global', 'scopeNames', $name);
         $this->language->delete('Global', 'scopeNamesPlural', $name);
+        $this->language->delete($name, 'labels', 'Create ' . $name);
         $this->language->save();
 
         $entityTypeParams = new Params($name, $type, $this->getCurrentParams($name));
@@ -774,19 +762,19 @@ class EntityManager
     /**
      * @return array<string, mixed>
      */
-    private function getCurrentParams(string $entityType): array
+    private function getCurrentParams(string $scope): array
     {
         $data = [];
 
-        foreach ($this->getAdditionalParamLocationMap($entityType) as $param => $item) {
+        foreach ($this->getAdditionalParamLocationMap($scope) as $param => $item) {
             ['location' => $location, 'param' => $actualParam] = $item;
 
-            $data[$param] = $this->metadata->get([$location, $entityType, $actualParam]);
+            $data[$param] = $this->metadata->get([$location, $scope, $actualParam]);
         }
 
-        $data['statusField'] = $this->metadata->get(['scopes', $entityType, 'statusField']);
-        $data['kanbanViewMode'] = $this->metadata->get(['scopes', $entityType, 'kanbanViewMode']);
-        $data['disabled'] = $this->metadata->get(['scopes', $entityType, 'disabled']);
+        $data['statusField'] = $this->getScopeMetadataParam($scope, 'statusField');
+        $data['kanbanViewMode'] = $this->getScopeMetadataParam($scope, 'kanbanViewMode');
+        $data['disabled'] = $this->getScopeMetadataParam($scope, 'disabled');
 
         return $data;
     }
@@ -794,13 +782,13 @@ class EntityManager
     /**
      * @return array<string, array{location: string, param: string}>
      */
-    private function getAdditionalParamLocationMap(string $entityType): array
+    private function getAdditionalParamLocationMap(string $scope): array
     {
-        $templateType = $this->metadata->get(['scopes', $entityType, 'type']);
+        $templateType = $this->getScopeMetadataParam($scope, 'type');
 
         $map1 = $this->metadata->get(['app', 'entityManagerParams', 'Global']) ?? [];
         $map2 = $this->metadata->get(['app', 'entityManagerParams', '@' . ($templateType ?? '_')]) ?? [];
-        $map3 = $this->metadata->get(['app', 'entityManagerParams', $entityType]) ?? [];
+        $map3 = $this->metadata->get(['app', 'entityManagerParams', $scope]) ?? [];
 
         /** @var array<string, array<string, mixed>> $params */
         $params = [...$map1, ...$map2, ...$map3];
@@ -837,11 +825,11 @@ class EntityManager
 
     private function isScopeCustomizable(string $scope): bool
     {
-        if (!$this->metadata->get("scopes.$scope.customizable")) {
+        if (!$this->getScopeMetadataParam($scope, 'customizable')) {
             return false;
         }
 
-        if ($this->metadata->get("scopes.$scope.entityManager.edit") === false) {
+        if ($this->getScopeMetadataParam($scope, 'entityManager.edit') === false) {
             return false;
         }
 
@@ -850,14 +838,175 @@ class EntityManager
 
     private function isScopeCustomizableFormula(string $scope): bool
     {
-        if (!$this->metadata->get("scopes.$scope.customizable")) {
+        if (!$this->getScopeMetadataParam($scope, 'customizable')) {
             return false;
         }
 
-        if ($this->metadata->get("scopes.$scope.entityManager.formula") === false) {
+        if ($this->getScopeMetadataParam($scope, 'entityManager.formula') === false) {
             return false;
         }
 
         return true;
+    }
+
+    private function removeFiles(string $name): void
+    {
+        if ($name !== basename($name)) {
+            throw new RuntimeException();
+        }
+
+        $normalizedName = Util::normalizeClassName($name);
+
+        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/entityDefs/$name.json");
+        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/clientDefs/$name.json");
+        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/recordDefs/$name.json");
+        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/selectDefs/$name.json");
+        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/logicDefs/$name.json");
+        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/scopes/$name.json");
+
+        $this->fileManager->removeFile("custom/Espo/Custom/Entities/$normalizedName.php");
+        $this->fileManager->removeFile("custom/Espo/Custom/Services/$normalizedName.php");
+        $this->fileManager->removeFile("custom/Espo/Custom/Controllers/$normalizedName.php");
+        $this->fileManager->removeFile("custom/Espo/Custom/Repositories/$normalizedName.php");
+
+        $this->fileManager->removeInDir("custom/Espo/Custom/Resources/layouts/$normalizedName");
+        $this->fileManager->removeDir("custom/Espo/Custom/Resources/layouts/$normalizedName");
+
+        foreach ($this->getLanguageListSafe() as $language) {
+            $filePath = "custom/Espo/Custom/Resources/i18n/$language/$normalizedName.json";
+
+            if (!$this->fileManager->exists($filePath)) {
+                continue;
+            }
+
+            $this->fileManager->removeFile($filePath);
+        }
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getLanguageListSafe(): array
+    {
+        /** @var string[] $list */
+        $list = $this->metadata->get('app.language.list') ?? [];
+
+        foreach ($list as $it) {
+            $this->assertSafeName($it);
+        }
+
+        return $list;
+    }
+
+    /**
+     * @throws Error
+     */
+    private function assertTypeValid(string $type): void
+    {
+        if (!$this->typeExists($type)) {
+            throw new Error("Type '$type' does not exist.");
+        }
+    }
+
+    private function assertSafeName(string $value): void
+    {
+        if ($value !== basename($value)) {
+            throw new RuntimeException();
+        }
+    }
+
+    /**
+     * @throws Conflict
+     * @throws Error
+     */
+    private function assertEntityTypeNameValid(string $name): void
+    {
+        if ($this->nameUtil->nameIsBad($name)) {
+            $message = "Entity name should contain only letters and numbers, start with an upper case letter.";
+
+            throw new Error($message);
+        }
+
+        if ($this->nameUtil->nameIsTooShort($name)) {
+            throw new Error("Entity name should not shorter than " . NameUtil::MIN_ENTITY_NAME_LENGTH . ".");
+        }
+
+        if ($this->nameUtil->nameIsTooLong($name)) {
+            throw Error::createWithBody(
+                "Entity type name should not be longer than " . NameUtil::MAX_ENTITY_NAME_LENGTH . ".",
+                Error\Body::create()
+                    ->withMessageTranslation('nameIsTooLong', 'EntityManager')
+                    ->encode()
+            );
+        }
+
+        if ($this->nameUtil->nameIsUsed($name)) {
+            throw Conflict::createWithBody(
+                "Name '$name' is already used.",
+                Error\Body::create()
+                    ->withMessageTranslation('nameIsAlreadyUsed', 'EntityManager', [
+                        'name' => $name,
+                    ])
+                    ->encode()
+            );
+        }
+
+        if ($this->nameUtil->nameIsNotAllowed($name)) {
+            throw Conflict::createWithBody(
+                "Entity type name '$name' is not allowed.",
+                Error\Body::create()
+                    ->withMessageTranslation('nameIsNotAllowed', 'EntityManager', [
+                        'name' => $name,
+                    ])
+                    ->encode()
+            );
+        }
+    }
+
+    /**
+     * @return array{
+     *     isNotCreatable: bool,
+     *     isNotRemovable: bool,
+     *     module: ?string,
+     * }|null
+     */
+    private function getTemplateDefs(string $type): ?array
+    {
+        if (!$this->typeExists($type)) {
+            return null;
+        }
+
+        $defs = $this->metadata->get("app.entityTemplates.$type") ?? [];
+
+        if (!array_key_exists('isNotCreatable', $defs)) {
+            $defs['isNotCreatable'] = false;
+        }
+
+        if (!array_key_exists('isNotRemovable', $defs)) {
+            $defs['isNotRemovable'] = false;
+        }
+
+        if (!array_key_exists('module', $defs)) {
+            $defs['module'] = null;
+        }
+
+        return $defs;
+    }
+
+    private function getScopeType(string $scope): ?string
+    {
+        return $this->getScopeMetadataParam($scope, 'type');
+    }
+
+    private function typeExists(string $type): bool
+    {
+        $typeList = $this->metadata->get('app.entityTemplateList') ?? [];
+
+        return in_array($type, $typeList);
+    }
+
+    private function getScopeMetadataParam(string $scope, string $param): mixed
+    {
+        return $this->metadata->get("scopes.$scope.$param");
     }
 }

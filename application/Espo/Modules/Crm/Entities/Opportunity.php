@@ -41,6 +41,19 @@ class Opportunity extends Entity
 {
     public const ENTITY_TYPE = 'Opportunity';
 
+    /**
+     * @deprecated
+     * @todo Remove in v10.1.
+     */
+    public const string FIELD_CLOSED_DATE = 'closeDate';
+
+    /** @since 10.0.0 */
+    public const string FIELD_CLOSE_DATE = 'closeDate';
+    /**@since 10.0.0 */
+    public const string FIELD_STAGE = 'stage';
+    /** @since 10.0.0 */
+    public const string FIELD_AMOUNT = 'amount';
+
     public const STAGE_CLOSED_WON = 'Closed Won';
     public const STAGE_CLOSED_LOST = 'Closed Lost';
 
@@ -69,12 +82,12 @@ class Opportunity extends Entity
     public function getAmount(): ?Currency
     {
         /** @var ?Currency */
-        return $this->getValueObject('amount');
+        return $this->getValueObject(self::FIELD_AMOUNT);
     }
 
     public function setAmount(?Currency $amount): self
     {
-        $this->setValueObject('amount', $amount);
+        $this->setValueObject(self::FIELD_AMOUNT, $amount);
 
         return $this;
     }
@@ -82,24 +95,24 @@ class Opportunity extends Entity
     public function getCloseDate(): ?Date
     {
         /** @var ?Date */
-        return $this->getValueObject('closeDate');
+        return $this->getValueObject(self::FIELD_CLOSE_DATE);
     }
 
     public function setCloseDate(?Date $closeDate): self
     {
-        $this->setValueObject('closeDate', $closeDate);
+        $this->setValueObject(self::FIELD_CLOSE_DATE, $closeDate);
 
         return $this;
     }
 
     public function getStage(): ?string
     {
-        return $this->get('stage');
+        return $this->get(self::FIELD_STAGE);
     }
 
-    public function setStage(?string $stage): void
+    public function setStage(?string $stage): self
     {
-        $this->set('stage', $stage);
+        return $this->set(self::FIELD_STAGE, $stage);
     }
 
     public function getLastStage(): ?string
@@ -107,9 +120,9 @@ class Opportunity extends Entity
         return $this->get('lastStage');
     }
 
-    public function setLastStage(?string $lastStage): void
+    public function setLastStage(?string $lastStage): self
     {
-        $this->set('lastStage', $lastStage);
+        return $this->set('lastStage', $lastStage);
     }
 
     public function getProbability(): ?int
@@ -117,9 +130,9 @@ class Opportunity extends Entity
         return $this->get('probability');
     }
 
-    public function setProbability(?int $probability): void
+    public function setProbability(?int $probability): self
     {
-        $this->set('probability', $probability);
+        return $this->set('probability', $probability);
     }
 
     public function getAccount(): ?Account

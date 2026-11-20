@@ -41,6 +41,7 @@ use Espo\Core\Name\Field;
 use Espo\Core\ORM\Defs\AttributeParam;
 use Espo\Core\ORM\Type\FieldType;
 use Espo\Core\Utils\Metadata;
+use Espo\Entities\Attachment;
 use Espo\Entities\User;
 use Espo\Modules\Crm\Entities\Account;
 use Espo\Modules\Crm\Entities\Contact;
@@ -249,7 +250,7 @@ class LinkCheck
             );
         }
 
-        $toSkip = $this->linkForeignAccessCheck($isOne, $entityType, $link, $foreignEntity);
+        $toSkip = $this->linkForeignAccessCheck($isOne, $entity, $link, $foreignEntity);
 
         if ($toSkip) {
             return $foreignEntity;
@@ -265,16 +266,16 @@ class LinkCheck
      */
     private function linkForeignAccessCheck(
         bool $isOne,
-        string $entityType,
+        Entity $entity,
         string $link,
-        Entity $foreignEntity
+        Entity $foreignEntity,
     ): bool {
 
         if ($isOne) {
-            return $this->linkForeignAccessCheckOne($entityType, $link, $foreignEntity);
+            return $this->linkForeignAccessCheckOne($entity, $link, $foreignEntity);
         }
 
-        return $this->linkForeignAccessCheckMany($entityType, $link, $foreignEntity, true);
+        return $this->linkForeignAccessCheckMany($entity, $link, $foreignEntity, true);
     }
 
     private function getParam(string $entityType, string $link, string $param): mixed
@@ -290,6 +291,10 @@ class LinkCheck
     public function processLink(Entity $entity, string $link): void
     {
         $entityType = $entity->getEntityType();
+
+        if (!$this->acl->checkLink($entityType, $link)) {
+            throw new ForbiddenSilent("Link $link is forbidden.");
+        }
 
         /** @var AclTable::ACTION_*|null $action */
         $action = $this->getParam($entityType, $link, 'linkRequiredAccess');
@@ -336,7 +341,7 @@ class LinkCheck
      */
     private function processLinkForeignInternal(Entity $entity, string $link, Entity $foreignEntity): void
     {
-        $toSkip = $this->linkForeignAccessCheckMany($entity->getEntityType(), $link, $foreignEntity);
+        $toSkip = $this->linkForeignAccessCheckMany($entity, $link, $foreignEntity);
 
         if ($toSkip) {
             return;
@@ -363,11 +368,13 @@ class LinkCheck
      * @throws Forbidden
      */
     private function linkForeignAccessCheckMany(
-        string $entityType,
+        Entity $entity,
         string $link,
         Entity $foreignEntity,
-        bool $fromUpdate = false
+        bool $fromUpdate = false,
     ): bool {
+
+        $entityType = $entity->getEntityType();
 
         /** @var AclTable::ACTION_* $action */
         $action = $this->getParam($entityType, $link, 'linkRequiredForeignAccess') ?? AclTable::ACTION_EDIT;
@@ -400,6 +407,14 @@ class LinkCheck
             $this->checkIsAllowedForPortal($foreignEntity)
         ) {
             return true;
+        }
+
+        // Check parent and related IDs instead?
+        if ($foreignEntity instanceof Attachment && !$this->checkAttachment($entity, $foreignEntity)) {
+            throw ForbiddenSilent::createWithBody(
+                "Cannot link an already linked attachment ($entityType:$link).",
+                ErrorBody::create()
+            );
         }
 
         if ($this->acl->check($foreignEntity, $action)) {
@@ -623,8 +638,10 @@ class LinkCheck
      * @return bool True indicates that the link checker should be bypassed.
      * @throws Forbidden
      */
-    private function linkForeignAccessCheckOne(string $entityType, string $link, Entity $foreignEntity): bool
+    private function linkForeignAccessCheckOne(Entity $entity, string $link, Entity $foreignEntity): bool
     {
+        $entityType = $entity->getEntityType();
+
         if ($this->getParam($entityType, $link, 'linkForeignAccessCheckDisabled')) {
             return true;
         }
@@ -641,6 +658,13 @@ class LinkCheck
             if ($this->checkIsDefault($fieldDefs, $link, $foreignEntity)) {
                 return true;
             }
+        }
+
+        if ($foreignEntity instanceof Attachment && !$this->checkAttachment($entity, $foreignEntity)) {
+            throw ForbiddenSilent::createWithBody(
+                "Cannot link an already linked attachment ($entityType:$link).",
+                ErrorBody::create()
+            );
         }
 
         if ($this->checkIsAllowedForPortal($foreignEntity)) {
@@ -742,5 +766,38 @@ class LinkCheck
                 ->withMessageTranslation('cannotLinkAlreadyLinked')
                 ->encode()
         );
+    }
+
+    private function checkAttachment(Entity $entity, Attachment $attachment): bool
+    {
+        $parentType = $attachment->getParentType();
+        $parentId = $attachment->getParentId();
+
+        if ($parentType && $parentId) {
+            $toSame =
+                $entity->getEntityType() === $parentType &&
+                $entity->hasId() &&
+                $entity->getId() === $parentId;
+
+            if (!$toSame) {
+                return false;
+            }
+        }
+
+        $relatedType = $attachment->getRelatedType();
+        $relatedId = $attachment->getRelatedId();
+
+        if ($relatedType && $relatedId) {
+            $toSame =
+                $entity->getEntityType() === $relatedType &&
+                $entity->hasId() &&
+                $entity->getId() === $relatedId;
+
+            if (!$toSame) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

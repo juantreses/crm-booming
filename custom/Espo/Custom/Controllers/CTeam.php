@@ -34,9 +34,9 @@ class CTeam extends Base
         $endDate = $request->getQueryParam('endDate');
 
         try {
-            $statsService = $this->getServiceFactory()->create('CTeamStatisticsService');
-
-            $statistics = $statsService->getTeamStatistics($id, $startDate, $endDate);
+            $statistics = $this->injectableFactory
+                ->create('CTeamStatisticsService')
+                ->getTeamStatistics($id, $startDate, $endDate);
 
             return [
                 'success' => true,

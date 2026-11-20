@@ -51,6 +51,12 @@ class Manager
     protected const GET_SAFE_CONTENTS_RETRY_NUMBER = 10;
     protected const GET_SAFE_CONTENTS_RETRY_INTERVAL = 0.1;
 
+    private const array RESERVED_CUSTOM_PATH_LIST = [
+        'custom/Espo/Custom',
+        'custom/Espo/Modules',
+        'client/custom/modules',
+    ];
+
     /**
      * @param ?array{
      *   dir: string|int|null,
@@ -670,7 +676,7 @@ class Manager
              * Returning true will cause situations when files are created with
              * a wrong ownership. This is a trade-off for being able to run
              * Espo under a user that is neither webserver-user nor root. A file
-             * will be created owned by a user running the process.
+             * will be created owned by the user running the process.
              */
             return true;
         }
@@ -701,6 +707,10 @@ class Manager
         $result = true;
 
         foreach ($dirPaths as $dirPath) {
+            if ($this->isReservedCustomPath($dirPath)) {
+                continue;
+            }
+
             if (is_dir($dirPath) && is_writable($dirPath)) {
                 $result &= rmdir($dirPath);
             }
@@ -1159,5 +1169,12 @@ class Manager
         try {
             opcache_invalidate($filepath, $force);
         } catch (Throwable) {}
+    }
+
+    private function isReservedCustomPath(string $path): bool
+    {
+        $normalizedPath = rtrim($path, '/');
+
+        return in_array($normalizedPath, self::RESERVED_CUSTOM_PATH_LIST, true);
     }
 }

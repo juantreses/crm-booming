@@ -67,13 +67,13 @@ use RuntimeException;
  */
 class Authentication
 {
-    private const LOGOUT_USERNAME = '**logout';
+    private const string LOGOUT_USERNAME = '**logout';
 
-    private const HEADER_CREATE_TOKEN_SECRET = 'Espo-Authorization-Create-Token-Secret';
-    private const HEADER_ANOTHER_USER = 'X-Another-User';
-    private const HEADER_LOGOUT_REDIRECT_URL = 'X-Logout-Redirect-Url';
+    private const string HEADER_CREATE_TOKEN_SECRET = 'Espo-Authorization-Create-Token-Secret';
+    private const string HEADER_ANOTHER_USER = 'X-Another-User';
+    private const string HEADER_LOGOUT_REDIRECT_URL = 'X-Logout-Redirect-Url';
 
-    private const COOKIE_AUTH_TOKEN_SECRET = 'auth-token-secret';
+    private const string COOKIE_AUTH_TOKEN_SECRET = 'auth-token-secret';
 
     public function __construct(
         private ApplicationUser $applicationUser,
@@ -88,7 +88,7 @@ class Authentication
         private LogoutFactory $logoutFactory,
         private MethodProvider $methodProvider,
         private Util $util,
-        private LanguageProxy $language
+        private LanguageProxy $language,
     ) {}
 
     /**
@@ -231,13 +231,15 @@ class Authentication
             return $this->processFail(Result::fail($anotherUserFailReason), $data, $request);
         }
 
-        $this->applicationUser->setUser($loggedUser);
+        if ($result->isSuccess()) {
+            $this->applicationUser->setUser($loggedUser);
+        }
 
         if (
             !$result->bypassSecondStep() &&
             !$result->isSecondStepRequired() &&
             !$authToken &&
-            $this->configDataProvider->isTwoFactorEnabled()
+            $this->getTwoFactorEnabled()
         ) {
             $result = $this->processTwoFactor($result, $request);
 
@@ -480,13 +482,12 @@ class Authentication
             $request->getHeader(self::HEADER_CREATE_TOKEN_SECRET) === 'true' &&
             !$this->configDataProvider->isAuthTokenSecretDisabled();
 
-        $password = $user->getPassword();
         $ipAddress = $this->util->obtainIpFromRequest($request);
 
         $authTokenData = AuthTokenData::create([
-            'hash' => $password,
             'ipAddress' => $ipAddress,
             'userId' => $user->getId(),
+            'passwordVersion' => $user->getPasswordVersion(),
             'portalId' => $this->isPortal() ? $this->getPortal()->getId() : null,
             'createSecret' => $createSecret,
         ]);
@@ -736,10 +737,9 @@ class Authentication
 
     private function getUsernameByAuthToken(AuthToken $authToken): ?string
     {
-        /** @var ?User $user */
         $user = $this->entityManager
-            ->getRDBRepository(User::ENTITY_TYPE)
-            ->select(['userName'])
+            ->getRDBRepositoryByClass(User::class)
+            ->select([User::FIELD_USER_NAME])
             ->where([Attribute::ID => $authToken->getUserId()])
             ->findOne();
 
@@ -766,10 +766,9 @@ class Authentication
             return [null, FailReason::ANOTHER_USER_NOT_ALLOWED];
         }
 
-        /** @var ?User $loggedUser */
         $loggedUser = $this->entityManager
-            ->getRDBRepository(User::ENTITY_TYPE)
-            ->where(['userName' => $username])
+            ->getRDBRepositoryByClass(User::class)
+            ->where([User::FIELD_USER_NAME => $username])
             ->findOne();
 
         if (!$loggedUser) {
@@ -835,5 +834,14 @@ class Authentication
         }
 
         return $this->processFail($result, $data, $request);
+    }
+
+    private function getTwoFactorEnabled(): bool
+    {
+        if ($this->isPortal() && !$this->configDataProvider->isTwoFactorInPortalEnabled()) {
+            return false;
+        }
+
+        return $this->configDataProvider->isTwoFactorEnabled();
     }
 }

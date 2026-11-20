@@ -137,7 +137,7 @@ class Auth
             return AuthResult::createNotResolved();
         }
 
-        if (!$result->isFail()) {
+        if ($result->isSuccess()) {
             return AuthResult::createResolved();
         }
 
@@ -241,7 +241,7 @@ class Auth
             }
 
             if ($e->getMessage()) {
-                $this->log->notice("Auth exception: {message}", ['message' => $e->getMessage()]);
+                $this->log->notice("Auth exception.", ['exception' => $e]);
             }
 
             return;

@@ -86,25 +86,21 @@ class Service
      */
     public function getFolderList(Params $params): array
     {
-        if (
-            $params->getHost() &&
-            !$this->addressUtil->isAllowedAddress($params) &&
-            !$this->hostCheck->isHostAndNotInternal($params->getHost())
-        ) {
-            throw new Forbidden("Not allowed internal host.");
+        $params = $this->connectPreProcess($params);
+
+        try {
+            $storage = $this->storageFactory->createWithParams($params);
+
+            return $storage->getFolderNames();
+        } catch (Exception $e) {
+            $this->log->warning("IMAP get folder list failed.", [
+                'exception' => $e,
+            ]);
+
+            $message = $e instanceof ImapError ? $e->getMessage() : '';
+
+            throw new ErrorSilent($message);
         }
-
-        if ($params->getId()) {
-            $account = $this->accountFactory->create($params->getId());
-
-            $params = $params
-                ->withPassword($this->getPassword($params, $account))
-                ->withImapHandlerClassName($account->getImapHandlerClassName());
-        }
-
-        $storage = $this->storageFactory->createWithParams($params);
-
-        return $storage->getFolderNames();
     }
 
     /**
@@ -113,33 +109,17 @@ class Service
      */
     public function testConnection(Params $params): void
     {
-        if ($params->getId()) {
-            $account = $this->accountFactory->create($params->getId());
-
-            $params = $params
-                ->withPassword($this->getPassword($params, $account))
-                ->withImapHandlerClassName($account->getImapHandlerClassName());
-        }
-
-        if (
-            $params->getHost() &&
-            !$this->addressUtil->isAllowedAddress($params) &&
-            !$this->hostCheck->isHostAndNotInternal($params->getHost())
-        ) {
-            throw new Forbidden("Not allowed internal host.");
-        }
+        $params = $this->connectPreProcess($params);
 
         try {
             $storage = $this->storageFactory->createWithParams($params);
             $storage->getFolderNames();
         } catch (Exception $e) {
-            $this->log->warning("IMAP test connection failed; {message}", [
+            $this->log->warning("IMAP test connection failed.", [
                 'exception' => $e,
-                'message' => $e->getMessage(),
             ]);
 
-            $message = $e instanceof ImapError ?
-                $e->getMessage() : '';
+            $message = $e instanceof ImapError ? $e->getMessage() : '';
 
             throw new ErrorSilent($message, previous: $e);
         }
@@ -177,5 +157,30 @@ class Service
         $storage = $this->storageFactory->create($account);
 
         $storage->appendMessage($message->toString(), $folder);
+    }
+
+    /**
+     * @throws Error
+     * @throws Forbidden
+     */
+    private function connectPreProcess(Params $params): Params
+    {
+        if (
+            $params->getHost() &&
+            !$this->addressUtil->isAllowedAddress($params) &&
+            !$this->hostCheck->isHostAndNotInternal($params->getHost())
+        ) {
+            throw new Forbidden("Not allowed internal host.");
+        }
+
+        if ($params->getId()) {
+            $account = $this->accountFactory->create($params->getId());
+
+            $params = $params
+                ->withPassword($this->getPassword($params, $account))
+                ->withImapHandlerClassName($account->getImapHandlerClassName());
+        }
+
+        return $params;
     }
 }

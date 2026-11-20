@@ -770,12 +770,17 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
       const key = 'calendarEnabledScopeList';
       this.getStorage().set('state', key, enabledScopeList);
     }
+
+    /**
+     * @todo Revise for removal? Not used anywhere?
+     * @private
+     * @return {string}
+     */
     getTitle() {
       let title = '';
       if (this.options.userId && this.options.userName) {
         title += ' (' + this.options.userName + ')';
       }
-      title = this.getHelper().escapeString(title);
       return title;
     }
 

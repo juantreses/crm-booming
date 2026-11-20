@@ -103,7 +103,7 @@ class HostCheck
      */
     public function getHostIpAddresses(string $host): array
     {
-        $records = dns_get_record($host, DNS_A);
+        $records = dns_get_record($host, DNS_A + DNS_AAAA);
 
         if (!$records) {
             return [];
@@ -112,8 +112,15 @@ class HostCheck
         $output = [];
 
         foreach ($records as $record) {
-            /** @var ?string $idAddress */
-            $idAddress = $record['ip'] ?? null;
+            $type = $record['type'] ?? null;
+
+            if ($type === 'AAAA') {
+                /** @var ?string $idAddress */
+                $idAddress = $record['ipv6'] ?? null;
+            } else {
+                /** @var ?string $idAddress */
+                $idAddress = $record['ip'] ?? null;
+            }
 
             if (!$idAddress) {
                 continue;
@@ -130,20 +137,32 @@ class HostCheck
      */
     public function ipAddressIsNotInternal(string $ipAddress): bool
     {
+        if (str_starts_with($ipAddress, '::ffff:')) {
+            $ipAddress = substr($ipAddress, 7);
+        }
+
+        if (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $packed = inet_pton($ipAddress);
+
+            if ($packed !== false && strlen($packed) === 16) {
+                if (str_starts_with($packed, "\x00\x64\xff\x9b\x00\x00\x00\x00\x00\x00\x00\x00")) {
+                    // NAT64 64:ff9b::/96
+                    $ipAddress = inet_ntop(substr($packed, 12, 4));
+                } else if ($packed[0] === "\x20" && $packed[1] === "\x02") {
+                    // 6to4 2002::/16
+                    $ipAddress = inet_ntop(substr($packed, 2, 4));
+                } else if (str_starts_with($packed, "\x20\x01\x00\x00")) {
+                    // Teredo 2001:0000::/32
+                    $ipAddress = inet_ntop(substr($packed, 12, 4) ^ "\xff\xff\xff\xff");
+                }
+            }
+        }
+
         return (bool) filter_var(
             $ipAddress,
             FILTER_VALIDATE_IP,
             FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
         );
-    }
-
-    /**
-     * @deprecated Since 9.3.4. Use `isHostAndNotInternal`.
-     * @todo Remove in 9.4.0.
-     */
-    public function isNotInternalHost(string $host): bool
-    {
-        return $this->isHostAndNotInternal($host);
     }
 
     private function normalizeIpAddress(string $ip): string|false

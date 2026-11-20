@@ -101,13 +101,7 @@ class Admin
      */
     public function postActionUploadUpgradePackage(Request $request): object
     {
-        if ($this->config->get('restrictedMode')) {
-            throw new Forbidden();
-        }
-
-        if ($this->config->get('adminUpgradeDisabled')) {
-            throw new Forbidden("Disabled with 'adminUpgradeDisabled' parameter.");
-        }
+        $this->assertUpgradeAllowed();
 
         $data = $request->getBodyContents();
 
@@ -134,12 +128,7 @@ class Admin
     {
         $data = $request->getParsedBody();
 
-        if (
-            $this->config->get('restrictedMode') &&
-            !$this->user->isSuperAdmin()
-        ) {
-            throw new Forbidden();
-        }
+        $this->assertUpgradeAllowed();
 
         $upgradeManager = new UpgradeManager($this->container);
 
@@ -186,5 +175,23 @@ class Admin
         }
 
         return (object) $this->systemRequirements->getAllRequiredList();
+    }
+
+    /**
+     * @throws Forbidden
+     */
+    private function assertUpgradeAllowed(): void
+    {
+        if ($this->config->get('restrictedMode')) {
+            throw new Forbidden("Not allowed in restricted mode.");
+        }
+
+        if ($this->config->get('adminUpgrade') !== true) {
+            throw new Forbidden("Cannot upgrade via the UI as `adminUpgrade` is not enabled.");
+        }
+
+        if ($this->config->get('adminUpgradeDisabled')) {
+            throw new Forbidden("Disabled with `adminUpgradeDisabled` parameter.");
+        }
     }
 }
