@@ -162,7 +162,7 @@ readonly class LeadService
         $timezone = new \DateTimeZone('UTC');
         $dt = new \DateTime('now', $timezone);
 
-        $event->set([
+        $event->setMultiple([
             'eventType' => LeadEventType::ASSIGNED->value,
             'eventDate' => $dt->format('Y-m-d H:i:s'),
             'description' => "{$oldCoachName} -> {$newCoachName}",

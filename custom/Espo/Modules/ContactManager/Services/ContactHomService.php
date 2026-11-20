@@ -337,7 +337,7 @@ readonly class ContactHomService
         }
 
         $note = $this->entityManager->getNewEntity('CNote');
-        $note->set([
+        $note->setMultiple([
             'name' => $name,
             'note' => $text,
             'contactId' => $contact->getId(),

@@ -198,7 +198,7 @@ readonly class BookingService
         };
 
         $meeting = $this->entityManager->getNewEntity('Meeting');
-        $meeting->set([
+        $meeting->setMultiple([
             'name' => $typeLabel . ' - ' . $person->get('name'),
             'status' => $calendar->get('needsApproval') ? 'Tentative' : 'Planned',
             'dateStart' => $dateStart->format('Y-m-d H:i:s'),
@@ -251,7 +251,7 @@ readonly class BookingService
             $updates['cStage'] = LeadStage::TO_CALL->value;
         }
 
-        $person->set($updates);
+        $person->setMultiple($updates);
         $this->entityManager->saveEntity($person);
     }
 }
