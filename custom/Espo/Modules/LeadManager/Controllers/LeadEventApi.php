@@ -9,6 +9,10 @@ use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Modules\LeadManager\Services\LeadEventService;
 use Espo\Modules\LeadManager\Validators\LogCallValidator;
+use Espo\Modules\LeadManager\Validators\LogIntroMeetingValidator;
+use Espo\Modules\LeadManager\Validators\LogKickstartBookingValidator;
+use Espo\Modules\LeadManager\Validators\LogKickstartValidator;
+use Espo\Modules\LeadManager\Validators\LogMessageOutcomeValidator;
 
 readonly class LeadEventApi
 {
@@ -50,6 +54,7 @@ readonly class LeadEventApi
         $data = $this->validateData($request);
 
         try {
+
             $result = $this->leadEventService->logKickstart($data);
 
             return [

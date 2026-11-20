@@ -13,7 +13,7 @@
 deployment.log
 
 /node_modules
-*.sql
+db.sanitized.sql
 
 # Dev-only QA tools (see bin/qa)
 /tools/vendor/
