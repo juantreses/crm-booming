@@ -93,7 +93,7 @@ case "$cmd" in
     cs-fix)     require_tools; "$BIN/phpcbf" "$@" ;;
     stan)       require_tools; "$BIN/phpstan" analyse --memory-limit=1G "$@" ;;
     stan-all)   require_tools; "$BIN/phpstan" analyse -c phpstan-base.neon --memory-limit=1G "$@" ;;
-    stan-baseline) require_tools; "$BIN/phpstan" analyse --memory-limit=1G --generate-baseline phpstan-baseline.neon "$@" ;;
+    stan-baseline) require_tools; "$BIN/phpstan" analyse --memory-limit=1G --generate-baseline phpstan-baseline.neon --allow-empty-baseline "$@" ;;
     test)       require_tools; "$BIN/phpunit" "$@" ;;
     rector)     require_tools; "$BIN/rector" process --dry-run "$@" ;;
     rector-fix) require_tools; "$BIN/rector" process "$@" ;;

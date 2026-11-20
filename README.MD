@@ -226,6 +226,7 @@ bin/qa test
 PHPStan runs at level 5. The errors that already existed when it was added are listed in `phpstan-baseline.neon`
 and ignored, so `bin/qa stan` only fails on **new** errors. When you fix an error from the baseline, run
 `bin/qa stan-baseline` to remove it from the list. Don't regenerate the baseline just to hide a new error.
+The baseline is now empty: every error found when PHPStan was added has been fixed. Keep it that way.
 
 The baseline only stores the message and file, not the line. To see the baselined errors with their line,
 run PHPStan without the baseline (settings in `phpstan-base.neon`, `phpstan.neon.dist` adds the baseline):
