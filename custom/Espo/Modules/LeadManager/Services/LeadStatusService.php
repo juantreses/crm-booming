@@ -113,7 +113,7 @@ readonly class LeadStatusService
 
         if (isset(self::STATUS_MAP[$eventType->value])) {
             $updates = self::STATUS_MAP[$eventType->value];
-            $lead->set($updates);
+            $lead->setMultiple($updates);
             $this->entityManager->saveEntity($lead);
         }
     }
@@ -128,12 +128,12 @@ readonly class LeadStatusService
         $currentCallCount = $this->callCountService->getCount($lead->getId());
 
         if ($currentCallCount >= $maxCallAttempts) {
-            $lead->set([
+            $lead->setMultiple([
                 'status' => LeadStatus::ASSIGNED->value,
                 'cStage' => LeadStage::MESSAGE_TO_BE_SENT->value,
             ]);
         } else {
-            $lead->set([
+            $lead->setMultiple([
                 'status' => LeadStatus::ASSIGNED->value,
                 'cStage' => LeadStage::FOLLOW_UP->value,
             ]);

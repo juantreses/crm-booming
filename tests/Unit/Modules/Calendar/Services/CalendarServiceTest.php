@@ -86,7 +86,7 @@ final class CalendarServiceTest extends TestCase
 
     public function testBufferBetweenSlots(): void
     {
-        $this->calendar->set(['duration' => 45, 'bufferTime' => 15]);
+        $this->calendar->setMultiple(['duration' => 45, 'bufferTime' => 15]);
         $this->availabilities['*'] = [$this->availability('av1', '18:00', '20:00')];
 
         self::assertSame(['18:00-18:45', '19:00-19:45'], $this->times($this->service()->getAvailableSlots('kickstart', self::DATE)));
@@ -98,7 +98,7 @@ final class CalendarServiceTest extends TestCase
 
         self::assertSame(['18:00-19:00'], $this->times($this->service()->getAvailableSlots('kickstart', self::DATE)));
 
-        $this->calendar->set(['duration' => 45, 'bufferTime' => 15]);
+        $this->calendar->setMultiple(['duration' => 45, 'bufferTime' => 15]);
         $this->availabilities['*'] = [$this->availability('av1', '18:00', '19:45')];
 
         // The last slot may end exactly at the end of the availability.

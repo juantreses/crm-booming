@@ -85,7 +85,7 @@ readonly class BookingEmailService
         $icsContent = $ics->get();
 
         $attachment = $this->entityManager->getRDBRepositoryByClass(Attachment::class)->getNew();
-        $attachment->set([
+        $attachment->setMultiple([
             'name' =>  $meeting->get('name') . '.ics',
             'type' => 'text/calendar',
             'role' => 'Attachment',
@@ -106,7 +106,7 @@ readonly class BookingEmailService
         $attachments[] = $attachment;
 
         $email = $this->entityManager->getRDBRepositoryByClass(Email::class)->getNew();
-        $email->set([
+        $email->setMultiple([
             'subject' => $emailData->getSubject(),
             'body' => $emailData->getBody(),
             'isHtml' => $emailData->isHtml(),

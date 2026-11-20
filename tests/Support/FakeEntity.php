@@ -44,7 +44,7 @@ final class FakeEntity
     public static function create(string $entityType, array $values = []): BaseEntity
     {
         $entity = new BaseEntity($entityType, self::defs($values));
-        $entity->set($values);
+        $entity->setMultiple($values);
 
         return $entity;
     }
@@ -75,7 +75,7 @@ final class FakeEntity
         }
 
         $entity = new $class(...$arguments);
-        $entity->set($values);
+        $entity->setMultiple($values);
 
         return $entity;
     }
@@ -91,7 +91,7 @@ final class FakeEntity
     {
         $entity = self::create($entityType, $values);
         $entity->setAsFetched();
-        $entity->set($changes);
+        $entity->setMultiple($changes);
 
         return $entity;
     }

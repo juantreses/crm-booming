@@ -128,7 +128,7 @@ final class BookingServiceTest extends TestCase
     #[DataProvider('leadUpdates')]
     public function testPublicBookingUpdatesLead(string $calendarType, ?string $stageBefore, string $stage, ?string $meetingType): void
     {
-        $this->person->set(['status' => 'Dead', 'cStage' => $stageBefore]);
+        $this->person->setMultiple(['status' => 'Dead', 'cStage' => $stageBefore]);
 
         $this->service($this->calendar(['type' => $calendarType]))->processBooking($this->bookingData());
 
