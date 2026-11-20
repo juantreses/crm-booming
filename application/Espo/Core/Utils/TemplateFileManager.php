@@ -32,7 +32,6 @@ namespace Espo\Core\Utils;
 use Espo\Core\Utils\File\Manager as FileManager;
 use Espo\Core\Utils\Resource\FileReader;
 use Espo\Core\Utils\Resource\FileReader\Params as FileReaderParams;
-use Espo\Core\Utils\Metadata;
 
 class TemplateFileManager
 {
@@ -53,7 +52,7 @@ class TemplateFileManager
 
         $moduleName = null;
 
-        if (isset($templates[$type]) && isset($templates[$type]["module"])) {
+        if (isset($templates[$type]["module"])) {
             $moduleName = $templates[$type]["module"];
         }
 
@@ -124,11 +123,17 @@ class TemplateFileManager
         ?string $entityType = null
     ): string {
 
+        $type = basename($type);
+        $language = basename($language);
+        $name = basename($name);
+
         if ($entityType) {
-            return "custom/Espo/Custom/Resources/templates/{$type}/{$language}/{$entityType}/{$name}.tpl";
+            $entityType = basename($entityType);
+
+            return "custom/Espo/Custom/Resources/templates/$type/$language/$entityType/$name.tpl";
         }
 
-        return "custom/Espo/Custom/Resources/templates/{$type}/{$language}/{$name}.tpl";
+        return "custom/Espo/Custom/Resources/templates/$type/$language/$name.tpl";
     }
 
     private function getPath(string $type, string $name, ?string $entityType = null): string
@@ -152,10 +157,16 @@ class TemplateFileManager
         ?string $entityType = null
     ): string {
 
+        $type = basename($type);
+        $language = basename($language);
+        $name = basename($name);
+
         if ($entityType) {
-            return "templates/{$type}/{$language}/{$entityType}/{$name}.tpl";
+            $entityType = basename($entityType);
+
+            return "templates/$type/$language/$entityType/$name.tpl";
         }
 
-        return "templates/{$type}/{$language}/{$name}.tpl";
+        return "templates/$type/$language/$name.tpl";
     }
 }

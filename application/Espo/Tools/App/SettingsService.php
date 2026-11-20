@@ -56,6 +56,15 @@ use stdClass;
 
 class SettingsService
 {
+    /**
+     * @var string[]
+     * @todo Do not use when these parameters moved away from the settings.
+     */
+    private array $ignoreUpdateParamList = [
+        'loginView',
+        'loginData',
+    ];
+
     public function __construct(
         private ApplicationState $applicationState,
         private Config $config,
@@ -87,13 +96,21 @@ class SettingsService
         $this->filterData($data);
         $this->loadAdditionalParams($data);
 
+        $metadataData = $this->getMetadataConfigData();
+
+        foreach (get_object_vars($metadataData) as $key => $value) {
+            $data->$key = $value;
+        }
+
         return $data;
     }
 
     /**
      * Get metadata to be used in config.
+     *
+     * @todo Move away from settings. Use some different approach.
      */
-    public function getMetadataConfigData(): stdClass
+    private function getMetadataConfigData(): stdClass
     {
         $data = (object) [];
 
@@ -203,11 +220,12 @@ class SettingsService
     {
         $user = $this->applicationState->getUser();
 
-        if (!$user->isAdmin()) {
+        if (!$user->isEffectiveAdmin()) {
             throw new Forbidden();
         }
 
         $ignoreItemList = array_merge(
+            $this->ignoreUpdateParamList,
             $this->access->getSystemParamList(),
             $this->access->getReadOnlyParamList(),
             $this->isRestrictedMode() && !$user->isSuperAdmin() ?
@@ -235,7 +253,12 @@ class SettingsService
         $this->configWriter->setMultiple(get_object_vars($data));
         $this->configWriter->save();
 
-        if (isset($data->personNameFormat)) {
+        if (
+            isset($data->personNameFormat) ||
+            isset($data->baseCurrency) ||
+            isset($data->currencyList) ||
+            isset($data->defaultCurrency)
+        ) {
             $this->dataManager->clearCache();
         }
 
@@ -286,7 +309,7 @@ class SettingsService
             $ignoreItemList[] = $item;
         }
 
-        if (!$user->isAdmin() || $user->isSystem()) {
+        if (!$user->isEffectiveAdmin() || $user->isSystem()) {
             foreach ($this->access->getAdminParamList() as $item) {
                 $ignoreItemList[] = $item;
             }
@@ -345,7 +368,7 @@ class SettingsService
     {
         $user = $this->applicationState->getUser();
 
-        if (!$user->isAdmin() && !$user->isSystem()) {
+        if (!$user->isEffectiveAdmin() && !$user->isSystem()) {
             $this->filterEntityTypeParams($data);
         }
 
@@ -365,7 +388,7 @@ class SettingsService
             return;
         }
 
-        if ($user->isAdmin()) {
+        if ($user->isEffectiveAdmin()) {
             return;
         }
 

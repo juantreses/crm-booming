@@ -31,6 +31,7 @@ namespace Espo\Core\Mail;
 
 use Espo\Core\FileStorage\Manager as FileStorageManager;
 use Espo\Core\Mail\Exceptions\NoSmtp;
+use Espo\Core\Mail\Sender\AttachmentContainer;
 use Espo\Core\Mail\Sender\MessageContainer;
 use Espo\Core\Mail\Sender\TransportPreparatorFactory;
 use Espo\Core\ORM\Repository\Option\SaveOption;
@@ -67,7 +68,7 @@ class Sender
     /** @var array<string, mixed> */
     private array $overrideParams = [];
     private ?string $envelopeFromAddress = null;
-    /** @var ?iterable<Attachment> */
+    /** @var ?iterable<Attachment|AttachmentContainer> */
     private $attachmentList = null;
     /** @var array{string, string}[] */
     private array $headers = [];
@@ -140,15 +141,13 @@ class Sender
         } else if (!is_array($params)) {
             throw new InvalidArgumentException();
         }
-
-        /** @noinspection PhpDeprecationInspection */
         return $this->useSmtp($params);
     }
 
     /**
      * With specific attachments.
      *
-     * @param iterable<Attachment> $attachmentList
+     * @param iterable<Attachment|AttachmentContainer> $attachmentList
      */
     public function withAttachments(iterable $attachmentList): self
     {
@@ -165,19 +164,6 @@ class Sender
     public function withEnvelopeFromAddress(string $fromAddress): void
     {
         $this->envelopeFromAddress = $fromAddress;
-    }
-
-    /**
-     * With envelope options.
-     *
-     * @param array{from: string} $options
-     * @deprecated As of v9.1.
-     * @todo Remove in v10.0. Use `withEnvelopeFromAddress`.
-     */
-    public function withEnvelopeOptions(array $options): self
-    {
-        /** @noinspection PhpDeprecationInspection */
-        return $this->setEnvelopeOptions($options);
     }
 
     /**
@@ -206,23 +192,9 @@ class Sender
     }
 
     /**
-     * @deprecated As of v6.0. Use withParams.
      * @param array<string, mixed> $params
-     * @todo Remove in v10.0.
      */
-    public function setParams(array $params = []): self
-    {
-        $this->params = array_merge($this->params, $params);
-
-        return $this;
-    }
-
-    /**
-     * @deprecated As of 6.0. Use withSmtpParams.
-     * @param array<string, mixed> $params
-     * @todo Make private in v10.0.
-     */
-    public function useSmtp(array $params = []): self
+    private function useSmtp(array $params = []): self
     {
         $this->isGlobal = false;
 
@@ -338,18 +310,23 @@ class Sender
             }
         }
 
+        /** @var AttachmentContainer[] $containers */
+        $containers = [];
+
         if ($this->attachmentList !== null) {
             foreach ($this->attachmentList as $attachment) {
-                $collection[] = $attachment;
+                if ($attachment instanceof Attachment) {
+                    $collection[] = $attachment;
+                } else {
+                    $containers[] = $attachment;
+                }
             }
         }
 
         $list = [];
 
         foreach ($collection as $attachment) {
-            $contents = $attachment->has(self::ATTACHMENT_ATTR_CONTENTS) ?
-                $attachment->get(self::ATTACHMENT_ATTR_CONTENTS) :
-                $this->fileStorageManager->getContents($attachment);
+            $contents = $this->getAttachmentContents($attachment);
 
             $part = new DataPart(
                 body: $contents,
@@ -359,6 +336,8 @@ class Sender
 
             $list[] = $part;
         }
+
+        $this->prepareContainerParts($containers, $list);
 
         return $list;
     }
@@ -371,9 +350,7 @@ class Sender
         $list = [];
 
         foreach ($email->getInlineAttachmentList() as $attachment) {
-            $contents = $attachment->has(self::ATTACHMENT_ATTR_CONTENTS) ?
-                $attachment->get(self::ATTACHMENT_ATTR_CONTENTS) :
-                $this->fileStorageManager->getContents($attachment);
+            $contents = $this->getAttachmentContents($attachment);
 
             $part = (new DataPart($contents, null, $attachment->getType()))
                 ->asInline()
@@ -391,18 +368,9 @@ class Sender
     private function handleException(Exception|TransportExceptionInterface $e): never
     {
         if ($e instanceof TransportExceptionInterface) {
-            $message = "unknownError";
-
-            if (
-                stripos($e->getMessage(), 'password') !== false ||
-                stripos($e->getMessage(), 'credentials') !== false ||
-                stripos($e->getMessage(), '5.7.8') !== false ||
-                stripos($e->getMessage(), '5.7.3') !== false
-            ) {
-                $message = 'invalidCredentials';
-            }
-
             $this->log->error("Email sending error: " . $e->getMessage(), ['exception' => $e]);
+
+            $message = $this->getErrorMessage($e);
 
             throw new SendingError($message);
         }
@@ -410,27 +378,25 @@ class Sender
         throw new SendingError($e->getMessage());
     }
 
-    /**
-     * @deprecated Since v9.1.0. Use EmailSender::generateMessageId.
-     * @noinspection PhpUnused
-     * @todo Remove in v10.0.
-     */
-    static public function generateMessageId(Email $email): string
+    private function getErrorMessage(TransportExceptionInterface $e): string
     {
-        return EmailSender::generateMessageId($email);
-    }
+        if (
+            stripos($e->getMessage(), 'password') !== false ||
+            stripos($e->getMessage(), 'credentials') !== false ||
+            stripos($e->getMessage(), '5.7.8') !== false ||
+            stripos($e->getMessage(), '5.7.3') !== false
+        ) {
+            return 'invalidCredentials';
+        }
 
-    /**
-     * @deprecated As of v6.0.
-     *
-     * @param array{from: string} $options
-     * @todo Make private in v10.0. Use `withEnvelopeFromAddress`.
-     */
-    public function setEnvelopeOptions(array $options): self
-    {
-        $this->envelopeFromAddress = $options['from'];
+        if (
+            stripos($e->getMessage(), '5.1.1') !== false ||
+            stripos($e->getMessage(), '5.4.6') !== false
+        ) {
+            return 'recipientNotFound';
+        }
 
-        return $this;
+        return "unknownError";
     }
 
     private function addRecipientAddresses(Email $email, Message $message): void
@@ -592,5 +558,49 @@ class Sender
         ];
 
         return new Envelope(new Address($this->envelopeFromAddress), $recipients);
+    }
+
+    /**
+     * @todo Use stream.
+     *
+     */
+    private function getAttachmentContents(Attachment $attachment): string
+    {
+        return $attachment->has(self::ATTACHMENT_ATTR_CONTENTS) ?
+            $attachment->get(self::ATTACHMENT_ATTR_CONTENTS) :
+            $this->fileStorageManager->getContents($attachment);
+    }
+
+    /**
+     * @param AttachmentContainer[] $containers
+     * @param DataPart[] $list
+     */
+    private function prepareContainerParts(array $containers, array &$list): void
+    {
+        foreach ($containers as $container) {
+            $attachment = $container->attachment;
+
+            $contents = $this->getAttachmentContents($attachment);
+
+            $part = new DataPart(
+                body: $contents,
+                filename: $attachment->getName() ?? '',
+                contentType: $attachment->getType(),
+            );
+
+            if ($container->inline) {
+                $part->asInline();
+            }
+
+            if ($container->contentTypeParams && $attachment->getType()) {
+                $part->getHeaders()->addParameterizedHeader(
+                    name: 'Content-Type',
+                    value: $attachment->getType(),
+                    params: $container->contentTypeParams,
+                );
+            }
+
+            $list[] = $part;
+        }
     }
 }

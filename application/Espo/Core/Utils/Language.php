@@ -29,6 +29,7 @@
 
 namespace Espo\Core\Utils;
 
+use Espo\Core\Binding\Attributes\Qualify;
 use Espo\Core\Utils\File\Manager as FileManager;
 use Espo\Core\Utils\Resource\Reader as ResourceReader;
 use Espo\Core\Utils\Resource\Reader\Params as ResourceReaderParams;
@@ -39,6 +40,27 @@ use stdClass;
 
 class Language
 {
+    /**
+     * DI qualifier. The language selected as the system default.
+     *
+     * @since 10.1.0
+     */
+    public const string QUALIFIER_DEFAULT = 'default';
+
+    /**
+     * DI qualifier. The base language, en_US.
+     *
+     * @since 10.1.0
+     */
+    public const string QUALIFIER_BASE = 'base';
+
+    /**
+     * DI qualifier. The language selected in the current user's preferences.
+     *
+     * @since 10.1.0
+     */
+    public const string QUALIFIER_USER = 'user';
+
     /** @var array<string, array<string, mixed>> */
     private $data = [];
     /** @var array<string, array<string, mixed>> */
@@ -59,13 +81,13 @@ class Language
         ?string $language,
         private FileManager $fileManager,
         private ResourceReader $resourceReader,
+        #[Qualify(DataCache::QUALIFIER_SYSTEM)]
         private DataCache $dataCache,
         protected bool $useCache = false,
         protected bool $noCustom = false,
         private bool $noFallback = false,
     ) {
         $this->currentLanguage = $language ?? $this->defaultLanguage;
-
     }
 
     public function getLanguage(): string
@@ -99,7 +121,9 @@ class Language
 
     private function getCacheKey(?string $language = null): string
     {
-        return 'languages/' . ($language ?? $this->currentLanguage);
+        $language ??= $this->currentLanguage;
+
+        return 'languages/' . $language;
     }
 
     /**
@@ -226,7 +250,10 @@ class Language
      */
     public function getScopeCustom(string $scope): ?stdClass
     {
-        $path = str_replace('{language}', $this->currentLanguage, $this->customPath) . "/$scope.json";
+        $language = basename($this->currentLanguage);
+        $scope = basename($scope);
+
+        $path = str_replace('{language}', $language, $this->customPath) . "/$scope.json";
 
         if (!$this->fileManager->isFile($path)) {
             return null;
@@ -242,7 +269,10 @@ class Language
      */
     public function saveScopeCustom(string $scope, stdClass $data): void
     {
-        $path = str_replace('{language}', $this->currentLanguage, $this->customPath) . "/$scope.json";
+        $language = basename($this->currentLanguage);
+        $scope = basename($scope);
+
+        $path = str_replace('{language}', $language, $this->customPath) . "/$scope.json";
 
         foreach (get_object_vars($data) as $key => $item) {
             if (
@@ -265,7 +295,9 @@ class Language
      */
     public function save(): bool
     {
-        $path = str_replace('{language}', $this->currentLanguage, $this->customPath);
+        $language = basename($this->currentLanguage);
+
+        $path = str_replace('{language}', $language, $this->customPath);
 
         $result = true;
 
@@ -274,6 +306,8 @@ class Language
                 if (empty($data)) {
                     continue;
                 }
+
+                $scope = basename($scope);
 
                 $result &= $this->fileManager->mergeJsonContents($path . "/$scope.json", $data);
             }
@@ -284,6 +318,8 @@ class Language
                 if (empty($unsetData)) {
                     continue;
                 }
+
+                $scope = basename($scope);
 
                 $result &= $this->fileManager->unsetJsonContents($path . "/$scope.json", $unsetData);
             }
@@ -417,34 +453,39 @@ class Language
 
         $cacheKey = $this->getCacheKey($language);
 
-        if (!$this->useCache || !$this->dataCache->has($cacheKey) || $reload) {
-            $readerParams = ResourceReaderParams
-                ::create()
-                ->withNoCustom($this->noCustom);
-
-            $path = str_replace('{language}', $language, $this->resourcePath);
-
-            $data = $this->resourceReader->readAsArray($path, $readerParams);
-
-            if ($language !== $this->defaultLanguage && !$this->noFallback) {
-                /** @var array<string, array<string, mixed>> $data */
-                $data = Util::merge($this->getDefaultLanguageData($reload), $data);
+        if (!$reload && $this->useCache && $this->dataCache->has($cacheKey)) {
+            if ($language !== basename($language)) {
+                throw new RuntimeException("Bad language value.");
             }
 
-            $this->data[$language] = $data;
-
-            if ($this->useCache) {
-                $this->dataCache->store($cacheKey, $data);
-            }
-        }
-
-        if ($this->useCache) {
-            /** @var array<string, mixed> $cachedData */
+            /** @var ?array<string, mixed> $cachedData */
             $cachedData = $this->dataCache->get($cacheKey);
 
-            $this->data[$language] = $cachedData;
+            if ($cachedData !== null) {
+                $this->data[$language] = $cachedData;
+
+                return $cachedData;
+            }
         }
 
-        return $this->data[$language] ?? [];
+        $readerParams = ResourceReaderParams::create()
+            ->withNoCustom($this->noCustom);
+
+        $path = str_replace('{language}', $language, $this->resourcePath);
+
+        $data = $this->resourceReader->readAsArray($path, $readerParams);
+
+        if ($language !== $this->defaultLanguage && !$this->noFallback) {
+            /** @var array<string, array<string, mixed>> $data */
+            $data = Util::merge($this->getDefaultLanguageData($reload), $data);
+        }
+
+        $this->data[$language] = $data;
+
+        if ($this->useCache) {
+            $this->dataCache->store($cacheKey, $data);
+        }
+
+        return $data;
     }
 }

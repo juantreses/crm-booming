@@ -29,6 +29,7 @@
 
 namespace Espo\ORM;
 
+use Espo\Core\Utils\Database\Platform;
 use Espo\ORM\Defs\Defs;
 use Espo\ORM\Executor\DefaultQueryExecutor;
 use Espo\ORM\Executor\DefaultSqlExecutor;
@@ -120,6 +121,11 @@ class EntityManager
         $this->transactionManager = new TransactionManager($this->pdoProvider->get(), $this->queryComposer);
 
         $this->initLocker();
+
+        $eventDispatcher->subscribeToMetadataUpdate(function () {
+            $this->repositoryHash = [];
+            $this->mappers = [];
+        });
     }
 
     private function initQueryComposer(): void
@@ -135,7 +141,7 @@ class EntityManager
 
         $className = BaseLocker::class;
 
-        if ($platform === 'Mysql') {
+        if ($platform === Platform::MYSQL) {
             $className = MysqlLocker::class;
         }
 
@@ -298,7 +304,7 @@ class EntityManager
             }
         }
 
-        $entity->set($fetchedMap);
+        $entity->setMultiple($fetchedMap);
         $entity->setAsFetched();
     }
 
@@ -311,7 +317,7 @@ class EntityManager
     public function createEntity(string $entityType, $data = [], array $options = []): Entity
     {
         $entity = $this->getNewEntity($entityType);
-        $entity->set($data);
+        $entity->setMultiple($data);
         $this->saveEntity($entity, $options);
 
         return $entity;
@@ -460,7 +466,7 @@ class EntityManager
      * @deprecated As of v7.0. Use `getCollectionFactory`.
      * @param array<string, mixed> $data
      * @return EntityCollection<Entity>
-     * @todo Remove in v10.0.
+     * @todo Remove in v11.0.
      */
     public function createCollection(?string $entityType = null, array $data = []): EntityCollection
     {

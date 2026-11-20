@@ -84,6 +84,12 @@
         "actionClassName": "Espo\\Tools\\GlobalSearch\\Api\\Get"
     },
     {
+        "route": "OAuthServer/consentData",
+        "method": "get",
+        "actionClassName": "Espo\\Tools\\OAuthServer\\Api\\GetConsentData",
+        "apiAuthForbidden": true
+    },
+    {
         "route": "/LeadCapture/form/:id",
         "method": "post",
         "actionClassName": "Espo\\Tools\\LeadCapture\\Api\\PostForm",
@@ -323,6 +329,9 @@
     {
         "route": "/Attachment/chunk/:id",
         "method": "post",
+        "consumes": [
+            "multipart/form-data"
+        ],
         "actionClassName": "Espo\\Tools\\Attachment\\Api\\PostChunk"
     },
     {
@@ -354,6 +363,21 @@
         "route": "/Notification/:id/group",
         "method": "get",
         "actionClassName": "Espo\\Tools\\Notification\\Api\\GetGroup"
+    },
+    {
+        "route": "/Notification/group",
+        "method": "get",
+        "actionClassName": "Espo\\Tools\\Notification\\Api\\GetGroupAll"
+    },
+    {
+        "route": "/Notification/group/:id",
+        "method": "delete",
+        "actionClassName": "Espo\\Tools\\Notification\\Api\\DeleteGroup"
+    },
+    {
+        "route": "/Notification/group/:id/markRead",
+        "method": "post",
+        "actionClassName": "Espo\\Tools\\Notification\\Api\\MarkGroupRead"
     },
     {
         "route": "/EmailTemplate/:id/prepare",
@@ -441,6 +465,24 @@
         "actionClassName": "Espo\\Tools\\UserSecurity\\Api\\GetUserAcl"
     },
     {
+        "route": "/User/:id/connectedApps",
+        "method": "get",
+        "actionClassName": "Espo\\Tools\\UserSecurity\\Api\\GetConnectedApps",
+        "apiAuthForbidden": true
+    },
+    {
+        "route": "/User/:id/connectedApps/:appId",
+        "method": "delete",
+        "actionClassName": "Espo\\Tools\\UserSecurity\\Api\\DeleteConnectedApp",
+        "apiAuthForbidden": true
+    },
+    {
+        "route": "/User/:id/revokeAllAuthenticationTokens",
+        "method": "post",
+        "actionClassName": "Espo\\Tools\\UserSecurity\\Api\\PostRevokeAllAuthenticationTokens",
+        "apiAuthForbidden": true
+    },
+    {
         "route": "/UserSecurity/apiKey/generate",
         "method": "post",
         "actionClassName": "Espo\\Tools\\UserSecurity\\Api\\PostApiKeyGenerate"
@@ -478,6 +520,22 @@
         "actionClassName": "Espo\\Tools\\User\\Api\\PutTeamUserPosition"
     },
     {
+        "route": "EmailAccount/:id/resetFetchData",
+        "method": "post",
+        "actionClassName": "Espo\\Tools\\EmailAccount\\Api\\PostResetFetchData",
+        "params": {
+            "entityType": "EmailAccount"
+        }
+    },
+    {
+        "route": "InboundEmail/:id/resetFetchData",
+        "method": "post",
+        "actionClassName": "Espo\\Tools\\EmailAccount\\Api\\PostResetFetchData",
+        "params": {
+            "entityType": "InboundEmail"
+        }
+    },
+    {
         "route": "/Oidc/authorizationData",
         "method": "get",
         "params": {
@@ -504,6 +562,26 @@
         "method": "delete",
         "route": "/OAuth/:id/connection",
         "actionClassName": "Espo\\Tools\\OAuth\\Api\\DeleteConnection"
+    },
+    {
+        "method": "get",
+        "route": "/OAuth/:id/authorizationData",
+        "actionClassName": "Espo\\Tools\\OAuth\\Api\\GetAuthorizationData"
+    },
+    {
+        "method": "post",
+        "route": "/OAuthAccessToken/:id/revoke",
+        "actionClassName": "Espo\\Tools\\OAuthServer\\Api\\AccessToken\\PostRevoke"
+    },
+    {
+        "method": "post",
+        "route": "/OAuthRefreshToken/:id/revoke",
+        "actionClassName": "Espo\\Tools\\OAuthServer\\Api\\RefreshToken\\PostRevoke"
+    },
+    {
+        "method": "post",
+        "route": "/OAuthAuthorizationCode/:id/revoke",
+        "actionClassName": "Espo\\Tools\\OAuthServer\\Api\\AuthorizationCode\\PostRevoke"
     },
     {
         "method": "get",
@@ -631,12 +709,12 @@
         "actionClassName": "Espo\\Tools\\Stream\\Api\\GetStreamAttachments"
     },
     {
-        "route": "/:Note/:id/pin",
+        "route": "/Note/:id/pin",
         "method": "post",
         "actionClassName": "Espo\\Tools\\Stream\\Api\\PostNotePin"
     },
     {
-        "route": "/:Note/:id/pin",
+        "route": "/Note/:id/pin",
         "method": "delete",
         "actionClassName": "Espo\\Tools\\Stream\\Api\\DeleteNotePin"
     },
@@ -684,5 +762,15 @@
             "id": ":id",
             "link": ":link"
         }
+    },
+    {
+        "route": "Pipeline/:id/move/:type",
+        "method": "post",
+        "actionClassName": "Espo\\Tools\\Pipeline\\Api\\PostMove"
+    },
+    {
+        "route": "PipelineStage/:id/move/:type",
+        "method": "post",
+        "actionClassName": "Espo\\Tools\\Pipeline\\Api\\PostStageMove"
     }
 ]

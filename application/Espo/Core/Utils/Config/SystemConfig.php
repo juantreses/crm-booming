@@ -60,4 +60,22 @@ class SystemConfig
     {
         return (bool) $this->config->get('restrictedMode');
     }
+
+    /**
+     * @since 10.0.0
+     */
+    public function isCronEnabled(): bool
+    {
+        return !$this->config->get('cronDisabled');
+    }
+
+    /**
+     * A maintenance mode. Only admin can log in.
+     *
+     * @since 10.1.0
+     */
+    public function isMaintenanceMode(): bool
+    {
+        return (bool) $this->config->get('maintenanceMode');
+    }
 }

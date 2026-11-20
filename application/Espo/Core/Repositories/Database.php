@@ -56,12 +56,12 @@ use stdClass;
  */
 class Database extends RDBRepository
 {
-    private const ATTR_ID = 'id';
-    private const ATTR_CREATED_BY_ID = Field::CREATED_BY . 'Id';
-    private const ATTR_MODIFIED_BY_ID =  Field::MODIFIED_BY . 'Id';
-    private const ATTR_MODIFIED_BY_NAME = Field::MODIFIED_BY . 'Name';
-    private const ATTR_CREATED_AT = Field::CREATED_AT;
-    private const ATTR_MODIFIED_AT = Field::MODIFIED_AT;
+    private const string ATTR_ID = 'id';
+    private const string ATTR_CREATED_BY_ID = Field::CREATED_BY . 'Id';
+    private const string ATTR_MODIFIED_BY_ID =  Field::MODIFIED_BY . 'Id';
+    private const string ATTR_MODIFIED_BY_NAME = Field::MODIFIED_BY . 'Name';
+    private const string ATTR_CREATED_AT = Field::CREATED_AT;
+    private const string ATTR_MODIFIED_AT = Field::MODIFIED_AT;
 
     /**
      * Disables hook processing.
@@ -97,6 +97,8 @@ class Database extends RDBRepository
         $this->recordIdGenerator = $recordIdGenerator;
 
         $this->hooksDisabled = $this->hooksDisabled || $metadata->get("entityDefs.$entityType.hooksDisabled");
+        $this->transactionalSave = $this->transactionalSave ||
+            $metadata->get("entityDefs.$entityType.transactionalSave");
 
         $hookMediator = null;
 
@@ -116,16 +118,21 @@ class Database extends RDBRepository
     }
 
     /**
-     * @deprecated Will be removed.
+     * @param TEntity $entity
+     * @param array<string, mixed> $options
      */
-    public function handleSelectParams(&$params) /** @phpstan-ignore-line */
-    {}
+    public function save(Entity $entity, array $options = []): void
+    {
+        $this->prepareSaveInternal($entity, $options);
+
+        parent::save($entity, $options);
+    }
 
     /**
      * @param TEntity $entity
      * @param array<string, mixed> $options
      */
-    public function save(Entity $entity, array $options = []): void
+    private function prepareSaveInternal(Entity $entity, array $options = []): void
     {
         if (
             $entity->isNew() &&
@@ -140,8 +147,28 @@ class Database extends RDBRepository
         }
 
         $this->restoreData = [];
+    }
 
-        parent::save($entity, $options);
+    /**
+     * @param TEntity $entity
+     * @param array<string, mixed> $options
+     */
+    final protected function lateAfterSave(Entity $entity, array $options): void
+    {
+        if (!$this->hooksDisabled && empty($options[SaveOption::SKIP_HOOKS])) {
+            $this->hookManager->process($this->entityType, 'lateAfterSave', $entity, $options);
+        }
+    }
+
+    /**
+     * @param TEntity $entity
+     * @param array<string, mixed> $options
+     */
+    final protected function lateAfterRemove(Entity $entity, array $options): void
+    {
+        if (!$this->hooksDisabled && empty($options[SaveOption::SKIP_HOOKS])) {
+            $this->hookManager->process($this->entityType, 'lateAfterRemove', $entity, $options);
+        }
     }
 
     /**
@@ -150,6 +177,8 @@ class Database extends RDBRepository
      * @param TEntity $entity
      * @param array<string, mixed> $options
      * @return void
+     *
+     * @todo Add final in v11.0.
      */
     protected function beforeRemove(Entity $entity, array $options = [])
     {
@@ -189,6 +218,8 @@ class Database extends RDBRepository
      * @param TEntity $entity
      * @param array<string, mixed> $options
      * @return void
+     *
+     * @todo Add final in v11.0.
      */
     protected function afterRemove(Entity $entity, array $options = [])
     {
@@ -207,6 +238,8 @@ class Database extends RDBRepository
      * @param array<string, mixed> $params
      * @param array<string, mixed> $options
      * @return void
+     *
+     * @todo Add final in v11.0.
      */
     protected function afterMassRelate(Entity $entity, $relationName, array $params = [], array $options = [])
     {
@@ -333,7 +366,7 @@ class Database extends RDBRepository
     protected function afterSave(Entity $entity, array $options = [])
     {
         if (!empty($this->restoreData)) {
-            $entity->set($this->restoreData);
+            $entity->setMultiple($this->restoreData);
 
             $this->restoreData = null;
         }
@@ -445,6 +478,7 @@ class Database extends RDBRepository
     /**
      * @pparam TEntity $entity
      * @return mixed
+     * @noinspection PhpSameParameterValueInspection
      */
     private function getAttributeParam(Entity $entity, string $attribute, string $param)
     {
@@ -466,6 +500,7 @@ class Database extends RDBRepository
     /**
      * @param TEntity $entity
      * @return mixed
+     * @noinspection PhpSameParameterValueInspection
      */
     private function getRelationParam(Entity $entity, string $relation, string $param)
     {

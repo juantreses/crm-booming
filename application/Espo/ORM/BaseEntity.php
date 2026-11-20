@@ -35,11 +35,11 @@ use Espo\ORM\DataLoader\Loader;
 use Espo\ORM\Defs\Params\AttributeParam;
 use Espo\ORM\Defs\Params\EntityParam;
 use Espo\ORM\Defs\Params\RelationParam;
+use Espo\ORM\Entity\EmptyValue;
 use Espo\ORM\Name\Attribute;
 use Espo\ORM\Relation\EmptyRelations;
 use Espo\ORM\Relation\Relations;
 use Espo\ORM\Type\AttributeType;
-use Espo\ORM\Type\RelationType;
 use Espo\ORM\Value\ValueAccessorFactory;
 use Espo\ORM\Value\ValueAccessor;
 
@@ -47,7 +47,6 @@ use stdClass;
 use InvalidArgumentException;
 use RuntimeException;
 
-use const E_USER_DEPRECATED;
 use const JSON_THROW_ON_ERROR;
 
 class BaseEntity implements Entity
@@ -164,7 +163,7 @@ class BaseEntity implements Entity
      * @param string|stdClass|array<string, mixed> $attribute
      * @param mixed $value
      */
-    public function set($attribute, $value = null): static
+    public function set($attribute, $value = new EmptyValue()): static
     {
         $arg = $attribute;
 
@@ -184,6 +183,10 @@ class BaseEntity implements Entity
 
         if (is_string($arg)) {
             $name = $arg;
+
+            if ($value instanceof EmptyValue) {
+                $value = null;
+            }
 
             if ($name == Attribute::ID) {
                 $this->id = $value;
@@ -250,25 +253,6 @@ class BaseEntity implements Entity
 
         if ($this->hasAttribute($attribute) && $this->hasInContainer($attribute)) {
             return $this->getFromContainer($attribute);
-        }
-
-        // @todo Remove support in v10.0.
-        if ($this->hasRelation($attribute) && $this->id) {
-            trigger_error(
-                "Accessing related records with Entity::get is deprecated. " .
-                "Use `\$entityManager->getRelation(...)->find()`.",
-                E_USER_DEPRECATED
-            );
-
-            $isMany = in_array($this->getRelationType($attribute), [
-                RelationType::MANY_MANY,
-                RelationType::HAS_MANY,
-                RelationType::HAS_CHILDREN,
-            ]);
-
-            return $isMany ?
-                $this->relations->getMany($attribute) :
-                $this->relations->getOne($attribute);
         }
 
         return null;
@@ -499,13 +483,13 @@ class BaseEntity implements Entity
             case self::TEXT:
                 if (is_object($value)) {
                     // Prevents an error.
-                    // @todo Remove in v10.0.
+                    // @todo Remove in v11.0.
                     return 'Object';
                 }
 
                 if (is_array($value)) {
                     // Prevents an error.
-                    // @todo Remove in v10.0.
+                    // @todo Remove in v11.0.
                     return 'Array';
                 }
 
@@ -574,6 +558,10 @@ class BaseEntity implements Entity
         $preparedValue = $value;
 
         if (is_array($value)) {
+            if ($value === []) {
+                return (object) [];
+            }
+
             $preparedValue = json_decode(json_encode($value, JSON_THROW_ON_ERROR));
 
             if ($preparedValue instanceof stdClass) {
@@ -809,11 +797,11 @@ class BaseEntity implements Entity
         /** @var string $type */
         $type = $this->getAttributeType($name);
 
-        return !self::areValuesEqual(
-            $type,
-            $this->get($name),
-            $this->getFetched($name),
-            $this->getAttributeParam($name, 'isUnordered') ?? false
+        return !Util::areValuesEqual(
+            type: $type,
+            v1: $this->get($name),
+            v2: $this->getFetched($name),
+            isUnordered: $this->getAttributeParam($name, 'isUnordered') ?? false,
         );
     }
 
@@ -823,77 +811,6 @@ class BaseEntity implements Entity
     public function isAttributeWritten(string $name): bool
     {
         return $this->writtenMap[$name] ?? false;
-    }
-
-    /**
-     * @param mixed $v1
-     * @param mixed $v2
-     */
-    protected static function areValuesEqual(string $type, $v1, $v2, bool $isUnordered = false): bool
-    {
-        if ($type === self::JSON_ARRAY) {
-            if (is_array($v1) && is_array($v2)) {
-                if ($isUnordered) {
-                    sort($v1);
-                    sort($v2);
-                }
-
-                if ($v1 != $v2) {
-                    return false;
-                }
-
-                foreach ($v1 as $i => $itemValue) {
-                    if (is_object($itemValue) && is_object($v2[$i])) {
-                        if (!self::areValuesEqual(self::JSON_OBJECT, $itemValue, $v2[$i])) {
-                            return false;
-                        }
-
-                        continue;
-                    }
-
-                    if ($itemValue !== $v2[$i]) {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        } else if ($type === self::JSON_OBJECT) {
-            if (is_object($v1) && is_object($v2)) {
-                if ($v1 != $v2) {
-                    return false;
-                }
-
-                $a1 = get_object_vars($v1);
-                $a2 = get_object_vars($v2);
-
-                foreach (get_object_vars($v1) as $key => $itemValue) {
-                    if (is_object($a1[$key]) && is_object($a2[$key])) {
-                        if (!self::areValuesEqual(self::JSON_OBJECT, $a1[$key], $a2[$key])) {
-                            return false;
-                        }
-
-                        continue;
-                    }
-
-                    if (is_array($a1[$key]) && is_array($a2[$key])) {
-                        if (!self::areValuesEqual(self::JSON_ARRAY, $a1[$key], $a2[$key])) {
-                            return false;
-                        }
-
-                        continue;
-                    }
-
-                    if ($a1[$key] !== $a2[$key]) {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        }
-
-        return $v1 === $v2;
     }
 
     /**

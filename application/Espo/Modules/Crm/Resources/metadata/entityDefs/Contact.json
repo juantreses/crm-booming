@@ -221,7 +221,8 @@
                 }
             },
             "customizationOptionsDisabled": true,
-            "textFilterDisabled": true
+            "textFilterDisabled": true,
+            "importEnabled": true
         },
         "description": {
             "type": "text"
@@ -647,6 +648,18 @@
                 "status": "acceptanceStatus"
             }
         },
+        "meetingsChildren": {
+            "type": "hasChildren",
+            "entity": "Meeting",
+            "foreign": "parent",
+            "readOnly": true
+        },
+        "callsChildren": {
+            "type": "hasChildren",
+            "entity": "Call",
+            "foreign": "parent",
+            "readOnly": true
+        },
         "tasks": {
             "type": "hasChildren",
             "entity": "Task",
@@ -703,7 +716,11 @@
     "collection": {
         "orderBy": "createdAt",
         "order": "desc",
-        "textFilterFields": ["name", "emailAddress"]
+        "textFilterFields": [
+            "name",
+            "emailAddress",
+            "phoneNumber"
+        ]
     },
     "indexes": {
         "createdAt": {

@@ -13,6 +13,7 @@
     "currencyList": "Währungsliste",
     "language": "Sprache",
     "companyLogo": "Firmenlogo",
+    "ldapPort": "Port",
     "ldapAuth": "Authentifizierung",
     "ldapSecurity": "Transportsicherheit",
     "emailAddress": "E-Mail",
@@ -26,12 +27,14 @@
     "exportDelimiter": "Export Trennzeichen",
     "globalSearchEntityList": "Entitäten für globale Suche",
     "authenticationMethod": "Authentifizierungs Methode",
+    "ldapHost": "Host",
     "ldapAccountCanonicalForm": "Kanonische Form des Kontos",
     "ldapAccountDomainName": "Domain Name Konto",
     "ldapTryUsernameSplit": "Benutzernamen Split versuchen",
     "ldapCreateEspoUser": "Benutzer in EspoCRM erstellen",
     "ldapUserLoginFilter": "Login Filter benutzen",
     "ldapAccountDomainNameShort": "Domain Name Konto kurz",
+    "ldapOptReferrals": "Opt Referrals",
     "exportDisabled": "Export deaktivieren (nur Admin ist berechtigt)",
     "b2cMode": "B2C Modus",
     "avatarsDisabled": "Avatare deaktivieren",
@@ -47,7 +50,6 @@
     "siteUrl": "Webadresse",
     "addressPreview": "Adressvorschau",
     "addressFormat": "Format der Adresse",
-    "notificationSoundsDisabled": "Benachrichtigungstöne deaktivieren",
     "applicationName": "Name der Applikation",
     "ldapUsername": "Vollständiger Benutzer-DN",
     "ldapBindRequiresDn": "Bind erfordert DN",
@@ -108,7 +110,7 @@
     "emailNotificationsDelay": "Verzögerung von E-Mail-Benachrichtigungen (in Sekunden)",
     "massEmailOpenTracking": "Offene Verfolgung von E-Mails",
     "passwordRecoveryDisabled": "Passwort-Wiederherstellung deaktivieren",
-    "passwordRecoveryForAdminDisabled": "Deaktivieren Sie die Passwort-Wiederherstellung für Admin-Benutzer",
+    "passwordRecoveryForAdminDisabled": "Passwort-Wiederherstellung für Admin-Benutzer deaktivieren",
     "passwordGenerateLength": "Länge der generierten Kennwörter",
     "passwordStrengthLength": "Minimale Passwortlänge",
     "passwordStrengthLetterCount": "Anzahl der erforderlichen Buchstaben im Passwort",
@@ -121,8 +123,8 @@
     "massEmailVerp": "VERP verwenden",
     "emailAddressLookupEntityTypeList": "Suchbereiche für E-Mail-Adressen",
     "busyRangesEntityList": "Liste der Frei/Gebucht-Einheiten",
-    "passwordRecoveryForInternalUsersDisabled": "Deaktivieren der Passwort-Wiederherstellung für interne Benutzer",
-    "passwordRecoveryNoExposure": "Verhindern Sie die Preisgabe von E-Mail-Adressen im Passwort-Wiederherstellungsformular",
+    "passwordRecoveryForInternalUsersDisabled": "Passwort-Wiederherstellung für interne Benutzer deaktivieren",
+    "passwordRecoveryNoExposure": "Die Preisgabe von E-Mail-Adressen im Passwort-Wiederherstellungsformular verhindern",
     "auth2FAForced": "Regelmäßige Benutzer zur Einrichtung von 2FA zwingen",
     "smsProvider": "SMS Anbieter",
     "outboundSmsFromNumber": "SMS Absender Nummer",
@@ -141,12 +143,14 @@
     "oidcGroupClaim": "OIDC Gruppen-Claim",
     "oidcCreateUser": "OIDC-Benutzer erstellen",
     "oidcUsernameClaim": "OIDC Benutzername-Claim",
+    "oidcTeams": "OIDC Teams",
     "oidcSync": "OIDC-Synchronisation",
     "oidcSyncTeams": "OIDC Teams synchronisieren",
     "oidcFallback": "OIDC Fallback-Anmeldung",
     "oidcAllowRegularUserFallback": "OIDC Fallback-Anmeldung für reguläre Benutzer zulassen",
     "oidcAllowAdminUser": "OIDC OIDC-Anmeldung für Admin-Benutzer zulassen",
     "oidcLogoutUrl": "OIDC Abmelde-URL",
+    "pdfEngine": "PDF Engine",
     "recordsPerPageKanban": "Einträge pro Seite (Kanban)",
     "auth2FAInPortal": "2FA in Portalen erlauben",
     "massEmailMaxPerBatchCount": "Maximale Anzahl von E-Mails pro Batch",
@@ -167,11 +171,12 @@
     "availableReactions": "Verfügbare Reaktionen",
     "outboundEmailFromAddress": "System-E-Mail-Adresse",
     "oidcUserInfoEndpoint": "OIDC-UserInfo-Endpunkt",
-    "baselineRole": "Baseline-Rolle"
+    "baselineRole": "Baseline-Rolle",
+    "oidcAuthorizationPkce": "OIDC verwendet PKCE"
   },
   "tooltips": {
     "recordsPerPage": "Anzahl Sätze In Listenansichten (Standard) ",
-    "recordsPerPageSmall": "Anzahl Sätze in Beziehungssubpanels",
+    "recordsPerPageSmall": "Anzahl der Datensätze, die anfangs in den Beziehungssubpanels angezeigt werden.",
     "followCreatedEntities": "Benutzer abonnieren automatisch alle Einträge, die sie selbst erstellen.",
     "ldapUsername": "Vollständiger DN des Systemnutzers, um LDAP Suchen durchzuführen (z.B. \"CN=LDAP System User,OU=users,OU=espocrm, DC=test,DC=lan\").",
     "ldapPassword": "Das Passwort für den Zugriff auf den LDAP Server.",
@@ -258,7 +263,9 @@
     "quickSearchFullTextAppendWildcard": "Fügt einen Platzhalter an die Autovervollständigung-Suchanfrage an, wenn die Volltextsuche aktiviert ist. Verringert die Suchleistung."
   },
   "labels": {
+    "System": "System",
     "Locale": "Lokale Einstellungen",
+    "SMTP": "SMTP",
     "Configuration": "Konfiguration",
     "In-app Notifications": "In-App Benachrichtigungen",
     "Email Notifications": "E-Mail Benachrichtigungen",
@@ -279,6 +286,7 @@
     "Divider": "Trenner",
     "General": "Allgemein",
     "Navbar": "Navigationsleiste",
+    "Dashboard": "Dashboard",
     "Phone Numbers": "Telefonnummern",
     "Access": "Zugriff",
     "Strength": "Stärke",
@@ -290,10 +298,20 @@
     "confirmBaselineRoleChange": "Sind Sie sicher, dass Sie die Baseline-Rolle ändern möchten? Eine unüberlegte Änderung kann allen Benutzern unbeabsichtigte Berechtigungen gewähren."
   },
   "options": {
+    "currencyFormat": {
+      "1": "10 USD",
+      "2": "$10",
+      "3": "10 $"
+    },
     "streamEmailNotificationsTypeList": {
       "Post": "Notizen",
       "Status": "Statusaktualisierungen",
       "EmailReceived": "Empfangene E-Mails"
+    },
+    "auth2FAMethodList": {
+      "Totp": "TOTP",
+      "Email": "E-Mail",
+      "Sms": "SMS"
     },
     "personNameFormat": {
       "firstLast": "Vorname Nachname",
@@ -301,8 +319,12 @@
       "firstMiddleLast": "Vorname 2. Vorname Nachname",
       "lastFirstMiddle": "Nachname Vorname 2. Vorname"
     },
-    "auth2FAMethodList": {
-      "Email": "E-Mail"
+    "authenticationMethod": {
+      "Oidc": "OIDC"
+    },
+    "smtpSecurity": {
+      "SSL": "SSL/TLS",
+      "TLS": "STARTTLS"
     }
   }
 }

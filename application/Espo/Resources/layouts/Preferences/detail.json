@@ -105,6 +105,10 @@
             [
                 {"name": "theme"},
                 {"name": "pageContentWidth"}
+            ],
+            [
+                false,
+                {"name": "recordContentWidth"}
             ]
         ]
     },
@@ -147,6 +151,10 @@
             [
                 {"name": "reactionNotifications"},
                 {"name": "reactionNotificationsNotFollowed"}
+            ],
+            [
+                {"name": "notificationGrouping"},
+                {"name": "notificationSound"}
             ]
         ]
     }

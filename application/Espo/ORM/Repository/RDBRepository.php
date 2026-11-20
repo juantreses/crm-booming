@@ -29,7 +29,8 @@
 
 namespace Espo\ORM\Repository;
 
-use Espo\Core\ORM\Repository\Option\SaveContext;
+use Espo\ORM\Defs\Params\RelationParam;
+use Espo\ORM\Repository\Option\SaveContext;
 use Espo\ORM\Defs\RelationDefs;
 use Espo\ORM\EntityCollection;
 use Espo\ORM\EntityManager;
@@ -66,6 +67,13 @@ class RDBRepository implements Repository
 
     protected HookMediator $hookMediator;
     protected RDBTransactionManager $transactionManager;
+
+    /**
+     * To save and remove in a DB transaction.
+     *
+     * @since 10.0.0
+     */
+    protected bool $transactionalSave = false;
 
     public function __construct(
         protected string $entityType,
@@ -137,6 +145,29 @@ class RDBRepository implements Repository
             $options[SaveContext::NAME] = new SaveContext();
         }
 
+        $context = $options[SaveContext::NAME];
+
+        if ($context instanceof SaveContext) {
+            $context->setIsNew($entity->isNew());
+        }
+
+        if ($this->transactionalSave) {
+            $this->entityManager->getTransactionManager()->run(function () use ($entity, $options) {
+                $this->saveInternal($entity, $options);
+            });
+        } else {
+            $this->saveInternal($entity, $options);
+        }
+
+        $this->lateAfterSave($entity, $options);
+    }
+
+    /**
+     * @param TEntity $entity
+     * @param array<string, mixed> $options
+     */
+    private function saveInternal(Entity $entity, array $options = []): void
+    {
         $this->processCheckEntity($entity);
 
         if ($entity instanceof BaseEntity) {
@@ -192,6 +223,13 @@ class RDBRepository implements Repository
     }
 
     /**
+     * @param TEntity $entity
+     * @param array<string, mixed> $options
+     */
+    protected function lateAfterSave(Entity $entity, array $options): void
+    {}
+
+    /**
      * Restore a record flagged as deleted.
      */
     public function restoreDeleted(string $id): void
@@ -221,18 +259,43 @@ class RDBRepository implements Repository
      */
     public function remove(Entity $entity, array $options = []): void
     {
+        if ($this->transactionalSave) {
+            $this->entityManager->getTransactionManager()->run(function () use ($entity, $options) {
+                $this->removeInternal($entity, $options);
+            });
+        } else {
+            $this->removeInternal($entity, $options);
+        }
+
+        $this->lateAfterRemove($entity, $options);
+    }
+
+    /**
+     * @param TEntity $entity
+     * @param array<string, mixed> $options
+     */
+    protected function lateAfterRemove(Entity $entity, array $options): void
+    {}
+
+    /**
+     * @param TEntity $entity
+     * @param array<string, mixed> $options
+     */
+    private function removeInternal(Entity $entity, array $options = []): void
+    {
         $this->processCheckEntity($entity);
         $this->beforeRemove($entity, $options);
         $this->getMapper()->delete($entity);
+        $this->cascadeRemoveRelated($entity, $options);
         $this->afterRemove($entity, $options);
     }
 
     /**
      * Find records.
      *
-     * @return EntityCollection<TEntity>|SthCollection<TEntity>
+     * @return EntityCollection<TEntity>
      */
-    public function find(): EntityCollection|SthCollection
+    public function find(): EntityCollection
     {
         return $this->createBuilder()->find();
     }
@@ -309,7 +372,7 @@ class RDBRepository implements Repository
     /**
      * Clone an existing query for a further modification and usage by 'find' or 'count' methods.
      *
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function clone(Select $query): RDBSelectBuilder
     {
@@ -317,7 +380,7 @@ class RDBRepository implements Repository
             throw new RuntimeException("Can't clone a query of a different entity type.");
         }
 
-        /** @var RDBSelectBuilder<TEntity> $builder */
+        /** @var RDBSelectBuilder<TEntity, EntityCollection<TEntity>> $builder */
         $builder = new RDBSelectBuilder($this->entityManager, $this->entityType, $query);
 
         return $builder;
@@ -330,7 +393,7 @@ class RDBRepository implements Repository
      * A relation name or table. A relation name should be in camelCase, a table in CamelCase.
      * @param string|null $alias An alias.
      * @param WhereItem|array<scalar, mixed>|null $conditions Join conditions.
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function join($target, ?string $alias = null, $conditions = null): RDBSelectBuilder
     {
@@ -344,7 +407,7 @@ class RDBRepository implements Repository
      * A relation name or table. A relation name should be in camelCase, a table in CamelCase.
      * @param string|null $alias An alias.
      * @param WhereItem|array<scalar, mixed>|null $conditions Join conditions.
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function leftJoin($target, ?string $alias = null, $conditions = null): RDBSelectBuilder
     {
@@ -354,7 +417,7 @@ class RDBRepository implements Repository
     /**
      * Set DISTINCT parameter.
      *
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function distinct(): RDBSelectBuilder
     {
@@ -364,7 +427,7 @@ class RDBRepository implements Repository
     /**
      * Lock selected rows. To be used within a transaction.
      *
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function forUpdate(): RDBSelectBuilder
     {
@@ -374,7 +437,7 @@ class RDBRepository implements Repository
     /**
      * Set to return STH collection. Recommended fetching large number of records.
      *
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, SthCollection<TEntity>>
      */
     public function sth(): RDBSelectBuilder
     {
@@ -390,8 +453,8 @@ class RDBRepository implements Repository
      * * `where(string $key, string $value)`
      *
      * @param WhereItem|array<scalar, mixed>|string $clause A key or where clause.
-     * @param mixed[]|scalar|null $value A value. Should be omitted if the first argument is not string.
-     * @return RDBSelectBuilder<TEntity>
+     * @param array<int, mixed>|scalar|null $value A value. Should be omitted if the first argument is not string.
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function where($clause = [], $value = null): RDBSelectBuilder
     {
@@ -407,8 +470,8 @@ class RDBRepository implements Repository
      * * `having(string $key, string $value)`
      *
      * @param WhereItem|array<scalar, mixed>|string $clause A key or where clause.
-     * @param mixed[]|scalar|null $value A value. Should be omitted if the first argument is not string.
-     * @return RDBSelectBuilder<TEntity>
+     * @param array<int, mixed>|scalar|null $value A value. Should be omitted if the first argument is not string.
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function having($clause = [], $value = null): RDBSelectBuilder
     {
@@ -428,7 +491,7 @@ class RDBRepository implements Repository
      *   An attribute to order by or an array or order items.
      *   Passing an array will reset a previously set order.
      * @param (Order::ASC|Order::DESC)|bool|null $direction A direction.
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function order($orderBy = Attribute::ID, $direction = null): RDBSelectBuilder
     {
@@ -438,7 +501,7 @@ class RDBRepository implements Repository
     /**
      * Apply OFFSET and LIMIT.
      *
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function limit(?int $offset = null, ?int $limit = null): RDBSelectBuilder
     {
@@ -458,7 +521,7 @@ class RDBRepository implements Repository
      * @param Selection|Selection[]|Expression|Expression[]|string[]|string|array<int, string[]|string> $select
      *   An array of expressions or one expression.
      * @param string|null $alias An alias. Actual if the first parameter is not an array.
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function select($select = [], ?string $alias = null): RDBSelectBuilder
     {
@@ -475,7 +538,7 @@ class RDBRepository implements Repository
      * * `groupBy([$expr1, $expr2, ...])`
      *
      * @param Expression|Expression[]|string|string[] $groupBy
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      */
     public function group($groupBy): RDBSelectBuilder
     {
@@ -485,33 +548,21 @@ class RDBRepository implements Repository
     /**
      * Create a select builder.
      *
-     * @return RDBSelectBuilder<TEntity>
+     * @return RDBSelectBuilder<TEntity, EntityCollection<TEntity>>
      *
      * @since 9.2.5
      */
     public function createBuilder(): RDBSelectBuilder
     {
-        /** @var RDBSelectBuilder<TEntity> $builder */
+        /** @var RDBSelectBuilder<TEntity, EntityCollection<TEntity>> $builder */
         $builder = new RDBSelectBuilder($this->entityManager, $this->entityType);
 
         return $builder;
     }
 
     /**
-     * Create a select builder.
-     *
-     * @return RDBSelectBuilder<TEntity>
-     *
-     * @deprecated Since v9.2.5. Use `createBuilder` instead.
-     * @todo Remove in v10.0.
-     */
-    protected function createSelectBuilder(): RDBSelectBuilder
-    {
-        return $this->createBuilder();
-    }
-
-    /**
-     * Use hooks instead.
+     * @deprecated Use hooks instead.
+     * @todo Change signature in v11.0. Add void.
      *
      * @param array<string, mixed> $options
      * @return void
@@ -523,6 +574,7 @@ class RDBRepository implements Repository
 
     /**
      * @deprecated Use hooks instead.
+     * @todo Change signature in v11.0. Add void.
      *
      * @param array<string, mixed> $options
      * @return void
@@ -534,6 +586,7 @@ class RDBRepository implements Repository
 
     /**
      * @deprecated Use hooks instead.
+     * @todo Change signature in v11.0. Add void.
      *
      * @param array<string, mixed> $options
      * @return void
@@ -545,6 +598,7 @@ class RDBRepository implements Repository
 
     /**
      * @deprecated Use hooks instead.
+     * @todo Change signature in v11.0. Add void.
      *
      * @param array<string, mixed> $options
      * @return void
@@ -567,6 +621,7 @@ class RDBRepository implements Repository
 
     /**
      * @deprecated As of v6.0. Use hooks instead.
+     * @todo Remove in v11.0.
      * @phpstan-ignore-next-line
      */
     protected function beforeRelate(Entity $entity, $relationName, $foreign, $data = null, array $options = [])
@@ -574,6 +629,7 @@ class RDBRepository implements Repository
 
     /**
      * @deprecated As of v6.0. Use hooks instead.
+     * @todo Change signature in v11.0. Add void.
      * @phpstan-ignore-next-line
      */
     protected function afterRelate(Entity $entity, $relationName, $foreign, $data = null, array $options = [])
@@ -581,6 +637,7 @@ class RDBRepository implements Repository
 
     /**
      * @deprecated As of v6.0. Use hooks instead.
+     * @todo Remove in v11.0.
      * @phpstan-ignore-next-line
      */
     protected function beforeUnrelate(Entity $entity, $relationName, $foreign, array $options = [])
@@ -588,6 +645,7 @@ class RDBRepository implements Repository
 
     /**
      * @deprecated As of v6.0. Use hooks instead.
+     * @todo Change signature in v11.0. Add void.
      * @phpstan-ignore-next-line
      */
     protected function afterUnrelate(Entity $entity, $relationName, $foreign, array $options = [])
@@ -595,6 +653,7 @@ class RDBRepository implements Repository
 
     /**
      * @deprecated As of v6.0. Use hooks instead.
+     * @todo Remove in v11.0.
      * @phpstan-ignore-next-line
      */
     protected function beforeMassRelate(Entity $entity, $relationName, array $params = [], array $options = [])
@@ -602,6 +661,7 @@ class RDBRepository implements Repository
 
     /**
      * @deprecated As of v6.0. Use hooks instead.
+     * @todo Change signature in v11.0. Add void.
      * @phpstan-ignore-next-line
      */
     protected function afterMassRelate(Entity $entity, $relationName, array $params = [], array $options = [])
@@ -668,7 +728,7 @@ class RDBRepository implements Repository
             ->findOne();
 
         if (!$entity->isNew()) {
-            $entity->setFetched($idAttribute, $previous ? $previous->getId() : null);
+            $entity->setFetched($idAttribute, $previous?->getId());
         }
 
         if ($previous) {
@@ -785,5 +845,64 @@ class RDBRepository implements Repository
         }
 
         $mapper->deleteFromDb($this->entityType, $id, $onlyDeleted);
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     */
+    private function cascadeRemoveRelated(Entity $entity, array $options): void
+    {
+        $relations = $this->entityManager
+            ->getDefs()
+            ->getEntity($this->entityType)
+            ->getRelationList();
+
+        foreach ($relations as $relation) {
+            if (!$relation->getParam(RelationParam::CASCADE_REMOVAL)) {
+                continue;
+            }
+
+            $this->cascadeRemoveRelation($entity, $relation, $options);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     */
+    private function cascadeRemoveRelation(Entity $entity, RelationDefs $relation, array $options): void
+    {
+        $foreignEntityType = $relation->tryGetForeignEntityType();
+        $foreign = $relation->tryGetForeignRelationName();
+
+        if (!$foreignEntityType || !$foreign) {
+            return;
+        }
+
+        $foreignType = $this->entityManager
+            ->getDefs()
+            ->tryGetEntity($foreignEntityType)
+            ?->tryGetRelation($foreign)
+            ?->getType();
+
+        if (!$foreignType) {
+            return;
+        }
+
+        if (!Util::isRelationshipEligibleForCascadeRemoval($relation->getType(), $foreignType)) {
+            return;
+        }
+
+        $link = $relation->getName();
+
+        $collection = $this->entityManager
+            ->getRelation($entity, $link)
+            ->sth()
+            ->find();
+
+        unset($options[SaveContext::NAME]);
+
+        foreach ($collection as $relatedEntity) {
+            $this->entityManager->removeEntity($relatedEntity, $options);
+        }
     }
 }

@@ -44,7 +44,9 @@ use Espo\Core\Record\ServiceContainer;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\PasswordHash;
 use Espo\Entities\User;
+use Espo\ORM\Defs\Params\FieldParam;
 use Espo\ORM\EntityManager;
+use Espo\Tools\UserSecurity\RevokeAuthenticationTokensService;
 use SensitiveParameter;
 
 class Service
@@ -63,6 +65,7 @@ class Service
         private Checker $checker,
         private AuthenticationMethodProvider $authenticationMethodProvider,
         private ApplicationState $applicationState,
+        private RevokeAuthenticationTokensService $revokeAuthenticationTokensService,
     ) {}
 
     /**
@@ -74,12 +77,11 @@ class Service
      */
     public function createAndSendPasswordRecovery(string $id): void
     {
-        if (!$this->user->isAdmin()) {
+        if (!$this->user->isEffectiveAdmin()) {
             throw new Forbidden();
         }
 
-        /** @var ?User $user */
-        $user = $this->entityManager->getEntityById(User::ENTITY_TYPE, $id);
+        $user = $this->entityManager->getRepositoryByClass(User::class)->getById($id);
 
         if (!$user) {
             throw new NotFound();
@@ -117,6 +119,8 @@ class Service
 
         $this->changePassword($request->getUserId(), $password);
         $this->recovery->removeRequest($requestId);
+
+        $this->revokeAuthenticationTokensService->revokeAll($request->getUserId());
 
         return $request->getUrl();
     }
@@ -161,8 +165,7 @@ class Service
         #[SensitiveParameter] ?string $currentPassword = null
     ): void {
 
-        /** @var ?User $user */
-        $user = $this->entityManager->getEntityById(User::ENTITY_TYPE, $userId);
+        $user = $this->entityManager->getRepositoryByClass(User::class)->getById($userId);
 
         if (!$user) {
             throw new NotFound();
@@ -208,19 +211,17 @@ class Service
         }
 
         $validLength = $this->fieldValidationManager->check(
-            $user,
-            'password',
-            'maxLength',
-            (object) ['password' => $password]
+            entity: $user,
+            field: User::FIELD_PASSWORD,
+            type: FieldParam::MAX_LENGTH,
+            data: (object) [User::FIELD_PASSWORD => $password],
         );
 
         if (!$validLength) {
             throw new Forbidden("Password exceeds max length.");
         }
 
-        $user->set('password', $this->passwordHash->hash($password));
-
-        $this->entityManager->saveEntity($user);
+        $this->savePassword($user, $password);
     }
 
     /**
@@ -259,14 +260,11 @@ class Service
      */
     public function generateAndSendNewPasswordForUser(string $id): void
     {
-        if (!$this->user->isAdmin()) {
+        if (!$this->user->isEffectiveAdmin()) {
             throw new Forbidden();
         }
 
-        /** @var ?User $user */
-        $user = $this->serviceContainer
-            ->get(User::ENTITY_TYPE)
-            ->getEntity($id);
+        $user = $this->serviceContainer->getByClass(User::class)->getEntity($id);
 
         if (!$user) {
             throw new NotFound();
@@ -305,14 +303,14 @@ class Service
 
     private function savePassword(User $user, #[SensitiveParameter] string $password): void
     {
-        $user->set('password', $this->passwordHash->hash($password));
+        $this->setPassword($user, $password);
 
         $this->entityManager->saveEntity($user);
     }
 
     private function savePasswordSilent(User $user, #[SensitiveParameter] string $password): void
     {
-        $user->set('password', $this->passwordHash->hash($password));
+        $this->setPassword($user, $password);
 
         $this->entityManager->saveEntity($user, [SaveOption::SILENT => true]);
     }
@@ -329,5 +327,10 @@ class Service
         return $this->applicationState->isPortal() &&
             $this->authenticationMethodProvider->get() === LdapLogin::NAME &&
             !$this->config->get('ldapPortalUserLdapAuth');
+    }
+
+    private function setPassword(User $user, #[SensitiveParameter] string $password): void
+    {
+        $user->set(User::FIELD_PASSWORD, $this->passwordHash->hash($password));
     }
 }

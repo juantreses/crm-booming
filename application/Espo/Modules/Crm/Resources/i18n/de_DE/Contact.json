@@ -1,5 +1,6 @@
 {
   "fields": {
+    "name": "Name",
     "emailAddress": "E-Mail",
     "accountRole": "Funktion",
     "account": "Firma",
@@ -51,6 +52,6 @@
   "presetFilters": {
     "portalUsers": "Portalbenutzer",
     "notPortalUsers": "Keine Portalbenutzer",
-    "accountActive": "Aktiv"
+    "accountActive": "Aktive Beziehung"
   }
 }

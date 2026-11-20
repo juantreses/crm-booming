@@ -2,56 +2,12 @@
     {{#unless buttonsDisabled}}
     <div class="detail-button-container button-container record-buttons">
         <div class="sub-container clearfix">
-            <div class="btn-group actions-btn-group" role="group">
-                {{#each buttonList}}
-                    {{button name
-                             scope=../entityType
-                             label=label
-                             labelTranslation=labelTranslation
-                             style=style
-                             hidden=hidden
-                             html=html
-                             title=title
-                             text=text
-                             className='btn-xs-wide detail-action-item'
-                             disabled=disabled
-                    }}
-                {{/each}}
-                {{#if dropdownItemList}}
-                    <button
-                        type="button"
-                        class="btn btn-default dropdown-toggle dropdown-item-list-button{{#if dropdownItemListEmpty}} hidden{{/if}}"
-                        data-toggle="dropdown"
-                    ><span class="fas fa-ellipsis-h"></span></button>
-                    <ul class="dropdown-menu pull-left">
-                        {{#each dropdownItemList}}
-                            {{#if this}}
-                                {{dropdownItem
-                                    name
-                                    scope=../entityType
-                                    label=label
-                                    labelTranslation=labelTranslation
-                                    html=html
-                                    title=title
-                                    text=text
-                                    hidden=hidden
-                                    disabled=disabled
-                                    data=data
-                                    className='detail-action-item'
-                                }}
-                            {{else}}
-                                {{#unless @first}}
-                                    {{#unless @last}}
-                                        <li class="divider"></li>
-                                    {{/unless}}
-                                {{/unless}}
-                            {{/if}}
-                        {{/each}}
-                    </ul>
-                {{/if}}
-            </div>
+            <div
+                class="btn-group actions-btn-group"
+                role="group"
+            >{{{buttons}}}</div>
             {{#if navigateButtonsEnabled}}
-                <div class="pull-right">
+                <div class="pull-end">
                     <div class="btn-group" role="group">
                         <button
                             type="button"
@@ -78,54 +34,14 @@
     </div>
     <div class="detail-button-container button-container edit-buttons hidden">
         <div class="sub-container clearfix">
-            <div class="btn-group actions-btn-group" role="group">
-                {{#each buttonEditList}}
-                    {{button name
-                             scope=../entityType
-                             label=label
-                             labelTranslation=labelTranslation
-                             style=style
-                             hidden=hidden
-                             html=html
-                             title=title
-                             text=text
-                             className='btn-xs-wide edit-action-item'
-                             disabled=disabled
-                    }}
-                {{/each}}
-                {{#if dropdownEditItemList}}
-                    <button
-                        type="button"
-                        class="btn btn-default dropdown-toggle dropdown-edit-item-list-button{{#if dropdownEditItemListEmpty}} hidden{{/if}}"
-                        data-toggle="dropdown"
-                    ><span class="fas fa-ellipsis-h"></span></button>
-                    <ul class="dropdown-menu pull-left">
-                        {{#each dropdownEditItemList}}
-                            {{#if this}}
-                                {{dropdownItem
-                                    name
-                                    scope=../entityType
-                                    label=label
-                                    labelTranslation=labelTranslation
-                                    html=html
-                                    title=title
-                                    text=text
-                                    hidden=hidden
-                                    disabled=disabled
-                                    data=data
-                                    className='edit-action-item'
-                                }}
-                            {{else}}
-                                {{#unless @first}}
-                                    {{#unless @last}}
-                                        <li class="divider"></li>
-                                    {{/unless}}
-                                {{/unless}}
-                            {{/if}}
-                        {{/each}}
-                    </ul>
-                {{/if}}
-            </div>
+            <div
+                class="btn-group actions-btn-group"
+                role="group"
+            >{{{editButtons}}}</div>
+            <div
+                class="btn-group pull-end"
+                role="group"
+            >{{{editSideButtons}}}</div>
         </div>
     </div>
     {{/unless}}

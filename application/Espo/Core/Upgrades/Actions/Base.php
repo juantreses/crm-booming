@@ -83,7 +83,7 @@ abstract class Base
 
     public function __construct(
         private Container $container,
-        private ActionManager $actionManager
+        private ActionManager $actionManager,
     ) {
         $this->params = $actionManager->getParams();
 
@@ -433,11 +433,12 @@ abstract class Base
      *
      * @throws Error
      */
-    protected function getPath(string $name = 'packagePath', bool $isPackage = false): string
+    protected function getPath(string $name, bool $isPackage = false): string
     {
         $postfix = $isPackage ? $this->packagePostfix : '';
 
-        $processId = $this->getProcessId();
+        $processId = basename($this->getProcessId());
+
         $path = Util::concatPath($this->getParam($name), $processId);
 
         return $path . $postfix;
@@ -819,10 +820,18 @@ abstract class Base
         $packageArchivePath = $this->getPackagePath(true);
 
         if (!file_exists($packageArchivePath)) {
-            $this->throwErrorAndRemovePackage('Package Archive does not exist.', false, false);
+            $this->throwErrorAndRemovePackage('Package archive does not exist.', false, false);
         }
 
-        $res = $this->getZipUtil()->unzip($packageArchivePath, $packagePath);
+        try {
+            $res = $this->getZipUtil()->unzip($packageArchivePath, $packagePath);
+        } catch (Throwable $e) {
+            $message = $e->getMessage();
+
+            $this->throwErrorAndRemovePackage("Unzip error. $packagePath. $message", false, false);
+
+            return;
+        }
 
         if ($res === false) {
             $this->throwErrorAndRemovePackage("Unable to unzip the file $packagePath.", false, false);
@@ -999,9 +1008,8 @@ abstract class Base
         }
 
         $actualParams = [
-            'maintenanceMode' => $config->get('maintenanceMode'),
-            'cronDisabled' => $config->get('cronDisabled'),
-            'useCache' => $config->get('useCache'),
+            'maintenanceMode' => $this->getSystemConfig()->isMaintenanceMode(),
+            'useCache' => $this->getSystemConfig()->useCache(),
         ];
 
         if ($configParamName) {
@@ -1013,12 +1021,6 @@ abstract class Base
 
         if (!$actualParams['maintenanceMode']) {
             $configWriter->set('maintenanceMode', true);
-
-            $save = true;
-        }
-
-        if (!$actualParams['cronDisabled']) {
-            $configWriter->set('cronDisabled', true);
 
             $save = true;
         }

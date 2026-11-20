@@ -2,6 +2,8 @@
   "labels": {
     "Dynamic Logic": "Dynamische logica",
     "Name": "Naam",
+    "Label": "Label",
+    "Type": "Type",
     "View Details": "Bekijk Details"
   },
   "options": {
@@ -28,7 +30,8 @@
       "javascript: return this.dateTime.getDateTimeShiftedFromNow(3, 'days', 15);": "+3 dagen",
       "javascript: return this.dateTime.getDateTimeShiftedFromNow(4, 'days', 15);": "+4 dagen",
       "javascript: return this.dateTime.getDateTimeShiftedFromNow(5, 'days', 15);": "+5 dagen",
-      "javascript: return this.dateTime.getDateTimeShiftedFromNow(6, 'days', 15);": "+6 dagen"
+      "javascript: return this.dateTime.getDateTimeShiftedFromNow(6, 'days', 15);": "+6 dagen",
+      "javascript: return this.dateTime.getDateTimeShiftedFromNow(1, 'week', 15);": "+1 week"
     },
     "dateDefault": {
       "": "Geen",
@@ -43,6 +46,7 @@
       "javascript: return this.dateTime.getDateShiftedFromToday(8, 'days');": "+8 dagen",
       "javascript: return this.dateTime.getDateShiftedFromToday(9, 'days');": "+9 dagen",
       "javascript: return this.dateTime.getDateShiftedFromToday(10, 'days');": "+10 dagen",
+      "javascript: return this.dateTime.getDateShiftedFromToday(1, 'weeks');": "+1 week",
       "javascript: return this.dateTime.getDateShiftedFromToday(2, 'weeks');": "+2 weken",
       "javascript: return this.dateTime.getDateShiftedFromToday(3, 'weeks');": "+3 weken",
       "javascript: return this.dateTime.getDateShiftedFromToday(1, 'months');": "+1 maand",
@@ -56,7 +60,18 @@
       "javascript: return this.dateTime.getDateShiftedFromToday(9, 'months');": "+9 maanden",
       "javascript: return this.dateTime.getDateShiftedFromToday(10, 'months');": "+10 maanden",
       "javascript: return this.dateTime.getDateShiftedFromToday(11, 'months');": "+11 maanden",
-      "javascript: return this.dateTime.getDateShiftedFromToday(1, 'year');": "+ 1 jaar"
+      "javascript: return this.dateTime.getDateShiftedFromToday(1, 'year');": "+ 1 jaar",
+      "javascript: return this.dateTime.getDateShiftedFromToday(30, 'days');": "+30 dagen"
+    },
+    "barcodeType": {
+      "EAN13": "EAN-13",
+      "EAN8": "EAN-8",
+      "EAN5": "EAN-5",
+      "EAN2": "EAN-2",
+      "UPC": "UPC (A)",
+      "UPCE": "UPC (E)",
+      "pharmacode": "Pharmacode",
+      "QRcode": "QR code"
     },
     "globalRestrictions": {
       "forbidden": "Verboden",
@@ -96,7 +111,8 @@
     "relateOnImport": "Als je importeert met dit veld, wordt automatisch een record gekoppeld aan een overeenkomend buitenlands record. Gebruik deze functionaliteit alleen als het vreemde veld als uniek wordt beschouwd.",
     "preview": "Toon de voorbeeldknop. Van toepassing als Markdown is ingeschakeld.",
     "itemsEditable": "Items kunnen worden bewerkt. Alleen van toepassing als er geen opties zijn opgegeven.",
-    "seeMoreDisabled": "Als dit niet wordt gecontroleerd, worden lange teksten ingekort."
+    "seeMoreDisabled": "Als dit niet wordt gecontroleerd, worden lange teksten ingekort.",
+    "imageCapture": "Hiermee wordt aangegeven welke camera moet worden gebruikt voor het vastleggen van beeldgegevens."
   },
   "fieldParts": {
     "address": {

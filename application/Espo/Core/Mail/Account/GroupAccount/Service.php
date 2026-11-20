@@ -30,16 +30,19 @@
 namespace Espo\Core\Mail\Account\GroupAccount;
 
 use Espo\Core\Exceptions\ErrorSilent;
+use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Mail\Account\Account as Account;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Mail\Account\Fetcher;
 use Espo\Core\Mail\Account\Storage\Params;
 use Espo\Core\Mail\Account\StorageFactory;
+use Espo\Core\Mail\Account\Util\AddressUtil;
 use Espo\Core\Mail\Account\Util\NotificationHelper;
 use Espo\Core\Mail\Exceptions\ImapError;
 use Espo\Core\Mail\Exceptions\NoImap;
 use Espo\Core\Mail\Sender\Message;
 use Espo\Core\Utils\Log;
+use Espo\Core\Utils\Security\HostCheck;
 use Exception;
 
 class Service
@@ -49,7 +52,9 @@ class Service
         private AccountFactory $accountFactory,
         private StorageFactory $storageFactory,
         private Log $log,
-        private NotificationHelper $notificationHelper
+        private NotificationHelper $notificationHelper,
+        private HostCheck $hostCheck,
+        private AddressUtil $addressUtil,
     ) {}
 
     /**
@@ -77,46 +82,44 @@ class Service
      * @return string[]
      * @throws Error
      * @throws ImapError
+     * @throws Forbidden
      */
     public function getFolderList(Params $params): array
     {
-        if ($params->getId()) {
-            $account = $this->accountFactory->create($params->getId());
+        $params = $this->connectPreProcess($params);
 
-            $params = $params
-                ->withPassword($this->getPassword($params, $account))
-                ->withImapHandlerClassName($account->getImapHandlerClassName());
+        try {
+            $storage = $this->storageFactory->createWithParams($params);
+
+            return $storage->getFolderNames();
+        } catch (Exception $e) {
+            $this->log->warning("IMAP get folder list failed.", [
+                'exception' => $e,
+            ]);
+
+            $message = $e instanceof ImapError ? $e->getMessage() : '';
+
+            throw new ErrorSilent($message);
         }
-
-        $storage = $this->storageFactory->createWithParams($params);
-
-        return $storage->getFolderNames();
     }
 
     /**
      * @throws Error
+     * @throws Forbidden
      */
     public function testConnection(Params $params): void
     {
-        if ($params->getId()) {
-            $account = $this->accountFactory->create($params->getId());
-
-            $params = $params
-                ->withPassword($this->getPassword($params, $account))
-                ->withImapHandlerClassName($account->getImapHandlerClassName());
-        }
+        $params = $this->connectPreProcess($params);
 
         try {
             $storage = $this->storageFactory->createWithParams($params);
             $storage->getFolderNames();
         } catch (Exception $e) {
-            $this->log->warning("IMAP test connection failed; {message}", [
+            $this->log->warning("IMAP test connection failed.", [
                 'exception' => $e,
-                'message' => $e->getMessage(),
             ]);
 
-            $message = $e instanceof ImapError ?
-                $e->getMessage() : '';
+            $message = $e instanceof ImapError ? $e->getMessage() : '';
 
             throw new ErrorSilent($message, previous: $e);
         }
@@ -154,5 +157,30 @@ class Service
         $storage = $this->storageFactory->create($account);
 
         $storage->appendMessage($message->toString(), $folder);
+    }
+
+    /**
+     * @throws Error
+     * @throws Forbidden
+     */
+    private function connectPreProcess(Params $params): Params
+    {
+        if (
+            $params->getHost() &&
+            !$this->addressUtil->isAllowedAddress($params) &&
+            !$this->hostCheck->isHostAndNotInternal($params->getHost())
+        ) {
+            throw new Forbidden("Not allowed internal host.");
+        }
+
+        if ($params->getId()) {
+            $account = $this->accountFactory->create($params->getId());
+
+            $params = $params
+                ->withPassword($this->getPassword($params, $account))
+                ->withImapHandlerClassName($account->getImapHandlerClassName());
+        }
+
+        return $params;
     }
 }

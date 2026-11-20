@@ -38,7 +38,7 @@ use Espo\Core\Exceptions\HasLogLevel;
 use Espo\Core\Exceptions\HasLogMessage;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Core\Utils\Log;
-
+use Espo\ORM\Exceptions\ValidationException;
 use LogicException;
 use Psr\Log\LogLevel;
 use RuntimeException;
@@ -82,8 +82,17 @@ class ErrorOutput
         NotFound::class,
     ];
 
-    public function __construct(private Log $log)
-    {}
+    /** @var array<class-string<Throwable>, int> */
+    private array $statusCodeMap = [
+        ValidationException::class => 409,
+    ];
+
+    public const string HEADER_STATUS_REASON = 'X-Status-Reason';
+
+    public function __construct(
+        private Log $log,
+        private ConfigDataProvider $config,
+    ) {}
 
     public function process(
         Request $request,
@@ -113,17 +122,7 @@ class ErrorOutput
         bool $toPrintBody = false
     ): void {
 
-        $message = $exception->getMessage();
-
-        if ($exception->getPrevious() && $exception->getPrevious()->getMessage()) {
-            $message .= " " . $exception->getPrevious()->getMessage();
-        }
-
-        $statusCode = $exception->getCode();
-
-        if ($exception instanceof HasLogMessage) {
-            $message = $exception->getLogMessage();
-        }
+        [$message, $logMessage] = $this->prepareMessages($exception);
 
         if ($route) {
             $this->processRoute($route, $request, $exception);
@@ -131,40 +130,38 @@ class ErrorOutput
 
         $level = $this->getLevel($exception);
 
-        $this->log->log($level, $message, [
+        $this->log->log($level, $logMessage, [
             'exception' => $exception,
             'request' => $request,
         ]);
 
-        if (!in_array($statusCode, $this->allowedStatusCodeList)) {
-            $statusCode = 500;
-        }
+        $statusCode = $this->getStatusCode($exception);
 
         $response->setStatus($statusCode);
 
+        $statusReason = null;
+
         if ($this->toPrintExceptionStatusReason($exception)) {
-            $response->setHeader('X-Status-Reason', $this->stripInvalidCharactersFromHeaderValue($message));
-        }
+            $statusReason = $this->stripInvalidCharactersFromHeaderValue($message);
+        } else if ($this->config->exposeExceptions()) {
+            $strippedMessage = $this->stripInvalidCharactersFromHeaderValue($message);
 
-        if ($exception instanceof HasBody && $this->exceptionHasBody($exception)) {
-            $response->writeBody($exception->getBody() ?? '');
-
-            $toPrintBody = false;
-        }
-
-        if ($toPrintBody) {
-            $codeDescription = $this->getCodeDescription($statusCode);
-
-            $statusText = isset($codeDescription) ?
-                $statusCode . ' '. $codeDescription :
-                'HTTP ' . $statusCode;
-
-            if ($message) {
-                $message = htmlspecialchars($message);
+            if ($strippedMessage) {
+                $statusReason = 'Exposed: ' . $strippedMessage;
             }
-
-            $response->writeBody(self::generateErrorBody($statusText, $message));
         }
+
+        if ($statusReason !== null) {
+            $response->setHeader(self::HEADER_STATUS_REASON, $statusReason);
+        }
+
+        $this->printBody(
+            exception: $exception,
+            response: $response,
+            toPrintBody: $toPrintBody,
+            statusCode: $statusCode,
+            message: $message,
+        );
     }
 
     private function exceptionHasBody(Throwable $exception): bool
@@ -187,11 +184,6 @@ class ErrorOutput
         return null;
     }
 
-    private function clearPasswords(string $string): string
-    {
-        return preg_replace('/"(.*password.*)":".*"/i', '"$1":"*****"', $string) ?? $string;
-    }
-
     private static function generateErrorBody(string $header, string $text): string
     {
         $body = "<h1>" . $header . "</h1>";
@@ -210,8 +202,6 @@ class ErrorOutput
 
     private function processRoute(string $route, Request $request, Throwable $exception): void
     {
-        $requestBodyString = $this->clearPasswords($request->getBodyContents() ?? '');
-
         $message = $exception->getMessage();
 
         if ($exception->getPrevious() && $exception->getPrevious()->getMessage()) {
@@ -232,10 +222,6 @@ class ErrorOutput
 
         $logMessageItemList[] = $request->getMethod() . ' ' . $request->getResourcePath();
 
-        if ($requestBodyString) {
-            $logMessageItemList[] = "Input data: " . $requestBodyString;
-        }
-
         $logMessageItemList[] = "Route pattern: " . $route;
 
         if (!empty($routeParams)) {
@@ -250,7 +236,6 @@ class ErrorOutput
     private function toPrintExceptionStatusReason(Throwable $exception): bool
     {
         foreach ($this->printStatusReasonExceptionClassNameList as $clasName) {
-
             if ($exception instanceof ($clasName)) {
                 return true;
             }
@@ -274,5 +259,70 @@ class ErrorOutput
         }
 
         return LogLevel::ERROR;
+    }
+
+    private function printBody(
+        Throwable $exception,
+        Response $response,
+        bool $toPrintBody,
+        int $statusCode,
+        string $message,
+    ): void {
+
+        if ($exception instanceof HasBody && $this->exceptionHasBody($exception)) {
+            $response->writeBody($exception->getBody() ?? '');
+
+            $toPrintBody = false;
+        }
+
+        if (!$toPrintBody) {
+            return;
+        }
+
+        $codeDescription = $this->getCodeDescription($statusCode);
+
+        $statusText = isset($codeDescription) ?
+            $statusCode . ' ' . $codeDescription :
+            'HTTP ' . $statusCode;
+
+        if ($message) {
+            $message = htmlspecialchars($message);
+        }
+
+        $response->writeBody(self::generateErrorBody($statusText, $message));
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function prepareMessages(Throwable $exception): array
+    {
+        $message = $exception->getMessage();
+        $logMessage = $message;
+
+        if ($exception->getPrevious() && $exception->getPrevious()->getMessage()) {
+            $logMessage .= " " . $exception->getPrevious()->getMessage();
+        }
+
+        if ($exception instanceof HasLogMessage) {
+            $message = $exception->getLogMessage();
+            $logMessage = $message;
+        }
+
+        return [$message, $logMessage];
+    }
+
+    /**
+     * @return int
+     */
+    private function getStatusCode(Throwable $exception): int
+    {
+        $statusCode = $this->statusCodeMap[$exception::class] ?? $exception->getCode();
+
+        if (!in_array($statusCode, $this->allowedStatusCodeList)) {
+            $statusCode = 500;
+        }
+
+        return $statusCode;
     }
 }

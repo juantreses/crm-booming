@@ -52,12 +52,16 @@ class RelationConverter
 {
     private const DEFAULT_VARCHAR_LENGTH = 255;
 
-    /** @var string[] */
+    /**
+     * Parameters to merge from both sides.
+     *
+     * @var string[]
+     */
     private $mergeParams = [
         RelationParam::RELATION_NAME,
         RelationParam::CONDITIONS,
         RelationParam::ADDITIONAL_COLUMNS,
-        'noJoin',
+        RelationParam::NO_JOIN,
         RelationParam::INDEXES,
     ];
 
@@ -70,7 +74,7 @@ class RelationConverter
     public function __construct(
         private Metadata $metadata,
         private InjectableFactory $injectableFactory,
-        private Log $log
+        private Log $log,
     ) {}
 
     /**
@@ -118,8 +122,14 @@ class RelationConverter
         $raw = $convertedEntityDefs->toAssoc();
 
         if (isset($raw[EntityParam::RELATIONS][$name])) {
-            $this->mergeParams($raw[EntityParam::RELATIONS][$name], $params, $foreignParams ?? [], $linkType);
-            $this->correct($raw[EntityParam::RELATIONS][$name]);
+            $defs = &$raw[EntityParam::RELATIONS][$name];
+
+            $this->mergeParams($defs, $params, $foreignParams ?? [], $linkType);
+            $this->correct($defs);
+
+            if ($params[RelationParam::CASCADE_REMOVAL] ?? false) {
+                $defs[RelationParam::CASCADE_REMOVAL] = true;
+            }
         }
 
         return [$entityType => $raw];

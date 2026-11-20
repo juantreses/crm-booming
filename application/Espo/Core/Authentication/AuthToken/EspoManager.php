@@ -30,10 +30,12 @@
 namespace Espo\Core\Authentication\AuthToken;
 
 use Espo\Core\Name\Field;
+use Espo\ORM\EntityCollection;
 use Espo\ORM\EntityManager;
+use Espo\ORM\Name\Attribute;
 use Espo\ORM\Repository\RDBRepository;
 use Espo\Entities\AuthToken as AuthTokenEntity;
-
+use Random\RandomException;
 use RuntimeException;
 
 /**
@@ -43,14 +45,14 @@ use RuntimeException;
  * multiple Espo replicas (for scalability purposes).
  * Defined at metadata > app > containerServices > authTokenManager.
  *
- * @noinspection PhpUnused
+ * @implements Manager<AuthTokenEntity>
  */
 class EspoManager implements Manager
 {
     /** @var RDBRepository<AuthTokenEntity> */
     private RDBRepository $repository;
 
-    private const TOKEN_RANDOM_LENGTH = 16;
+    private const int TOKEN_RANDOM_LENGTH = 16;
 
     public function __construct(EntityManager $entityManager)
     {
@@ -61,13 +63,14 @@ class EspoManager implements Manager
     {
         return $this->repository
             ->select([
-                'id',
+                Attribute::ID,
                 'isActive',
                 'token',
                 'secret',
                 'userId',
                 'portalId',
                 'hash',
+                AuthTokenEntity::FIELD_PASSWORD_VERSION,
                 Field::CREATED_AT,
                 'lastAccess',
                 Field::MODIFIED_AT,
@@ -83,7 +86,7 @@ class EspoManager implements Manager
         $authToken
             ->setUserId($data->getUserId())
             ->setPortalId($data->getPortalId())
-            ->setHash($data->getHash())
+            ->setPasswordVersion($data->getPasswordVersion())
             ->setIpAddress($data->getIpAddress())
             ->setToken($this->generateToken())
             ->setLastAccessNow();
@@ -99,13 +102,11 @@ class EspoManager implements Manager
         return $authToken;
     }
 
+    /**
+     * @param AuthTokenEntity $authToken
+     */
     public function inactivate(AuthToken $authToken): void
     {
-        /** @noinspection PhpConditionAlreadyCheckedInspection */
-        if (!$authToken instanceof AuthTokenEntity) {
-            throw new RuntimeException();
-        }
-
         $this->validateNotChanged($authToken);
 
         $authToken->setIsActive(false);
@@ -115,11 +116,6 @@ class EspoManager implements Manager
 
     public function renew(AuthToken $authToken): void
     {
-        /** @noinspection PhpConditionAlreadyCheckedInspection */
-        if (!$authToken instanceof AuthTokenEntity) {
-            throw new RuntimeException();
-        }
-
         $this->validateNotChanged($authToken);
 
         if ($authToken->isNew()) {
@@ -129,6 +125,29 @@ class EspoManager implements Manager
         $authToken->setLastAccessNow();
 
         $this->repository->save($authToken);
+    }
+
+    public function inactivateOther(AuthToken $authToken): void
+    {
+        foreach ($this->findConcurrent($authToken) as $other) {
+            $this->inactivate($other);
+        }
+    }
+
+    public function inactivateAllForUser(string $userId): void
+    {
+        $tokens = $this->repository
+            ->select([Attribute::ID])
+            ->where([
+                AuthTokenEntity::ATTR_USER_ID => $userId,
+                AuthTokenEntity::FIELD_IS_ACTIVE => true,
+            ])
+            ->sth()
+            ->find();
+
+        foreach ($tokens as $token) {
+            $this->inactivate($token);
+        }
     }
 
     private function validate(AuthToken $authToken): void
@@ -159,6 +178,25 @@ class EspoManager implements Manager
     {
         $length = self::TOKEN_RANDOM_LENGTH;
 
-        return bin2hex(random_bytes($length));
+        try {
+            return bin2hex(random_bytes($length));
+        } catch (RandomException $e) {
+            throw new RuntimeException(previous: $e);
+        }
+    }
+
+    /**
+     * @return EntityCollection<AuthTokenEntity>
+     */
+    private function findConcurrent(AuthTokenEntity $authToken): EntityCollection
+    {
+        return $this->repository
+            ->select([Attribute::ID])
+            ->where([
+                AuthTokenEntity::ATTR_USER_ID => $authToken->getUserId(),
+                AuthTokenEntity::FIELD_IS_ACTIVE => true,
+                Attribute::ID . '!=' => $authToken->getId(),
+            ])
+            ->find();
     }
 }

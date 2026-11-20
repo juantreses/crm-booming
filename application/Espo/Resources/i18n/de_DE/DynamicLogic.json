@@ -7,6 +7,7 @@
       "lessThan": "Kleiner als",
       "greaterThanOrEquals": "Größer oder gleich",
       "lessThanOrEquals": "Kleiner oder gleich",
+      "in": "In",
       "notIn": "Nicht in",
       "inPast": "Ist in der Vergangenheit",
       "inFuture": "Ist in der Zukunft",
@@ -20,10 +21,16 @@
       "notContains": "Enthält nicht",
       "notHas": "Enthält nicht",
       "startsWith": "Beginnt mit",
-      "endsWith": "Endet mit"
+      "endsWith": "Endet mit",
+      "matches": "Matches (reg exp)"
     }
   },
   "labels": {
     "Field": "Feld"
+  },
+  "fields": {
+    "localField": "Lokales Feld",
+    "foreignField": "Fremdfeld",
+    "matchRequired": "Übereinstimmung erforderlich"
   }
 }

@@ -33,9 +33,12 @@ use Espo\Core\Currency\ConfigDataProvider;
 use Espo\Core\Utils\Config\ConfigWriter;
 use Espo\Core\Utils\Config\SystemConfig;
 use Espo\Core\Utils\DataCache;
+use Espo\Core\Utils\Event\EventDispatcher;
 use Espo\Entities\CurrencyRecord;
 use Espo\ORM\EntityManager;
+use Espo\ORM\Name\Attribute;
 use Espo\ORM\Query\UpdateBuilder;
+use Espo\Tools\Currency\Events\CurrencyRateUpdate;
 use Espo\Tools\Currency\Exceptions\NotEnabled;
 
 /**
@@ -53,6 +56,7 @@ class SyncManager
         private RateEntryProvider $rateEntryProvider,
         private DataCache $dataCache,
         private SystemConfig $systemConfig,
+        private EventDispatcher $eventDispatcher,
     ) {}
 
     public function sync(): void
@@ -116,6 +120,7 @@ class SyncManager
             ->getRDBRepositoryByClass(CurrencyRecord::class)
             ->forUpdate()
             ->sth()
+            ->select(Attribute::ID)
             ->find();
     }
 
@@ -125,6 +130,7 @@ class SyncManager
             $this->syncToConfigInTransaction();
         });
 
+        $this->dispatchUpdateEvent();
         $this->clearCache();
     }
 
@@ -152,6 +158,7 @@ class SyncManager
         $this->configWriter->set('currencyRates', $rates);
         $this->configWriter->save();
 
+        $this->dispatchUpdateEvent();
         $this->clearCache();
     }
 
@@ -162,5 +169,10 @@ class SyncManager
         }
 
         $this->dataCache->clear($this->cacheKey);
+    }
+
+    private function dispatchUpdateEvent(): void
+    {
+        $this->eventDispatcher->dispatch(new CurrencyRateUpdate());
     }
 }

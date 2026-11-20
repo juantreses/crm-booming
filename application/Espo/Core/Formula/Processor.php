@@ -32,6 +32,8 @@ namespace Espo\Core\Formula;
 use Espo\Core\Formula\Exceptions\BadArgumentType;
 use Espo\Core\Formula\Exceptions\BadArgumentValue;
 use Espo\Core\Formula\Exceptions\ExecutionException;
+use Espo\Core\Formula\Exceptions\FunctionRuntimeError;
+use Espo\Core\Formula\Exceptions\GeneralError;
 use Espo\Core\Formula\Exceptions\TooFewArguments;
 use Espo\Core\Formula\Exceptions\UndefinedKey;
 use Espo\Core\Formula\Functions\Base as DeprecatedBaseFunction;
@@ -82,6 +84,7 @@ class Processor
      * @return mixed A result of evaluation. An array if an argument list was passed.
      * @throws Error
      * @throws ExecutionException
+     * @throws GeneralError
      */
     public function process(Evaluatable $item): mixed
     {
@@ -93,21 +96,50 @@ class Processor
             throw new InvalidArgumentException();
         }
 
-        $function = $this->functionFactory->create($item->getType(), $this->entity, $this->variables);
+        try {
+            $function = $this->functionFactory->create($item->getType(), $this->entity, $this->variables);
+        } catch (Exceptions\UnknownFunction $e) {
+            throw GeneralError::create(
+                message: $e->getMessage(),
+                position: $item->getPosition(),
+                previous: $e,
+            );
+        }
 
         if ($function instanceof Func || $function instanceof FuncVariablesAware) {
             return $this->processFunc($item, $function);
         }
 
-        if ($function instanceof DeprecatedBaseFunction) {
-            return $function->process(self::dataToStdClass($item->getData()));
-        }
-
         try {
+            if ($function instanceof DeprecatedBaseFunction) {
+                return $function->process(self::dataToStdClass($item->getData()));
+            }
+
             return $function->process($item->getArgumentList());
         } catch (UndefinedKey $e) {
             throw UndefinedKey::cloneWithLevelRisen($e);
+        } catch (TooFewArguments|BadArgumentType|BadArgumentValue $e) {
+            $message = $this->prepareMessage($item->getType(), $e->getLogMessage());
+
+            throw GeneralError::create(
+                message: $message,
+                position: $item->getPosition(),
+                previous: $e,
+            );
+        } catch (FunctionRuntimeError $e) {
+            $message = $this->prepareMessage($item->getType(), $e->getMessage());
+
+            throw GeneralError::create(
+                message: $message,
+                position: $item->getPosition(),
+                previous: $e,
+            );
         }
+    }
+
+    private function prepareMessage(string $type, string $message): string
+    {
+        return sprintf('Function %s; %s', $type, $message);
     }
 
     /**
@@ -147,7 +179,7 @@ class Processor
     }
 
     /**
-     * @return mixed[]
+     * @return array<int, mixed>
      * @throws Error
      * @throws ExecutionException
      */
@@ -184,9 +216,21 @@ class Processor
 
             return $function->process($evaluatedArguments);
         } catch (TooFewArguments|BadArgumentType|BadArgumentValue $e) {
-            $message = sprintf('Function %s; %s', $item->getType(), $e->getLogMessage());
+            $message = $this->prepareMessage($item->getType(), $e->getLogMessage());
 
-            throw new Error($message);
+            throw GeneralError::create(
+                message: $message,
+                position: $item->getPosition(),
+                previous: $e,
+            );
+        } catch (FunctionRuntimeError $e) {
+            $message = $this->prepareMessage($item->getType(), $e->getMessage());
+
+            throw GeneralError::create(
+                message: $message,
+                position: $item->getPosition(),
+                previous: $e,
+            );
         }
     }
 }

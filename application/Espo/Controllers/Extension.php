@@ -32,7 +32,6 @@ namespace Espo\Controllers;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\BadRequest;
-
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
 use Espo\Core\Controllers\RecordBase;
@@ -44,7 +43,7 @@ class Extension extends RecordBase
 {
     protected function checkAccess(): bool
     {
-        return $this->user->isAdmin();
+        return $this->user->isEffectiveAdmin();
     }
 
     /**
@@ -54,13 +53,7 @@ class Extension extends RecordBase
      */
     public function postActionUpload(Request $request): stdClass
     {
-        if ($this->config->get('restrictedMode') && !$this->user->isSuperAdmin()) {
-            throw new Forbidden();
-        }
-
-        if ($this->config->get('adminUpgradeDisabled')) {
-            throw new Forbidden("Disabled with 'adminUpgradeDisabled' parameter.");
-        }
+        $this->assertUploadAllowed();
 
         $body = $request->getBodyContents();
 
@@ -68,7 +61,7 @@ class Extension extends RecordBase
             throw new BadRequest();
         }
 
-        $manager = new ExtensionManager($this->getContainer());
+        $manager = $this->createManager();
 
         $id = $manager->upload($body);
 
@@ -88,13 +81,11 @@ class Extension extends RecordBase
      */
     public function postActionInstall(Request $request): bool
     {
+        $this->assertInstallAllowed();
+
         $data = $request->getParsedBody();
 
-        if ($this->config->get('restrictedMode') && !$this->user->isSuperAdmin()) {
-            throw new Forbidden();
-        }
-
-        $manager = new ExtensionManager($this->getContainer());
+        $manager = $this->createManager();
 
         $manager->install(get_object_vars($data));
 
@@ -107,13 +98,11 @@ class Extension extends RecordBase
      */
     public function postActionUninstall(Request $request): bool
     {
+        $this->assertInstallAllowed();
+
         $data = $request->getParsedBody();
 
-        if ($this->config->get('restrictedMode') && !$this->user->isSuperAdmin()) {
-            throw new Forbidden();
-        }
-
-        $manager = new ExtensionManager($this->getContainer());
+        $manager = $this->createManager();
 
         $manager->uninstall(get_object_vars($data));
 
@@ -128,11 +117,9 @@ class Extension extends RecordBase
     {
         $params = $request->getRouteParams();
 
-        if ($this->config->get('restrictedMode') && !$this->user->isSuperAdmin()) {
-            throw new Forbidden();
-        }
+        $this->assertUploadAllowed();
 
-        $manager = new ExtensionManager($this->getContainer());
+        $manager = $this->createManager();
 
         $manager->delete($params);
 
@@ -147,5 +134,46 @@ class Extension extends RecordBase
     public function putActionUpdate(Request $request, Response $response): stdClass
     {
         throw new Forbidden();
+    }
+
+    private function createManager(): ExtensionManager
+    {
+        return $this->injectableFactory->create(ExtensionManager::class);
+    }
+
+    /**
+     * @throws Forbidden
+     */
+    private function assertInstallAllowed(): void
+    {
+        if ($this->config->get('restrictedMode')) {
+            throw new Forbidden("Not allowed in restricted mode.");
+        }
+
+        if ($this->config->get('adminExtensionManage') !== true) {
+            throw new Forbidden("Cannot manage extensions as `adminExtensionManage` is not enabled.");
+        }
+    }
+
+    /**
+     * @throws Forbidden
+     */
+    private function assertUploadAllowed(): void
+    {
+        if ($this->config->get('restrictedMode')) {
+            throw new Forbidden("Not allowed in restricted mode.");
+        }
+
+        if ($this->config->get('adminExtensionUpload') !== true) {
+            throw new Forbidden("Cannot upload extensions as `adminExtensionUpload` is not enabled.");
+        }
+
+        if ($this->config->get('adminExtensionManage') !== true) {
+            throw new Forbidden("Cannot manage extensions as `adminExtensionManage` is not enabled.");
+        }
+
+        if ($this->config->get('adminUpgradeDisabled')) {
+            throw new Forbidden("Disabled with `adminUpgradeDisabled` parameter.");
+        }
     }
 }

@@ -36,15 +36,6 @@
             "required": true,
             "maxLength": 255
         },
-        "serviceName": {
-            "type": "varchar",
-            "required": true,
-            "maxLength": 100
-        },
-        "methodName": {
-            "type": "varchar",
-            "maxLength": 100
-        },
         "job": {
             "type": "varchar",
             "view": "views/scheduled-job/fields/job"
@@ -84,7 +75,8 @@
             "hasSeconds": true
         },
         "pid": {
-            "type": "int"
+            "type": "int",
+            "disableFormatting": true
         },
         "attempts": {
             "type": "int"
@@ -120,7 +112,7 @@
     "collection": {
         "orderBy": "number",
         "order": "desc",
-        "textFilterFields": ["id", "name", "methodName", "serviceName"],
+        "textFilterFields": ["id", "name"],
         "countDisabled": true
     },
     "indexes": {
@@ -130,8 +122,13 @@
         "status": {
             "columns": ["status", "deleted"]
         },
-        "statusScheduledJobId": {
-            "columns": ["status", "scheduledJobId"]
+        "statusScheduledJobIdTarget": {
+            "columns": [
+                "status",
+                "scheduledJobId",
+                "targetType",
+                "targetId"
+            ]
         }
     },
     "hooksDisabled": true

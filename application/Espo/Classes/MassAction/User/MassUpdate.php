@@ -82,7 +82,7 @@ class MassUpdate implements MassAction
     {
         $entityType = $params->getEntityType();
 
-        if (!$this->user->isAdmin()) {
+        if (!$this->user->isEffectiveAdmin()) {
             throw new Forbidden("Only admin can mass-update users.");
         }
 
@@ -178,7 +178,9 @@ class MassUpdate implements MassAction
 
     private function clearRoleCache(string $id): void
     {
-        $this->fileManager->removeFile('data/cache/application/acl/' . $id . '.php');
+        $part = basename($id);
+
+        $this->fileManager->removeFile("data/cache/application/acl/$part.php");
     }
 
     private function clearPortalRolesCache(): void

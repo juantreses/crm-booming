@@ -276,14 +276,14 @@ class Util
         $subjectTpl = $this->templateFileManager->getTemplate('twoFactorCode', 'subject');
         $bodyTpl = $this->templateFileManager->getTemplate('twoFactorCode', 'body');
 
-        $htmlizer = $this->htmlizerFactory->create();
+        $htmlizer = $this->htmlizerFactory->createNoAcl();
 
         $data = [
             'code' => $code,
         ];
 
-        $subject = $htmlizer->render($user, $subjectTpl, null, $data, true);
-        $body = $htmlizer->render($user, $bodyTpl, null, $data, true);
+        $subject = $htmlizer->render($user, $subjectTpl, $data, true);
+        $body = $htmlizer->render($user, $bodyTpl, $data, true);
 
         $email = $this->emailFactory->create();
 

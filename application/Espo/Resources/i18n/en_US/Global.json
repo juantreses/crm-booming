@@ -70,7 +70,14 @@
         "OAuthAccount": "OAuth Account",
         "OpenApi": "OpenAPI",
         "CurrencyRecord": "Currency Record",
-        "CurrencyRecordRate": "Currency Rate"
+        "CurrencyRecordRate": "Currency Rate",
+        "Pipeline": "Pipeline",
+        "PipelineStage": "Pipeline Stage",
+        "OAuthClient": "OAuth Client",
+        "OAuthClientSecret": "OAuth Client Secret",
+        "OAuthAuthorizationCode": "OAuth Authorization Code",
+        "OAuthAccessToken": "OAuth Access Token",
+        "OAuthRefreshToken": "OAuth Refresh Token"
     },
     "scopeNamesPlural": {
         "Note": "Notes",
@@ -131,9 +138,17 @@
         "OAuthAccount": "OAuth Accounts",
         "OpenApi": "OpenAPI",
         "CurrencyRecord": "Currencies",
-        "CurrencyRecordRate": "Currency Rates"
+        "CurrencyRecordRate": "Currency Rates",
+        "Pipeline": "Pipelines",
+        "PipelineStage": "Pipeline Stages",
+        "OAuthClient": "OAuth Clients",
+        "OAuthClientSecret": "OAuth Client Secrets",
+        "OAuthAuthorizationCode": "OAuth Authorization Codes",
+        "OAuthAccessToken": "OAuth Access Tokens",
+        "OAuthRefreshToken": "OAuth Refresh Tokens"
     },
     "labels": {
+        "Disconnect": "Disconnect",
         "Previous Page": "Previous Page",
         "Next Page": "Next Page",
         "First Page": "First Page",
@@ -165,6 +180,8 @@
         "Linked": "Linked",
         "Unlinked": "Unlinked",
         "Done": "Done",
+        "Bad request": "Bad request",
+        "Conflict": "Conflict",
         "Access denied": "Access denied",
         "Not found": "Not found",
         "Internal server error": "Internal server error",
@@ -267,6 +284,7 @@
         "Duplicate": "Duplicate",
         "Notifications": "Notifications",
         "Mark all read": "Mark all read",
+        "Mark read": "Mark read",
         "See more": "See more",
         "Today": "Today",
         "Tomorrow": "Tomorrow",
@@ -276,6 +294,7 @@
         "Close": "Close",
         "Yes": "Yes",
         "No": "No",
+        "Check All": "Check All",
         "Select All Results": "Select All Results",
         "Value": "Value",
         "Edit Item": "Edit Item",
@@ -334,9 +353,14 @@
         "View User Access": "View User Access",
         "Reacted": "Reacted",
         "Reaction Removed": "Reaction Removed",
-        "Reactions": "Reactions"
+        "Reactions": "Reactions",
+        "Lock": "Lock",
+        "Unlock": "Unlock",
+        "Assigned": "Assigned",
+        "Notification": "Notification"
     },
     "messages": {
+        "cannotRemoveUsed": "Cannot remove the record as it is used.",
         "checkLogsForDetails": "Check logs for details.",
         "pleaseWait": "Please wait...",
         "loading": "Loading...",
@@ -452,7 +476,16 @@
         "duplicateConflict": "A record already exists.",
         "cannotRemoveCategoryWithChildCategory": "Cannot remove a category that has a child category.",
         "cannotRemoveNotEmptyCategory": "Cannot remove a non-empty category.",
-        "sameRecordIsAlreadyBeingEdited": "The record is already being edited."
+        "sameRecordIsAlreadyBeingEdited": "The record is already being edited.",
+        "confirmMassLock": "Are you sure you want to lock selected records?",
+        "confirmMassUnlock": "Are you sure you want to unlock selected records?",
+        "locked": "Record is locked",
+        "unlocked": "Record is unlocked",
+        "massLockDone": "{count} locked",
+        "massUnlockDone": "{count} unlocked",
+        "cannotModifyLockedRecord": "Cannot modify the field *{field}*. The record is locked.",
+        "cannotRemoveLockedRecord": "Cannot remove a locked record.",
+        "noPipeline": "No pipeline."
     },
     "boolFilters": {
         "onlyMy": "Only My",
@@ -478,7 +511,9 @@
         "unfollow": "Unfollow",
         "convertCurrency": "Convert Currency",
         "recalculateFormula": "Recalculate Formula",
-        "printPdf": "Print to PDF"
+        "printPdf": "Print to PDF",
+        "lock": "Lock",
+        "unlock": "Unlock"
     },
     "fields": {
         "name": "Name",
@@ -521,7 +556,11 @@
         "names": "Names",
         "types": "Types",
         "targetListIsOptedOut": "Is Opted Out (Target List)",
-        "childList": "Child List"
+        "childList": "Child List",
+        "category": "Category",
+        "isLocked": "Locked",
+        "pipeline": "Pipeline",
+        "pipelineStage": "Pipeline Stage"
     },
     "links": {
         "assignedUser": "Assigned User",
@@ -534,7 +573,10 @@
         "teams": "Teams",
         "users": "Users",
         "parent": "Parent",
-        "children": "Children"
+        "children": "Children",
+        "category": "Category",
+        "pipeline": "Pipeline",
+        "pipelineStage": "Pipeline Stage"
     },
     "dashlets": {
         "Stream": "Stream",
@@ -550,7 +592,12 @@
         "emailInbox": "{user} added email {entity} to your inbox",
         "userPostReaction": "{user} reacted to your {post}",
         "addedToCollaborators": "{user} added you as a collaborator to {entityType} {entity}",
-        "userPostInParentReaction": "{user} reacted to your {post} in {entityType} {entity}"
+        "userPostInParentReaction": "{user} reacted to your {post} in {entityType} {entity}",
+        "groupUpdatesMultiple": "{entityType} {entity} – {number} new activities",
+        "groupUpdatesOne": "{entityType} {entity} – new activity",
+        "groupUpdates": "{entityType} {entity}",
+        "groupEmailsReceivedNew": "Emails received – {number} new",
+        "groupEmailsReceived": "Emails received"
     },
     "streamMessages": {
         "post": "{user} posted on {entityType} {entity}",
@@ -943,7 +990,6 @@
         "Dark": "Dark",
         "Light": "Light",
         "Espo": "Espo",
-        "EspoRtl": "RTL",
         "Sakura": "Sakura",
         "Violet": "Violet",
         "Hazyblue": "Hazyblue",
@@ -952,6 +998,10 @@
     "themeNavbars": {
         "side": "Side Navbar",
         "top": "Top Navbar"
+    },
+    "themeDirections": {
+        "ltr": "LTR",
+        "rtl": "RTL"
     },
     "fieldValidations": {
         "required": "Required",

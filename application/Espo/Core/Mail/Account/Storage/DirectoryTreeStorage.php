@@ -49,7 +49,6 @@ class DirectoryTreeStorage implements Storage
     ) {}
 
     /**
-     * @todo Test.
      * @inheritDoc
      * @noinspection PhpRedundantCatchClauseInspection
      */
@@ -172,7 +171,6 @@ class DirectoryTreeStorage implements Storage
     }
 
     /**
-     * @todo Test.
      * @inheritDoc
      * @noinspection PhpRedundantCatchClauseInspection
      */
@@ -238,7 +236,7 @@ class DirectoryTreeStorage implements Storage
 
         return [
             'header' => $message->head(),
-            'flags' => $folder->flags(),
+            'flags' => $message->flags(),
         ];
     }
 
@@ -322,5 +320,39 @@ class DirectoryTreeStorage implements Storage
         }
 
         return $folder;
+    }
+
+    /**
+     * @noinspection PhpRedundantCatchClauseInspection
+     */
+    public function getFolderStatus(): FolderStatus
+    {
+        if (!$this->selectedFolder) {
+            throw new LogicException("Folder is not selected.");
+        }
+
+        try {
+            $statusData = $this->selectedFolder->status();
+        } catch (CommonException $e) {
+            throw new ImapError("Get folder status error.", previous: $e);
+        }
+
+        $uidValidity = $statusData['UIDVALIDITY'] ?? null;
+
+        if (is_numeric($uidValidity)) {
+            $uidValidity = (int) $uidValidity;
+        }
+
+        if (!is_int($uidValidity)) {
+            throw new ImapError("Bad or no UIDVALIDITY value.");
+        }
+
+        if ($uidValidity === 0) {
+            throw new ImapError("UIDVALIDITY value is zero.");
+        }
+
+        return new FolderStatus(
+            uidValidity: $uidValidity,
+        );
     }
 }
