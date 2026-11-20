@@ -89,7 +89,6 @@ class Event extends Database implements
 
                 $entity->set(Meeting::FIELD_DATE_START, $dateStart);
             } else {
-                /** @noinspection PhpRedundantOptionalArgumentInspection */
                 $entity->set(Meeting::FIELD_DATE_START_DATE, null);
             }
         }
@@ -111,7 +110,6 @@ class Event extends Database implements
                 $dateEnd = $dt->format(DateTimeUtil::SYSTEM_DATE_TIME_FORMAT);
                 $entity->set(Meeting::FIELD_DATE_END, $dateEnd);
             } else {
-                /** @noinspection PhpRedundantOptionalArgumentInspection */
                 $entity->set(Meeting::FIELD_DATE_END_DATE, null);
             }
         }

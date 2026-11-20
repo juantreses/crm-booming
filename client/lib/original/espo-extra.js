@@ -1253,7 +1253,7 @@ define("views/import/step2", ["exports", "view", "ui/select"], function (_export
   var _default = _exports.default = Step2ImportView;
 });
 
-define("views/import/step1", ["exports", "view", "model", "intl-tel-input-globals"], function (_exports, _view, _model, _intlTelInputGlobals) {
+define("views/import/step1", ["exports", "view", "model", "intl-tel-input"], function (_exports, _view, _model, _intlTelInput) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -1262,7 +1262,7 @@ define("views/import/step1", ["exports", "view", "model", "intl-tel-input-global
   _exports.default = void 0;
   _view = _interopRequireDefault(_view);
   _model = _interopRequireDefault(_model);
-  _intlTelInputGlobals = _interopRequireDefault(_intlTelInputGlobals);
+  _intlTelInput = _interopRequireDefault(_intlTelInput);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -1291,8 +1291,6 @@ define("views/import/step1", ["exports", "view", "model", "intl-tel-input-global
    * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
-
-  // noinspection NpmUsedModulesInstalled
 
   class Step1ImportView extends _view.default {
     template = 'import/step-1';
@@ -1545,9 +1543,9 @@ define("views/import/step1", ["exports", "view", "model", "intl-tel-input-global
         name: 'phoneNumberCountry',
         mode: 'edit',
         params: {
-          options: ['', ..._intlTelInputGlobals.default.getCountryData().map(item => item.iso2)]
+          options: ['', ..._intlTelInput.default.getAllCountries().map(item => item.iso2)]
         },
-        translatedOptions: _intlTelInputGlobals.default.getCountryData().reduce((map, item) => {
+        translatedOptions: _intlTelInput.default.getAllCountries().reduce((map, item) => {
           map[item.iso2] = `${item.iso2.toUpperCase()} +${item.dialCode}`;
           return map;
         }, {})

@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
+class ComposerStaticInitf84d2badaab793cb01bf98abd083763a
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -187,8 +187,10 @@ class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
             'Psr\\Container\\' => 14,
             'Psr\\Clock\\' => 10,
             'Psr\\Cache\\' => 10,
+            'Predis\\' => 7,
             'Picqer\\Barcode\\' => 15,
             'PhpOffice\\PhpSpreadsheet\\' => 25,
+            'PhpAmqpLib\\' => 11,
             'ParagonIE\\ConstantTime\\' => 23,
         ),
         'O' => 
@@ -205,12 +207,16 @@ class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
         ),
         'L' => 
         array (
+            'League\\Uri\\' => 11,
+            'League\\OAuth2\\Server\\' => 21,
             'League\\OAuth2\\Client\\' => 21,
             'League\\MimeTypeDetection\\' => 25,
             'League\\HTMLToMarkdown\\' => 22,
             'League\\Flysystem\\Local\\' => 23,
             'League\\Flysystem\\AsyncAwsS3\\' => 28,
             'League\\Flysystem\\' => 17,
+            'League\\Event\\' => 13,
+            'Lcobucci\\JWT\\' => 13,
             'LasseRafn\\Initials\\' => 19,
             'LasseRafn\\InitialAvatarGenerator\\' => 33,
             'LasseRafn\\' => 10,
@@ -252,10 +258,10 @@ class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
             'Doctrine\\Deprecations\\' => 22,
             'Doctrine\\DBAL\\' => 14,
             'Doctrine\\Common\\Lexer\\' => 22,
-            'Doctrine\\Common\\' => 16,
             'DirectoryTree\\ImapEngine\\' => 25,
             'DevTheorem\\Handlebars\\' => 22,
             'DevTheorem\\HandlebarsParser\\' => 28,
+            'Defuse\\Crypto\\' => 14,
             'DI\\' => 3,
         ),
         'C' => 
@@ -501,6 +507,10 @@ class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
         ),
+        'Predis\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/predis/predis/src',
+        ),
         'Picqer\\Barcode\\' => 
         array (
             0 => __DIR__ . '/..' . '/picqer/php-barcode-generator/src',
@@ -508,6 +518,10 @@ class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
         'PhpOffice\\PhpSpreadsheet\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoffice/phpspreadsheet/src/PhpSpreadsheet',
+        ),
+        'PhpAmqpLib\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/php-amqplib/php-amqplib/PhpAmqpLib',
         ),
         'ParagonIE\\ConstantTime\\' => 
         array (
@@ -537,6 +551,15 @@ class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
         array (
             0 => __DIR__ . '/..' . '/masterminds/html5/src',
         ),
+        'League\\Uri\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/uri-interfaces',
+            1 => __DIR__ . '/..' . '/league/uri',
+        ),
+        'League\\OAuth2\\Server\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/oauth2-server/src',
+        ),
         'League\\OAuth2\\Client\\' => 
         array (
             0 => __DIR__ . '/..' . '/league/oauth2-client/src',
@@ -560,6 +583,14 @@ class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
         'League\\Flysystem\\' => 
         array (
             0 => __DIR__ . '/..' . '/league/flysystem/src',
+        ),
+        'League\\Event\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/event/src',
+        ),
+        'Lcobucci\\JWT\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/lcobucci/jwt/src',
         ),
         'LasseRafn\\Initials\\' => 
         array (
@@ -667,10 +698,6 @@ class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
         array (
             0 => __DIR__ . '/..' . '/doctrine/lexer/src',
         ),
-        'Doctrine\\Common\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/doctrine/event-manager/src',
-        ),
         'DirectoryTree\\ImapEngine\\' => 
         array (
             0 => __DIR__ . '/..' . '/directorytree/imapengine/src',
@@ -682,6 +709,10 @@ class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
         'DevTheorem\\HandlebarsParser\\' => 
         array (
             0 => __DIR__ . '/..' . '/devtheorem/php-handlebars-parser/src',
+        ),
+        'Defuse\\Crypto\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/defuse/php-encryption/src',
         ),
         'DI\\' => 
         array (
@@ -853,10 +884,10 @@ class ComposerStaticInitc4971184fe7b94063ee84e91227012bc
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitc4971184fe7b94063ee84e91227012bc::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitc4971184fe7b94063ee84e91227012bc::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInitc4971184fe7b94063ee84e91227012bc::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInitc4971184fe7b94063ee84e91227012bc::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitf84d2badaab793cb01bf98abd083763a::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitf84d2badaab793cb01bf98abd083763a::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitf84d2badaab793cb01bf98abd083763a::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitf84d2badaab793cb01bf98abd083763a::$classMap;
 
         }, null, ClassLoader::class);
     }

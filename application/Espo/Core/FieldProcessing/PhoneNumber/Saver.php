@@ -336,7 +336,7 @@ class Saver implements SaverInterface
 
             $entityPhoneNumber = $this->entityManager->getNewEntity('EntityPhoneNumber');
 
-            $entityPhoneNumber->set([
+            $entityPhoneNumber->setMultiple([
                 'entityId' => $entity->getId(),
                 'entityType' => $entity->getEntityType(),
                 'phoneNumberId' => $phoneNumber->getId(),

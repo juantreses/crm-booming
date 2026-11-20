@@ -36,10 +36,10 @@ use Espo\Core\Acl\Table as AclTable;
 use Espo\Core\Exceptions\Error\Body as ErrorBody;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\ForbiddenSilent;
-use Espo\Core\InjectableFactory;
 use Espo\Core\Name\Field;
 use Espo\Core\ORM\Defs\AttributeParam;
 use Espo\Core\ORM\Type\FieldType;
+use Espo\Core\Record\Access\LinkCheck\WysiwygCheck;
 use Espo\Core\Utils\Metadata;
 use Espo\Entities\Attachment;
 use Espo\Entities\User;
@@ -84,8 +84,9 @@ class LinkCheck
         private EntityManager $entityManager,
         private Acl $acl,
         private Metadata $metadata,
-        private InjectableFactory $injectableFactory,
         private User $user,
+        private WysiwygCheck $wysiwygCheck,
+        private LinkCheckerFactory $linkCheckerFactory,
     ) {}
 
     /**
@@ -97,6 +98,7 @@ class LinkCheck
     {
         $this->processLinkMultipleFields($entity);
         $this->processLinkFields($entity);
+        $this->wysiwygCheck->process($entity);
     }
 
     /**
@@ -501,13 +503,11 @@ class LinkCheck
             return $this->linkCheckerCache[$key];
         }
 
-        $factory = $this->injectableFactory->create(LinkCheckerFactory::class);
-
-        if (!$factory->isCreatable($entityType, $link)) {
+        if (!$this->linkCheckerFactory->isCreatable($entityType, $link)) {
             return null;
         }
 
-        $checker = $factory->create($entityType, $link);
+        $checker = $this->linkCheckerFactory->create($entityType, $link);
 
         $this->linkCheckerCache[$link] = $checker;
 

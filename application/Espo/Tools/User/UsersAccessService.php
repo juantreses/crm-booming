@@ -42,6 +42,7 @@ use Espo\Entities\Team;
 use Espo\Entities\User;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
+use Espo\ORM\Name\Attribute;
 use Espo\ORM\Query\Part\Condition;
 use Espo\ORM\Query\Part\Expression;
 use Espo\ORM\Query\Select;
@@ -118,6 +119,14 @@ class UsersAccessService
      */
     private function prepareQuery(SearchParams $params): Select
     {
+        if ($params->getSelect() !== null && !in_array(User::FIELD_TYPE, $params->getSelect())) {
+            $select = $params->getSelect();
+
+            $select[] = User::FIELD_TYPE;
+
+            $params = $params->withSelect($select);
+        }
+
         $queryBuilder = $this->selectBuilderFactory
             ->create()
             ->from(User::ENTITY_TYPE)
@@ -125,7 +134,7 @@ class UsersAccessService
             ->withSearchParams($params)
             ->buildQueryBuilder()
             ->where([
-                'type' => [
+                User::FIELD_TYPE => [
                     User::TYPE_REGULAR,
                     User::TYPE_ADMIN,
                     User::TYPE_API,
@@ -136,7 +145,7 @@ class UsersAccessService
             $queryBuilder
                 ->where(
                     Condition::in(
-                        Expression::column('id'),
+                        Expression::column(Attribute::ID),
                         SelectBuilder::create()
                             ->from(Team::RELATIONSHIP_TEAM_USER)
                             ->select('userId')

@@ -54,7 +54,7 @@ use Espo\Tools\Stream\RecordService\QueryHelper;
 
 class RecordService
 {
-    private const PINNED_MAX_SIZE = 100;
+    private const int PINNED_MAX_SIZE = 100;
 
     public function __construct(
         private EntityManager $entityManager,
@@ -111,7 +111,7 @@ class RecordService
             throw new Forbidden();
         }
 
-        if ($entity instanceof User && !$this->user->isAdmin()) {
+        if ($entity instanceof User && !$this->user->isEffectiveAdmin()) {
             throw new Forbidden();
         }
 
@@ -344,15 +344,13 @@ class RecordService
             return;
         }
 
-        $notAllEntityTypeList = $this->helper->getNotAllEntityTypeList($this->user);
-
         $orGroup = [
             [
                 'relatedId' => null,
             ],
             [
                 'relatedId!=' => null,
-                'relatedType!=' => $notAllEntityTypeList,
+                'relatedType!=' => $this->helper->getNotAllEntityTypeList($this->user),
             ],
         ];
 

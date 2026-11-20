@@ -29,6 +29,7 @@
 
 namespace Espo\Tools\EntityManager;
 
+use Espo\Core\Binding\Attributes\Qualify;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Forbidden;
@@ -74,7 +75,9 @@ class EntityManager
 
     public function __construct(
         private Metadata $metadata,
+        #[Qualify(Language::QUALIFIER_USER)]
         private Language $language,
+        #[Qualify(Language::QUALIFIER_BASE)]
         private Language $baseLanguage,
         private FileManager $fileManager,
         private Config $config,
@@ -543,6 +546,12 @@ class EntityManager
             throw new Error("Type '$type' is not removable.");
         }
 
+        foreach ($this->metadata->get(['entityDefs', $name, 'links'], []) as $link => $item) {
+            try {
+                $this->linkManager->delete(['entity' => $name, 'link' => $link]);
+            } catch (Exception) {}
+        }
+
         $entityTypeParams = new Params($name, $type, $this->getCurrentParams($name));
 
         $this->metadata->delete('entityDefs', $name);
@@ -550,13 +559,8 @@ class EntityManager
         $this->metadata->delete('recordDefs', $name);
         $this->metadata->delete('selectDefs', $name);
         $this->metadata->delete('entityAcl', $name);
+        $this->metadata->delete('aclDefs', $name);
         $this->metadata->delete('scopes', $name);
-
-        foreach ($this->metadata->get(['entityDefs', $name, 'links'], []) as $link => $item) {
-            try {
-                $this->linkManager->delete(['entity' => $name, 'link' => $link]);
-            } catch (Exception) {}
-        }
 
         $this->removeFiles($name);
 
@@ -857,12 +861,21 @@ class EntityManager
 
         $normalizedName = Util::normalizeClassName($name);
 
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/entityDefs/$name.json");
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/clientDefs/$name.json");
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/recordDefs/$name.json");
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/selectDefs/$name.json");
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/logicDefs/$name.json");
-        $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/scopes/$name.json");
+        $dirs = [
+            'aclDefs',
+            'clientDefs',
+            'entityAcl',
+            'entityDefs',
+            'formula',
+            'logicDefs',
+            'recordDefs',
+            'scopes',
+            'selectDefs',
+        ];
+
+        foreach ($dirs as $dir) {
+            $this->fileManager->removeFile("custom/Espo/Custom/Resources/metadata/$dir/$name.json");
+        }
 
         $this->fileManager->removeFile("custom/Espo/Custom/Entities/$normalizedName.php");
         $this->fileManager->removeFile("custom/Espo/Custom/Services/$normalizedName.php");

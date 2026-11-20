@@ -11,7 +11,9 @@ use Picqer\Barcode\Exceptions\BarcodeException;
 
 class PngRenderer implements RendererInterface
 {
+    /** @var array{int, int, int} */
     protected array $foregroundColor = [0, 0, 0];
+    /** @var array{int, int, int}|null */
     protected ?array $backgroundColor = null;
 
     protected bool $useImagick;
@@ -65,7 +67,7 @@ class PngRenderer implements RendererInterface
             $imagickBarsShape->setFillColor(new ImagickPixel('rgb(' . implode(',', $this->foregroundColor) .')'));
         } else {
             $image = $this->createGdImageObject($width, $height);
-            $gdForegroundColor = \imagecolorallocate($image, $this->foregroundColor[0], $this->foregroundColor[1], $this->foregroundColor[2]);
+            $gdForegroundColor = $this->allocateGdColor($image, $this->foregroundColor);
         }
 
         // print bars
@@ -92,13 +94,22 @@ class PngRenderer implements RendererInterface
             $image->drawImage($imagickBarsShape);
             return $image->getImageBlob();
         } else {
-            ob_start();
+            if (! ob_start()) {
+                throw new BarcodeException('Could not start the image output buffer.');
+            }
+
             $this->generateGdImage($image);
-            return ob_get_clean();
+            $imageData = ob_get_clean();
+            if ($imageData === false) {
+                throw new BarcodeException('Could not read the generated image data.');
+            }
+
+            return $imageData;
         }
     }
 
     // Use RGB color definitions, like [0, 0, 0] or [255, 255, 255]
+    /** @param array{int, int, int} $color */
     public function setForegroundColor(array $color): self
     {
         $this->foregroundColor = $color;
@@ -107,27 +118,44 @@ class PngRenderer implements RendererInterface
 
     // Use RGB color definitions, like [0, 0, 0] or [255, 255, 255]
     // If no color is set, the background will be transparent
+    /** @param array{int, int, int}|null $color */
     public function setBackgroundColor(?array $color): self
     {
         $this->backgroundColor = $color;
         return $this;
     }
 
+    /** @return \GdImage */
     protected function createGdImageObject(int $width, int $height)
     {
         $image = \imagecreate($width, $height);
 
+        if ($image === false) {
+            throw new BarcodeException('Could not create GD image.');
+        }
+
         if ($this->backgroundColor !== null) {
             // Colored background
-            $backgroundColor = \imagecolorallocate($image, $this->backgroundColor[0], $this->backgroundColor[1], $this->backgroundColor[2]);
+            $backgroundColor = $this->allocateGdColor($image, $this->backgroundColor);
             \imagefill($image, 0, 0, $backgroundColor);
         } else {
             // Use transparent background
-            $backgroundColor = \imagecolorallocate($image, 255, 255, 255);
+            $backgroundColor = $this->allocateGdColor($image, [255, 255, 255]);
             \imagecolortransparent($image, $backgroundColor);
         }
 
         return $image;
+    }
+
+    /** @param array{int, int, int} $color */
+    private function allocateGdColor(\GdImage $image, array $color): int
+    {
+        $allocatedColor = \imagecolorallocate($image, $color[0], $color[1], $color[2]);
+        if ($allocatedColor === false) {
+            throw new BarcodeException('Could not allocate GD image color.');
+        }
+
+        return $allocatedColor;
     }
 
     protected function createImagickImageObject(int $width, int $height): Imagick
@@ -145,6 +173,7 @@ class PngRenderer implements RendererInterface
         return $image;
     }
 
+    /** @param \GdImage $image */
     protected function generateGdImage($image): void
     {
         \imagepng($image);

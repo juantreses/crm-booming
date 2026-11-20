@@ -98,7 +98,7 @@ class RDBRelation
     /**
      * Create a select builder.
      *
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      *
      * @since 9.2.5
      */
@@ -228,7 +228,7 @@ class RDBRelation
      * A relation name or table. A relation name should be in camelCase, a table in CamelCase.
      * @param string|null $alias An alias.
      * @param WhereItem|array<string|int, mixed>|null $conditions Join conditions.
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function join($target, ?string $alias = null, $conditions = null): Builder
     {
@@ -242,7 +242,7 @@ class RDBRelation
      * A relation name or table. A relation name should be in camelCase, a table in CamelCase.
      * @param string|null $alias An alias.
      * @param WhereItem|array<string|int, mixed>|null $conditions Join conditions.
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function leftJoin($target, ?string $alias = null, $conditions = null): Builder
     {
@@ -252,7 +252,7 @@ class RDBRelation
     /**
      * Set DISTINCT parameter.
      *
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function distinct(): Builder
     {
@@ -262,7 +262,7 @@ class RDBRelation
     /**
      * Set to return STH collection. Recommended for fetching large number of records.
      *
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, SthCollection<TEntity>>
      */
     public function sth(): Builder
     {
@@ -279,7 +279,7 @@ class RDBRelation
      *
      * @param WhereItem|array<string|int, mixed>|string $clause A key or where clause.
      * @param array<int, mixed>|scalar|null $value A value. Should be omitted if the first argument is not string.
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function where($clause = [], $value = null): Builder
     {
@@ -296,7 +296,7 @@ class RDBRelation
      *
      * @param WhereItem|array<string|int, mixed>|string $clause A key or where clause.
      * @param array<int, mixed>|string|null $value A value. Should be omitted if the first argument is not string.
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function having($clause = [], $value = null): Builder
     {
@@ -316,7 +316,7 @@ class RDBRelation
      *   An attribute to order by or an array or order items.
      *   Passing an array will reset a previously set order.
      * @param (Order::ASC|Order::DESC)|bool|null $direction A direction.
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function order($orderBy = Attribute::ID, $direction = null): Builder
     {
@@ -326,7 +326,7 @@ class RDBRelation
     /**
      * Apply OFFSET and LIMIT.
      *
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function limit(?int $offset = null, ?int $limit = null): Builder
     {
@@ -346,7 +346,7 @@ class RDBRelation
      * @param Selection|Selection[]|Expression|Expression[]|string[]|string|array<int, string[]|string> $select
      *   An array of expressions or one expression.
      * @param string|null $alias An alias. Actual if the first parameter is not an array.
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function select($select = [], ?string $alias = null): Builder
     {
@@ -363,7 +363,7 @@ class RDBRelation
      * * `groupBy([$expr1, $expr2, ...])`
      *
      * @param Expression|Expression[]|string|string[] $groupBy
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function group($groupBy): Builder
     {
@@ -373,7 +373,7 @@ class RDBRelation
     /**
      * @deprecated Use `group` method.
      * @param Expression|Expression[]|string|string[] $groupBy
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function groupBy($groupBy): Builder
     {
@@ -387,7 +387,7 @@ class RDBRelation
      * `->columnsWhere(['column' => $value])`
      *
      * @param WhereItem|array<string|int, mixed> $clause Where clause.
-     * @return Builder<TEntity>
+     * @return Builder<TEntity, EntityCollection<TEntity>>
      */
     public function columnsWhere($clause): Builder
     {

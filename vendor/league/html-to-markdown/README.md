@@ -3,7 +3,7 @@ HTML To Markdown for PHP
 
 [![Latest Version](https://img.shields.io/packagist/v/league/html-to-markdown.svg?style=flat-square)](https://packagist.org/packages/league/html-to-markdown)
 [![Software License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
-[![Build Status](https://img.shields.io/github/workflow/status/thephpleague/html-to-markdown/Tests/master.svg?style=flat-square)](https://github.com/thephpleague/html-to-markdown/actions?query=workflow%3ATests+branch%3Amaster)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/thephpleague/html-to-markdown/tests.yml?branch=master&style=flat-square)](https://github.com/thephpleague/html-to-markdown/actions?query=workflow%3ATests+branch%3Amaster)
 [![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/thephpleague/html-to-markdown.svg?style=flat-square)](https://scrutinizer-ci.com/g/thephpleague/html-to-markdown/code-structure)
 [![Quality Score](https://img.shields.io/scrutinizer/g/thephpleague/html-to-markdown.svg?style=flat-square)](https://scrutinizer-ci.com/g/thephpleague/html-to-markdown)
 [![Total Downloads](https://img.shields.io/packagist/dt/league/html-to-markdown.svg?style=flat-square)](https://packagist.org/packages/league/html-to-markdown)
@@ -61,7 +61,8 @@ The included `demo` directory contains an HTML->Markdown conversion form to try 
 
 ### Conversion options
 
-By default, HTML To Markdown preserves HTML tags without Markdown equivalents, like `<span>` and `<div>`.
+> [!CAUTION]  
+> By default, this library preserves HTML tags without Markdown equivalents, like `<span>`, `<div>`, `<iframe>`, `<script>`, etc. If you will be parsing untrusted input from users, **please consider setting the `strip_tags` and/or `remove_nodes` options** documented below, and also using a library (like [HTML Purifier](https://github.com/ezyang/htmlpurifier)) to provide additional HTML filtering.
 
 To strip HTML tags that don't have a Markdown equivalent while preserving the content inside them, set `strip_tags` to true, like this:
 
@@ -160,7 +161,7 @@ $converter->getConfig()->setOption('use_autolinks', true);
 $markdown = $converter->convert($html); // $markdown now contains "<https://thephpleague.com>"
 
 $converter->getConfig()->setOption('use_autolinks', false); // default
-$markdown = $converter->convert($html); // $markdown now contains "[https://google.com](https://google.com)"
+$markdown = $converter->convert($html); // $markdown now contains "[https://thephpleague.com](https://thephpleague.com)"
 ```
 
 ### Passing custom Environment object

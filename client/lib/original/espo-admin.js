@@ -2758,6 +2758,12 @@ define("views/role/record/table", ["exports", "view", "model", "views/fields/enu
      * }
      */
     fieldTableDataList;
+
+    /**
+     * @type {Map<string, AbortController>}
+     * @private
+     */
+    windowListeners;
     data() {
       const data = {};
       data.styleMap = this.styleMap;
@@ -2931,11 +2937,11 @@ define("views/role/record/table", ["exports", "view", "model", "views/fields/enu
         this.template = 'role/table-edit';
       }
       this.once('remove', () => {
-        $(window).off('scroll.scope-' + this.cid);
-        $(window).off('resize.scope-' + this.cid);
-        $(window).off('scroll.field-' + this.cid);
-        $(window).off('resize.field-' + this.cid);
+        var _this$windowListeners, _this$windowListeners2;
+        (_this$windowListeners = this.windowListeners) === null || _this$windowListeners === void 0 || _this$windowListeners.forEach(controller => controller.abort());
+        (_this$windowListeners2 = this.windowListeners) === null || _this$windowListeners2 === void 0 || _this$windowListeners2.clear();
       });
+      this.windowListeners ??= new Map();
     }
 
     /**
@@ -3181,6 +3187,12 @@ define("views/role/record/table", ["exports", "view", "model", "views/fields/enu
           if (!(field in scopeData)) {
             return;
           }
+
+          /** @type {Record} */
+          const fieldDefs = this.getMetadata().get(`entityDefs.${scope}.fields.${field}`) ?? {};
+          if (fieldDefs.aclDisabled) {
+            return;
+          }
           const list = [];
           this.fieldActionList.forEach(action => {
             list.push({
@@ -3280,8 +3292,10 @@ define("views/role/record/table", ["exports", "view", "model", "views/fields/enu
     afterRender() {
       this.$quickSearch = this.$el.find('input[data-name="quick-search"]');
       if (this.mode === 'edit' || this.mode === 'detail') {
-        this.initStickyHeader('scope');
-        this.initStickyHeader('field');
+        setTimeout(() => {
+          this.initStickyHeader('scope');
+          this.initStickyHeader('field');
+        }, 0);
       }
     }
 
@@ -3451,49 +3465,70 @@ define("views/role/record/table", ["exports", "view", "model", "views/fields/enu
      * @param {string} type
      */
     initStickyHeader(type) {
-      const $sticky = this.$el.find(`.sticky-header-${type}`);
       const screenWidthXs = this.getThemeManager().getParam('screenWidthXs');
-      const $buttonContainer = $('.detail-button-container');
-      const $table = this.$el.find(`table.${type}-level`);
-      if (!$table.length) {
+      const stickyHeader = this.element.querySelector(`.sticky-header-${type}`);
+      const modalElement = this.element.closest('.modal');
+      const buttonContainer = document.querySelector('.detail-button-container');
+      const table = this.element.querySelector(`table.${type}-level`);
+      if (!table) {
         return;
       }
-      if (!$buttonContainer.length) {
+      if (!modalElement && !buttonContainer) {
         return;
       }
-      const navbarHeight = this.getThemeManager().getParam('navbarHeight') * this.getThemeManager().getFontSizeFactor();
-      const handle = () => {
+      let navbarOffset = this.getThemeManager().getParam('navbarHeight') * this.getThemeManager().getFontSizeFactor();
+      let stickTopPositionStatic = null;
+      if (modalElement) {
+        var _modalElement$querySe, _modalElement$querySe2;
+        stickTopPositionStatic = ((_modalElement$querySe = modalElement.querySelector('.modal-header')) === null || _modalElement$querySe === void 0 ? void 0 : _modalElement$querySe.offsetHeight) + ((_modalElement$querySe2 = modalElement.querySelector('.modal-footer')) === null || _modalElement$querySe2 === void 0 ? void 0 : _modalElement$querySe2.offsetHeight);
+        navbarOffset = 0;
+      }
+      const scrollable = modalElement ? modalElement.querySelector('.modal-body') : window;
+      const handler = () => {
         if (window.innerWidth < screenWidthXs) {
-          $sticky.addClass('hidden');
+          stickyHeader.classList.add('hidden');
           return;
         }
-        const stickTopPosition = $buttonContainer.get(0).getBoundingClientRect().top + $buttonContainer.outerHeight();
-        let topEdge = $table.position().top;
-        topEdge -= $buttonContainer.height();
-        topEdge += $table.find('tr > th').height();
-        topEdge -= navbarHeight;
-        const bottomEdge = topEdge + $table.outerHeight(true) - $buttonContainer.height();
-        const scrollTop = window.scrollY;
-        const width = $table.width();
-        if (scrollTop > topEdge && scrollTop < bottomEdge) {
-          $sticky.css({
-            position: 'fixed',
-            marginTop: stickTopPosition + 'px',
-            top: 0,
-            width: width + 'px',
-            marginLeft: '1px'
-          });
-          $sticky.removeClass('hidden');
-        } else {
-          $sticky.addClass('hidden');
+        const offsetHeight = modalElement ? 0 : buttonContainer.offsetHeight;
+        const stickTopPosition = stickTopPositionStatic ?? buttonContainer.offsetTop + offsetHeight;
+        const topEdge = table.offsetTop - offsetHeight - navbarOffset;
+        const bottomEdge = topEdge + table.offsetHeight - offsetHeight;
+        const scrollTop = modalElement ? scrollable.scrollTop : window.scrollY;
+        const width = table.clientWidth;
+        if (scrollTop <= topEdge || scrollTop >= bottomEdge) {
+          stickyHeader.classList.add('hidden');
+          return;
         }
+        Object.assign(stickyHeader.style, {
+          position: 'fixed',
+          marginTop: stickTopPosition + 'px',
+          top: '0',
+          width: width + 'px',
+          marginLeft: 'var(--1px)'
+        });
+        stickyHeader.classList.remove('hidden');
       };
-      const $window = $(window);
-      $window.off(`scroll.${type}-${this.cid}`);
-      $window.on(`scroll.${type}-${this.cid}`, handle);
-      $window.off(`resize.${type}-${this.cid}`);
-      $window.on(`resize.${type}-${this.cid}`, handle);
-      handle();
+      this.bindScrollEvents(type, handler, scrollable);
+      handler();
+    }
+
+    /**
+     * @private
+     * @param {string} type
+     * @param {function} handler
+     * @param {HTMLElement | window} scrollable
+     */
+    bindScrollEvents(type, handler, scrollable) {
+      var _this$windowListeners3;
+      (_this$windowListeners3 = this.windowListeners.get(type)) === null || _this$windowListeners3 === void 0 || _this$windowListeners3.abort();
+      const controller = new AbortController();
+      this.windowListeners.set(type, controller);
+      const options = {
+        signal: controller.signal,
+        passive: true
+      };
+      scrollable.addEventListener('scroll', handler, options);
+      window.addEventListener('resize', handler, options);
     }
 
     /**
@@ -5452,6 +5487,12 @@ define("views/admin/layouts/detail", ["exports", "views/admin/layouts/grid"], fu
         }
       });
     }
+
+    /**
+     * @private
+     * @param {import('model').default} model
+     * @param {Record[]} layout
+     */
     readDataFromLayout(model, layout) {
       const allFields = [];
       for (const field in model.defs.fields) {
@@ -5478,6 +5519,13 @@ define("views/admin/layouts/detail", ["exports", "views/admin/layouts/grid"], fu
         }
       }
     }
+
+    /**
+     * @private
+     * @param {import('model').default} model
+     * @param {string} name
+     * @return {boolean}
+     */
     isFieldEnabled(model, name) {
       if (this.hasDefaultPanel()) {
         if (this.defaultPanelFieldList.includes(name)) {
@@ -8879,7 +8927,7 @@ define("views/settings/fields/sms-provider", ["exports", "views/fields/enum"], f
   _exports.default = _default;
 });
 
-define("views/settings/fields/phone-number-preferred-country-list", ["exports", "views/fields/multi-enum", "intl-tel-input-globals"], function (_exports, _multiEnum, _intlTelInputGlobals) {
+define("views/settings/fields/phone-number-preferred-country-list", ["exports", "views/fields/multi-enum", "intl-tel-input"], function (_exports, _multiEnum, _intlTelInput) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -8887,7 +8935,7 @@ define("views/settings/fields/phone-number-preferred-country-list", ["exports", 
   });
   _exports.default = void 0;
   _multiEnum = _interopRequireDefault(_multiEnum);
-  _intlTelInputGlobals = _interopRequireDefault(_intlTelInputGlobals);
+  _intlTelInput = _interopRequireDefault(_intlTelInput);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -8917,12 +8965,10 @@ define("views/settings/fields/phone-number-preferred-country-list", ["exports", 
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
 
-  // noinspection NpmUsedModulesInstalled
-
   class SettingsPhoneNumberPreferredCountryListFieldView extends _multiEnum.default {
     setupOptions() {
       try {
-        const dataList = _intlTelInputGlobals.default.getCountryData();
+        const dataList = _intlTelInput.default.getAllCountries();
         this.params.options = dataList.map(item => item.iso2);
         this.translatedOptions = dataList.reduce((map, item) => {
           map[item.iso2] = `${item.iso2.toUpperCase()} +${item.dialCode}`;
@@ -11324,11 +11370,16 @@ define("views/role/modals/add-field", ["exports", "views/modal"], function (_exp
       this.checkedList = [];
       const scope = this.scope = this.options.scope;
       this.headerText = this.translate(scope, 'scopeNamesPlural') + ' · ' + this.translate('Add Field');
+
+      /** @type {Record<string, Record>} */
       const fields = this.getMetadata().get(`entityDefs.${scope}.fields`) || {};
       const fieldList = [];
       const ignoreFieldList = this.options.ignoreFieldList || [];
       Object.keys(fields).filter(field => !ignoreFieldList.includes(field)).forEach(field => {
         if (!this.getFieldManager().isEntityTypeFieldAvailable(scope, field)) {
+          return;
+        }
+        if (fields[field].aclDisabled) {
           return;
         }
         const mandatoryLevel = this.getMetadata().get(['app', this.options.type, 'mandatory', 'scopeFieldLevel', this.scope, field]);
@@ -11345,6 +11396,21 @@ define("views/role/modals/add-field", ["exports", "views/modal"], function (_exp
           name: field,
           label: this.translate(field, 'fields', this.scope)
         };
+      });
+      this.addButton({
+        name: 'checkAll',
+        label: 'Check All',
+        position: 'right',
+        onClick: () => {
+          this.checkedList = [];
+          for (const it of this.fieldList) {
+            this.checkedList.push(it);
+            this.element.querySelectorAll('input[data-name]').forEach(input => {
+              input.checked = true;
+            });
+            this.checkedList.length ? this.enableButton('select') : this.disableButton('select');
+          }
+        }
       });
     }
     afterRender() {
@@ -13171,7 +13237,9 @@ define("views/admin/user-interface", ["exports", "views/settings/record/edit"], 
       this.controlColorsField();
       this.listenTo(this.model, 'change:scopeColorsDisabled', () => this.controlColorsField());
       this.on('save', initialAttributes => {
-        if (this.model.get('theme') !== initialAttributes.theme || (this.model.get('themeParams').navbar || {}) !== initialAttributes.themeParams.navbar) {
+        const themeParams = this.model.get('themeParams') || {};
+        const initialThemeParams = initialAttributes.themeParams || {};
+        if (this.model.get('theme') !== initialAttributes.theme || themeParams.navbar !== initialThemeParams.navbar || themeParams.direction !== initialThemeParams.direction) {
           this.setConfirmLeaveOut(false);
           window.location.reload();
         }
@@ -17679,9 +17747,6 @@ define("views/admin/job/list", ["exports", "views/list"], function (_exports, _l
         });
       }
     }
-    getHeader() {
-      return this.buildHeaderHtml([$('<a>').attr('href', '#Admin').text(this.translate('Administration')), $('<span>').text(this.getLanguage().translate('Jobs', 'labels', 'Admin'))]);
-    }
     updatePageTitle() {
       this.setPageTitle(this.getLanguage().translate('Jobs', 'labels', 'Admin'));
     }
@@ -19318,10 +19383,13 @@ define("views/admin/field-manager/edit", ["exports", "view", "model"], function 
             });
           }
           if (this.isEntityTypeLockable && !this.globalRestriction.readOnly) {
-            this.paramList.push({
-              name: 'notLockable',
-              type: 'bool'
-            });
+            if (this.type !== 'foreign') {
+              this.paramList.push({
+                name: 'notLockable',
+                type: 'bool',
+                tooltip: true
+              });
+            }
           }
           if (this.hasTooltipText) {
             this.paramList.push({
@@ -21608,15 +21676,15 @@ define("views/admin/field-manager/fields/foreign/field", ["exports", "views/fiel
    ************************************************************************/
 
   class _default extends _enum.default {
+    /**
+     * @type {string[]}
+     */
+    typeList;
     setup() {
       super.setup();
       if (!this.model.isNew()) {
         this.wait(this.setReadOnly(true));
       }
-      this.listenTo(this.model, 'change:field', () => {
-        this.manageField();
-      });
-      this.viewValue = this.model.get('view');
     }
     setupOptions() {
       this.listenTo(this.model, 'change:link', () => {
@@ -21642,7 +21710,7 @@ define("views/admin/field-manager/fields/foreign/field", ["exports", "views/fiel
       const fields = this.getMetadata().get(['entityDefs', scope, 'fields']) || {};
       this.params.options = Object.keys(Espo.Utils.clone(fields)).filter(item => {
         const type = fields[item].type;
-        if (!~this.typeList.indexOf(type)) {
+        if (!this.typeList.includes(type)) {
           return;
         }
         if (fields[item].disabled || fields[item].utility || fields[item].directAccessDisabled || fields[item].notStorable) {
@@ -21658,31 +21726,6 @@ define("views/admin/field-manager/fields/foreign/field", ["exports", "views/fiel
         return this.translate(v1, 'fields', scope).localeCompare(this.translate(v2, 'fields', scope));
       });
       this.params.options.unshift('');
-    }
-    manageField() {
-      if (!this.model.isNew()) {
-        return;
-      }
-      const link = this.model.get('link');
-      const field = this.model.get('field');
-      if (!link || !field) {
-        return;
-      }
-      const scope = this.getMetadata().get(['entityDefs', this.options.scope, 'links', link, 'entity']);
-      if (!scope) {
-        return;
-      }
-      const type = this.getMetadata().get(['entityDefs', scope, 'fields', field, 'type']);
-      this.viewValue = this.getMetadata().get(['fields', 'foreign', 'fieldTypeViewMap', type]);
-    }
-    fetch() {
-      const data = super.fetch();
-      if (this.model.isNew()) {
-        if (this.viewValue) {
-          data['view'] = this.viewValue;
-        }
-      }
-      return data;
     }
   }
   _exports.default = _default;
@@ -25405,60 +25448,6 @@ define("views/admin/authentication/fields/test-connection", ["exports", "views/f
   _exports.default = _default;
 });
 
-define("views/admin/auth-token/list", ["exports", "views/list"], function (_exports, _list) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _list = _interopRequireDefault(_list);
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2026 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  class _default extends _list.default {
-    createButton = false;
-    getHeader() {
-      const a = document.createElement('a');
-      a.href = '#Admin';
-      a.innerText = this.translate('Administration');
-      const text = document.createElement('span');
-      text.innerText = this.getLanguage().translate('Auth Tokens', 'labels', 'Admin');
-      return this.buildHeaderHtml([a, text]);
-    }
-    updatePageTitle() {
-      this.setPageTitle(this.getLanguage().translate('Auth Tokens', 'labels', 'Admin'));
-    }
-  }
-  _exports.default = _default;
-});
-
 define("views/admin/auth-token/record/list", ["exports", "views/record/list"], function (_exports, _list) {
   "use strict";
 
@@ -25761,54 +25750,6 @@ define("views/admin/auth-token/modals/detail", ["exports", "views/modals/detail"
   class _default extends _detail.default {
     sideDisabled = true;
     editDisabled = true;
-  }
-  _exports.default = _default;
-});
-
-define("views/admin/auth-log-record/list", ["exports", "views/list"], function (_exports, _list) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  _list = _interopRequireDefault(_list);
-  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2026 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  class _default extends _list.default {
-    getHeader() {
-      return this.buildHeaderHtml([$('<a>').attr('href', '#Admin').text(this.translate('Administration')), $('<span>').text(this.getLanguage().translate('Auth Log', 'labels', 'Admin'))]);
-    }
-    updatePageTitle() {
-      this.setPageTitle(this.getLanguage().translate('Auth Log', 'labels', 'Admin'));
-    }
   }
   _exports.default = _default;
 });
@@ -26517,6 +26458,13 @@ define("controllers/admin", ["exports", "controller", "search-manager", "views/a
     }
 
     // noinspection JSUnusedGlobalSymbols
+    actionOAuthClients() {
+      this.getRouter().dispatch('OAuthClient', 'list', {
+        fromAdmin: true
+      });
+    }
+
+    // noinspection JSUnusedGlobalSymbols
     actionAddressCountries() {
       this.getRouter().dispatch('AddressCountry', 'list', {
         fromAdmin: true
@@ -26667,18 +26615,8 @@ define("controllers/admin", ["exports", "controller", "search-manager", "views/a
 
     // noinspection JSUnusedGlobalSymbols
     actionAuthTokens() {
-      this.collectionFactory.create('AuthToken', collection => {
-        const searchManager = new _searchManager.default(collection, {
-          storageKey: 'list'
-        });
-        searchManager.loadStored();
-        collection.where = searchManager.getWhere();
-        collection.maxSize = this.getConfig().get('recordsPerPage') || collection.maxSize;
-        this.main('views/admin/auth-token/list', {
-          scope: 'AuthToken',
-          collection: collection,
-          searchManager: searchManager
-        });
+      this.getRouter().dispatch('AuthToken', 'list', {
+        fromAdmin: true
       });
     }
 
@@ -26710,18 +26648,8 @@ define("controllers/admin", ["exports", "controller", "search-manager", "views/a
 
     // noinspection JSUnusedGlobalSymbols
     actionAuthLog() {
-      this.collectionFactory.create('AuthLogRecord', collection => {
-        const searchManager = new _searchManager.default(collection, {
-          storageKey: 'list'
-        });
-        searchManager.loadStored();
-        collection.where = searchManager.getWhere();
-        collection.maxSize = this.getConfig().get('recordsPerPage') || collection.maxSize;
-        this.main('views/admin/auth-log-record/list', {
-          scope: 'AuthLogRecord',
-          collection: collection,
-          searchManager: searchManager
-        });
+      this.getRouter().dispatch('AuthLogRecord', 'list', {
+        fromAdmin: true
       });
     }
 
@@ -26751,25 +26679,18 @@ define("controllers/admin", ["exports", "controller", "search-manager", "views/a
         this.main('views/admin/job/list', {
           scope: 'Job',
           collection: collection,
-          searchManager: searchManager
+          searchManager: searchManager,
+          params: {
+            fromAdmin: true
+          }
         });
       });
     }
 
     // noinspection JSUnusedGlobalSymbols
     actionAppLog() {
-      this.collectionFactory.create('AppLogRecord', collection => {
-        const searchManager = new _searchManager.default(collection, {
-          storageKey: 'list'
-        });
-        searchManager.loadStored();
-        collection.where = searchManager.getWhere();
-        collection.maxSize = this.getConfig().get('recordsPerPage') || collection.maxSize;
-        this.main('views/list', {
-          scope: 'AppLogRecord',
-          collection: collection,
-          searchManager: searchManager
-        });
+      this.getRouter().dispatch('AppLogRecord', 'list', {
+        fromAdmin: true
       });
     }
 

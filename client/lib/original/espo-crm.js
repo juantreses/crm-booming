@@ -1995,7 +1995,7 @@ define("modules/crm/views/call/fields/contacts", ["exports", "modules/crm/views/
   _exports.default = _default;
 });
 
-define("modules/crm/views/calendar/modals/edit-view", ["exports", "views/modal", "model", "views/record/edit-for-modal", "views/fields/enum", "views/fields/varchar", "crm:views/calendar/fields/teams"], function (_exports, _modal, _model, _editForModal, _enum, _varchar, _teams) {
+define("modules/crm/views/calendar/modals/edit-view", ["exports", "views/modal", "model", "views/record/edit-for-modal", "views/fields/enum", "views/fields/varchar", "crm:views/calendar/fields/teams", "ui", "utils"], function (_exports, _modal, _model, _editForModal, _enum, _varchar, _teams, _ui, _utils) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -2008,6 +2008,8 @@ define("modules/crm/views/calendar/modals/edit-view", ["exports", "views/modal",
   _enum = _interopRequireDefault(_enum);
   _varchar = _interopRequireDefault(_varchar);
   _teams = _interopRequireDefault(_teams);
+  _ui = _interopRequireDefault(_ui);
+  _utils = _interopRequireDefault(_utils);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -2069,7 +2071,6 @@ define("modules/crm/views/calendar/modals/edit-view", ["exports", "views/modal",
         onClick: () => this.actionCancel()
       }];
       this.isNew = !id;
-      const calendarViewDataList = this.getPreferences().get('calendarViewDataList') || [];
       if (this.isNew) {
         this.buttonList.unshift({
           name: 'save',
@@ -2094,7 +2095,7 @@ define("modules/crm/views/calendar/modals/edit-view", ["exports", "views/modal",
       model.name = 'CalendarView';
       const modelData = {};
       if (!this.isNew) {
-        calendarViewDataList.forEach(item => {
+        this.getCalendarViewDataList().forEach(item => {
           if (id === item.id) {
             modelData.teamsIds = item.teamIdList || [];
             modelData.teamsNames = item.teamNames || {};
@@ -2104,21 +2105,11 @@ define("modules/crm/views/calendar/modals/edit-view", ["exports", "views/modal",
           }
         });
       } else {
-        modelData.name = this.translate('Shared', 'labels', 'Calendar');
-        let foundCount = 0;
-        calendarViewDataList.forEach(item => {
-          if (item.name.indexOf(modelData.name) === 0) {
-            foundCount++;
-          }
-        });
-        if (foundCount) {
-          modelData.name += ' ' + foundCount;
-        }
         modelData.id = id;
         modelData.teamsIds = this.getUser().get('teamsIds') || [];
         modelData.teamsNames = this.getUser().get('teamsNames') || {};
       }
-      model.set(modelData);
+      model.setMultiple(modelData);
       this.recordView = new _editForModal.default({
         model: model,
         detailLayout: [{
@@ -2162,9 +2153,19 @@ define("modules/crm/views/calendar/modals/edit-view", ["exports", "views/modal",
         return;
       }
       const modelData = this.recordView.fetch();
-      const calendarViewDataList = this.getPreferences().get('calendarViewDataList') || [];
+      let name = modelData.name;
+      const calendarViewDataList = this.getCalendarViewDataList();
+      let foundCount = 0;
+      calendarViewDataList.forEach(it => {
+        if (it.name.indexOf(modelData.name) === 0) {
+          foundCount++;
+        }
+      });
+      if (foundCount) {
+        name += ' ' + foundCount;
+      }
       const data = {
-        name: modelData.name,
+        name: name,
         teamIdList: modelData.teamsIds,
         teamNames: modelData.teamsNames,
         mode: modelData.mode,
@@ -2181,9 +2182,9 @@ define("modules/crm/views/calendar/modals/edit-view", ["exports", "views/modal",
           }
         });
       }
-      Espo.Ui.notify(this.translate('saving', 'messages'));
-      this.disableButton('save');
-      this.disableButton('remove');
+      _ui.default.notify(this.translate('saving', 'messages'));
+      await this.disableButton('save');
+      await this.disableButton('remove');
       try {
         await this.getPreferences().save({
           calendarViewDataList: calendarViewDataList
@@ -2191,33 +2192,50 @@ define("modules/crm/views/calendar/modals/edit-view", ["exports", "views/modal",
           patch: true
         });
       } catch (e) {
-        this.enableButton('remove');
-        this.enableButton('save');
+        await this.enableButton('remove');
+        await this.enableButton('save');
         return;
       }
-      Espo.Ui.notify();
+      _ui.default.notify();
       this.trigger('after:save', data);
       if (this.options.afterSave) {
         this.options.afterSave(data);
       }
       this.close();
     }
+
+    /**
+     * @private
+     * @return {{
+     *     name: string,
+     *     mode: string,
+     *     id: string,
+     *     teamIdList: string[],
+     *     teamNames: Record<string, string>,
+     * }[]}
+     */
+    getCalendarViewDataList() {
+      return _utils.default.cloneDeep(this.getPreferences().get('calendarViewDataList') ?? []);
+    }
+
+    /**
+     * @private
+     */
     async actionRemove() {
       await this.confirm(this.translate('confirmation', 'messages'));
-      this.disableButton('save');
-      this.disableButton('remove');
+      await this.disableButton('save');
+      await this.disableButton('remove');
       const id = this.options.id;
       if (!id) {
         return;
       }
       const newCalendarViewDataList = [];
-      const calendarViewDataList = this.getPreferences().get('calendarViewDataList') || [];
-      calendarViewDataList.forEach(item => {
-        if (item.id !== id) {
-          newCalendarViewDataList.push(item);
+      this.getCalendarViewDataList().forEach(it => {
+        if (it.id !== id) {
+          newCalendarViewDataList.push(it);
         }
       });
-      Espo.Ui.notifyWait();
+      _ui.default.notifyWait();
       try {
         await this.getPreferences().save({
           calendarViewDataList: newCalendarViewDataList
@@ -2225,11 +2243,11 @@ define("modules/crm/views/calendar/modals/edit-view", ["exports", "views/modal",
           patch: true
         });
       } catch (e) {
-        this.enableButton('remove');
-        this.enableButton('save');
+        await this.enableButton('remove');
+        await this.enableButton('save');
         return;
       }
-      Espo.Ui.notify();
+      _ui.default.notify();
       this.trigger('after:remove');
       if (this.options.afterRemove) {
         this.options.afterRemove();
@@ -2287,6 +2305,20 @@ define("modules/crm/views/calendar/fields/users", ["exports", "views/fields/link
     }
     getSelectPrimaryFilterName() {
       return 'active';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    prepareEditItemElement(id, name) {
+      const itemElement = super.prepareEditItemElement(id, name);
+      const avatarHtml = this.getHelper().getAvatarHtml(id, 'small', 18, 'avatar-link');
+      if (avatarHtml) {
+        const img = new DOMParser().parseFromString(avatarHtml, 'text/html').body.childNodes[0];
+        const textElement = itemElement.querySelector('.text');
+        textElement === null || textElement === void 0 || textElement.prepend(img);
+      }
+      return itemElement;
     }
   }
   var _default = _exports.default = CalendarUsersFieldView;
@@ -8180,6 +8212,49 @@ define('crm:views/knowledge-base-article/fields/language', ['views/fields/enum']
     });
 });
 
+define("modules/crm/views/knowledge-base-article/fields/body", ["exports", "views/fields/wysiwyg"], function (_exports, _wysiwyg) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _wysiwyg = _interopRequireDefault(_wysiwyg);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class KnowledgeBaseArticleBodyFieldView extends _wysiwyg.default {
+    hasBodyPlainField = true;
+  }
+  _exports.default = KnowledgeBaseArticleBodyFieldView;
+});
+
 /************************************************************************
  * This file is part of EspoCRM.
  *
@@ -11262,7 +11337,7 @@ define("modules/crm/views/call/fields/date-start", ["exports", "views/fields/dat
   var _default = _exports.default = DateStartCallFieldView;
 });
 
-define("modules/crm/views/calendar/mode-buttons", ["exports", "view"], function (_exports, _view) {
+define("modules/crm/views/calendar/mode-buttons", ["exports", "view", "utils"], function (_exports, _view, _utils) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -11270,6 +11345,7 @@ define("modules/crm/views/calendar/mode-buttons", ["exports", "view"], function 
   });
   _exports.default = void 0;
   _view = _interopRequireDefault(_view);
+  _utils = _interopRequireDefault(_utils);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -11303,24 +11379,23 @@ define("modules/crm/views/calendar/mode-buttons", ["exports", "view"], function 
 
   class CalendarModeButtons extends _view.default {
     template = 'crm:calendar/mode-buttons';
-    visibleModeListCount = 3;
     data() {
-      const scopeFilterList = Espo.Utils.clone(this.scopeList);
+      const scopeFilterList = _utils.default.clone(this.scopeList);
       scopeFilterList.unshift('all');
       const scopeFilterDataList = [];
       this.scopeList.forEach(scope => {
-        const o = {
-          scope: scope
-        };
-        if (!this.getCalendarParentView().enabledScopeList.includes(scope)) {
-          o.disabled = true;
-        }
-        scopeFilterDataList.push(o);
+        scopeFilterDataList.push({
+          scope,
+          disabled: !this.getCalendarParentView().enabledScopeList.includes(scope),
+          iconClass: this.getMetadata().get(`clientDefs.${scope}.iconClass`)
+        });
       });
+      const modeData = this.getModeDataList().find(it => it.mode === this.mode);
+      const modeLabel = modeData === null || modeData === void 0 ? void 0 : modeData.label;
       return {
         mode: this.mode,
-        visibleModeDataList: this.getVisibleModeDataList(),
-        hiddenModeDataList: this.getHiddenModeDataList(),
+        modeLabel,
+        modeDataList: this.getModeDataList(),
         scopeFilterDataList: scopeFilterDataList,
         isCustomViewAvailable: this.isCustomViewAvailable,
         hasMoreItems: this.isCustomViewAvailable,
@@ -11347,7 +11422,7 @@ define("modules/crm/views/calendar/mode-buttons", ["exports", "view"], function 
 
     /**
      * @param {boolean} [originalOrder]
-     * @return {Object.<string, *>[]}
+     * @return {{mode: string, label: string, labelShort: string}[]}
      */
     getModeDataList(originalOrder) {
       const list = [];
@@ -11361,7 +11436,7 @@ define("modules/crm/views/calendar/mode-buttons", ["exports", "view"], function 
       });
       if (this.isCustomViewAvailable) {
         (this.getPreferences().get('calendarViewDataList') || []).forEach(item => {
-          item = Espo.Utils.clone(item);
+          item = _utils.default.clone(item);
           item.mode = 'view-' + item.id;
           item.label = item.name;
           item.labelShort = (item.name || '').substring(0, 2);
@@ -11376,26 +11451,6 @@ define("modules/crm/views/calendar/mode-buttons", ["exports", "view"], function 
         if (item.mode === this.mode) {
           currentIndex = i;
         }
-      });
-      return list;
-    }
-    getVisibleModeDataList() {
-      const fullList = this.getModeDataList();
-      const current = fullList.find(it => it.mode === this.mode);
-      const list = fullList.slice(0, this.visibleModeListCount);
-      if (current && !list.find(it => it.mode === this.mode)) {
-        list.push(current);
-      }
-      return list;
-    }
-    getHiddenModeDataList() {
-      const fullList = this.getModeDataList();
-      const list = [];
-      fullList.forEach((o, i) => {
-        if (i < this.visibleModeListCount) {
-          return;
-        }
-        list.push(o);
       });
       return list;
     }
@@ -11649,8 +11704,9 @@ define("modules/crm/views/calendar/calendar-page", ["exports", "view", "crm:view
         window.addEventListener('calendar-update', testHandler);
         return;
       }
-      this.webSocketManager.subscribe('calendarUpdate', () => this.webSocketDebounceHelper.process());
-      this.on('remove', () => this.webSocketManager.unsubscribe('calendarUpdate'));
+      const handler = () => this.webSocketDebounceHelper.process();
+      this.webSocketManager.subscribe('calendarUpdate', handler);
+      this.once('remove', () => this.webSocketManager.unsubscribe('calendarUpdate', handler));
     }
 
     /**

@@ -117,7 +117,11 @@ class Drawing extends BaseDrawing
                 }
             }
         // Check if a URL has been passed. https://stackoverflow.com/a/2058596/1252979
-        } elseif (filter_var($path, FILTER_VALIDATE_URL) || (preg_match('/^([\w\s\x00-\x1f]+):/u', $path) && !preg_match('/^([\w]+):/u', $path))) {
+        } elseif (
+            filter_var($path, FILTER_VALIDATE_URL)
+            || Preg::isMatch('~^phar://~i', $path)
+            || (Preg::isMatch('/^([\w.\s\x00-\x1f]+):/', $path) && !Preg::isMatch('/^([\w.]+):/', $path))
+        ) {
             if (!Preg::isMatch('/^(http|https|file|ftp|s3):/', $path)) {
                 throw new PhpSpreadsheetException('Invalid protocol for linked drawing');
             }
@@ -135,6 +139,7 @@ class Drawing extends BaseDrawing
             if (str_starts_with($path, 'https:') || str_starts_with($path, 'http:')) {
                 $ctxArray = [
                     'http' => [
+                        'follow_location' => 0,
                         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
                         'header' => [
                             //'Connection: keep-alive', // unacceptable performance

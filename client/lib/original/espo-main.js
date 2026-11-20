@@ -35,6 +35,7 @@ define("utils", ["exports", "underscore"], function (_exports, _underscore) {
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
 
+  let isMobile;
   const IS_MAC = /Mac/.test(navigator.userAgent);
 
   /**
@@ -87,17 +88,18 @@ define("utils", ["exports", "underscore"], function (_exports, _underscore) {
         }
         method = 'action' + Utils.upperCaseFirst(action);
       }
-
-      // @todo Drop `data.handler` support in v10.1.
-      handler = actionData.handler ?? handler ?? data.handler ?? null;
       let fired = false;
+      handler = actionData.handler ?? handler ?? null;
       if (handler) {
         event.preventDefault();
         event.stopPropagation();
         fired = true;
         Espo.loader.require(handler, Handler => {
-          const handler = new Handler(view);
-          handler[method].call(handler, data, event);
+          const handlerInstance = new Handler(view);
+          if (!(method in handlerInstance)) {
+            throw new Error(`No method '${method}' in action handler '${handler}'.`);
+          }
+          handlerInstance[method].call(handlerInstance, data, event);
         });
       } else if (
       // @ts-ignore
@@ -528,6 +530,16 @@ define("utils", ["exports", "underscore"], function (_exports, _underscore) {
         baseUrl = window.location.pathname.includes('.') ? baseUrl.slice(0, baseUrl.lastIndexOf('/')) + '/' : baseUrl + '/';
       }
       return baseUrl;
+    },
+    /**
+     * @since 10.1.0
+     * @internal
+     */
+    isMobile: function () {
+      var _navigator;
+      // @ts-ignore
+      isMobile ??= ((_navigator = navigator) === null || _navigator === void 0 || (_navigator = _navigator.userAgentData) === null || _navigator === void 0 ? void 0 : _navigator.mobile) ?? /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      return isMobile;
     }
   };
   const keyMap = {
@@ -1571,11 +1583,13 @@ define("ajax", ["exports", "jquery", "utils", "util/ajax"], function (_exports, 
         xhr.timeout = timeout;
       }
       xhr.open(method, urlObj);
-      xhr.setRequestHeader('Content-Type', contentType);
-      if (options.headers) {
-        for (const key in options.headers) {
-          xhr.setRequestHeader(key, options.headers[key]);
-        }
+      const headers = options.headers ?? {};
+      const hasContentType = Object.keys(headers).find(it => it.toLowerCase() === 'content-type');
+      if (!hasContentType) {
+        xhr.setRequestHeader('Content-Type', contentType);
+      }
+      for (const key in headers) {
+        xhr.setRequestHeader(key, headers[key]);
       }
       if (beforeSend) {
         beforeSend(xhr, options);
@@ -3372,8 +3386,12 @@ define("ui/dialog", ["exports", "bullbone", "components/controls"], function (_e
       const $window = $(window);
       this.$el.on('shown.bs.modal', () => {
         $('.modal-backdrop').not('.stacked').addClass('stacked');
-        const headerHeight = this.$el.find('.modal-header').outerHeight() || 0;
-        const footerHeight = this.$el.find('.modal-footer').outerHeight() || 0;
+        const getHeight = selector => {
+          var _this$el;
+          return ((_this$el = this.el) === null || _this$el === void 0 || (_this$el = _this$el.querySelector(selector)) === null || _this$el === void 0 ? void 0 : _this$el.getBoundingClientRect().height) || 0;
+        };
+        const headerHeight = getHeight('.modal-header');
+        const footerHeight = getHeight('.modal-footer');
         let diffHeight = headerHeight + footerHeight;
         if (!options.fullHeight && options.bodyDiffHeight != null) {
           diffHeight = diffHeight + options.bodyDiffHeight;
@@ -3393,14 +3411,18 @@ define("ui/dialog", ["exports", "bullbone", "components/controls"], function (_e
             const cssParams = {
               overflow: 'auto'
             };
+            const viewportSlack = Number.isInteger(window.devicePixelRatio) ? 0 : 1;
+
+            // Subtract 1 to prevent unwanted scroll on a zoomed viewport.
+            const bodyHeight = Math.floor(windowHeight - diffHeight) - viewportSlack;
             if (options.fullHeight) {
-              cssParams.height = windowHeight - diffHeight + 'px';
+              cssParams.height = bodyHeight + 'px';
               this.$el.css('paddingRight', 0);
             } else {
               if (options.screenWidthXs != null && windowWidth <= options.screenWidthXs) {
                 cssParams.maxHeight = 'none';
               } else {
-                cssParams.maxHeight = windowHeight - diffHeight + 'px';
+                cssParams.maxHeight = bodyHeight + 'px';
               }
             }
             this.$el.find('div.modal-body').css(cssParams);
@@ -3535,6 +3557,15 @@ define("ui/dialog", ["exports", "bullbone", "components/controls"], function (_e
         return;
       }
       this.footerVNode = (0, _bullbone.patch)(this.footerVNode ?? this.footerElement, this.footerComponent.node());
+    }
+
+    /**
+     * Is the topmost dialog.
+     *
+     * @since 10.1.0
+     */
+    isTopmost() {
+      return shownDialogList.at(-1) === this;
     }
 
     /**
@@ -3829,7 +3860,7 @@ define("ui/dialog", ["exports", "bullbone", "components/controls"], function (_e
   }
 });
 
-define("ui", ["exports", "marked", "dompurify", "jquery", "ui/dialog"], function (_exports, _marked, _dompurify, _jquery, _dialog) {
+define("ui", ["exports", "marked", "dompurify", "jquery", "ui/dialog", "utils"], function (_exports, _marked, _dompurify, _jquery, _dialog, _utils) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -3839,6 +3870,7 @@ define("ui", ["exports", "marked", "dompurify", "jquery", "ui/dialog"], function
   _dompurify = _interopRequireDefault(_dompurify);
   _jquery = _interopRequireDefault(_jquery);
   _dialog = _interopRequireDefault(_dialog);
+  _utils = _interopRequireDefault(_utils);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -3921,6 +3953,27 @@ define("ui", ["exports", "marked", "dompurify", "jquery", "ui/dialog"], function
       }
       confirmCount++;
       return new Promise(resolve => {
+        const confirm = () => {
+          isResolved = true;
+          if (callback) {
+            if (context) {
+              callback.call(context);
+            } else {
+              callback();
+            }
+          }
+          resolve();
+          dialog.close();
+        };
+        const keydownHandler = e => {
+          if (!dialog.isTopmost()) {
+            return;
+          }
+          if (_utils.default.getKeyFromKeyEvent(e) === 'Control+Enter') {
+            confirm();
+          }
+        };
+        window.addEventListener('keydown', keydownHandler);
         const dialog = new _dialog.default({
           backdrop: backdrop,
           header: null,
@@ -3931,18 +3984,7 @@ define("ui", ["exports", "marked", "dompurify", "jquery", "ui/dialog"], function
             text: ` ${confirmText} `,
             name: 'confirm',
             className: 'btn-s-wide',
-            onClick: () => {
-              isResolved = true;
-              if (callback) {
-                if (context) {
-                  callback.call(context);
-                } else {
-                  callback();
-                }
-              }
-              resolve();
-              dialog.close();
-            },
+            onClick: () => confirm(),
             style: confirmStyle,
             position: 'right'
           }, {
@@ -3962,10 +4004,12 @@ define("ui", ["exports", "marked", "dompurify", "jquery", "ui/dialog"], function
               return;
             }
             processCancel();
+          },
+          onRemove: () => {
+            window.removeEventListener('keydown', keydownHandler);
           }
         });
         dialog.show();
-        $(dialog.getElement()).find('button[data-name="confirm"]').trigger('focus');
       });
     },
     /**
@@ -7675,6 +7719,26 @@ define("models/user", ["exports", "model"], function (_exports, _model) {
      */
     isSuperAdmin() {
       return this.get('type') === 'super-admin';
+    }
+
+    /**
+     * Is admin and is not stripped of admin capabilities.
+     *
+     * @return {boolean}
+     *
+     * @since 10.1.0
+     */
+    isEffectiveAdmin() {
+      if (!this.isAdmin()) {
+        return false;
+      }
+
+      /** @type {string[]|null} */
+      const scopes = this.attributes.scopes;
+      if (scopes == null) {
+        return true;
+      }
+      return scopes.includes('Admin');
     }
   }
   var _default = _exports.default = User;
@@ -13840,7 +13904,7 @@ define("views/modals/select-records", ["exports", "views/modal", "search-manager
   var _default = _exports.default = SelectRecordsModalView;
 });
 
-define("views/fields/base", ["exports", "view", "ui/select", "ui", "underscore", "jquery"], function (_exports, _view, _select, _ui, _underscore, _jquery) {
+define("views/fields/base", ["exports", "view", "ui/select", "ui", "underscore", "jquery", "utils"], function (_exports, _view, _select, _ui, _underscore, _jquery, _utils) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -13852,6 +13916,7 @@ define("views/fields/base", ["exports", "view", "ui/select", "ui", "underscore",
   _ui = _interopRequireDefault(_ui);
   _underscore = _interopRequireDefault(_underscore);
   _jquery = _interopRequireDefault(_jquery);
+  _utils = _interopRequireDefault(_utils);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -14532,11 +14597,15 @@ define("views/fields/base", ["exports", "view", "ui/select", "ui", "underscore",
           this.hideRequiredSign();
         }
         if (this.isSearchMode()) {
-          const $searchType = this.$el.find('select.search-type');
-          if ($searchType.length) {
-            _select.default.init($searchType, {
-              matchAnyWord: true
-            });
+          const searchTypeElement = this.element.querySelector('select.search-type');
+          if (searchTypeElement) {
+            if (!_utils.default.isMobile()) {
+              _select.default.init(searchTypeElement, {
+                matchAnyWord: true
+              });
+            } else {
+              searchTypeElement.classList.add('native-select');
+            }
           }
         }
       });
@@ -16617,6 +16686,14 @@ define("views/record/base", ["exports", "view", "view-record-helper", "dynamic-l
         silent: true
       });
       const setAttributes = this.getChangedAttributes(Object.keys(fetchedAttributes));
+      if (this.validate()) {
+        this.afterNotValid();
+        this.lastSaveCancelReason = 'invalid';
+        this.trigger('cancel:save', {
+          reason: 'invalid'
+        });
+        return Promise.reject('invalid');
+      }
       if (Object.keys(setAttributes).length === 0) {
         if (!options.skipNotModifiedWarning) {
           this.afterNotModified();
@@ -16626,14 +16703,6 @@ define("views/record/base", ["exports", "view", "view-record-helper", "dynamic-l
           reason: 'notModified'
         });
         return Promise.reject('notModified');
-      }
-      if (this.validate()) {
-        this.afterNotValid();
-        this.lastSaveCancelReason = 'invalid';
-        this.trigger('cancel:save', {
-          reason: 'invalid'
-        });
-        return Promise.reject('invalid');
       }
       if (options.afterValidate) {
         options.afterValidate();
@@ -21512,10 +21581,8 @@ define("views/fields/varchar", ["exports", "views/fields/base", "helpers/reg-exp
       if (this.options.customOptionList) {
         this.setOptionList(this.options.customOptionList);
       }
-      if (this.mode === this.MODE_DETAIL) {
-        if (this.params.copyToClipboard) {
-          this.events['click [data-action="copyToClipboard"]'] = () => this.copyToClipboard();
-        }
+      if (this.isReadMode() && this.params.copyToClipboard) {
+        this.addActionHandler('copyToClipboard', () => this.copyToClipboard());
       }
       this.on('remove', () => {
         this.searchMultiSelectInputElement = undefined;
@@ -22266,6 +22333,9 @@ define("views/fields/enum", ["exports", "views/fields/base", "ui/multi-select", 
       return data;
     }
     setup() {
+      if (_utils.default.isMobile()) {
+        this.nativeSelect = true;
+      }
       if (!this.params.options) {
         // @todo Revise.
         const methodName = 'get' + _utils.default.upperCaseFirst(this.name) + 'Options';
@@ -23427,7 +23497,7 @@ define("views/modals/text-preview", ["exports", "views/modal"], function (_expor
   _exports.default = TextPreviewModalView;
 });
 
-define("helpers/mass-action", ["exports", "di", "models/settings", "models/user"], function (_exports, _di, _settings, _user) {
+define("helpers/mass-action", ["exports", "di", "models/settings", "models/user", "ui"], function (_exports, _di, _settings, _user, _ui) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -23436,6 +23506,7 @@ define("helpers/mass-action", ["exports", "di", "models/settings", "models/user"
   _exports.default = void 0;
   _settings = _interopRequireDefault(_settings);
   _user = _interopRequireDefault(_user);
+  _ui = _interopRequireDefault(_ui);
   var _staticBlock;
   let _init_config, _init_extra_config, _init_user, _init_extra_user;
   /************************************************************************
@@ -23488,15 +23559,35 @@ define("helpers/mass-action", ["exports", "di", "models/settings", "models/user"
     user = (_init_extra_config(this), _init_user(this));
 
     /**
-     * @param {module:view} view A view.
+     * A view.
+     *
+     * @private
+     * @type {import('view').default}}
+     */
+    view = void _init_extra_user(this);
+
+    /**
+     * @private
+     * @type {string}
+     */
+    entityType;
+
+    /**
+     * @param {import('view').default} view A view.
+     * @param {{entityType?: string}} [options] Options.
      */
     constructor(view) {
-      _init_extra_user(this);
-      /**
-       * @private
-       * @type {module:view}
-       */
+      let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       this.view = view;
+      let entityType = options.entityType;
+      if (!entityType) {
+        if ('entityType' in view) {
+          entityType = view.entityType;
+        } else if ('scope' in view) {
+          entityType = view.scope;
+        }
+      }
+      this.entityType = entityType;
     }
 
     /**
@@ -23523,25 +23614,23 @@ define("helpers/mass-action", ["exports", "di", "models/settings", "models/user"
      *
      * @param {string} id An ID.
      * @param {string} action An action.
-     * @returns {Promise<module:view>} Resolves with a dialog view.
+     * @returns {Promise<import('view').default>} Resolves with a dialog view.
      *   The view emits the 'close:success' event.
      */
     process(id, action) {
-      Espo.Ui.notify(false);
-      return new Promise(resolve => {
-        const entityType = this.view.scope || this.view.entityType;
-        this.view.createView('dialog', 'views/modals/mass-action', {
+      _ui.default.notify();
+      return new Promise(async resolve => {
+        const view = await this.view.createView('dialog', 'views/modals/mass-action', {
           id: id,
           action: action,
-          scope: entityType
-        }).then(view => {
-          view.render();
-          resolve(view);
-          this.view.listenToOnce(view, 'success', data => {
-            resolve(data);
-            this.view.listenToOnce(view, 'close', () => {
-              view.trigger('close:success', data);
-            });
+          scope: this.entityType
+        });
+        view.render().then(() => {});
+        resolve(view);
+        this.view.listenToOnce(view, 'success', data => {
+          resolve(data);
+          this.view.listenToOnce(view, 'close', () => {
+            view.trigger('close:success', data);
           });
         });
       });
@@ -26198,7 +26287,12 @@ define("views/record/list-base", ["exports", "view", "helpers/mass-action", "hel
         confirmText: this.translate('Remove')
       });
       _ui.default.notifyWait();
-      const helper = new _massAction.default(this);
+      if (!this.entityType) {
+        throw new Error("No entity type.");
+      }
+      const helper = new _massAction.default(this, {
+        entityType: this.entityType
+      });
       const params = this.getMassActionSelectionPostData();
       const idle = !!params.searchParams && helper.checkIsIdle(this.collection.total);
       let result = await _ajax.default.postRequest('MassAction', {
@@ -26461,7 +26555,7 @@ define("views/record/list-base", ["exports", "view", "helpers/mass-action", "hel
         ids: this.checkedList
       });
       _ui.default.success(this.translate('Unlinked'));
-      this.collection.fetch();
+      this.collection.fetch().then(() => {});
       (_ref = this.model ?? this.collection.parentModel) === null || _ref === void 0 || _ref.trigger('after:unrelate');
     }
 
@@ -26794,9 +26888,6 @@ define("views/record/list-base", ["exports", "view", "helpers/mass-action", "hel
       });
       this.addHandler('click', 'a.reset-custom-order', () => this.resetCustomOrder());
       this.addHandler('click', 'a.link', (e, target) => {
-        if (!(e instanceof MouseEvent)) {
-          throw new Error();
-        }
         if (e.ctrlKey || e.metaKey || e.shiftKey) {
           return;
         }
@@ -29746,7 +29837,6 @@ define("views/fields/int", ["exports", "views/fields/base", "autonumeric"], func
         modifyValueOnWheel: false,
         decimalPlaces: 0,
         selectOnFocus: false,
-        // @ts-ignore
         formulaMode: true
       };
       if (this.params.max != null && this.params.max > Math.pow(10, 6)) {
@@ -30355,7 +30445,7 @@ define("helpers/file-upload", ["exports", "di", "models/settings"], function (_e
         }
         Espo.Ajax.postRequest('Attachment/chunk/' + attachment.id, e.target.result, {
           headers: {
-            contentType: 'multipart/form-data'
+            'Content-Type': 'multipart/form-data'
           }
         }).then(() => {
           options.afterChunkUpload(end);
@@ -32009,6 +32099,7 @@ define("controller", ["exports", "exceptions", "bullbone", "di", "helpers/site/m
       this.setMasterView(null);
       this.setMasterRendered(false);
       if (typeof view === 'object') {
+        view.setSelector('body');
         view.setElement('body');
         this.viewFactory.prepare(view, () => {
           if (!callback) {
@@ -34753,7 +34844,7 @@ define("views/fields/wysiwyg", ["exports", "views/fields/text", "helpers/misc/su
     htmlPurificationForEditDisabled = false;
     tableClassName = 'table table-bordered';
     noStylesheet = false;
-    useIframe = false;
+    useIframe = true;
     handlebars = false;
 
     /**
@@ -34781,7 +34872,7 @@ define("views/fields/wysiwyg", ["exports", "views/fields/text", "helpers/misc/su
       if ('minHeight' in this.params) {
         this.minHeight = this.params.minHeight;
       }
-      this.useIframe = this.params.useIframe || this.useIframe;
+      this.useIframe = this.params.useIframe ?? this.useIframe;
       this.setupToolbar();
       this.setupIsHtml();
       this.once('remove', () => this.destroySummernote());
@@ -34955,10 +35046,16 @@ define("views/fields/wysiwyg", ["exports", "views/fields/text", "helpers/misc/su
       if (!iframeElement || !iframeElement.contentWindow) {
         return;
       }
-      $iframe.on('load', () => {
-        $iframe.contents().find('a').attr('target', '_blank');
-      });
       const documentElement = iframeElement.contentWindow.document;
+      $iframe.on('load', () => {
+        documentElement.querySelectorAll('a').forEach(a => {
+          const href = a.getAttribute('href');
+          if (href && href.startsWith('#')) {
+            return;
+          }
+          a.setAttribute('target', '_blank');
+        });
+      });
       let bodyHtml = this.getValueForIframe();
       const useFallbackStylesheet = this.getThemeManager().getParam('isDark') && this.htmlHasColors(bodyHtml);
       const addFallbackClass = this.getThemeManager().getParam('isDark') && (this.htmlHasColors(bodyHtml) || this.noStylesheet);
@@ -34979,7 +35076,8 @@ define("views/fields/wysiwyg", ["exports", "views/fields/text", "helpers/misc/su
       }
 
       // noinspection HtmlRequiredTitleElement
-      const documentHtml = `<head>${headHtml}</head><body>${bodyHtml}</body>`;
+      const direction = this.getThemeManager().getDirection();
+      const documentHtml = `<html dir="${direction}"><head>${headHtml}</head><body>${bodyHtml}</body></html>`;
 
       // @ts-ignore
       documentElement.write(documentHtml);
@@ -35505,7 +35603,6 @@ define("views/fields/float", ["exports", "views/fields/int"], function (_exports
         decimalPlacesRawValue: this.decimalPlacesRawValue,
         allowDecimalPadding: false,
         showWarnings: false,
-        // @ts-ignore
         formulaMode: true
       };
     }
@@ -36840,13 +36937,16 @@ define("helpers/record/create-related", ["exports", "di", "metadata", "helpers/r
   var _default = _exports.default = CreateRelatedHelper;
 });
 
-define("helpers/misc/stored-text-search", ["exports"], function (_exports) {
+define("helpers/misc/stored-text-search", ["exports", "di", "storage"], function (_exports, _di, _storage) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
   _exports.default = void 0;
+  _storage = _interopRequireDefault(_storage);
+  var _staticBlock;
+  let _init_storage, _init_extra_storage;
   /************************************************************************
    * This file is part of EspoCRM.
    *
@@ -36874,21 +36974,47 @@ define("helpers/misc/stored-text-search", ["exports"], function (_exports) {
    * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
-
-  /** @module helpers/misc/stored-text-search */
-
-  class _default {
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
+  function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+  function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
+  function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
+  class StoredTextSearchHelper {
     /**
-     * @param {module:storage} storage
-     * @param {string} scope
+     * @private
+     * @type {Storage}
+     */
+    storage = _init_storage(this);
+
+    /**
+     * @param {string} key
      * @param {Number} [maxCount]
      */
-    constructor(scope, storage, maxCount) {
-      this.scope = scope;
-      this.storage = storage;
-      this.key = 'textSearches';
+    constructor(key, maxCount) {
+      _init_extra_storage(this);
+      /**
+       * @private
+       * @type {string}
+       */
+      this.key = key;
+
+      /**
+       * @private
+       * @type {string}
+       */
+      this.categoryKey = 'textSearches';
+
+      /**
+       * @private
+       * @type {Number|number}
+       */
       this.maxCount = maxCount || 100;
-      /** @type {string[]|null} */
+
+      /**
+       * @type {string[]|null}
+       * @private
+       */
       this.list = null;
     }
 
@@ -36933,7 +37059,7 @@ define("helpers/misc/stored-text-search", ["exports"], function (_exports) {
      */
     getFromStorage() {
       /** @var {string[]} */
-      return this.storage.get(this.key, this.scope) || [];
+      return this.storage.get(this.categoryKey, this.key) || [];
     }
 
     /**
@@ -36953,7 +37079,7 @@ define("helpers/misc/stored-text-search", ["exports"], function (_exports) {
         list = list.slice(0, this.maxCount);
       }
       this.list = list;
-      this.storage.set(this.key, this.scope, list);
+      this.storage.set(this.categoryKey, this.key, list);
     }
 
     /**
@@ -36970,10 +37096,12 @@ define("helpers/misc/stored-text-search", ["exports"], function (_exports) {
       }
       list.splice(index, 1);
       this.list = list;
-      this.storage.set(this.key, this.scope, list);
+      this.storage.set(this.categoryKey, this.key, list);
     }
+    static #_ = _staticBlock = () => [_init_storage, _init_extra_storage] = _applyDecs(this, [], [[(0, _di.inject)(_storage.default), 0, "storage"]]).e;
   }
-  _exports.default = _default;
+  _exports.default = StoredTextSearchHelper;
+  _staticBlock();
 });
 
 define("helpers/misc/foreign-field", ["exports"], function (_exports) {
@@ -37236,6 +37364,16 @@ define("theme-manager", ["exports"], function (_exports) {
         link += '?r=' + this.config.get('cacheTimestamp').toString();
       }
       return link;
+    }
+
+    /**
+     * Get the normalized document direction.
+     *
+     * @returns {'ltr'|'rtl'}
+     */
+    getDirection() {
+      const direction = this.getParam('direction');
+      return direction === 'rtl' ? 'rtl' : 'ltr';
     }
 
     /**
@@ -40457,7 +40595,7 @@ define("views/stream/record/row-actions/reactions/reactions", ["exports", "view"
   _exports.default = ReactionsRowActionView;
 });
 
-define("views/record/search", ["exports", "view", "helpers/misc/stored-text-search", "ui/autocomplete", "views/search/filter", "utils", "ui", "views/modals/save-filters", "underscore"], function (_exports, _view, _storedTextSearch, _autocomplete, _filter, _utils, _ui, _saveFilters, _underscore) {
+define("views/record/search", ["exports", "view", "helpers/misc/stored-text-search", "ui/autocomplete", "views/search/filter", "utils", "ui", "views/modals/save-filters", "underscore", "bullbone"], function (_exports, _view, _storedTextSearch, _autocomplete, _filter, _utils, _ui, _saveFilters, _underscore, _bullbone) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -40565,7 +40703,7 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
         ...this.getMetadata().get(`clientDefs.${this.scope}.viewModeIconClassMap`)
       };
       this.searchManager = this.options.searchManager;
-      this.storedTextSearchHelper = new _storedTextSearch.default(this.scope, this.getHelper().storage);
+      this.storedTextSearchHelper = new _storedTextSearch.default(this.options.storageKey ?? this.scope);
       this.textSearchStoringDisabled = this.getPreferences().get('textSearchStoringDisabled');
       this.textFilterDisabled = this.options.textFilterDisabled || this.textFilterDisabled || this.getMetadata().get(['clientDefs', this.scope, 'textFilterDisabled']);
       if ('disableSavePreset' in this.options) {
@@ -40652,6 +40790,20 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
         this.controlResetButtonVisibility();
       });
       this.wait(this.getHelper().processSetupHandlers(this, 'record/search'));
+      this.boolFiltersView = new BoolFiltersView({
+        listProvider: () => {
+          return this.boolFilterList.filter(it => {
+            var _this$bool;
+            return (_this$bool = this.bool) === null || _this$bool === void 0 ? void 0 : _this$bool[it];
+          }).map(it => {
+            return {
+              name: it,
+              label: this.translate(it, 'boolFilters', this.entityType)
+            };
+          });
+        }
+      });
+      this.assignView('boolFilters', this.boolFiltersView);
     }
     setupEventHandlers() {
       this.addHandler('keydown', 'input[data-name="textFilter"]', e => {
@@ -40704,6 +40856,7 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
         e.stopPropagation();
         this.search();
         this.manageLabels();
+        this.boolFiltersView.reRender();
       });
       this.addActionHandler('switchViewMode', (_, target) => {
         const mode = target.dataset.name;
@@ -40839,11 +40992,7 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
     removeFilter(name) {
       var _this$element$querySe2, _this$getView;
       (_this$element$querySe2 = this.element.querySelector(`ul.filter-list li[data-name="${name}"]`)) === null || _this$element$querySe2 === void 0 || _this$element$querySe2.classList.remove('hidden');
-
-      //
       const container = (_this$getView = this.getView(`filter-${name}`)) === null || _this$getView === void 0 || (_this$getView = _this$getView.element) === null || _this$getView === void 0 ? void 0 : _this$getView.closest('div.filter');
-      //.$el.closest('div.filter');
-
       this.clearView(`filter-${name}`);
       container === null || container === void 0 || container.remove();
       delete this.advanced[name];
@@ -41048,7 +41197,11 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
 
             setTimeout(() => {
               var _this$textFilterInput;
-              return (_this$textFilterInput = this.textFilterInputElement) === null || _this$textFilterInput === void 0 ? void 0 : _this$textFilterInput.focus();
+              if (this.textFilterInputElement && document.activeElement === this.textFilterInputElement) {
+                $(this.textFilterInputElement).triggerHandler('focus.autocomplete');
+                return;
+              }
+              (_this$textFilterInput = this.textFilterInputElement) === null || _this$textFilterInput === void 0 || _this$textFilterInput.focus();
             }, 201);
           });
         }
@@ -41086,7 +41239,6 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
       this.element.querySelectorAll('ul.dropdown-menu > li.preset-control').forEach(li => li.classList.add('hidden'));
       this.currentFilterLabelList = [];
       this.managePresetFilters();
-      this.manageBoolFilters();
       if (!this.filtersLabel) {
         return;
       }
@@ -41163,18 +41315,12 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
         }
       }
       this.currentFilterLabelList.push(filterLabel);
-      this.filtersButton.classList.remove('btn-default', 'btn-primary', 'btn-danger', 'btn-success', 'btn-info', 'btn-info');
-      this.filtersButton.classList.add(`btn-${filterStyle}`);
+      this.filtersButton.classList.remove(...['text-primary', 'text-danger', 'text-success', 'text-info', 'text-warning']);
+      if (filterStyle !== 'default') {
+        this.filtersButton.classList.add(`text-${filterStyle}`);
+      }
       presetName = presetName || '';
       this.$el.find('ul.filter-menu a.preset[data-name="' + presetName + '"]').prepend('<span class="fas fa-check check-icon pull-right"></span>');
-    }
-    manageBoolFilters() {
-      (this.boolFilterList ?? []).forEach(item => {
-        if (this.bool && this.bool[item]) {
-          const label = this.translate(item, 'boolFilters', this.entityType);
-          this.currentFilterLabelList.push(label);
-        }
-      });
     }
     search() {
       this.fetch();
@@ -41486,6 +41632,22 @@ define("views/record/search", ["exports", "view", "helpers/misc/stored-text-sear
     }
   }
   var _default = _exports.default = SearchView;
+  class BoolFiltersView extends _view.default {
+    useVirtualDom = true;
+    content() {
+      const elements = this.options.listProvider().map(it => {
+        return (0, _bullbone.h)('span', {
+          props: {
+            className: 'label label-default label-state'
+          },
+          dataset: {
+            name: it.label
+          }
+        }, it.label);
+      });
+      return (0, _bullbone.fragment)(elements);
+    }
+  }
 });
 
 define("views/record/list", ["exports", "views/record/list-base"], function (_exports, _listBase) {
@@ -42931,6 +43093,8 @@ define("views/record/panels/relationship", ["exports", "views/record/panels/bott
         if (parentEntityType && this.getLanguage().has(this.defs.label, 'labels', parentEntityType)) {
           titlePart = this.translate(this.defs.label, 'labels', parentEntityType);
         }
+      } else if (this.defs.labelTranslation) {
+        titlePart = this.getLanguage().translatePath(this.defs.labelTranslation);
       } else {
         titlePart = this.title;
       }
@@ -45583,7 +45747,7 @@ define("views/fields/datetime", ["exports", "views/fields/date", "moment", "jque
   var _default = _exports.default = DatetimeFieldView;
 });
 
-define("views/fields/currency", ["exports", "views/fields/float", "ui/select"], function (_exports, _float, _select) {
+define("views/fields/currency", ["exports", "views/fields/float", "ui/select", "utils"], function (_exports, _float, _select, _utils) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -45592,6 +45756,7 @@ define("views/fields/currency", ["exports", "views/fields/float", "ui/select"], 
   _exports.default = void 0;
   _float = _interopRequireDefault(_float);
   _select = _interopRequireDefault(_select);
+  _utils = _interopRequireDefault(_utils);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   // noinspection JSUnusedLocalSymbols
 
@@ -45663,6 +45828,7 @@ define("views/fields/currency", ["exports", "views/fields/float", "ui/select"], 
      * @since 9.2.6
      */
 
+    currencyElement = null;
     data() {
       const currencyValue = this.model.get(this.currencyFieldName) || this.getPreferences().get('defaultCurrency') || this.getConfig().get('defaultCurrency');
       const multipleCurrencies = !this.isSingleCurrency || currencyValue !== this.defaultCurrency;
@@ -45704,7 +45870,6 @@ define("views/fields/currency", ["exports", "views/fields/float", "ui/select"], 
         decimalPlaces: this.decimalPlaces,
         allowDecimalPadding: true,
         showWarnings: false,
-        // @ts-ignore
         formulaMode: true
       };
       if (this.decimalPlaces === null) {
@@ -45794,15 +45959,22 @@ define("views/fields/currency", ["exports", "views/fields/float", "ui/select"], 
     afterRender() {
       super.afterRender();
       if (this.mode === this.MODE_EDIT) {
-        this.$currency = this.$el.find(`[data-name="${this.currencyFieldName}"]`);
-        if (this.$currency.length) {
-          this.$currency.on('change', () => {
-            this.model.set(this.currencyFieldName, this.$currency.val(), {
+        this.currencyElement = this.element.querySelector(`[data-name="${this.currencyFieldName}"]`);
+        if (this.currencyElement) {
+          this.currencyElement.addEventListener('change', () => {
+            var _this$currencyElement;
+            this.model.set(this.currencyFieldName, (_this$currencyElement = this.currencyElement) === null || _this$currencyElement === void 0 ? void 0 : _this$currencyElement.value, {
               ui: true
             });
           });
-          _select.default.init(this.$currency);
+          if (!_utils.default.isMobile()) {
+            _select.default.init(this.currencyElement);
+          } else {
+            this.currencyElement.classList.add('native-select');
+          }
         }
+      } else {
+        this.currencyElement = null;
       }
     }
 
@@ -45824,7 +45996,7 @@ define("views/fields/currency", ["exports", "views/fields/float", "ui/select"], 
       const valueString = (((_this$$element = this.$element) === null || _this$$element === void 0 ? void 0 : _this$$element.val()) ?? '').trim();
       const value = this.parse(valueString);
       const data = {};
-      let currencyValue = this.$currency.length ? this.$currency.val() : this.defaultCurrency;
+      let currencyValue = this.currencyElement ? this.currencyElement.value : this.defaultCurrency;
       if (value === null) {
         currencyValue = null;
       }
@@ -46743,9 +46915,7 @@ define("views/fields/array", ["exports", "views/fields/base", "helpers/reg-exp-p
       if (this.params.allowCustomOptions === false) {
         this.allowCustomOptions = false;
       }
-      if (this.type === 'array') {
-        this.validations.push('noInputValue');
-      }
+      this.validations.push(() => this.validateNoInputValue());
     }
 
     /**
@@ -47305,8 +47475,6 @@ define("views/fields/array", ["exports", "views/fields/base", "helpers/reg-exp-p
       await this.assignView('dialog', view);
       await view.render();
     }
-
-    // noinspection JSUnusedGlobalSymbols
     validateNoInputValue() {
       if (!this.element) {
         return false;
@@ -49940,7 +50108,10 @@ define("controllers/base", ["exports", "controller", "views/base"], function (_e
      */
     logout() {
       const title = this.getConfig().get('applicationName') || 'EspoCRM';
-      $('head title').text(title);
+      const titleElement = document.querySelector('head title');
+      if (titleElement) {
+        titleElement.textContent = title;
+      }
       this.trigger('logout');
     }
 
@@ -50349,6 +50520,7 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
        * @type {boolean}
        */
       this.useCache = options.useCache || this.useCache;
+      this.useRouter = options.useRouter ?? true;
       this.apiUrl = options.apiUrl || this.apiUrl;
 
       /**
@@ -50399,6 +50571,12 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
      * @type {boolean}
      */
     useCache = false;
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    useRouter;
 
     /**
      * @protected
@@ -50676,15 +50854,23 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
 
     /**
      * Start the application.
+     *
+     * @param {{onAuth: () => void}} [options]
      */
     start() {
-      this.initAuth();
+      let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      this.initAuth(options.onAuth);
       this.started = true;
       if (!this.auth) {
         this.baseController.login();
         return;
       }
-      this.initUserData(null, () => this.onAuth());
+      this.initUserData(null, async () => {
+        await this.onAuth(false);
+        if (options.onAuth) {
+          options.onAuth();
+        }
+      });
     }
 
     /**
@@ -50702,6 +50888,7 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
       if (this.themeManager.isUserTheme()) {
         this.loadStylesheet();
       }
+      this.applyThemeDirection();
       this.applyUserStyle();
       if (this.anotherUser) {
         this.viewHelper.webSocketManager = null;
@@ -50749,7 +50936,9 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
       }
       await promise;
       this.acl.implementationClassMap = aclImplementationClassMap;
-      this.initRouter();
+      if (this.useRouter) {
+        this.initRouter();
+      }
       this.webSocketManager.subscribe('appParamsUpdate', () => this.appParams.load());
     }
 
@@ -51022,8 +51211,9 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
 
     /**
      * @public
+     * @param {() => void} [callback]
      */
-    initAuth() {
+    initAuth(callback) {
       this.auth = this.storage.get('user', 'auth') || null;
       this.anotherUser = this.storage.get('user', 'anotherUser') || null;
       this.baseController.on('login', /** module:app~LoginData */data => {
@@ -51042,7 +51232,12 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
         this.storage.set('user', 'lastUserId', userId);
         this.storage.set('user', 'anotherUser', this.anotherUser);
         this.setCookieAuth(userName, token);
-        this.initUserData(data, () => this.onAuth(true));
+        this.initUserData(data, async () => {
+          await this.onAuth(true);
+          if (callback) {
+            callback();
+          }
+        });
       });
       this.baseController.on('logout', () => this.logout());
     }
@@ -51085,6 +51280,7 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
       this.user.clear();
       this.preferences.clear();
       this.acl.clear();
+      this.applyThemeDirection();
       if (!silent) {
         this.storage.clear('user', 'auth');
         this.storage.clear('user', 'anotherUser');
@@ -51136,10 +51332,23 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
     /**
      * @private
      */
+    applyThemeDirection() {
+      const direction = this.themeManager.getDirection();
+      document.documentElement.dir = direction;
+      document.body.dataset.direction = direction;
+    }
+
+    /**
+     * @private
+     */
     applyUserStyle() {
       const pageContentWidth = this.preferences.get('pageContentWidth');
+      const recordContentWidth = this.preferences.get('recordContentWidth');
       if (pageContentWidth) {
         document.body.dataset.contentWidth = pageContentWidth;
+      }
+      if (recordContentWidth) {
+        document.body.dataset.recordContentWidth = recordContentWidth;
       }
     }
 
@@ -51560,6 +51769,7 @@ define("app", ["exports", "backbone", "bullbone", "js-base64", "ui", "utils", "a
    * @property {Number|null} [cacheTimestamp] A cache timestamp.
    * @property {Number|null} [appTimestamp] An application timestamp.
    * @property {string|null} [theme] A theme name.
+   * @property {boolean} [useRouter = true] Use router.
    */
 
   Object.assign(App.prototype, _bullbone.Events);
@@ -53221,6 +53431,151 @@ define("views/detail", ["exports", "views/main", "views/detail/modes", "ui", "aj
   var _default = _exports.default = DetailView;
 });
 
+define("views/user/connected-apps", ["exports", "view", "ajax", "ui"], function (_exports, _view, _ajax, _ui) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _view = _interopRequireDefault(_view);
+  _ajax = _interopRequireDefault(_ajax);
+  _ui = _interopRequireDefault(_ui);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class UserConnectedAppsView extends _view.default {
+    // language=Handlebars
+    templateContent = `
+        <div class="header page-header">
+            <h3>
+                <a href="#User">{{translate 'User' category='scopeNamesPlural'}}</a>
+                <span class="breadcrumb-separator"><span></span></span>
+                <a href="#User/view/{{user.id}}">{{user.name}}</a>
+                <span class="breadcrumb-separator"><span></span></span>
+                <span>{{translate 'Connected Apps' scope='User'}}</span>
+            </h3>
+        </div>
+        <div>{{{record}}}</div>
+    `;
+    data() {
+      return {
+        user: this.recordData.user
+      };
+    }
+    setup() {
+      this.wait((async () => {
+        await this.fetchData();
+        const state = {
+          list: this.recordData.list
+        };
+        const recordView = new RecordView({
+          state: state,
+          user: {
+            id: this.options.id
+          },
+          onUpdate: async () => {
+            await this.fetchData();
+            state.list = this.recordData.list;
+            await recordView.reRender();
+            _ui.default.success(this.translate('Done'));
+          }
+        });
+        await this.assignView('record', recordView);
+      })());
+    }
+    async fetchData() {
+      _ui.default.notifyWait();
+      this.recordData = await _ajax.default.getRequest(`User/${this.options.id}/connectedApps`);
+      _ui.default.notify();
+    }
+  }
+  _exports.default = UserConnectedAppsView;
+  class RecordView extends _view.default {
+    // language=Handlebars
+    templateContent = `
+        {{#if list.length}}
+            <ul class="list-group list-group-panel" style="max-width: var(--600px)">
+                {{#each list}}
+                    <li class="list-group-item">
+                        <div style="display: flex;">
+                            <div class="detail-field-container">{{name}}</div>
+                            <div style="margin-inline-start: auto;">
+                                <button
+                                    class="btn btn-default"
+                                    data-action="disconnect"
+                                    data-id="{{id}}"
+                                    {{#if ../isDisabled}}
+                                        disabled="disabled"
+                                    {{/if}}
+                                >{{translate 'Disconnect'}}</button>
+                            </div>
+                        </div>
+                    </li>
+                {{/each}}
+            </ul>
+        {{else}}
+            <div class="no-data">{{translate 'No Data'}}</div>
+        {{/if}}
+    `;
+    isDisabled = false;
+    data() {
+      return {
+        isDisabled: this.isDisabled,
+        list: this.options.state.list
+      };
+    }
+    setup() {
+      this.addActionHandler('disconnect', (_, target) => {
+        const id = target.dataset.id;
+        this.handleDisconnect(id);
+      });
+    }
+    async handleDisconnect(id) {
+      this.isDisabled = true;
+      await this.reRender();
+      _ui.default.notifyWait();
+      try {
+        await _ajax.default.deleteRequest(`User/${this.options.user.id}/connectedApps/${id}`);
+      } catch (e) {
+        this.isDisabled = false;
+        await this.reRender();
+        return;
+      }
+      _ui.default.notify();
+      this.isDisabled = false;
+      await this.reRender();
+      this.options.onUpdate();
+    }
+  }
+});
+
 define("views/user/record/detail", ["exports", "views/record/detail"], function (_exports, _detail) {
   "use strict";
 
@@ -53280,8 +53635,7 @@ define("views/user/record/detail", ["exports", "views/record/detail"], function 
           onClick: () => this.actionAccess()
         });
       }
-      const isPortalUser = this.model.isPortal() || this.model.id === this.getUser().id && this.getUser().isPortal();
-      if ((this.model.id === this.getUser().id || this.getUser().isAdmin()) && this.getConfig().get('auth2FA') && (this.model.isRegular() || this.model.isAdmin() || isPortalUser && this.getConfig().get('auth2FAInPortal'))) {
+      if ((this.model.id === this.getUser().id || this.getUser().isAdmin()) && (this.model.isRegular() || this.model.isAdmin() || this.model.isPortal())) {
         this.addButton({
           name: 'viewSecurity',
           label: 'Security'
@@ -56040,7 +56394,7 @@ define("views/site/navbar", ["exports", "view", "jquery", "helpers/site/tabs"], 
         $more.scrollTop($window.scrollTop());
       });
       const updateSizeForSide = () => {
-        const windowHeight = window.innerHeight;
+        const windowHeight = window.innerHeight - this.getViewportSlack();
         const windowWidth = window.innerWidth;
         const navbarStaticItemsHeight = this.getStaticItemsHeight();
         this.$minimizer.removeClass('hidden');
@@ -56051,7 +56405,7 @@ define("views/site/navbar", ["exports", "view", "jquery", "helpers/site/tabs"], 
           }
           return;
         }
-        tabsElement.style.height = windowHeight - navbarStaticItemsHeight + 'px';
+        tabsElement.style.height = Math.floor(windowHeight - navbarStaticItemsHeight) + 'px';
         if (moreElement) {
           moreElement.style.maxHeight = windowHeight + 'px';
         }
@@ -56062,6 +56416,14 @@ define("views/site/navbar", ["exports", "view", "jquery", "helpers/site/tabs"], 
       });
       updateSizeForSide();
       this.adjustBodyMinHeight();
+    }
+
+    /**
+     * @private
+     * @return {number}
+     */
+    getViewportSlack() {
+      return Number.isInteger(window.devicePixelRatio) ? 0 : 1;
     }
 
     /**
@@ -56131,7 +56493,7 @@ define("views/site/navbar", ["exports", "view", "jquery", "helpers/site/tabs"], 
           minHeight = menuHeight;
         }
       });
-      document.body.style.minHeight = minHeight + 'px';
+      document.body.style.minHeight = Math.floor(minHeight) + 'px';
     }
 
     /**
@@ -56167,7 +56529,7 @@ define("views/site/navbar", ["exports", "view", "jquery", "helpers/site/tabs"], 
           minHeight = menuHeight;
         }
       });
-      document.body.style.minHeight = minHeight + 'px';
+      document.body.style.minHeight = Math.floor(minHeight) + 'px';
     }
     afterRender() {
       this.$tabs = this.$el.find('ul.tabs');
@@ -56715,6 +57077,7 @@ define("views/site/master", ["exports", "view", "jquery", "views/collapsed-modal
       for (const param of Object.keys(params)) {
         body.dataset[param] = this.getThemeManager().getParam(param);
       }
+      body.dataset.direction = this.getThemeManager().getDirection();
       body.dataset.isDark = this.getThemeManager().getParam('isDark') ?? false;
       body.dataset.themeName = this.getThemeManager().getName();
       const footerView = this.getView('footer');
@@ -57628,6 +57991,140 @@ define("views/record/kanban/pipeline-dropdown", ["exports", "view", "di", "theme
   _staticBlock();
 });
 
+define("views/o-auth-server/authorization-consent", ["exports", "view", "ajax", "ui"], function (_exports, _view, _ajax, _ui) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _view = _interopRequireDefault(_view);
+  _ajax = _interopRequireDefault(_ajax);
+  _ui = _interopRequireDefault(_ui);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  // noinspection JSUnusedGlobalSymbols
+  class AuthorizationConsentView extends _view.default {
+    // language=Handlebars
+    templateContent = `
+        <div class="block-center-5 margin-top">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="alert alert-info margin-bottom-2x">
+                        {{complexText labels.info}}
+                    </div>
+                    <ul class="list-group">
+                        {{#each scopeDataList}}
+                            <li class="list-group-item">
+                                {{label}}
+                                {{#if description}}
+                                    <div class="small text-soft">{{description}}</div>
+                                {{/if}}
+                            </li>
+                        {{/each}}
+                    </ul>
+                    <div class="margin-top-2x center-align">
+                        <form
+                            method="post"
+                            action="{{actionEndpoint}}"
+                        >
+                            <input type="hidden" name="clientId" value="{{clientId}}">
+                            <input type="hidden" name="approved">
+                            <input type="hidden" name="scopes" value="{{scopes}}">
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-x-wide pull-left"
+                                data-action="allow"
+                            >{{labels.allow}}</button>
+                            <button
+                                type="button"
+                                class="btn btn-default btn-x-wide pull-right"
+                                data-action="cancel"
+                            >{{labels.cancel}}</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    data() {
+      const scopes = this.consentData.scopeDataList.map(it => it.name).join(' ');
+      return {
+        ...this.consentData,
+        actionEndpoint: this.getBasePath() + '?entryPoint=oAuthAuthorizeComplete',
+        clientId: this.params.clientId,
+        scopes
+      };
+    }
+    setup() {
+      this.addActionHandler('allow', () => this.handleAllow());
+      this.addActionHandler('cancel', () => this.handleCancel());
+      const params = new URLSearchParams(window.location.search);
+      const clientId = params.get('client_id');
+      if (!clientId) {
+        throw new Error("No client_id.");
+      }
+      this.params = {
+        clientId: clientId
+      };
+      this.wait(this.loadData());
+    }
+    async loadData() {
+      _ui.default.notifyWait();
+      this.consentData = await _ajax.default.getRequest(`OAuthServer/consentData`, {
+        clientId: this.params.clientId
+      });
+      _ui.default.notify();
+    }
+    handleAllow() {
+      this.handleComplete(true);
+    }
+    handleCancel() {
+      this.handleComplete(false);
+    }
+    handleComplete(approved) {
+      const formElement = this.element.querySelector('form');
+      if (!formElement) {
+        throw new Error();
+      }
+      const approvedElement = this.element.querySelector('input[name="approved"]');
+      if (!approvedElement) {
+        throw new Error();
+      }
+      approvedElement.value = approved ? 'true' : 'false';
+      formElement.submit();
+    }
+  }
+  _exports.default = AuthorizationConsentView;
+});
+
 define("views/notification/items/base", ["exports", "view"], function (_exports, _view) {
   "use strict";
 
@@ -58114,6 +58611,12 @@ define("views/modals/related-list", ["exports", "views/modal", "search-manager",
     mandatorySelectAttributeList = null;
     layoutName = 'listSmall';
 
+    /**
+     * @private
+     * @type {Record}
+     */
+    defs;
+
     /** @inheritDoc */
     shortcutKeys = {
       /** @this RelatedListModalView */
@@ -58370,13 +58873,15 @@ define("views/modals/related-list", ["exports", "views/modal", "search-manager",
         filterList = [];
       }
       if (this.searchPanel) {
+        const storageKey = this.defs.recordSpecificSearchStorage ? this.model.entityType + '-' + this.model.id + '-' + this.link : null;
         this.createView('search', 'views/record/search', {
           collection: this.collection,
           fullSelector: this.containerSelector + ' .search-container',
           searchManager: this.searchManager,
           disableSavePreset: true,
           filterList: filterList,
-          filtersLayoutName: this.options.filtersLayoutName
+          filtersLayoutName: this.options.filtersLayoutName,
+          storageKey: storageKey
         }, view => {
           this.listenTo(view, 'reset', () => {});
         });
@@ -60468,6 +60973,10 @@ define("views/fields/url", ["exports", "views/fields/varchar"], function (_expor
           return false;
         }
       }
+      try {
+        new URL(value);
+        return true;
+      } catch (e) {}
       const pattern = this.getMetadata().get(['app', 'regExpPatterns', 'uriOptionalProtocol', 'pattern']);
       const regExp = new RegExp('^' + pattern + '$');
       if (regExp.test(value)) {
@@ -60548,10 +61057,33 @@ define("views/fields/url-multiple", ["exports", "views/fields/array"], function 
     maxItemLength = 255;
     displayAsList = true;
     defaultProtocol = 'https:';
+    optionalProtocol = true;
     setup() {
       super.setup();
       this.noEmptyString = true;
-      this.params.pattern = '$uriOptionalProtocol';
+      if (this.params.protocolRequired) {
+        this.optionalProtocol = false;
+      }
+    }
+    isValidUrl(value) {
+      if (!this.optionalProtocol) {
+        try {
+          new URL(value);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+      try {
+        new URL(value);
+        return true;
+      } catch (e) {}
+      const pattern = this.getMetadata().get(['app', 'regExpPatterns', 'uriOptionalProtocol', 'pattern']);
+      const regExp = new RegExp('^' + pattern + '$');
+      if (regExp.test(value)) {
+        return true;
+      }
+      return false;
     }
     addValueFromUi(value) {
       value = value.trim();
@@ -60565,6 +61097,11 @@ define("views/fields/url-multiple", ["exports", "views/fields/array"], function 
         value = encodeURI(value);
       } catch (e) {
         console.warn(`Malformed URI ${value}.`);
+      }
+      if (!this.isValidUrl(value)) {
+        const message = this.translate('fieldNotMatchingPattern$uriOptionalProtocol', 'messages').replace('{field}', this.getLabelText());
+        setTimeout(() => this.showValidationMessage(message, 'input.select'), 10);
+        return;
       }
       super.addValueFromUi(value);
     }
@@ -60689,7 +61226,7 @@ define("views/fields/range-float", ["exports", "views/fields/range-int", "views/
   var _default = _exports.default = RangeFloatFieldView;
 });
 
-define("views/fields/phone", ["exports", "views/fields/varchar", "ui/select", "intl-tel-input", "intl-tel-input-utils", "intl-tel-input-globals"], function (_exports, _varchar, _select, _intlTelInput, _intlTelInputUtils, _intlTelInputGlobals) {
+define("views/fields/phone", ["exports", "views/fields/varchar", "ui/select", "intl-tel-input"], function (_exports, _varchar, _select, _intlTelInput) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -60699,8 +61236,6 @@ define("views/fields/phone", ["exports", "views/fields/varchar", "ui/select", "i
   _varchar = _interopRequireDefault(_varchar);
   _select = _interopRequireDefault(_select);
   _intlTelInput = _interopRequireDefault(_intlTelInput);
-  _intlTelInputUtils = _interopRequireDefault(_intlTelInputUtils);
-  _intlTelInputGlobals = _interopRequireDefault(_intlTelInputGlobals);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -60729,10 +61264,6 @@ define("views/fields/phone", ["exports", "views/fields/varchar", "ui/select", "i
    * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
-
-  // @ts-ignore
-
-  // @ts-ignore
 
   /**
    * Parameters.
@@ -60828,7 +61359,7 @@ define("views/fields/phone", ["exports", "views/fields/varchar", "ui/select", "i
         return notValid;
       }
       const intlObj = this.intlTelInputMap.get(element);
-      const isPossible = intlObj && intlObj.isPossibleNumber();
+      const isPossible = intlObj && intlObj.isValidNumber();
       if (intlObj && !isPossible) {
         notValid = true;
         const code = intlObj.getValidationError();
@@ -60949,7 +61480,7 @@ define("views/fields/phone", ["exports", "views/fields/varchar", "ui/select", "i
       if (!value || value === '' || !this.useInternational) {
         return value;
       }
-      return _intlTelInputUtils.default.formatNumber(value, null, _intlTelInputUtils.default.numberFormat.INTERNATIONAL);
+      return _intlTelInput.default.utils.formatNumber(value, undefined, _intlTelInput.default.NUMBER_FORMAT.INTERNATIONAL);
     }
     addPhoneNumber() {
       const data = Espo.Utils.cloneDeep(this.fetchPhoneNumberData());
@@ -60979,23 +61510,39 @@ define("views/fields/phone", ["exports", "views/fields/varchar", "ui/select", "i
     afterRenderEdit() {
       super.afterRenderEdit();
       if (this.useInternational) {
+        var _this$element;
         const inputElements = this.element.querySelectorAll('input.phone-number');
+        const modalBodyElement = (_this$element = this.element) === null || _this$element === void 0 ? void 0 : _this$element.closest('.modal-body');
+        const parent = modalBodyElement ? modalBodyElement : document.body;
         inputElements.forEach(inputElement => {
           // noinspection JSUnusedGlobalSymbols
           const obj = (0, _intlTelInput.default)(inputElement, {
-            nationalMode: false,
-            autoInsertDialCode: false,
             separateDialCode: true,
             showFlags: false,
-            preferredCountries: this.preferredCountryList,
-            localizedCountries: this._codeNames,
+            initialCountry: this.preferredCountryList[0] ?? null,
+            countryOrder: this.preferredCountryList,
+            countryNameOverrides: this._codeNames,
+            dropdownParent: parent,
+            classNames: {
+              searchInput: 'form-control input-sm'
+            },
+            uiTranslations: {
+              searchPlaceholder: '',
+              searchEmptyState: '',
+              noCountrySelected: '',
+              closeCountrySelectorAriaLabel: '',
+              countryListAriaLabel: '',
+              selectedCountryAriaLabel: ''
+            },
+            allowNumberExtensions: this.allowExtensions,
+            strictMode: !this.allowExtensions,
             customPlaceholder: placeholder => {
               return placeholder.replace(/[0-9]/g, '0');
             }
           });
           this.intlTelInputMap.set(inputElement, obj);
           inputElement.addEventListener('blur', () => {
-            if (!obj.isPossibleNumber()) {
+            if (!obj.isValidNumber()) {
               return;
             }
             let number = obj.getNumber();
@@ -61068,7 +61615,7 @@ define("views/fields/phone", ["exports", "views/fields/varchar", "ui/select", "i
       this.preferredCountryList = this.getConfig().get('phoneNumberPreferredCountryList') || [];
       this.maxCount = this.getConfig().get('phoneNumberMaxCount');
       if (this.useInternational && !this.isListMode() && !this.isSearchMode()) {
-        this._codeNames = _intlTelInputGlobals.default.getCountryData().reduce((map, item) => {
+        this._codeNames = _intlTelInput.default.getAllCountries().reduce((map, item) => {
           map[item.iso2] = item.iso2.toUpperCase();
           return map;
         }, {});
@@ -61858,6 +62405,9 @@ define("views/fields/multi-enum", ["exports", "views/fields/array", "helpers/reg
         this.showValidationMessage(msg, '.selectize-control');
         return true;
       }
+      return false;
+    }
+    validateNoInputValue() {
       return false;
     }
   }
@@ -64256,7 +64806,6 @@ define("views/fields/decimal", ["exports", "views/fields/int"], function (_expor
         decimalPlacesRawValue: this.decimalPlacesRawValue,
         allowDecimalPadding: true,
         showWarnings: false,
-        // @ts-ignore
         formulaMode: true
       };
       if (this.decimalPlaces === null) {
@@ -64629,6 +65178,9 @@ define("views/fields/checklist", ["exports", "views/fields/array"], function (_e
         this.showValidationMessage(msg, '.checklist-item-container:last-child input');
         return true;
       }
+      return false;
+    }
+    validateNoInputValue() {
       return false;
     }
   }
@@ -67172,6 +67724,48 @@ define("helpers/site/window-panel-helper", ["exports", "di", "theme-manager"], f
   _staticBlock();
 });
 
+define("helpers/misc/o-auth-client-secret", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.CreatedSecrets = void 0;
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  const values = _exports.CreatedSecrets = {};
+
+  /**
+   * @internal
+   */
+});
+
 define("helpers/misc/field-language", ["exports"], function (_exports) {
   "use strict";
 
@@ -67796,22 +68390,27 @@ define("handlers/row-action", ["exports"], function (_exports) {
    */
   class RowActionHandler {
     /**
-     * @param {module:views/record/list} view
+     * @protected
+     * @type {import('collection').default}
+     */
+    collection;
+
+    /**
+     * @protected
+     * @type {import('views/record/list').default} view
+     */
+    view;
+
+    /**
+     * @param {import('views/record/list').default} view
      */
     constructor(view) {
-      // noinspection JSUnusedGlobalSymbols
-      /** @protected */
       this.view = view;
-
-      /**
-       * @protected
-       * @type {module:collection}
-       */
       this.collection = this.view.collection;
     }
 
     /**
-     * @param {module:model} model A model.
+     * @param {import('model').default} model A model.
      * @param {string} action An action.
      * @return {boolean}
      */
@@ -67820,7 +68419,8 @@ define("handlers/row-action", ["exports"], function (_exports) {
     }
 
     /**
-     * @param {module:model} model A model.
+     * @abstract
+     * @param {import('model').default} model A model.
      * @param {string} action An action.
      */
     process(model, action) {}
@@ -67872,14 +68472,14 @@ define("handlers/login", ["exports"], function (_exports) {
    */
   class LoginHandler {
     /**
-     * @param {module:views/login} loginView A login view.
+     * @param {import('views/login').default} loginView A login view.
      * @param {Object.<string, *>} data Additional metadata.
      */
     constructor(loginView, data) {
       /**
        * A login view.
        * @protected
-       * @type {module:views/login}
+       * @type {import('views/login').default}
        */
       this.loginView = loginView;
 
@@ -68708,7 +69308,7 @@ define("views/settings/fields/theme", ["exports", "views/fields/enum", "theme-ma
   class ThemeSettingsFieldView extends _enum.default {
     // language=Handlebars
     editTemplateContent = `
-        <div class="grid-auto-fit-xxs">
+        <div>
             <div>
                 <select data-name="{{name}}" class="form-control main-element">
                     {{options
@@ -68721,10 +69321,19 @@ define("views/settings/fields/theme", ["exports", "views/fields/enum", "theme-ma
                     }}
                 </select>
             </div>
+        </div>
+        <div class="grid-auto-fit-xxs">
             {{#if navbarOptionList.length}}
             <div>
                 <select data-name="themeNavbar" class="form-control">
                     {{options navbarOptionList navbar translatedOptions=navbarTranslatedOptions}}
+                </select>
+            </div>
+            {{/if}}
+            {{#if directionOptionList.length}}
+            <div>
+                <select data-name="themeDirection" class="form-control">
+                    {{options directionOptionList direction translatedOptions=directionTranslatedOptions}}
                 </select>
             </div>
             {{/if}}
@@ -68737,6 +69346,12 @@ define("views/settings/fields/theme", ["exports", "views/fields/enum", "theme-ma
       data.navbarTranslatedOptions = {};
       data.navbarOptionList.forEach(item => {
         data.navbarTranslatedOptions[item] = this.translate(item, 'themeNavbars');
+      });
+      data.directionOptionList = this.getDirectionOptionList();
+      data.direction = this.getDirectionValue() || this.getDefaultDirection();
+      data.directionTranslatedOptions = {};
+      data.directionOptionList.forEach(item => {
+        data.directionTranslatedOptions[item] = this.translate(item, 'themeDirections');
       });
       return data;
     }
@@ -68754,8 +69369,11 @@ define("views/settings/fields/theme", ["exports", "views/fields/enum", "theme-ma
     }
     afterRenderEdit() {
       this.$navbar = this.$el.find('[data-name="themeNavbar"]');
+      this.$direction = this.$el.find('[data-name="themeDirection"]');
       this.$navbar.on('change', () => this.trigger('change'));
+      this.$direction.on('change', () => this.trigger('change'));
       _select.default.init(this.$navbar);
+      _select.default.init(this.$direction);
     }
 
     /**
@@ -68808,6 +69426,55 @@ define("views/settings/fields/theme", ["exports", "views/fields/enum", "theme-ma
     }
 
     /**
+     * @protected
+     * @return {string}
+     */
+    getDirectionValue() {
+      const params = this.model.get('themeParams') || {};
+      return params.direction;
+    }
+
+    /**
+     * @protected
+     * @return {Record|null}
+     */
+    getDirectionDefs() {
+      if (!this.themeManager) {
+        return null;
+      }
+      const params = this.themeManager.getParam('params');
+      if (!params || !params.direction) {
+        return null;
+      }
+      return Espo.Utils.cloneDeep(params.direction);
+    }
+
+    /**
+     * @private
+     * @return {string[]}
+     */
+    getDirectionOptionList() {
+      const defs = this.getDirectionDefs();
+      if (!defs) {
+        return [];
+      }
+      const optionList = defs.options || [];
+      if (!optionList.length || optionList.length === 1) {
+        return [];
+      }
+      return optionList;
+    }
+
+    /**
+     * @protected
+     * @return {string|null}
+     */
+    getDefaultDirection() {
+      const defs = this.getDirectionDefs() || {};
+      return defs.default || null;
+    }
+
+    /**
      * @private
      */
     initThemeManager() {
@@ -68822,18 +69489,16 @@ define("views/settings/fields/theme", ["exports", "views/fields/enum", "theme-ma
       return [this.name, 'themeParams'];
     }
     setupOptions() {
-      this.params.options = Object.keys(this.getMetadata().get('themes') || {}).sort((v1, v2) => {
-        if (v2 === 'EspoRtl') {
-          return -1;
-        }
-        return this.translate(v1, 'theme').localeCompare(this.translate(v2, 'theme'));
-      });
+      this.params.options = Object.keys(this.getMetadata().get('themes') || {}).sort((v1, v2) => this.translate(v1, 'theme').localeCompare(this.translate(v2, 'theme')));
     }
     fetch() {
       const data = super.fetch();
       const params = {};
       if (this.$navbar.length) {
         params.navbar = this.$navbar.val();
+      }
+      if (this.$direction.length) {
+        params.direction = this.$direction.val();
       }
       data.themeParams = params;
       return data;
@@ -69539,7 +70204,7 @@ define("views/merge", ["exports", "views/main"], function (_exports, _main) {
   var _default = _exports.default = MergeView;
 });
 
-define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exports, _view, _jsBase, _jquery) {
+define("views/login", ["exports", "view", "js-base64", "utils", "ui", "ajax"], function (_exports, _view, _jsBase, _utils, _ui, _ajax) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -69548,7 +70213,9 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
   _exports.default = void 0;
   _view = _interopRequireDefault(_view);
   _jsBase = _interopRequireDefault(_jsBase);
-  _jquery = _interopRequireDefault(_jquery);
+  _utils = _interopRequireDefault(_utils);
+  _ui = _interopRequireDefault(_ui);
+  _ajax = _interopRequireDefault(_ajax);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -69578,13 +70245,8 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
 
-  /** @module views/login */
-
   class LoginView extends _view.default {
-    /** @inheritDoc */
     template = 'login';
-
-    /** @inheritDoc */
     views = {
       footer: {
         fullSelector: 'body > footer',
@@ -69598,7 +70260,9 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
      */
     anotherUser = null;
 
-    /** @private */
+    /**
+     * @private
+     */
     isPopoverDestroyed = false;
 
     /**
@@ -69619,39 +70283,35 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
      */
     method = null;
 
-    /** @inheritDoc */
-    events = {
-      /** @this LoginView */
-      'submit #login-form': function (e) {
-        e.preventDefault();
-        this.login();
-      },
-      /** @this LoginView */
-      'click #sign-in': function () {
-        this.signIn();
-      },
-      /** @this LoginView */
-      'click a[data-action="passwordChangeRequest"]': function () {
-        this.showPasswordChangeRequest();
-      },
-      /** @this LoginView */
-      'click a[data-action="showFallback"]': function () {
-        this.showFallback();
-      },
-      /** @this LoginView */
-      'keydown': function (e) {
-        if (Espo.Utils.getKeyFromKeyEvent(e) === 'Control+Enter') {
-          e.preventDefault();
-          if (this.handler && (!this.fallback || !this.$username.val())) {
-            this.signIn();
-            return;
-          }
-          this.login();
-        }
-      }
-    };
+    /**
+     * @private
+     * @type {HTMLInputElement}
+     */
+    usernameElement;
 
-    /** @inheritDoc */
+    /**
+     * @private
+     * @type {HTMLInputElement}
+     */
+    passwordElement;
+
+    /**
+     * @private
+     * @type {HTMLButtonElement}
+     */
+    submitElement;
+
+    /**
+     * @private
+     * @type {HTMLButtonElement|null}
+     */
+    signInElement;
+
+    /**
+     * @private
+     * @type {HTMLButtonElement|null}
+     */
+    showFallbackElement;
     data() {
       return {
         logoSrc: this.getLogoSrc(),
@@ -69664,9 +70324,24 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
         logInText: this.logInText
       };
     }
-
-    /** @inheritDoc */
     setup() {
+      this.addHandler('submit', '#login-form', e => {
+        e.preventDefault();
+        this.login();
+      });
+      this.addHandler('keydown', '', e => {
+        if (_utils.default.getKeyFromKeyEvent(e) === 'Control+Enter') {
+          e.preventDefault();
+          if (this.handler && (!this.fallback || !this.usernameElement.value)) {
+            this.signIn();
+            return;
+          }
+          this.login();
+        }
+      });
+      this.addHandler('click', '#sign-in', () => this.signIn());
+      this.addActionHandler('passwordChangeRequest', () => this.showPasswordChangeRequest());
+      this.addActionHandler('showFallback', () => this.showFallback());
       this.addActionHandler('toggleShowPassword', () => this.toggleShowPassword());
       this.anotherUser = this.options.anotherUser || null;
       const loginData = this.getConfig().get('loginData') || {};
@@ -69696,43 +70371,45 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
       }
       return this.getBasePath() + '?entryPoint=LogoImage&id=' + companyLogoId;
     }
-
-    /** @inheritDoc */
     afterRender() {
-      this.$submit = this.$el.find('#btn-login');
-      this.$signIn = this.$el.find('#sign-in');
-      this.$username = this.$el.find('#field-userName');
-      this.$password = this.$el.find('#field-password');
+      this.submitElement = this.element.querySelector('#btn-login');
+      this.signInElement = this.element.querySelector('#sign-in');
+      this.usernameElement = this.element.querySelector('#field-userName');
+      this.passwordElement = this.element.querySelector('#field-password');
+      this.showFallbackElement = this.element.querySelector('[data-action="showFallback"]');
       if (this.options.prefilledUsername) {
-        this.$username.val(this.options.prefilledUsername);
+        this.usernameElement.value = this.options.prefilledUsername;
       }
       if (this.handler) {
-        this.$username.closest('.cell').addClass('hidden');
-        this.$password.closest('.cell').addClass('hidden');
-        this.$submit.closest('.cell').addClass('hidden');
+        this.usernameElement.closest('.cell').classList.add('hidden');
+        this.passwordElement.closest('.cell').classList.add('hidden');
+        this.submitElement.closest('.cell').classList.add('hidden');
       }
     }
 
-    /** @private */
-    signIn() {
+    /**
+     * @private
+     */
+    async signIn() {
       this.disableForm();
-      this.handler.process().then(headers => {
-        this.proceed(headers, this.options.prefilledUsername);
-      }).catch(() => {
-        this.undisableForm();
-      });
+      let headers;
+      try {
+        headers = await this.handler.process();
+      } catch (e) {
+        this.enableForm();
+        return;
+      }
+      await this.proceed(headers, this.options.prefilledUsername);
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     login() {
       let authString;
-      let userName = this.$username.val();
-      const password = this.$password.val();
-      const trimmedUserName = userName.trim();
-      if (trimmedUserName !== userName) {
-        this.$username.val(trimmedUserName);
-        userName = trimmedUserName;
-      }
+      const userName = this.usernameElement.value.trim();
+      const password = this.passwordElement.value;
+      this.usernameElement.value = userName;
       if (userName === '') {
         this.processEmptyUsername();
         return;
@@ -69741,8 +70418,8 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
       try {
         authString = _jsBase.default.encode(userName + ':' + password);
       } catch (e) {
-        Espo.Ui.error(this.translate('Error') + ': ' + e.message, true);
-        this.undisableForm();
+        _ui.default.error(this.translate('Error') + ': ' + e.message, true);
+        this.enableForm();
         throw e;
       }
       const headers = {
@@ -69758,7 +70435,7 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
      * @param {string} [userName]
      * @param {string} [password]
      */
-    proceed(headers, userName, password) {
+    async proceed(headers, userName, password) {
       headers = Espo.Utils.clone(headers);
       const initialHeaders = Espo.Utils.clone(headers);
       headers['Espo-Authorization-By-Token'] = 'false';
@@ -69766,19 +70443,19 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
       if (this.anotherUser !== null) {
         headers['X-Another-User'] = this.anotherUser;
       }
-      this.notifyLoading();
-      Espo.Ajax.getRequest('App/user', null, {
-        login: true,
-        headers: headers
-      }).then(data => {
-        Espo.Ui.notify(false);
-        this.triggerLogin(userName, data);
-      }).catch(xhr => {
-        this.undisableForm();
+      _ui.default.notifyWait();
+      let data;
+      try {
+        data = await _ajax.default.getRequest('App/user', null, {
+          login: true,
+          headers: headers
+        });
+      } catch (xhr) {
+        this.enableForm();
         if (xhr.status === 401) {
-          const data = xhr.responseJSON || {};
           const statusReason = xhr.getResponseHeader('X-Status-Reason');
           if (statusReason === 'second-step-required') {
+            const data = JSON.parse(xhr.responseText);
             xhr.errorIsHandled = true;
             this.onSecondStepRequired(initialHeaders, userName, password, data);
             return;
@@ -69789,7 +70466,10 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
           }
           this.onWrongCredentials();
         }
-      });
+        return;
+      }
+      _ui.default.notify();
+      this.triggerLogin(userName, data);
     }
 
     /**
@@ -69809,39 +70489,54 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
       this.trigger('login', userName, data);
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     processEmptyUsername() {
       this.isPopoverDestroyed = false;
-      const $el = this.$username;
       const message = this.getLanguage().translate('userCantBeEmpty', 'messages', 'User');
-      $el.popover({
+      const popover = _ui.default.popover(this.usernameElement, {
         placement: 'bottom',
         container: 'body',
         content: message,
-        trigger: 'manual'
-      }).popover('show');
-      const $cell = $el.closest('.form-group');
-      $cell.addClass('has-error');
-      $el.one('mousedown click', () => {
-        $cell.removeClass('has-error');
+        trigger: 'manual',
+        noToggleInit: true
+      }, this);
+      popover.show();
+      const cellElement = this.usernameElement.closest('.form-group');
+      cellElement.classList.add('has-error');
+      cellElement.addEventListener('mousedown', () => {
+        cellElement.classList.remove('has-error');
         if (this.isPopoverDestroyed) {
           return;
         }
-        $el.popover('destroy');
+        popover.destroy();
         this.isPopoverDestroyed = true;
+      }, {
+        once: true
       });
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     disableForm() {
-      this.$submit.addClass('disabled').attr('disabled', 'disabled');
-      this.$signIn.addClass('disabled').attr('disabled', 'disabled');
+      var _this$signInElement, _this$signInElement2;
+      this.submitElement.classList.add('disabled');
+      this.submitElement.setAttribute('disabled', 'disabled');
+      (_this$signInElement = this.signInElement) === null || _this$signInElement === void 0 || _this$signInElement.classList.add('disabled');
+      (_this$signInElement2 = this.signInElement) === null || _this$signInElement2 === void 0 || _this$signInElement2.setAttribute('disabled', 'disabled');
     }
 
-    /** @private */
-    undisableForm() {
-      this.$submit.removeClass('disabled').removeAttr('disabled');
-      this.$signIn.removeClass('disabled').removeAttr('disabled');
+    /**
+     * @private
+     */
+    enableForm() {
+      var _this$signInElement3, _this$signInElement4;
+      this.submitElement.classList.remove('disabled');
+      this.submitElement.removeAttribute('disabled');
+      (_this$signInElement3 = this.signInElement) === null || _this$signInElement3 === void 0 || _this$signInElement3.classList.remove('disabled');
+      (_this$signInElement4 = this.signInElement) === null || _this$signInElement4 === void 0 || _this$signInElement4.removeAttribute('disabled');
     }
 
     /**
@@ -69852,54 +70547,60 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
      * @param {Object.<string, *>} data
      */
     onSecondStepRequired(headers, userName, password, data) {
-      const view = data.view || 'views/login-second-step';
+      const view = data.view ?? 'views/login-second-step';
       this.trigger('redirect', view, headers, userName, password, data);
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     onError() {
       this.onFail('loginError');
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     onWrongCredentials() {
       const msg = this.handler ? 'failedToLogIn' : 'wrongUsernamePassword';
       this.onFail(msg);
     }
 
-    /** @private */
-    onFail(msg) {
-      const $cell = (0, _jquery.default)('#login .form-group');
-      $cell.addClass('has-error');
-      this.$el.one('mousedown click', () => {
-        $cell.removeClass('has-error');
+    /**
+     * @private
+     */
+    onFail(message) {
+      const cellElement = this.element.querySelector('#login .form-group');
+      cellElement.classList.add('has-error');
+      cellElement.addEventListener('mousedown', () => {
+        cellElement.classList.remove('has-error');
+      }, {
+        once: true
       });
-      Espo.Ui.error(this.translate(msg, 'messages', 'User'));
+      _ui.default.error(this.translate(message, 'messages', 'User'));
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     showFallback() {
-      this.$el.find('[data-action="showFallback"]').addClass('hidden');
-      this.$el.find('.panel-body').addClass('fallback-shown');
-      this.$username.closest('.cell').removeClass('hidden');
-      this.$password.closest('.cell').removeClass('hidden');
-      this.$submit.closest('.cell').removeClass('hidden');
+      this.showFallbackElement.classList.add('hidden');
+      this.element.querySelector('.panel-body').classList.add('fallback-shown');
+      this.usernameElement.closest('.cell').classList.remove('hidden');
+      this.passwordElement.closest('.cell').classList.remove('hidden');
+      this.submitElement.closest('.cell').classList.remove('hidden');
     }
 
-    /** @private */
-    notifyLoading() {
-      Espo.Ui.notifyWait();
-    }
-
-    /** @private */
-    showPasswordChangeRequest() {
-      this.notifyLoading();
-      this.createView('passwordChangeRequest', 'views/modals/password-change-request', {
+    /**
+     * @private
+     */
+    async showPasswordChangeRequest() {
+      _ui.default.notifyWait();
+      const view = await this.createView('passwordChangeRequest', 'views/modals/password-change-request', {
         url: window.location.href
-      }, view => {
-        view.render();
-        Espo.Ui.notify(false);
       });
+      await view.render();
+      _ui.default.notify();
     }
 
     /**
@@ -69914,18 +70615,10 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
       }
       if (input.type === 'password') {
         input.type = 'text';
-
-        //button.classList.remove('text-soft');
-        //button.classList.add('text-primary');
-
         icon.classList.remove('fa-eye');
         icon.classList.add('fa-eye-slash');
       } else {
         input.type = 'password';
-
-        //button.classList.remove('text-primary');
-        //button.classList.add('text-soft');
-
         icon.classList.remove('fa-eye-slash');
         icon.classList.add('fa-eye');
       }
@@ -69936,7 +70629,7 @@ define("views/login", ["exports", "view", "js-base64", "jquery"], function (_exp
   var _default = _exports.default = LoginView;
 });
 
-define("views/login-second-step", ["exports", "view", "js-base64", "jquery"], function (_exports, _view, _jsBase, _jquery) {
+define("views/login-second-step", ["exports", "view", "utils", "ui", "ajax"], function (_exports, _view, _utils, _ui, _ajax) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -69944,8 +70637,9 @@ define("views/login-second-step", ["exports", "view", "js-base64", "jquery"], fu
   });
   _exports.default = void 0;
   _view = _interopRequireDefault(_view);
-  _jsBase = _interopRequireDefault(_jsBase);
-  _jquery = _interopRequireDefault(_jquery);
+  _utils = _interopRequireDefault(_utils);
+  _ui = _interopRequireDefault(_ui);
+  _ajax = _interopRequireDefault(_ajax);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -69994,14 +70688,6 @@ define("views/login-second-step", ["exports", "view", "js-base64", "jquery"], fu
     anotherUser = null;
 
     /**
-     * Response from the first step.
-     *
-     * @type {Object.<string, *>}
-     * @private
-     */
-    loginData = null;
-
-    /**
      * Headers composed in the first step.
      *
      * @type {Object.<string, string>}
@@ -70012,78 +70698,96 @@ define("views/login-second-step", ["exports", "view", "js-base64", "jquery"], fu
     /** @private */
     isPopoverDestroyed = false;
 
-    /** @inheritDoc */
-    events = {
-      /** @this LoginSecondStepView */
-      'submit #login-form': function (e) {
+    /**
+     * @private
+     * @type {HTMLInputElement}
+     */
+    codeElement;
+
+    /**
+     * @private
+     * @type {HTMLButtonElement}
+     */
+    submitElement;
+
+    /**
+     * @private
+     * @type {number}
+     */
+    static CODE_LENGTH = 7;
+
+    /**
+     * @private
+     * @type {number}
+     */
+    codeLength;
+    data() {
+      return {
+        message: this.message,
+        codeLength: this.codeLength
+      };
+    }
+    setup() {
+      var _loginData$data;
+      /**
+       * @type {{
+       *     message?: string,
+       *     data?: {
+       *         codeLength?: number,
+       *     },
+       * }}
+       */
+      const loginData = this.options.loginData ?? {};
+      this.message = this.translate(loginData.message, 'messages', 'User');
+      this.anotherUser = this.options.anotherUser || null;
+      this.headers = this.options.headers || {};
+      this.codeLength = ((_loginData$data = loginData.data) === null || _loginData$data === void 0 ? void 0 : _loginData$data.codeLength) ?? LoginSecondStepView.CODE_LENGTH;
+      this.addHandler('submit', '#login-form', e => {
         e.preventDefault();
         this.send();
-      },
-      /** @this LoginSecondStepView */
-      'click [data-action="backToLogin"]': function () {
-        this.trigger('back');
-      },
-      /** @this LoginSecondStepView */
-      'keydown': function (e) {
-        if (Espo.Utils.getKeyFromKeyEvent(e) === 'Control+Enter') {
+      });
+      this.addHandler('input', 'input[data-name="field-code"]', (_, /** HTMLInputElement */target) => {
+        target.value = target.value.replace(/[^0-9]/g, '');
+      });
+      this.addHandler('keydown', '', e => {
+        if (_utils.default.getKeyFromKeyEvent(e) === 'Control+Enter') {
           e.preventDefault();
           this.send();
         }
-      }
-    };
-
-    /** @inheritDoc */
-    data() {
-      return {
-        message: this.message
-      };
+      });
+      this.addActionHandler('backToLogin', () => this.trigger('back'));
     }
-
-    /** @inheritDoc */
-    setup() {
-      this.message = this.translate(this.options.loginData.message, 'messages', 'User');
-      this.anotherUser = this.options.anotherUser || null;
-      this.headers = this.options.headers || {};
-      this.loginData = this.options.loginData;
-    }
-
-    /** @inheritDoc */
     afterRender() {
-      this.$code = (0, _jquery.default)('[data-name="field-code"]');
-      this.$submit = this.$el.find('#btn-send');
-      this.$code.focus();
+      this.codeElement = this.element.querySelector('[data-name="field-code"]');
+      this.submitElement = this.element.querySelector('#btn-send');
+      this.codeElement.focus();
     }
 
-    /** @private */
+    /**
+     * @private */
     send() {
-      const code = this.$code.val().trim().replace(/\s/g, '');
+      const code = this.codeElement.value.trim().replace(/\s/g, '');
       const userName = this.options.userName;
-      const token = this.loginData.token;
-      const headers = Espo.Utils.clone(this.headers);
+      const headers = _utils.default.clone(this.headers);
       if (code === '') {
         this.processEmptyCode();
         return;
       }
       this.disableForm();
-      if (userName && token) {
-        const authString = _jsBase.default.encode(userName + ':' + token);
-        headers['Authorization'] = 'Basic ' + authString;
-        headers['Espo-Authorization'] = authString;
-      }
       headers['Espo-Authorization-Code'] = code;
       headers['Espo-Authorization-Create-Token-Secret'] = 'true';
       if (this.anotherUser !== null) {
         headers['X-Another-User'] = this.anotherUser;
       }
       this.notifyLoading();
-      Espo.Ajax.getRequest('App/user', null, {
+      _ajax.default.getRequest('App/user', null, {
         login: true,
         headers: headers
       }).then(data => {
-        Espo.Ui.notify(false);
+        _ui.default.notify(false);
         this.triggerLogin(userName, data);
       }).catch(xhr => {
-        this.undisableForm();
+        this.enableForm();
         if (xhr.status === 401) {
           const statusReason = xhr.getResponseHeader('X-Status-Reason');
           if (statusReason === 'error') {
@@ -70112,62 +70816,83 @@ define("views/login-second-step", ["exports", "view", "js-base64", "jquery"], fu
       this.trigger('login', userName, data);
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     processEmptyCode() {
       this.isPopoverDestroyed = false;
       const message = this.getLanguage().translate('codeIsRequired', 'messages', 'User');
-      const $el = this.$code;
-      $el.popover({
+      const popover = _ui.default.popover(this.codeElement, {
         placement: 'bottom',
         container: 'body',
         content: message,
-        trigger: 'manual'
-      }).popover('show');
-      const $cell = $el.closest('.form-group');
-      $cell.addClass('has-error');
-      $el.one('mousedown click', () => {
-        $cell.removeClass('has-error');
+        trigger: 'manual',
+        noToggleInit: true
+      }, this);
+      popover.show();
+      const cellElement = this.codeElement.closest('.form-group');
+      cellElement.classList.add('has-error');
+      cellElement.addEventListener('mousedown', () => {
+        cellElement.classList.remove('has-error');
         if (this.isPopoverDestroyed) {
           return;
         }
-        $el.popover('destroy');
+        popover.destroy();
         this.isPopoverDestroyed = true;
+      }, {
+        once: true
       });
     }
 
-    /** @private */
-    onFail(msg) {
-      const $cell = (0, _jquery.default)('#login .form-group');
-      $cell.addClass('has-error');
-      this.$el.one('mousedown click', () => {
-        $cell.removeClass('has-error');
+    /**
+     * @private
+     */
+    onFail(message) {
+      const cellElement = this.element.querySelector('#login .form-group');
+      cellElement.classList.add('has-error');
+      cellElement.addEventListener('mousedown', () => {
+        cellElement.classList.remove('has-error');
+      }, {
+        once: true
       });
-      Espo.Ui.error(this.translate(msg, 'messages', 'User'));
+      _ui.default.error(this.translate(message, 'messages', 'User'));
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     onError() {
       this.onFail('loginError');
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     onWrongCredentials() {
       this.onFail('wrongCode');
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     notifyLoading() {
-      Espo.Ui.notifyWait();
+      _ui.default.notifyWait();
     }
 
-    /** @private */
+    /**
+     * @private
+     */
     disableForm() {
-      this.$submit.addClass('disabled').attr('disabled', 'disabled');
+      this.submitElement.classList.add('disabled');
+      this.submitElement.setAttribute('disabled', 'disabled');
     }
 
-    /** @private */
-    undisableForm() {
-      this.$submit.removeClass('disabled').removeAttr('disabled');
+    /**
+     * @private
+     */
+    enableForm() {
+      this.submitElement.classList.remove('disabled');
+      this.submitElement.removeAttribute('disabled');
     }
   }
 
@@ -70509,6 +71234,7 @@ define("views/list-related", ["exports", "views/main", "search-manager", "helper
       if (this.filtersDisabled) {
         filterList = [];
       }
+      const storageKey = this.panelDefs.recordSpecificSearchStorage ? this.model.entityType + '-' + this.model.id + '-' + this.link : null;
       const view = await this.createView('search', this.searchView, {
         collection: this.collection,
         fullSelector: '#main > .search-container',
@@ -70517,7 +71243,8 @@ define("views/list-related", ["exports", "views/main", "search-manager", "helper
         viewMode: this.viewMode,
         viewModeList: this.viewModeList,
         isWide: true,
-        filterList: filterList
+        filterList: filterList,
+        storageKey: storageKey
       });
       if (this.viewModeList.length > 1) {
         this.listenTo(view, 'change-view-mode', mode => this.switchViewMode(mode));
@@ -73629,7 +74356,7 @@ define("views/user-security/modals/totp", ["exports", "views/modal", "model"], f
   _exports.default = TotpModalView;
 });
 
-define("views/user/password-change-request", ["exports", "view", "model"], function (_exports, _view, _model) {
+define("views/user/password-change-request", ["exports", "view", "model", "ajax"], function (_exports, _view, _model, _ajax) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -73638,6 +74365,7 @@ define("views/user/password-change-request", ["exports", "view", "model"], funct
   _exports.default = void 0;
   _view = _interopRequireDefault(_view);
   _model = _interopRequireDefault(_model);
+  _ajax = _interopRequireDefault(_ajax);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -73668,12 +74396,104 @@ define("views/user/password-change-request", ["exports", "view", "model"], funct
    ************************************************************************/
 
   class _default extends _view.default {
-    template = 'user/password-change-request';
+    // language=Handlebars
+    templateContent = `
+        <div class="container content">
+            <div class="block-center">
+                <div class="panel panel-default password-change">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">{{translate 'Change Password' scope='User'}}</h4>
+                    </div>
+                    <div class="panel-body">
+                        {{#if hasForm}}
+                            <div class="row">
+                                <div class="cell form-group col-sm-6">
+                                    <label
+                                        for="login"
+                                        class="control-label"
+                                    >{{translate 'newPassword' category='fields' scope='User'}}</label>
+                                    <div class="field" data-name="password">{{{password}}}</div>
+                                </div>
+                                <div class="cell form-group col-sm-6">
+                                    <label
+                                        class="control-label"
+                                    >&nbsp;</label>
+                                    <div class="field" data-name="generatePassword">{{{generatePassword}}}</div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="cell form-group col-sm-6">
+                                    <label
+                                        for="login"
+                                        class="control-label"
+                                    >{{translate 'newPasswordConfirm' category='fields' scope='User'}}</label>
+                                    <div class="field" data-name="passwordConfirm">{{{passwordConfirm}}}</div>
+                                </div>
+                                <div class="cell form-group col-sm-6">
+                                    {{#if hasPasswordPreview}}
+                                        <label
+                                            class="control-label"
+                                        >&nbsp;</label>
+                                        <div
+                                            class="field detail-field-container"
+                                            data-name="passwordPreview"
+                                        >{{{passwordPreview}}}</div>
+                                    {{/if}}
+                                </div>
+                            </div>
+                            <div>
+                                <button
+                                    type="button"
+                                    class="btn btn-danger btn-s-wide"
+                                    id="btn-submit"
+                                >{{translate 'Submit'}}</button>
+                            </div>
+                        {{/if}}
+
+                        {{#if notFound}}
+                            <div class="complex-text">{{complexText notFoundMessage}}</div>
+                        {{/if}}
+
+                        {{#if isFinished}}
+                            <div
+                                class="alert alert-success"
+                            >{{complexText finishMessage}}</div>
+                            <div class="margin-top-2x">
+                                <a
+                                    class="btn btn-link"
+                                    href="{{followUrl}}"
+                                >{{translate 'Login' scope='User'}}</a>
+                            </div>
+                        {{/if}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    isFinished = false;
+
+    /**
+     * @private
+     * @type {string | null}
+     */
+    followUrl = null;
     data() {
+      const finishMessage = this.isFinished ? this.translate('passwordChangedByRequest', 'messages', 'User') : null;
+      console.log(finishMessage);
       return {
         requestId: this.options.requestId,
         notFound: this.options.notFound,
-        notFoundMessage: this.notFoundMessage
+        hasForm: !this.options.notFound && !this.isFinished,
+        notFoundMessage: this.notFoundMessage,
+        hasPasswordPreview: this.model.attributes.passwordPreview != null,
+        isFinished: this.isFinished,
+        followUrl: this.followUrl,
+        finishMessage: finishMessage
       };
     }
     setup() {
@@ -73684,12 +74504,10 @@ define("views/user/password-change-request", ["exports", "view", "model"], funct
         model: model,
         mode: 'edit',
         selector: '.field[data-name="password"]',
-        defs: {
-          name: 'password',
-          params: {
-            required: true,
-            maxLength: 255
-          }
+        name: 'password',
+        params: {
+          required: true,
+          maxLength: 255
         },
         strengthParams: this.options.strengthParams
       });
@@ -73697,12 +74515,10 @@ define("views/user/password-change-request", ["exports", "view", "model"], funct
         model: model,
         mode: 'edit',
         selector: '.field[data-name="passwordConfirm"]',
-        defs: {
-          name: 'passwordConfirm',
-          params: {
-            required: true,
-            maxLength: 255
-          }
+        name: 'passwordConfirm',
+        params: {
+          required: true,
+          maxLength: 255
         }
       });
       this.createView('generatePassword', 'views/user/fields/generate-password', {
@@ -73710,18 +74526,17 @@ define("views/user/password-change-request", ["exports", "view", "model"], funct
         mode: 'detail',
         readOnly: true,
         selector: '.field[data-name="generatePassword"]',
-        defs: {
-          name: 'generatePassword'
-        },
+        name: 'generatePassword',
         strengthParams: this.options.strengthParams
       });
-      this.createView('passwordPreview', 'views/fields/base', {
+      this.createView('passwordPreview', 'views/fields/varchar', {
         model: model,
         mode: 'detail',
         readOnly: true,
         selector: '.field[data-name="passwordPreview"]',
-        defs: {
-          name: 'passwordPreview'
+        name: 'passwordPreview',
+        params: {
+          copyToClipboard: true
         }
       });
       this.model.on('change:passwordPreview', () => this.reRender());
@@ -73736,31 +74551,35 @@ define("views/user/password-change-request", ["exports", "view", "model"], funct
     getFieldView(name) {
       return /** @type {import('views/fields/base').default} */this.getView(name);
     }
-    submit() {
+
+    /**
+     * @private
+     */
+    async submit() {
       this.getFieldView('password').fetchToModel();
       this.getFieldView('passwordConfirm').fetchToModel();
       const notValid = this.getFieldView('password').validate() || this.getFieldView('passwordConfirm').validate();
-      const password = this.model.get('password');
+      const password = this.model.attributes.password;
       if (notValid) {
         return;
       }
-      const $submit = this.$el.find('.btn-submit');
-      $submit.addClass('disabled');
-      Espo.Ajax.postRequest('User/changePasswordByRequest', {
-        requestId: this.options.requestId,
-        password: password
-      }).then(data => {
-        this.$el.find('.password-change').remove();
-        const url = data.url || this.baseUrl;
-        const a = document.createElement('a');
-        a.href = url;
-        a.innerText = this.translate('Login', 'labels', 'User');
-        const message = this.translate('passwordChangedByRequest', 'messages', 'User');
-        const html = this.getHelper().escapeString(message) + ' ' + a.outerHTML;
-        this.$el.find('.msg-box').removeClass('hidden').html('<span class="text-success">' + html + '</span>');
-      }).catch(() => {
-        return $submit.removeClass('disabled');
-      });
+      const button = this.element.querySelector('#btn-submit');
+      button.classList.add('disabled');
+      button.setAttribute('disabled', 'disabled');
+      let data;
+      try {
+        data = await _ajax.default.postRequest('User/changePasswordByRequest', {
+          requestId: this.options.requestId,
+          password: password
+        });
+      } catch (e) {
+        button.classList.remove('disabled');
+        button.removeAttribute('disabled');
+        return;
+      }
+      this.isFinished = true;
+      this.followUrl = data.url ?? this.baseUrl;
+      await this.reRender();
     }
   }
   _exports.default = _default;
@@ -73878,7 +74697,8 @@ define("views/user/detail", ["exports", "views/detail"], function (_exports, _de
               label: 'External Accounts',
               action: 'externalAccounts',
               link: '#ExternalAccount',
-              onClick: () => this.actionExternalAccounts()
+              onClick: () => this.actionExternalAccounts(),
+              style: 'text'
             });
           }
         }
@@ -73897,7 +74717,16 @@ define("views/user/detail", ["exports", "views/detail"], function (_exports, _de
           iconHtml: '<span class="far fa-calendar-alt"></span>',
           text: this.translate('Calendar', 'scopeNames'),
           link: `#Calendar/show/userId=${this.model.id}` + `&userName=${encodeURIComponent(this.model.attributes.name)}`,
-          hidden: !showActivities
+          hidden: !showActivities,
+          style: 'text'
+        });
+      }
+      if ((this.getUserModel().isRegular() || this.getUserModel().isAdmin()) && (this.getUser().id === this.getUserModel().id || this.getUser().isAdmin())) {
+        this.addMenuItem('dropdown', {
+          name: 'connectedApps',
+          iconHtml: '<span class="fas fa-user-lock"></span>',
+          text: this.translate('Connected Apps', 'labels', 'User'),
+          link: `#User/${this.model.id}/connectedApps`
         });
       }
     }
@@ -74835,7 +75664,7 @@ define("views/user/modals/select-followers", ["exports", "views/modals/select-re
   _exports.default = _default;
 });
 
-define("views/user/modals/security", ["exports", "views/modal", "model"], function (_exports, _modal, _model) {
+define("views/user/modals/security", ["exports", "views/modal", "model", "utils", "ajax", "ui"], function (_exports, _modal, _model, _utils, _ajax, _ui) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -74844,7 +75673,11 @@ define("views/user/modals/security", ["exports", "views/modal", "model"], functi
   _exports.default = void 0;
   _modal = _interopRequireDefault(_modal);
   _model = _interopRequireDefault(_model);
+  _utils = _interopRequireDefault(_utils);
+  _ajax = _interopRequireDefault(_ajax);
+  _ui = _interopRequireDefault(_ui);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
   /************************************************************************
    * This file is part of EspoCRM.
    *
@@ -74874,11 +75707,32 @@ define("views/user/modals/security", ["exports", "views/modal", "model"], functi
    ************************************************************************/
 
   class UserSecurityModalView extends _modal.default {
-    templateContent = '<div class="record no-side-margin">{{{record}}}</div>';
+    // language=Handlebars
+    templateContent = `
+        <div class="record no-side-margin">{{{record}}}</div>
+    `;
     className = 'dialog dialog-record';
     shortcutKeys = {
       'Control+Enter': 'apply'
     };
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    auth2FAIsSystemEnabled;
+
+    /**
+     * @private
+     * @type {import('views/record/edit').default}
+     */
+    recordView;
+
+    /**
+     * @private
+     * @type {import('models/user').default}
+     */
+    userModel;
     setup() {
       this.buttonList = [{
         name: 'apply',
@@ -74896,34 +75750,48 @@ define("views/user/modals/security", ["exports", "views/modal", "model"], functi
         hidden: true,
         onClick: () => this.reset()
       }];
+      this.addButton({
+        name: 'revokeAllTokens',
+        labelTranslation: 'User.strings.revokeAllAuthenticationTokens',
+        position: 'right',
+        onClick: () => this.processRevokeAllTokens()
+      });
       this.userModel = this.options.userModel;
-      this.$header = $('<span>').append($('<span>').text(this.translate('Security')), ' <span class="chevron-right"></span> ', $('<span>').text(this.userModel.get('userName')));
+      this.headerHtml = (() => {
+        const span = document.createElement('span');
+        span.textContent = this.translate('Security');
+        return span.outerHTML;
+      })() + ` <span class="chevron-right"></span> ` + (() => {
+        const span = document.createElement('span');
+        span.textContent = this.userModel.get('userName');
+        return span.outerHTML;
+      })();
       const model = this.model = new _model.default();
       model.name = 'UserSecurity';
       model.id = this.userModel.id;
       model.url = 'UserSecurity/' + this.userModel.id;
-      const auth2FAMethodList = this.getConfig().get('auth2FAMethodList') || [];
+      const auth2FAMethodList = this.getConfig().get('auth2FAMethodList') ?? [];
+      this.auth2FAIsSystemEnabled = this.userModel.isPortal() ? this.getConfig().get('auth2FAInPortal') ?? false : this.getConfig().get('auth2FA') ?? false;
       model.setDefs({
         fields: {
-          'auth2FA': {
+          auth2FA: {
             type: 'bool',
             labelText: this.translate('auth2FAEnable', 'fields', 'User')
           },
-          'auth2FAMethod': {
+          auth2FAMethod: {
             type: 'enum',
             options: auth2FAMethodList,
             translation: 'Settings.options.auth2FAMethodList'
           }
         }
       });
-      this.wait(model.fetch().then(() => {
-        this.initialAttributes = Espo.Utils.cloneDeep(model.attributes);
-        if (model.get('auth2FA')) {
-          this.showActionItem('reset');
+      this.wait((async () => {
+        await model.fetch();
+        this.initialAttributes = _utils.default.cloneDeep(model.attributes);
+        if (model.attributes.auth2FA && this.auth2FAIsSystemEnabled) {
+          await this.showActionItem('reset');
         }
-        this.createView('record', 'views/record/edit-for-modal', {
-          scope: 'None',
-          selector: '.record',
+        this.recordView = await this.createView('record', 'views/record/edit-for-modal', {
           model: this.model,
           detailLayout: [{
             rows: [[{
@@ -74934,30 +75802,39 @@ define("views/user/modals/security", ["exports", "views/modal", "model"], functi
               labelText: this.translate('auth2FAMethod', 'fields', 'User')
             }]]
           }]
-        }, view => {
-          this.controlFieldsVisibility(view);
-          this.listenTo(this.model, 'change:auth2FA', () => {
-            this.controlFieldsVisibility(view);
-          });
         });
-      }));
+        this.controlFieldsVisibility();
+        this.listenTo(this.model, 'change:auth2FA', () => this.controlFieldsVisibility());
+      })());
       this.listenTo(this.model, 'change', () => {
         if (this.initialAttributes) {
           this.isChanged() ? this.showActionItem('apply') : this.hideActionItem('apply');
         }
       });
     }
-    controlFieldsVisibility(view) {
-      if (this.model.get('auth2FA')) {
-        view.showField('auth2FAMethod');
-        view.setFieldRequired('auth2FAMethod');
+
+    /**
+     * @private
+     */
+    controlFieldsVisibility() {
+      if (this.model.attributes.auth2FA) {
+        this.recordView.showField('auth2FAMethod');
+        this.recordView.setFieldRequired('auth2FAMethod');
       } else {
-        view.hideField('auth2FAMethod');
-        view.setFieldNotRequired('auth2FAMethod');
+        this.recordView.hideField('auth2FAMethod');
+        this.recordView.setFieldNotRequired('auth2FAMethod');
+      }
+      if (!this.auth2FAIsSystemEnabled) {
+        if (!this.model.attributes.auth2FA) {
+          this.recordView.setFieldReadOnly('auth2FA');
+          this.recordView.hideField('auth2FA');
+        }
+        this.recordView.setFieldReadOnly('auth2FAMethod');
+        this.recordView.setFieldNotRequired('auth2FAMethod');
       }
     }
     isChanged() {
-      return this.initialAttributes.auth2FA !== this.model.get('auth2FA') || this.initialAttributes.auth2FAMethod !== this.model.get('auth2FAMethod');
+      return this.initialAttributes.auth2FA !== this.model.attributes.auth2FA || this.initialAttributes.auth2FAMethod !== this.model.attributes.attributes;
     }
     reset() {
       this.confirm(this.translate('security2FaResetConfirmation', 'messages', 'User'), () => {
@@ -74966,12 +75843,18 @@ define("views/user/modals/security", ["exports", "views/modal", "model"], functi
     }
 
     /**
-     * @return {module:views/record/edit}
+     * @return {import('views/record/edit').default}
      */
     getRecordView() {
-      return this.getView('record');
+      return /** @type {import('views/record/edit').default} */this.getView('record');
     }
-    apply(reset) {
+
+    /**
+     * @private
+     * @param {boolean} reset
+     */
+    apply() {
+      let reset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       const data = this.getRecordView().processFetch();
       if (!data) {
         return;
@@ -74989,7 +75872,13 @@ define("views/user/modals/security", ["exports", "views/modal", "model"], functi
         });
       }).then(() => this.processApply(reset));
     }
-    processApply(reset) {
+
+    /**
+     * @private
+     * @param {boolean} reset
+     */
+    processApply() {
+      let reset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       if (this.model.get('auth2FA')) {
         const auth2FAMethod = this.model.get('auth2FAMethod');
         const view = this.getMetadata().get(['app', 'authentication2FAMethods', auth2FAMethod, 'userApplyView']);
@@ -75025,12 +75914,33 @@ define("views/user/modals/security", ["exports", "views/modal", "model"], functi
       }
       this.processSave();
     }
+
+    /**
+     * @private
+     */
     processSave() {
       this.hideActionItem('apply');
       this.model.save().then(() => {
         this.close();
         Espo.Ui.success(this.translate('Done'));
       }).catch(() => this.showActionItem('apply'));
+    }
+
+    /**
+     * @private
+     */
+    async processRevokeAllTokens() {
+      await this.confirm({
+        message: this.translate('confirmation', 'messages')
+      });
+      await this.disableButton('revokeAllTokens');
+      try {
+        await _ajax.default.postRequest(`User/${this.userModel.id}/revokeAllAuthenticationTokens`);
+      } catch (e) {
+        await this.enableButton('revokeAllTokens');
+        return;
+      }
+      _ui.default.success(this.translate('Done'));
     }
   }
   var _default = _exports.default = UserSecurityModalView;
@@ -75346,7 +76256,7 @@ define("views/user/modals/access", ["exports", "views/modal"], function (_export
     };
     data() {
       return {
-        valuePermissionDataList: this.getValuePermissionList(),
+        valuePermissionRowList: this.getValuePermissionRowList(),
         levelListTranslation: this.getLanguage().get('Role', 'options', 'levelList') || {},
         styleMap: this.styleMap
       };
@@ -75361,6 +76271,20 @@ define("views/user/modals/access", ["exports", "views/modal"], function (_export
         dataList.push(o);
       });
       return dataList;
+    }
+
+    /**
+     * @private
+     * @return {{name: string, value: string}[][]}
+     */
+    getValuePermissionRowList() {
+      const dataList = this.getValuePermissionList();
+      const columnCount = 4;
+      const rowList = [];
+      for (let i = 0; i < dataList.length; i += columnCount) {
+        rowList.push(dataList.slice(i, i + columnCount));
+      }
+      return rowList;
     }
     setup() {
       this.buttonList = [{
@@ -81016,7 +81940,7 @@ define("views/record/list-nested-categories", ["exports", "view", "helpers/recor
   var _default = _exports.default = ListNestedCategoriesRecordView;
 });
 
-define("views/record/kanban", ["exports", "views/record/list", "helpers/record-modal", "views/record/kanban/pipeline-dropdown", "helpers/misc/pipelines", "underscore"], function (_exports, _list, _recordModal, _pipelineDropdown, _pipelines, _underscore) {
+define("views/record/kanban", ["exports", "views/record/list", "helpers/record-modal", "views/record/kanban/pipeline-dropdown", "helpers/misc/pipelines", "underscore", "utils", "ui", "ajax"], function (_exports, _list, _recordModal, _pipelineDropdown, _pipelines, _underscore, _utils, _ui, _ajax) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -81028,6 +81952,9 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
   _pipelineDropdown = _interopRequireDefault(_pipelineDropdown);
   _pipelines = _interopRequireDefault(_pipelines);
   _underscore = _interopRequireDefault(_underscore);
+  _utils = _interopRequireDefault(_utils);
+  _ui = _interopRequireDefault(_ui);
+  _ajax = _interopRequireDefault(_ajax);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -81204,97 +82131,6 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
       this.groupChangeSaveHandler = options.groupChangeSaveHandler;
     }
 
-    // @todo Move to `setupEventHandlers`.
-    events = {
-      /** @this KanbanRecordView */
-      'click a.link': function (e) {
-        if (e.ctrlKey || e.metaKey || e.shiftKey) {
-          return;
-        }
-        e.stopPropagation();
-        if (!this.scope || this.selectable) {
-          return;
-        }
-        e.preventDefault();
-        const id = $(e.currentTarget).data('id');
-        const model = this.collection.get(id);
-        const scope = this.getModelScope(id);
-        const options = {
-          id: id,
-          model: model
-        };
-        if (this.options.keepCurrentRootUrl) {
-          options.rootUrl = this.getRouter().getCurrentUrl();
-        }
-        this.getRouter().navigate(`#${scope}/view/${id}`, {
-          trigger: false
-        });
-        this.getRouter().dispatch(scope, 'view', options);
-      },
-      /** @this KanbanRecordView */
-      'click [data-action="groupShowMore"]': function (e) {
-        const $target = $(e.currentTarget);
-        const group = $target.data('name');
-        this.groupShowMore(group);
-      },
-      /** @this KanbanRecordView */
-      'click .action': function (e) {
-        Espo.Utils.handleAction(this, e.originalEvent, e.currentTarget, {
-          actionItems: [...this.buttonList],
-          className: 'list-action-item'
-        });
-      },
-      /** @this KanbanRecordView */
-      'mouseenter th.group-header': function (e) {
-        if (!this.isCreatable) {
-          return;
-        }
-        const group = $(e.currentTarget).attr('data-name');
-        this.showPlus(group);
-      },
-      /** @this KanbanRecordView */
-      'mouseleave th.group-header': function (e) {
-        const group = $(e.currentTarget).attr('data-name');
-        this.hidePlus(group);
-      },
-      /** @this KanbanRecordView */
-      'click [data-action="createInGroup"]': function (e) {
-        const group = $(e.currentTarget).attr('data-group');
-        this.actionCreateInGroup(group);
-      },
-      /** @this KanbanRecordView */
-      'mousedown .kanban-columns td': function (e) {
-        if ($(e.originalEvent.target).closest('.item').length) {
-          return;
-        }
-        this.initBackDrag(e.originalEvent);
-      },
-      /** @this KanbanRecordView */
-      'auxclick a.link': function (e) {
-        const isCombination = e.button === 1 && (e.ctrlKey || e.metaKey);
-        if (!isCombination) {
-          return;
-        }
-        const $target = $(e.currentTarget);
-        const id = $target.attr('data-id');
-        if (!id) {
-          return;
-        }
-        if (this.quickDetailDisabled) {
-          return;
-        }
-        const $quickView = $target.parent().closest(`[data-id="${id}"]`).find(`ul.list-row-dropdown-menu[data-id="${id}"] a[data-action="quickView"]`);
-        if (!$quickView.length) {
-          return;
-        }
-        e.preventDefault();
-        e.stopPropagation();
-        this.actionQuickView({
-          id: id
-        });
-      }
-    };
-
     // noinspection JSCheckFunctionSignatures
     data() {
       const topBar = !this.options.topBarDisabled && (this.displayTotalCount || this.buttonList.length && !this.buttonsDisabled || !!this._listSettingsHelper || this.usePipeline);
@@ -81351,7 +82187,7 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
       this.layoutLoadCallbackList = [];
       this.entityType = this.collection.entityType || null;
       this.scope = this.options.scope || this.entityType;
-      this.buttonList = Espo.Utils.clone(this.buttonList);
+      this.buttonList = _utils.default.clone(this.buttonList);
       if ('showCount' in this.options) {
         this.showCount = this.options.showCount;
       }
@@ -81432,7 +82268,107 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
     /**
      * @protected
      */
-    setupEventHandlers() {}
+    setupEventHandlers() {
+      this.addHandler('click', 'a.link', (e, target) => {
+        if (e.ctrlKey || e.metaKey || e.shiftKey) {
+          return;
+        }
+        e.stopPropagation();
+        if (!this.scope || this.selectable) {
+          return;
+        }
+        e.preventDefault();
+        this.processLinkClick(target.dataset.id);
+      });
+      this.addHandler('auxclick', 'a.link', (e, target) => {
+        var _target$parentElement;
+        const isCombination = e.button === 1 && (e.ctrlKey || e.metaKey);
+        if (!isCombination) {
+          return;
+        }
+        const id = target.dataset.id;
+        if (!id) {
+          return;
+        }
+        if (this.quickDetailDisabled) {
+          return;
+        }
+        const quickViewElement = (_target$parentElement = target.parentElement.closest(`[data-id="${id}"]`)) === null || _target$parentElement === void 0 ? void 0 : _target$parentElement.querySelector(`ul.list-row-dropdown-menu[data-id="${id}"] a[data-action="quickView"]`);
+        if (!quickViewElement) {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        this.actionQuickView({
+          id: id
+        });
+      });
+      this.addActionHandler('groupShowMore', (_, target) => {
+        this.groupShowMore(target.dataset.name);
+      });
+      this.addHandler('click', '.action', (event, target) => {
+        _utils.default.handleAction(this, event, target, {
+          actionItems: [...this.buttonList],
+          className: 'list-action-item'
+        });
+      });
+      this.addHandler('mouseenter', 'th.group-header', (_, target) => {
+        if (!this.isCreatable) {
+          return;
+        }
+        this.showPlus(target.dataset.name);
+      });
+      this.addHandler('mouseleave', 'th.group-header', (_, target) => {
+        this.hidePlus(target.dataset.name);
+      });
+      this.addHandler('mousedown', '.kanban-columns td', (e, target) => {
+        if (target.closest('.item')) {
+          return;
+        }
+        this.initBackDrag(e);
+      });
+      this.addActionHandler('createInGroup', (_, target) => {
+        this.actionCreateInGroup(target.dataset.group);
+      });
+    }
+
+    /**
+     * @protected
+     * @type {string}
+     */
+    processLinkClick(id) {
+      const scope = this.getModelScope(id);
+      const originalModel = this.collection.get(id);
+      const groupCollection = originalModel.collection;
+      const collection = groupCollection.clone({
+        withModels: true
+      });
+      collection.data.select = _utils.default.clone(this.collection.data.select);
+      const model = collection.get(id);
+      const options = {
+        id: id,
+        model: model
+      };
+      if (this.options.keepCurrentRootUrl) {
+        options.rootUrl = this.getRouter().getCurrentUrl();
+      }
+      this.listenTo(collection, 'model-sync', (/** Model */m, /** Record */o) => {
+        if (o.action === 'destroy') {
+          this.removeRecordFromList(m.id);
+        }
+        const model = this.collection.get(m.id);
+        if (!model) {
+          return;
+        }
+        if (o.action === 'set' || o.action === 'fetch' || o.action === 'save') {
+          model.setMultiple(m.getClonedAttributes(), o);
+        }
+      });
+      this.getRouter().navigate(`#${scope}/view/${id}`, {
+        trigger: false
+      });
+      this.getRouter().dispatch(scope, 'view', options);
+    }
 
     /**
      * @private
@@ -81490,11 +82426,11 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
           this.setPipelineWhere();
           this.getStorage().set('state', this.buildPipelineIdStorageKey(), id);
           await view.reRender();
-          Espo.Ui.notifyWait();
+          _ui.default.notifyWait();
           await this.collection.fetch({
             maxSize: this.collection.maxSize
           });
-          Espo.Ui.notify();
+          _ui.default.notify();
         }
       });
       this.assignView('pipelineDropdown', view);
@@ -81673,7 +82609,7 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
               });
             };
             processSave().then(() => {
-              Espo.Ui.success(this.translate('Saved'));
+              _ui.default.success(this.translate('Saved'));
               $list.sortable('destroy');
               this.initSortable();
               this.moveModelBetweenGroupCollections(model, draggedGroupFrom, group);
@@ -81713,7 +82649,7 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
       if (this.onGroupOrder) {
         return this.onGroupOrder(group, ids);
       }
-      return Espo.Ajax.putRequest('Kanban/order', {
+      return _ajax.default.putRequest('Kanban/order', {
         entityType: this.entityType,
         group: group,
         ids: ids
@@ -81899,6 +82835,7 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
           collection.add(item.list);
           this.subCollectionList.push(collection);
           this.collection.add(collection.models);
+          collection.data.select = _utils.default.clone(this.collection.data.select);
           const itemDataList = [];
           collection.models.forEach(model => {
             count++;
@@ -82015,6 +82952,7 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
      * @param {Record} o Options.
      */
     onChangeGroup(model, value, o) {
+      var _this$element, _this$element2;
       if (o.action === 'fetch') {
         return;
       }
@@ -82056,12 +82994,14 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
           groupItem.hasShowMore = groupItem.collection.total > groupItem.collection.length || groupItem.collection.total === -1;
         }
       }
-      const $item = this.$el.find('.item[data-id="' + id + '"]');
-      const $column = this.$el.find('.group-column[data-name="' + group + '"] .group-column-list');
-      if ($column.length) {
-        $column.prepend($item);
-      } else {
-        $item.remove();
+      const columnElement = (_this$element = this.element) === null || _this$element === void 0 ? void 0 : _this$element.querySelector(`.group-column[data-name="${group}"] .group-column-list`);
+      const itemElement = (_this$element2 = this.element) === null || _this$element2 === void 0 ? void 0 : _this$element2.querySelector(`.item[data-id="${id}"]`);
+      if (itemElement) {
+        if (columnElement) {
+          columnElement.prepend(itemElement);
+        } else {
+          itemElement.remove();
+        }
       }
       if (o.action && o.action !== 'sync') {
         return;
@@ -82070,6 +83010,11 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
         this.storeGroupOrder(group);
       }
     }
+
+    /**
+     * @private
+     * @param {string} group
+     */
     groupShowMore(group) {
       let groupItem;
       for (const i in this.groupDataList) {
@@ -82313,11 +83258,11 @@ define("views/record/kanban", ["exports", "views/record/list", "helpers/record-m
           this.collection.data.select = selectAttributes.join(',');
         }
       }
-      Espo.Ui.notifyWait();
+      _ui.default.notifyWait();
       await this.collection.fetch({
         maxSize: this.collection.maxSize
       });
-      Espo.Ui.notify(false);
+      _ui.default.notify(false);
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -84144,7 +85089,7 @@ define("views/preferences/record/edit", ["exports", "views/record/edit"], functi
         this.hideField('theme');
       }
       this.on('save', /** Record */initialAttributes => {
-        if (this.model.get('language') !== initialAttributes.language || this.model.get('theme') !== initialAttributes.theme || (this.model.get('themeParams') || {}).navbar !== (initialAttributes.themeParams || {}).navbar || this.model.get('pageContentWidth') !== initialAttributes.pageContentWidth) {
+        if (this.model.get('language') !== initialAttributes.language || this.model.get('theme') !== initialAttributes.theme || (this.model.get('themeParams') || {}).navbar !== (initialAttributes.themeParams || {}).navbar || (this.model.get('themeParams') || {}).direction !== (initialAttributes.themeParams || {}).direction || this.model.get('pageContentWidth') !== initialAttributes.pageContentWidth || this.model.get('recordContentWidth') !== initialAttributes.recordContentWidth) {
           this.setConfirmLeaveOut(false);
           window.location.reload();
         }
@@ -84408,12 +85353,7 @@ define("views/preferences/fields/theme", ["exports", "views/settings/fields/them
 
   class _default extends _theme.default {
     setupOptions() {
-      this.params.options = Object.keys(this.getMetadata().get('themes') || {}).sort((v1, v2) => {
-        if (v2 === 'EspoRtl') {
-          return -1;
-        }
-        return this.translate(v1, 'themes').localeCompare(this.translate(v2, 'themes'));
-      });
+      this.params.options = Object.keys(this.getMetadata().get('themes') || {}).sort((v1, v2) => this.translate(v1, 'themes').localeCompare(this.translate(v2, 'themes')));
       this.params.options.unshift('');
     }
     setupTranslation() {
@@ -84425,9 +85365,14 @@ define("views/preferences/fields/theme", ["exports", "views/settings/fields/them
     }
     afterRenderDetail() {
       const navbar = this.getNavbarValue() || this.getDefaultNavbar();
-      if (navbar) {
-        this.$el.append(' ').append($('<span>').addClass('text-muted chevron-right')).append(' ').append($('<span>').text(this.translate(navbar, 'themeNavbars')));
-      }
+      const direction = this.getDirectionValue() || this.getDefaultDirection();
+      [[navbar, 'themeNavbars'], [direction, 'themeDirections']].forEach(_ref => {
+        let [value, category] = _ref;
+        if (!value) {
+          return;
+        }
+        this.$el.append(' ').append($('<span>').addClass('text-muted chevron-right')).append(' ').append($('<span>').text(this.translate(value, category)));
+      });
     }
   }
   _exports.default = _default;
@@ -85621,7 +86566,152 @@ define("views/o-auth-provider/fields/authorization-params", ["exports", "views/f
   _exports.default = OAuthProviderAuthorizationParamsFieldView;
 });
 
-define("views/o-auth-account/records/panels/connection", ["exports", "views/record/panels/side"], function (_exports, _side) {
+define("views/o-auth-client-secret/fields/value", ["exports", "views/fields/varchar"], function (_exports, _varchar) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _varchar = _interopRequireDefault(_varchar);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class OAuthClientSecretValueField extends _varchar.default {
+    // noinspection JSUnusedGlobalSymbols
+    listLinkTemplateContent = `
+        {{~#if copyToClipboard~}}
+            <a
+                role="button"
+                data-action="copyToClipboard"
+                class="pull-right text-soft"
+                title="{{translate 'Copy to Clipboard'}}"
+            ><span class="far fa-copy"></span></a>
+        {{~/if~}}
+        <a
+            href="#{{scope}}/view/{{model.id}}"
+            class="link"
+            data-id="{{model.id}}"
+            title="{{value}}"
+        >{{#if value}}{{value}}{{else}}{{translate 'None'}}{{/if}}</a>
+    `;
+    getAttributeList() {
+      return [...super.getAttributeList(), 'name'];
+    }
+    data() {
+      const data = super.data();
+      return {
+        ...data,
+        isNotEmpty: data.isNotEmpty || this.model.attributes.name != null,
+        valueIsSet: data.valueIsSet || this.model.attributes.name != null
+      };
+    }
+    setup() {
+      this.model.onChange({
+        owner: this,
+        attributes: ['hasValue'],
+        callback: () => {
+          this.params.copyToClipboard = !!this.model.attributes.value;
+        }
+      });
+      this.params.copyToClipboard = !!this.model.attributes.value;
+      super.setup();
+    }
+    getValueForDisplay() {
+      if (this.model.attributes.value) {
+        return this.model.attributes.value;
+      }
+      return this.model.attributes.name;
+    }
+  }
+  _exports.default = OAuthClientSecretValueField;
+});
+
+define("views/o-auth-client/fields/scopes", ["exports", "views/fields/array"], function (_exports, _array) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _array = _interopRequireDefault(_array);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  class OAuthClientScopesFieldView extends _array.default {
+    commonScopes = ['Global', 'Admin'];
+    setupOptions() {
+      this.params.options = [...this.commonScopes, ...this.getAclScopes()];
+    }
+    getAclScopes() {
+      const scopesDefs = this.getMetadata().get('scopes', []);
+      const list = [];
+      for (const [scope, defs] of Object.entries(scopesDefs)) {
+        if (defs.disabled || !defs.acl || this.commonScopes.includes(scope)) {
+          continue;
+        }
+        list.push(scope);
+      }
+      list.sort((a, b) => a.localeCompare(b));
+      return list;
+    }
+  }
+  _exports.default = OAuthClientScopesFieldView;
+});
+
+define("views/o-auth-account/records/panels/connection", ["exports", "views/record/panels/side", "ajax", "ui"], function (_exports, _side, _ajax, _ui) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -85629,6 +86719,8 @@ define("views/o-auth-account/records/panels/connection", ["exports", "views/reco
   });
   _exports.default = void 0;
   _side = _interopRequireDefault(_side);
+  _ajax = _interopRequireDefault(_ajax);
+  _ui = _interopRequireDefault(_ui);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -85715,10 +86807,10 @@ define("views/o-auth-account/records/panels/connection", ["exports", "views/reco
     async actionDisconnect() {
       this.inProcess = true;
       await this.reRender();
-      Espo.Ui.notifyWait();
-      await Espo.Ajax.deleteRequest(`OAuth/${this.model.id}/connection`);
+      _ui.default.notifyWait();
+      await _ajax.default.deleteRequest(`OAuth/${this.model.id}/connection`);
       await this.model.fetch();
-      Espo.Ui.notify();
+      _ui.default.notify();
       this.inProcess = false;
       await this.reRender();
     }
@@ -85727,27 +86819,41 @@ define("views/o-auth-account/records/panels/connection", ["exports", "views/reco
      * @private
      */
     async actionConnect() {
-      const data = this.model.attributes.data || {};
-      const endpoint = data.endpoint;
-      const redirectUri = data.redirectUri;
-      const clientId = data.clientId;
-      const scope = data.scope;
-      const prompt = data.prompt;
-      const params = data.params;
-      const proxy = window.open('about:blank', 'ConnectWithOAuth', 'location=0,status=0,width=800,height=800');
-      const info = await this.processWithData({
-        endpoint,
-        redirectUri,
-        clientId,
-        scope,
-        prompt,
-        params
-      }, proxy);
       this.inProcess = true;
       await this.reRender();
-      Espo.Ui.notifyWait();
+
+      /**
+       * @type {{
+       *     endpoint: string,
+       *     clientId: string,
+       *     redirectUri: string,
+       *     scope: string|null,
+       *     prompt: string,
+       *     params: Record|null,
+       *     codeChallenge: string|null,
+       *     codeChallengeMethod: string|null,
+       * }}
+       */
+      let data;
       try {
-        await Espo.Ajax.postRequest(`OAuth/${this.model.id}/connection`, {
+        data = await _ajax.default.getRequest(`OAuth/${this.model.id}/authorizationData`);
+      } catch (e) {
+        this.inProcess = false;
+        await this.reRender();
+        return;
+      }
+      const proxy = window.open('about:blank', 'ConnectWithOAuth', 'location=0,status=0,width=800,height=800');
+      let info;
+      try {
+        info = await this.processWithData(data, proxy);
+      } catch (e) {
+        this.inProcess = false;
+        await this.reRender();
+        return;
+      }
+      _ui.default.notifyWait();
+      try {
+        await _ajax.default.postRequest(`OAuth/${this.model.id}/connection`, {
           code: info.code
         });
       } catch (e) {
@@ -85756,7 +86862,7 @@ define("views/o-auth-account/records/panels/connection", ["exports", "views/reco
         return;
       }
       await this.model.fetch();
-      Espo.Ui.notify();
+      _ui.default.notify();
       this.inProcess = false;
       await this.reRender();
     }
@@ -85770,6 +86876,8 @@ define("views/o-auth-account/records/panels/connection", ["exports", "views/reco
      *     scope: string|null,
      *     prompt: string,
      *     params: Record|null,
+     *     codeChallenge: string|null,
+     *     codeChallengeMethod: string|null,
      * }} data
      * @param {WindowProxy} proxy
      * @return {Promise<{code: string}>}
@@ -85784,6 +86892,10 @@ define("views/o-auth-account/records/panels/connection", ["exports", "views/reco
       };
       if (data.scope) {
         params.scope = data.scope;
+      }
+      if (data.codeChallenge && data.codeChallengeMethod) {
+        params.code_challenge = data.codeChallenge;
+        params.code_challenge_method = data.codeChallengeMethod;
       }
       if (data.params) {
         for (const name in data.params) {
@@ -85832,17 +86944,30 @@ define("views/o-auth-account/records/panels/connection", ["exports", "views/reco
           const parsedData = this.parseWindowUrl(url);
           if (!parsedData) {
             fail();
-            Espo.Ui.error('Could not parse URL', true);
+            _ui.default.error('Could not parse URL', true);
             return;
           }
           if ((parsedData.error || parsedData.code) && state && parsedData.state !== state) {
             fail();
-            Espo.Ui.error('State mismatch', true);
+            _ui.default.error('State mismatch', true);
             return;
           }
           if (parsedData.error) {
+            let message = parsedData.errorDescription ?? '';
+            if (message) {
+              message += '\n\n';
+            }
+            if (parsedData.error) {
+              message += '`' + parsedData.error + '`';
+            }
+            if (parsedData.code) {
+              if (parsedData.error) {
+                message += ' ';
+              }
+              message += parsedData.code;
+            }
             fail();
-            Espo.Ui.error(parsedData.errorDescription || this.translate('Error'), true);
+            _ui.default.error(message, true);
             return;
           }
           if (parsedData.code) {
@@ -85873,7 +86998,7 @@ define("views/o-auth-account/records/panels/connection", ["exports", "views/reco
           code: params.get('code'),
           state: params.get('state'),
           error: params.get('error'),
-          errorDescription: params.get('errorDescription')
+          errorDescription: params.get('errorDescription') ?? params.get('error_description')
         };
       } catch (e) {
         return null;
@@ -88437,10 +89562,10 @@ define("views/modals/resolve-save-conflict", ["exports", "views/modal", "ui/sele
                 <tbody>
                 {{#each dataList}}
                     <tr>
-                        <td class="cell cell-nowrap">
-                    <span>
-                        {{translate field category='fields' scope=../entityType}}
-                    </span>
+                        <td class="cell cell-nowrap ">
+                            <div class="detail-field-container">
+                                {{translate field category='fields' scope=../entityType}}
+                            </div>
                         </td>
                         <td class="cell">
                             <select class="form-control" data-name="resolution" data-field="{{field}}">
@@ -88448,7 +89573,11 @@ define("views/modals/resolve-save-conflict", ["exports", "views/modal", "ui/sele
                             </select>
                         </td>
                         <td class="cell">
-                            <div data-name="field" data-field="{{field}}">
+                            <div
+                                data-name="field"
+                                data-field="{{field}}"
+                                class="detail-field-container"
+                            >
                                 {{{var viewKey ../this}}}
                             </div>
                         </td>
@@ -88501,6 +89630,10 @@ define("views/modals/resolve-save-conflict", ["exports", "views/modal", "ui/sele
       const attributeList = this.options.attributeList;
       const fieldList = [];
       this.getFieldManager().getEntityTypeFieldList(this.entityType).forEach(field => {
+        const fieldType = this.model.getFieldType(field);
+        if (this.getMetadata().get(`fields.${fieldType}.composite`) || this.model.getFieldParam(field, 'noOptimisticConcurrencyControlResolution')) {
+          return;
+        }
         const fieldAttributeList = this.getFieldManager().getEntityTypeFieldAttributeList(this.entityType, field);
         const intersect = attributeList.filter(value => fieldAttributeList.includes(value));
         if (intersect.length) {
@@ -90438,6 +91571,23 @@ define("views/modals/array-field-add", ["exports", "views/modal"], function (_ex
         name: 'cancel',
         label: 'Cancel'
       }];
+      if (this.options.checkAll && this.optionList.length) {
+        this.addButton({
+          name: 'checkAll',
+          label: 'Check All',
+          position: 'right',
+          onClick: () => {
+            this.checkedList = [];
+            for (const it of this.optionList) {
+              this.checkedList.push(it);
+              this.element.querySelectorAll('input[data-value]').forEach(input => {
+                input.checked = true;
+              });
+              this.checkedList.length ? this.enableButton('select') : this.disableButton('select');
+            }
+          }
+        });
+      }
     }
     afterRender() {
       this.$noData = this.$el.find('.no-data');
@@ -91181,7 +92331,7 @@ define("views/lead-capture/fields/smtp-account", ["exports", "views/fields/enum"
   _exports.default = _default;
 });
 
-define("views/lead-capture/fields/phone-number-country", ["exports", "views/fields/enum", "intl-tel-input-globals"], function (_exports, _enum, _intlTelInputGlobals) {
+define("views/lead-capture/fields/phone-number-country", ["exports", "views/fields/enum", "intl-tel-input"], function (_exports, _enum, _intlTelInput) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -91189,7 +92339,7 @@ define("views/lead-capture/fields/phone-number-country", ["exports", "views/fiel
   });
   _exports.default = void 0;
   _enum = _interopRequireDefault(_enum);
-  _intlTelInputGlobals = _interopRequireDefault(_intlTelInputGlobals);
+  _intlTelInput = _interopRequireDefault(_intlTelInput);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -91219,12 +92369,10 @@ define("views/lead-capture/fields/phone-number-country", ["exports", "views/fiel
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
 
-  // noinspection NpmUsedModulesInstalled
-
   class LeadCapturePhoneNumberCountry extends _enum.default {
     setupOptions() {
-      this.params.options = ['', ..._intlTelInputGlobals.default.getCountryData().map(item => item.iso2)];
-      this.translatedOptions = _intlTelInputGlobals.default.getCountryData().reduce((map, item) => {
+      this.params.options = ['', ..._intlTelInput.default.getAllCountries().map(item => item.iso2)];
+      this.translatedOptions = _intlTelInput.default.getAllCountries().reduce((map, item) => {
         map[item.iso2] = `${item.iso2.toUpperCase()} +${item.dialCode}`;
         return map;
       }, {});
@@ -91272,12 +92420,7 @@ define("views/lead-capture/fields/form-theme", ["exports", "views/fields/enum"],
 
   class FormThemeFieldView extends _enum.default {
     setupOptions() {
-      const list = Object.keys(this.getMetadata().get('themes') || {}).sort((v1, v2) => {
-        if (v2 === 'EspoRtl') {
-          return -1;
-        }
-        return this.translate(v1, 'theme').localeCompare(this.translate(v2, 'theme'));
-      });
+      const list = Object.keys(this.getMetadata().get('themes') || {}).sort((v1, v2) => this.translate(v1, 'theme').localeCompare(this.translate(v2, 'theme')));
       this.params.options = ['', ...list];
     }
   }
@@ -92352,17 +93495,18 @@ define("views/global-search/global-search", ["exports", "ui/autocomplete", "help
          *         itemList: {
          *             url: string,
          *             tabQuickSearch: boolean,
-         *             label: string,
+         *             label?: string,
+         *             labelTranslation?: string,
          *         }[]
          *     }>
          * } panels */
         const panels = this.getMetadata().get(`app.adminPanel`) || {};
         Object.entries(panels).map(it => it[1]).sort((a, b) => a.order - b.order).filter(it => it.itemList) // For bc.
         .forEach(it => {
-          it.itemList.filter(it => it.tabQuickSearch && it.label).filter(it => !list.find(subIt => subIt.url === it.url)).forEach(it => {
-            const label = this.translate(it.label, 'labels', 'Admin');
+          it.itemList.filter(it => it.tabQuickSearch && (it.label || it.labelTranslation)).filter(it => !list.find(subIt => subIt.url === it.url)).forEach(it => {
+            const label = it.labelTranslation ? this.getLanguage().translatePath(it.labelTranslation) : this.translate(it.label, 'labels', 'Admin');
             list.push({
-              label: this.translate(it.label, 'labels', 'Admin'),
+              label: label,
               url: it.url,
               lowerLabel: label.toLowerCase(),
               words: label.split(' ').map(it => it.toLowerCase())
@@ -92597,18 +93741,6 @@ define("views/fields/users", ["exports", "views/fields/link-multiple"], function
    ************************************************************************/
 
   class UsersFieldView extends _linkMultiple.default {
-    init() {
-      this.assignmentPermission = this.getAcl().getPermissionLevel('assignmentPermission');
-      if (this.assignmentPermission === 'no') {
-        this.readOnly = true;
-      }
-      super.init();
-    }
-    getSelectBoolFilterList() {
-      if (this.assignmentPermission === 'team' || this.assignmentPermission === 'no') {
-        return ['onlyMyTeam'];
-      }
-    }
     getSelectPrimaryFilterName() {
       return 'active';
     }
@@ -93174,7 +94306,8 @@ define("views/fields/link-multiple-with-status", ["exports", "views/fields/link-
       } else if (this.canceledStatusList.includes(status)) {
         iconStyle = `fas fa-times text-${style} small`;
       }
-      return `<span class="${iconStyle}" style="display: inline-block; min-width: 12px"></span> ` + super.getDetailLinkHtml(id, name);
+      const space = '<span style="user-select: none;">&nbsp;</span>';
+      return `<span class="${iconStyle}" style="display: inline-block; min-width: var(--12px);"></span>` + space + super.getDetailLinkHtml(id, name);
     }
   }
 
@@ -93560,7 +94693,7 @@ define("views/fields/id", ["exports", "views/fields/varchar"], function (_export
   var _default = _exports.default = IdFieldView;
 });
 
-define("views/fields/formula", ["exports", "views/fields/text"], function (_exports, _text) {
+define("views/fields/formula", ["exports", "views/fields/text", "ajax", "ui"], function (_exports, _text, _ajax, _ui) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -93568,6 +94701,8 @@ define("views/fields/formula", ["exports", "views/fields/text"], function (_expo
   });
   _exports.default = void 0;
   _text = _interopRequireDefault(_text);
+  _ajax = _interopRequireDefault(_ajax);
+  _ui = _interopRequireDefault(_ui);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -93895,21 +95030,26 @@ define("views/fields/formula", ["exports", "views/fields/text"], function (_expo
     checkSyntax() {
       const expression = this.editor.getValue();
       if (!expression) {
-        Espo.Ui.success(this.translate('checkSyntaxSuccess', 'messages', 'Formula'));
+        _ui.default.success(this.translate('checkSyntaxSuccess', 'messages', 'Formula'));
         return;
       }
-      Espo.Ajax.postRequest('Formula/action/checkSyntax', {
+      _ajax.default.postRequest('Formula/action/checkSyntax', {
         expression: expression
       }).then(/** Record */response => {
         if (response.isSuccess) {
-          Espo.Ui.success(this.translate('checkSyntaxSuccess', 'messages', 'Formula'));
+          _ui.default.success(this.translate('checkSyntaxSuccess', 'messages', 'Formula'));
           return;
         }
         let message = this.translate('checkSyntaxError', 'messages', 'Formula');
         if (response.message) {
           message += ' ' + response.message;
         }
-        Espo.Ui.error(message);
+        if (response.line != null && response.column != null) {
+          message += "\n\n" + this.translate('checkSyntaxErrorPosition', 'messages', 'Formula').replace('{line}', response.line).replace('{column}', response.column);
+        }
+        _ui.default.error(message, {
+          closeButton: true
+        });
       });
     }
   }
@@ -105749,6 +106889,62 @@ define("views/action-history-record/fields/target-type", ["exports", "views/fiel
   _exports.default = _default;
 });
 
+define("models/o-auth-client-secret", ["exports", "model", "helpers/misc/o-auth-client-secret"], function (_exports, _model, _oAuthClientSecret) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _model = _interopRequireDefault(_model);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  // noinspection JSUnusedGlobalSymbols
+  class OAuthClientSecretModel extends _model.default {
+    prepareAttributes(response, options) {
+      const attributes = super.prepareAttributes(response, options);
+      const id = attributes.id;
+      const value = attributes.value;
+      if (id) {
+        if (value != null) {
+          _oAuthClientSecret.CreatedSecrets[id] = value;
+        } else if (id in _oAuthClientSecret.CreatedSecrets) {
+          attributes.value = _oAuthClientSecret.CreatedSecrets[id];
+        }
+      }
+      return attributes;
+    }
+  }
+  _exports.default = OAuthClientSecretModel;
+});
+
 define("models/notification", ["exports", "model"], function (_exports, _model) {
   "use strict";
 
@@ -105807,142 +107003,6 @@ define("models/notification", ["exports", "model"], function (_exports, _model) 
     }
   }
   _exports.default = Notification;
-});
-
-define("helpers/misc/list-select-attributes", ["exports"], function (_exports) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  /************************************************************************
-   * This file is part of EspoCRM.
-   *
-   * EspoCRM – Open Source CRM application.
-   * Copyright (C) 2014-2026 EspoCRM, Inc.
-   * Website: https://www.espocrm.com
-   *
-   * This program is free software: you can redistribute it and/or modify
-   * it under the terms of the GNU Affero General Public License as published by
-   * the Free Software Foundation, either version 3 of the License, or
-   * (at your option) any later version.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   * GNU Affero General Public License for more details.
-   *
-   * You should have received a copy of the GNU Affero General Public License
-   * along with this program. If not, see <https://www.gnu.org/licenses/>.
-   *
-   * The interactive user interfaces in modified source and object code versions
-   * of this program must display Appropriate Legal Notices, as required under
-   * Section 5 of the GNU Affero General Public License version 3.
-   *
-   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
-   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
-   ************************************************************************/
-
-  /** @module helpers/misc/stored-text-search */
-
-  class _default {
-    /**
-     * @param {module:storage} storage
-     * @param {string} scope
-     * @param {Number} [maxCount]
-     */
-    constructor(scope, storage, maxCount) {
-      this.scope = scope;
-      this.storage = storage;
-      this.key = 'textSearches';
-      this.maxCount = maxCount || 100;
-      /** @type {string[]|null} */
-      this.list = null;
-    }
-
-    /**
-     * Match.
-     *
-     * @param {string} text
-     * @param {Number} [limit]
-     * @return {string[]}
-     */
-    match(text, limit) {
-      text = text.toLowerCase().trim();
-      const list = this.get();
-      const matchedList = [];
-      for (const item of list) {
-        if (item.toLowerCase().startsWith(text)) {
-          matchedList.push(item);
-        }
-        if (limit !== undefined && matchedList.length === limit) {
-          break;
-        }
-      }
-      return matchedList;
-    }
-
-    /**
-     * Get stored text filters.
-     *
-     * @private
-     * @return {string[]}
-     */
-    get() {
-      if (this.list === null) {
-        this.list = this.getFromStorage();
-      }
-      return this.list;
-    }
-
-    /**
-     * @private
-     * @return {string[]}
-     */
-    getFromStorage() {
-      /** @var {string[]} */
-      return this.storage.get(this.key, this.scope) || [];
-    }
-
-    /**
-     * Store a text filter.
-     *
-     * @param {string} text
-     */
-    store(text) {
-      text = text.trim();
-      let list = this.getFromStorage();
-      const index = list.indexOf(text);
-      if (index !== -1) {
-        list.splice(index, 1);
-      }
-      list.unshift(text);
-      if (list.length > this.maxCount) {
-        list = list.slice(0, this.maxCount);
-      }
-      this.list = list;
-      this.storage.set(this.key, this.scope, list);
-    }
-
-    /**
-     * Remove a text filter.
-     *
-     * @param {string} text
-     */
-    remove(text) {
-      text = text.trim();
-      const list = this.getFromStorage();
-      const index = list.indexOf(text);
-      if (index === -1) {
-        return;
-      }
-      list.splice(index, 1);
-      this.list = list;
-      this.storage.set(this.key, this.scope, list);
-    }
-  }
-  _exports.default = _default;
 });
 
 define("helpers/misc/foreign-field-params", ["exports", "di", "metadata"], function (_exports, _di, _metadata) {
@@ -107906,6 +108966,149 @@ define("handlers/pipeline/move-row-action", ["exports", "handlers/row-action"], 
   _exports.default = PipelineMoveRowActionHandler;
 });
 
+define("handlers/o-auth-access-token/revoke-row-action", ["exports", "handlers/row-action", "ajax", "ui", "di", "language"], function (_exports, _rowAction, _ajax, _ui, _di, _language) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _rowAction = _interopRequireDefault(_rowAction);
+  _ajax = _interopRequireDefault(_ajax);
+  _ui = _interopRequireDefault(_ui);
+  _language = _interopRequireDefault(_language);
+  var _staticBlock;
+  let _init_language, _init_extra_language;
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  function _applyDecs(e, t, n, r, o, i) { var a, c, u, s, f, l, p, d = Symbol.metadata || Symbol.for("Symbol.metadata"), m = Object.defineProperty, h = Object.create, y = [h(null), h(null)], v = t.length; function g(t, n, r) { return function (o, i) { n && (i = o, o = e); for (var a = 0; a < t.length; a++) i = t[a].apply(o, r ? [i] : []); return r ? i : o; }; } function b(e, t, n, r) { if ("function" != typeof e && (r || void 0 !== e)) throw new TypeError(t + " must " + (n || "be") + " a function" + (r ? "" : " or undefined")); return e; } function applyDec(e, t, n, r, o, i, u, s, f, l, p) { function d(e) { if (!p(e)) throw new TypeError("Attempted to access private element on non-instance"); } var h = [].concat(t[0]), v = t[3], w = !u, D = 1 === o, S = 3 === o, j = 4 === o, E = 2 === o; function I(t, n, r) { return function (o, i) { return n && (i = o, o = e), r && r(o), P[t].call(o, i); }; } if (!w) { var P = {}, k = [], F = S ? "get" : j || D ? "set" : "value"; if (f ? (l || D ? P = { get: _setFunctionName(function () { return v(this); }, r, "get"), set: function (e) { t[4](this, e); } } : P[F] = v, l || _setFunctionName(P[F], r, E ? "" : F)) : l || (P = Object.getOwnPropertyDescriptor(e, r)), !l && !f) { if ((c = y[+s][r]) && 7 !== (c ^ o)) throw Error("Decorating two elements with the same name (" + P[F].name + ") is not supported yet"); y[+s][r] = o < 3 ? 1 : o; } } for (var N = e, O = h.length - 1; O >= 0; O -= n ? 2 : 1) { var T = b(h[O], "A decorator", "be", !0), z = n ? h[O - 1] : void 0, A = {}, H = { kind: ["field", "accessor", "method", "getter", "setter", "class"][o], name: r, metadata: a, addInitializer: function (e, t) { if (e.v) throw new TypeError("attempted to call addInitializer after decoration was finished"); b(t, "An initializer", "be", !0), i.push(t); }.bind(null, A) }; if (w) c = T.call(z, N, H), A.v = 1, b(c, "class decorators", "return") && (N = c);else if (H.static = s, H.private = f, c = H.access = { has: f ? p.bind() : function (e) { return r in e; } }, j || (c.get = f ? E ? function (e) { return d(e), P.value; } : I("get", 0, d) : function (e) { return e[r]; }), E || S || (c.set = f ? I("set", 0, d) : function (e, t) { e[r] = t; }), N = T.call(z, D ? { get: P.get, set: P.set } : P[F], H), A.v = 1, D) { if ("object" == typeof N && N) (c = b(N.get, "accessor.get")) && (P.get = c), (c = b(N.set, "accessor.set")) && (P.set = c), (c = b(N.init, "accessor.init")) && k.unshift(c);else if (void 0 !== N) throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined"); } else b(N, (l ? "field" : "method") + " decorators", "return") && (l ? k.unshift(N) : P[F] = N); } return o < 2 && u.push(g(k, s, 1), g(i, s, 0)), l || w || (f ? D ? u.splice(-1, 0, I("get", s), I("set", s)) : u.push(E ? P[F] : b.call.bind(P[F])) : m(e, r, P)), N; } function w(e) { return m(e, d, { configurable: !0, enumerable: !0, value: a }); } return void 0 !== i && (a = i[d]), a = h(null == a ? null : a), f = [], l = function (e) { e && f.push(g(e)); }, p = function (t, r) { for (var i = 0; i < n.length; i++) { var a = n[i], c = a[1], l = 7 & c; if ((8 & c) == t && !l == r) { var p = a[2], d = !!a[3], m = 16 & c; applyDec(t ? e : e.prototype, a, m, d ? "#" + p : _toPropertyKey(p), l, l < 2 ? [] : t ? s = s || [] : u = u || [], f, !!t, d, r, t && d ? function (t) { return _checkInRHS(t) === e; } : o); } } }, p(8, 0), p(0, 0), p(8, 1), p(0, 1), l(u), l(s), c = f, v || w(e), { e: c, get c() { var n = []; return v && [w(e = applyDec(e, [t], r, e.name, 5, n)), g(n, 1)]; } }; }
+  function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
+  function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+  function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
+  function _checkInRHS(e) { if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null")); return e; }
+  /**
+   * Important. Used for AccessToken, RefreshToken, AuthorizationCode.
+   */
+  // noinspection JSUnusedGlobalSymbols
+  class RevokeRowActionHandler extends _rowAction.default {
+    constructor() {
+      super(...arguments);
+      _init_extra_language(this);
+    }
+    language = _init_language(this);
+    async process(model, _action) {
+      _ui.default.notifyWait();
+      await _ajax.default.postRequest(`${model.entityType}/${model.id}/revoke`);
+      await model.fetch();
+      _ui.default.success(this.language.translate('Done'));
+    }
+    isAvailable(model, _action) {
+      return model.attributes.status === 'Active';
+    }
+    static #_ = _staticBlock = () => [_init_language, _init_extra_language] = _applyDecs(this, [], [[(0, _di.inject)(_language.default), 0, "language"]], 0, void 0, _rowAction.default).e;
+  }
+  _exports.default = RevokeRowActionHandler;
+  _staticBlock();
+});
+
+define("handlers/o-auth-access-token/revoke-mass-action", ["exports", "action-handler", "helpers/mass-action", "ui", "ajax"], function (_exports, _actionHandler, _massAction, _ui, _ajax) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _actionHandler = _interopRequireDefault(_actionHandler);
+  _massAction = _interopRequireDefault(_massAction);
+  _ui = _interopRequireDefault(_ui);
+  _ajax = _interopRequireDefault(_ajax);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  /**
+   * Important. Used for AccessToken, RefreshToken, AuthorizationCode.
+   */
+  // noinspection JSUnusedGlobalSymbols
+  class RevokeMassActionHandler extends _actionHandler.default {
+    async process() {
+      const view = this.view;
+      const helper = new _massAction.default(this.view);
+      const params = view.getMassActionSelectionPostData();
+      const idle = !!params.searchParams && helper.checkIsIdle(view.collection.total);
+      const onDone = count => {
+        const msg = this.view.translate('massRevokeDone', 'messages', 'OAuthAccessToken').replace('{count}', count.toString());
+        _ui.default.success(msg);
+      };
+      _ui.default.notifyWait();
+      const result = await _ajax.default.postRequest('MassAction', {
+        entityType: view.collection.entityType,
+        action: 'revoke',
+        params: params,
+        idle: idle
+      });
+      if (result.id) {
+        const view = await helper.process(result.id, 'revoke');
+        this.view.listenToOnce(view, 'close:success', result => onDone(result.count));
+        return;
+      }
+      onDone(result.count);
+    }
+  }
+  _exports.default = RevokeMassActionHandler;
+});
+
 define("handlers/note/record-detail-setup", ["exports"], function (_exports) {
   "use strict";
 
@@ -108157,7 +109360,7 @@ define("handlers/login/oidc", ["exports", "handlers/login", "js-base64"], functi
   class OidcLoginHandler extends _login.default {
     /** @inheritDoc */
     process() {
-      const proxy = window.open('about:blank', 'ConnectWithOAuth', 'location=0,status=0,width=800,height=800');
+      const proxy = window.open('about:blank', 'ConnectWithOAuthOidc', 'location=0,status=0,width=800,height=800');
       Espo.Ui.notifyWait();
       return new Promise((resolve, reject) => {
         Espo.Ajax.getRequest('Oidc/authorizationData').then(data => {
@@ -108308,7 +109511,7 @@ define("handlers/login/oidc", ["exports", "handlers/login", "js-base64"], functi
           code: params.get('code'),
           state: params.get('state'),
           error: params.get('error'),
-          errorDescription: params.get('errorDescription')
+          errorDescription: params.get('errorDescription') ?? params.get('error_description')
         };
       } catch (e) {
         return null;
@@ -108993,7 +110196,7 @@ define("handlers/admin/address-country/populate-defaults", ["exports", "action-h
   var _default = _exports.default = PopulateDefaultsHandler;
 });
 
-define("controllers/user", ["exports", "controllers/record"], function (_exports, _record) {
+define("controllers/user", ["exports", "controllers/record", "ui", "ajax", "views/user/connected-apps"], function (_exports, _record, _ui, _ajax, _connectedApps) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -109001,6 +110204,9 @@ define("controllers/user", ["exports", "controllers/record"], function (_exports
   });
   _exports.default = void 0;
   _record = _interopRequireDefault(_record);
+  _ui = _interopRequireDefault(_ui);
+  _ajax = _interopRequireDefault(_ajax);
+  _connectedApps = _interopRequireDefault(_connectedApps);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -109065,6 +110271,22 @@ define("controllers/user", ["exports", "controllers/record"], function (_exports
         return;
       }
       super.createViewView(options, model, view);
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    /**
+     * @param {{
+     *     id?: string,
+     * }} options
+     */
+    async actionListConnectedApps(options) {
+      if (!options.id) {
+        throw new Error("No user ID.");
+      }
+      const view = new _connectedApps.default({
+        id: options.id
+      });
+      this.main(view);
     }
   }
   var _default = _exports.default = UserController;
@@ -109511,6 +110733,55 @@ define("controllers/password-change-request", ["exports", "controller"], functio
     }
   }
   var _default = _exports.default = PasswordChangeRequestController;
+});
+
+define("controllers/o-auth-authorize", ["exports", "controller", "views/o-auth-server/authorization-consent"], function (_exports, _controller, _authorizationConsent) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _controller = _interopRequireDefault(_controller);
+  _authorizationConsent = _interopRequireDefault(_authorizationConsent);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  // noinspection JSUnusedGlobalSymbols
+  class OAuthAuthorizeController extends _controller.default {
+    // noinspection JSUnusedGlobalSymbols
+    actionShow() {
+      const view = new _authorizationConsent.default();
+      this.entire(view);
+    }
+  }
+  _exports.default = OAuthAuthorizeController;
 });
 
 define("controllers/notification", ["exports", "controller"], function (_exports, _controller) {
@@ -110600,6 +111871,58 @@ define("controllers/about", ["exports", "controller"], function (_exports, _cont
   var _default = _exports.default = AboutController;
 });
 
+define("collections/o-auth-client-secret", ["exports", "collection", "helpers/misc/o-auth-client-secret"], function (_exports, _collection, _oAuthClientSecret) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  _collection = _interopRequireDefault(_collection);
+  function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+  /************************************************************************
+   * This file is part of EspoCRM.
+   *
+   * EspoCRM – Open Source CRM application.
+   * Copyright (C) 2014-2026 EspoCRM, Inc.
+   * Website: https://www.espocrm.com
+   *
+   * This program is free software: you can redistribute it and/or modify
+   * it under the terms of the GNU Affero General Public License as published by
+   * the Free Software Foundation, either version 3 of the License, or
+   * (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   * GNU Affero General Public License for more details.
+   *
+   * You should have received a copy of the GNU Affero General Public License
+   * along with this program. If not, see <https://www.gnu.org/licenses/>.
+   *
+   * The interactive user interfaces in modified source and object code versions
+   * of this program must display Appropriate Legal Notices, as required under
+   * Section 5 of the GNU Affero General Public License version 3.
+   *
+   * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
+   * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
+   ************************************************************************/
+
+  // noinspection JSUnusedGlobalSymbols
+  class OAuthClientSecretCollection extends _collection.default {
+    prepareAttributes(response, options) {
+      const items = super.prepareAttributes(response, options);
+      for (const item of items) {
+        if (item.id && _oAuthClientSecret.CreatedSecrets[item.id]) {
+          item.value = _oAuthClientSecret.CreatedSecrets[item.id];
+        }
+      }
+      return items;
+    }
+  }
+  _exports.default = OAuthClientSecretCollection;
+});
+
 define("collections/notification", ["exports", "collections/note"], function (_exports, _note) {
   "use strict";
 
@@ -111267,6 +112590,6 @@ Espo.loader.mapBundleDependencies('calendar', ["fullcalendar"]);
 Espo.loader.mapBundleFile('calendar', 'client/lib/espo-calendar.js');
 Espo.loader.mapBundleDependencies('timeline', ["vis-data","vis-timeline"]);
 Espo.loader.mapBundleFile('timeline', 'client/lib/espo-timeline.js');
-Espo.loader.addBundleMapping({"views/admin/layouts/base":"admin","views/admin/layouts/rows":"admin","views/admin/layouts/side-panels-detail":"admin","views/admin/dynamic-logic/conditions-string/item-base":"admin","views/admin/link-manager/modals/edit-params":"admin","views/admin/layouts/grid":"admin","views/admin/layouts/default-page":"admin","views/admin/layouts/bottom-panels-detail":"admin","views/admin/layouts/modals/create":"admin","views/admin/field-manager/detail-fields/attributes":"admin","views/admin/dynamic-logic/conditions-string/item-operator-only-base":"admin","views/admin/dynamic-logic/conditions/field-types/base":"admin","views/settings/record/edit":"admin","views/settings/fields/quick-create-list":"admin","views/role/record/table":"admin","views/role/record/list":"admin","views/role/record/edit":"admin","views/role/record/detail":"admin","views/inbound-email/record/detail":"admin","views/admin/index":"admin","views/admin/pipelines/list-for-entity-type":"admin","views/admin/link-manager/index":"admin","views/admin/layouts/list":"admin","views/admin/layouts/index":"admin","views/admin/layouts/detail":"admin","views/admin/layouts/bottom-panels-edit":"admin","views/admin/integrations/edit":"admin","views/admin/field-manager/modals/view-details":"admin","views/admin/field-manager/fields/options":"admin","views/admin/entity-manager/record/edit-formula":"admin","views/admin/entity-manager/modals/export":"admin","views/admin/entity-manager/fields/primary-filters":"admin","views/admin/entity-manager/fields/acl-contact-link":"admin","views/admin/dynamic-logic/conditions-string/item-operator-only-date":"admin","views/admin/dynamic-logic/conditions-string/group-base":"admin","views/admin/dynamic-logic/conditions/group-base":"admin","views/admin/dynamic-logic/conditions/field-types/link-multiple":"admin","views/email-account/fields/test-send":"admin","views/email-account/fields/test-connection":"admin","views/email-account/fields/folders":"admin","views/email-account/fields/folder":"admin","views/templates/event/record/detail":"admin","views/settings/edit":"admin","views/settings/modals/tab-list-field-add":"admin","views/settings/modals/edit-tab-url":"admin","views/settings/modals/edit-tab-group":"admin","views/settings/modals/edit-tab-divider":"admin","views/settings/fields/time-zone":"admin","views/settings/fields/time-format":"admin","views/settings/fields/thousand-separator":"admin","views/settings/fields/tab-url":"admin","views/settings/fields/stream-email-with-content-entity-type-list":"admin","views/settings/fields/stream-email-notifications-entity-list":"admin","views/settings/fields/sms-provider":"admin","views/settings/fields/phone-number-preferred-country-list":"admin","views/settings/fields/pdf-engine":"admin","views/settings/fields/outbound-email-from-address":"admin","views/settings/fields/oidc-teams":"admin","views/settings/fields/oidc-redirect-uri":"admin","views/settings/fields/language":"admin","views/settings/fields/history-entity-list":"admin","views/settings/fields/group-tab-list":"admin","views/settings/fields/global-search-entity-list":"admin","views/settings/fields/fiscal-year-shift":"admin","views/settings/fields/email-address-lookup-entity-type-list":"admin","views/settings/fields/default-currency":"admin","views/settings/fields/date-format":"admin","views/settings/fields/dashboard-layout":"admin","views/settings/fields/currency-list":"admin","views/settings/fields/calendar-entity-list":"admin","views/settings/fields/busy-ranges-entity-list":"admin","views/settings/fields/baseline-role":"admin","views/settings/fields/available-reactions":"admin","views/settings/fields/authentication-method":"admin","views/settings/fields/auth-two-fa-method-list":"admin","views/settings/fields/assignment-notifications-entity-list":"admin","views/settings/fields/assignment-email-notifications-entity-list":"admin","views/settings/fields/address-preview":"admin","views/settings/fields/activities-entity-list":"admin","views/scheduled-job/list":"admin","views/scheduled-job/record/list":"admin","views/scheduled-job/record/detail":"admin","views/scheduled-job/record/panels/log":"admin","views/scheduled-job/fields/scheduling":"admin","views/scheduled-job/fields/job":"admin","views/role/list":"admin","views/role/record/detail-side":"admin","views/role/record/panels/side":"admin","views/role/modals/add-field":"admin","views/role/fields/permission":"admin","views/role/fields/info":"admin","views/portal-role/list":"admin","views/portal-role/record/table":"admin","views/portal-role/record/list":"admin","views/portal-role/record/edit":"admin","views/portal-role/record/detail":"admin","views/portal/record/list":"admin","views/portal/fields/tab-list":"admin","views/portal/fields/quick-create-list":"admin","views/portal/fields/custom-id":"admin","views/lead-capture-log-record/modals/detail":"admin","views/layout-set/layouts":"admin","views/layout-set/record/list":"admin","views/layout-set/fields/layout-list":"admin","views/layout-set/fields/edit":"admin","views/inbound-email/record/list":"admin","views/inbound-email/record/edit":"admin","views/inbound-email/fields/test-send":"admin","views/inbound-email/fields/test-connection":"admin","views/inbound-email/fields/target-user-position":"admin","views/inbound-email/fields/name":"admin","views/inbound-email/fields/folders":"admin","views/inbound-email/fields/folder":"admin","views/inbound-email/fields/email-address":"admin","views/extension/record/row-actions":"admin","views/extension/record/list":"admin","views/authentication-provider/record/edit":"admin","views/authentication-provider/record/detail":"admin","views/authentication-provider/fields/method":"admin","views/api-user/list":"admin","views/admin/user-interface":"admin","views/admin/sms":"admin","views/admin/settings":"admin","views/admin/outbound-emails":"admin","views/admin/notifications":"admin","views/admin/jobs-settings":"admin","views/admin/inbound-emails":"admin","views/admin/currency":"admin","views/admin/currency-main":"admin","views/admin/authentication":"admin","views/admin/upgrade/ready":"admin","views/admin/upgrade/index":"admin","views/admin/upgrade/done":"admin","views/admin/template-manager/index":"admin","views/admin/template-manager/edit":"admin","views/admin/template-manager/fields/body":"admin","views/admin/system-requirements/index":"admin","views/admin/pipelines/main":"admin","views/admin/panels/notifications":"admin","views/admin/link-manager/modals/edit":"admin","views/admin/link-manager/fields/foreign-link-entity-type-list":"admin","views/admin/layouts/side-panels-edit":"admin","views/admin/layouts/side-panels-edit-small":"admin","views/admin/layouts/side-panels-detail-small":"admin","views/admin/layouts/mass-update":"admin","views/admin/layouts/list-small":"admin","views/admin/layouts/kanban":"admin","views/admin/layouts/filters":"admin","views/admin/layouts/detail-small":"admin","views/admin/layouts/detail-convert":"admin","views/admin/layouts/default-side-panel":"admin","views/admin/layouts/bottom-panels-edit-small":"admin","views/admin/layouts/bottom-panels-detail-small":"admin","views/admin/layouts/record/edit-attributes":"admin","views/admin/layouts/modals/panel-attributes":"admin","views/admin/layouts/modals/edit-attributes":"admin","views/admin/layouts/fields/width-complex":"admin","views/admin/label-manager/index":"admin","views/admin/label-manager/edit":"admin","views/admin/label-manager/category":"admin","views/admin/job/list":"admin","views/admin/job/record/list":"admin","views/admin/job/record/detail-small":"admin","views/admin/job/modals/detail":"admin","views/admin/job/fields/name":"admin","views/admin/integrations/oauth2":"admin","views/admin/integrations/index":"admin","views/admin/integrations/google-maps":"admin","views/admin/formula-sandbox/index":"admin","views/admin/formula-sandbox/record/edit":"admin","views/admin/formula/modals/add-function":"admin","views/admin/formula/modals/add-attribute":"admin","views/admin/formula/fields/attribute":"admin","views/admin/field-manager/list":"admin","views/admin/field-manager/index":"admin","views/admin/field-manager/header":"admin","views/admin/field-manager/edit":"admin","views/admin/field-manager/modals/add-field":"admin","views/admin/field-manager/fields/source-list":"admin","views/admin/field-manager/fields/pattern":"admin","views/admin/field-manager/fields/options-with-style":"admin","views/admin/field-manager/fields/options-reference":"admin","views/admin/field-manager/fields/not-actual-options":"admin","views/admin/field-manager/fields/entity-list":"admin","views/admin/field-manager/fields/dynamic-logic-options":"admin","views/admin/field-manager/fields/dynamic-logic-conditions":"admin","views/admin/field-manager/fields/dynamic-logic-cascading":"admin","views/admin/field-manager/fields/currency-default":"admin","views/admin/field-manager/fields/text/attachment-field":"admin","views/admin/field-manager/fields/phone/default":"admin","views/admin/field-manager/fields/options/default":"admin","views/admin/field-manager/fields/options/default-multi":"admin","views/admin/field-manager/fields/link-multiple/default":"admin","views/admin/field-manager/fields/link/default":"admin","views/admin/field-manager/fields/int/max":"admin","views/admin/field-manager/fields/foreign/link":"admin","views/admin/field-manager/fields/foreign/field":"admin","views/admin/field-manager/fields/date/default":"admin","views/admin/field-manager/fields/date/after-before":"admin","views/admin/extensions/ready":"admin","views/admin/extensions/index":"admin","views/admin/extensions/done":"admin","views/admin/entity-manager/scope":"admin","views/admin/entity-manager/index":"admin","views/admin/entity-manager/formula":"admin","views/admin/entity-manager/edit":"admin","views/admin/entity-manager/record/edit":"admin","views/admin/entity-manager/modals/select-icon":"admin","views/admin/entity-manager/modals/select-formula":"admin","views/admin/entity-manager/fields/icon-class":"admin","views/admin/entity-manager/fields/duplicate-check-field-list":"admin","views/admin/entity-manager/fields/acl-account-link":"admin","views/admin/dynamic-logic/modals/edit":"admin","views/admin/dynamic-logic/modals/add-field":"admin","views/admin/dynamic-logic/fields/user-id":"admin","views/admin/dynamic-logic/fields/field":"admin","views/admin/dynamic-logic/conditions-string/item-value-varchar":"admin","views/admin/dynamic-logic/conditions-string/item-value-link":"admin","views/admin/dynamic-logic/conditions-string/item-value-enum":"admin","views/admin/dynamic-logic/conditions-string/item-multiple-values-base":"admin","views/admin/dynamic-logic/conditions-string/item-is-today":"admin","views/admin/dynamic-logic/conditions-string/item-in-past":"admin","views/admin/dynamic-logic/conditions-string/item-in-future":"admin","views/admin/dynamic-logic/conditions-string/group-not":"admin","views/admin/dynamic-logic/conditions/or":"admin","views/admin/dynamic-logic/conditions/not":"admin","views/admin/dynamic-logic/conditions/and":"admin","views/admin/dynamic-logic/conditions/field-types/multi-enum":"admin","views/admin/dynamic-logic/conditions/field-types/link":"admin","views/admin/dynamic-logic/conditions/field-types/link-parent":"admin","views/admin/dynamic-logic/conditions/field-types/enum":"admin","views/admin/dynamic-logic/conditions/field-types/date":"admin","views/admin/dynamic-logic/conditions/field-types/current-user":"admin","views/admin/dynamic-logic/conditions/field-types/current-user-teams":"admin","views/admin/complex-expression/modals/add-function":"admin","views/admin/authentication/fields/test-connection":"admin","views/admin/auth-token/list":"admin","views/admin/auth-token/record/list":"admin","views/admin/auth-token/record/detail":"admin","views/admin/auth-token/record/detail-small":"admin","views/admin/auth-token/record/row-actions/default":"admin","views/admin/auth-token/modals/detail":"admin","views/admin/auth-log-record/list":"admin","views/admin/auth-log-record/record/list":"admin","views/admin/auth-log-record/record/detail":"admin","views/admin/auth-log-record/record/detail-small":"admin","views/admin/auth-log-record/modals/detail":"admin","views/admin/auth-log-record/fields/authentication-method":"admin","views/admin/app-secret/fields/value":"admin","views/admin/app-log-record/record/list":"admin","controllers/role":"admin","controllers/portal-role":"admin","controllers/admin":"admin","views/import/record/panels/imported":"extra","views/email-account/record/detail":"extra","views/personal-data/record/record":"extra","views/personal-data/modals/personal-data":"extra","views/outbound-email/modals/test-send":"extra","views/import-error/fields/validation-failures":"extra","views/import-error/fields/line-number":"extra","views/import/step2":"extra","views/import/step1":"extra","views/import/list":"extra","views/import/index":"extra","views/import/detail":"extra","views/import/record/list":"extra","views/import/record/detail":"extra","views/import/record/row-actions/duplicates":"extra","views/import/record/panels/updated":"extra","views/import/record/panels/duplicates":"extra","views/group-email-folder/list":"extra","views/group-email-folder/record/list":"extra","views/group-email-folder/record/edit-small":"extra","views/group-email-folder/record/row-actions/default":"extra","views/external-account/oauth2":"extra","views/external-account/index":"extra","views/email-account/list":"extra","views/email-account/record/list":"extra","views/email-account/record/edit":"extra","views/email-account/modals/select-folder":"extra","views/email-account/fields/email-folder":"extra","views/email-account/fields/email-address":"extra","modules/crm/views/meeting/record/row-actions/default":"crm","modules/crm/views/meeting/fields/attendees":"crm","modules/crm/views/calendar/fields/teams":"crm","modules/crm/knowledge-base-helper":"crm","modules/crm/views/task/record/list":"crm","modules/crm/views/task/record/row-actions/default":"crm","modules/crm/views/record/panels/tasks":"crm","modules/crm/views/record/panels/activities":"crm","modules/crm/views/meeting/detail":"crm","modules/crm/views/meeting/record/list":"crm","modules/crm/views/meeting/record/row-actions/dashlet":"crm","modules/crm/views/mass-email/record/edit":"crm","modules/crm/views/mass-email/modals/send-test":"crm","modules/crm/views/dashlets/options/chart":"crm","modules/crm/views/contact/record/detail":"crm","modules/crm/views/call/record/list":"crm","modules/crm/views/call/fields/contacts":"crm","modules/crm/views/calendar/modals/edit-view":"crm","modules/crm/views/calendar/fields/users":"crm","modules/crm/acl/meeting":"crm","modules/crm/views/user/record/panels/tasks":"crm","modules/crm/views/task/list":"crm","modules/crm/views/task/detail":"crm","modules/crm/views/task/record/list-expanded":"crm","modules/crm/views/task/record/detail":"crm","modules/crm/views/task/record/row-actions/dashlet":"crm","modules/crm/views/task/fields/tasks":"crm","modules/crm/views/task/fields/priority-for-dashlet":"crm","modules/crm/views/task/fields/is-overdue":"crm","modules/crm/views/task/fields/date-end":"crm","modules/crm/views/target-list/record/detail":"crm","modules/crm/views/target-list/record/row-actions/opted-out":"crm","modules/crm/views/target-list/record/row-actions/default":"crm","modules/crm/views/target-list/record/panels/relationship":"crm","modules/crm/views/target-list/record/panels/opted-out":"crm","modules/crm/views/target-list/fields/target-status":"crm","modules/crm/views/target-list/fields/including-action-list":"crm","modules/crm/views/stream/notes/event-confirmation":"crm","modules/crm/views/record/list-activities-dashlet":"crm","modules/crm/views/record/row-actions/tasks":"crm","modules/crm/views/record/row-actions/relationship-target":"crm","modules/crm/views/record/row-actions/history":"crm","modules/crm/views/record/row-actions/activities":"crm","modules/crm/views/record/row-actions/activities-dashlet":"crm","modules/crm/views/record/panels/target-lists":"crm","modules/crm/views/record/panels/history":"crm","modules/crm/views/opportunity/detail":"crm","modules/crm/views/opportunity/record/list":"crm","modules/crm/views/opportunity/record/kanban":"crm","modules/crm/views/opportunity/record/edit":"crm","modules/crm/views/opportunity/record/edit-small":"crm","modules/crm/views/opportunity/record/panels/activities":"crm","modules/crm/views/opportunity/fields/stage":"crm","modules/crm/views/opportunity/fields/lead-source":"crm","modules/crm/views/opportunity/fields/last-stage":"crm","modules/crm/views/opportunity/fields/contacts":"crm","modules/crm/views/opportunity/fields/contact-role":"crm","modules/crm/views/opportunity/admin/field-manager/fields/probability-map":"crm","modules/crm/views/notification/items/event-attendee":"crm","modules/crm/views/meeting/popup-notification":"crm","modules/crm/views/meeting/record/list-expanded":"crm","modules/crm/views/meeting/record/edit-small":"crm","modules/crm/views/meeting/record/detail":"crm","modules/crm/views/meeting/record/panels/scheduler":"crm","modules/crm/views/meeting/record/panels/attendees":"crm","modules/crm/views/meeting/modals/send-invitations":"crm","modules/crm/views/meeting/modals/send-cancellation":"crm","modules/crm/views/meeting/modals/detail":"crm","modules/crm/views/meeting/modals/acceptance-status":"crm","modules/crm/views/meeting/fields/users":"crm","modules/crm/views/meeting/fields/reminders":"crm","modules/crm/views/meeting/fields/external-service":"crm","modules/crm/views/meeting/fields/date-start":"crm","modules/crm/views/meeting/fields/date-end":"crm","modules/crm/views/meeting/fields/contacts":"crm","modules/crm/views/meeting/fields/acceptance-status":"crm","modules/crm/views/mass-email/detail":"crm","modules/crm/views/mass-email/record/list-for-campaign":"crm","modules/crm/views/mass-email/record/edit-small":"crm","modules/crm/views/mass-email/record/detail":"crm","modules/crm/views/mass-email/record/detail-bottom":"crm","modules/crm/views/mass-email/record/row-actions/for-campaign":"crm","modules/crm/views/mass-email/fields/smtp-account":"crm","modules/crm/views/mass-email/fields/from-address":"crm","modules/crm/views/mass-email/fields/email-template":"crm","modules/crm/views/lead/detail":"crm","modules/crm/views/lead/convert":"crm","modules/crm/views/lead/record/detail":"crm","modules/crm/views/lead/record/detail-side":"crm","modules/crm/views/lead/record/panels/converted-to":"crm","modules/crm/views/lead/fields/industry":"crm","modules/crm/views/lead/fields/created-opportunity":"crm","modules/crm/views/lead/fields/created-contact":"crm","modules/crm/views/lead/fields/acceptance-status":"crm","modules/crm/views/knowledge-base-article/list":"crm","modules/crm/views/knowledge-base-article/record/list":"crm","modules/crm/views/knowledge-base-article/record/edit":"crm","modules/crm/views/knowledge-base-article/record/edit-quick":"crm","modules/crm/views/knowledge-base-article/record/detail":"crm","modules/crm/views/knowledge-base-article/record/detail-quick":"crm","modules/crm/views/knowledge-base-article/modals/select-records":"crm","modules/crm/views/knowledge-base-article/fields/status":"crm","modules/crm/views/knowledge-base-article/fields/language":"crm","modules/crm/views/fields/ico":"crm","modules/crm/views/event-confirmation/confirmation":"crm","modules/crm/views/email-queue-item/list":"crm","modules/crm/views/email-queue-item/record/list":"crm","modules/crm/views/document/list":"crm","modules/crm/views/document/modals/select-records":"crm","modules/crm/views/document/fields/name":"crm","modules/crm/views/document/fields/file":"crm","modules/crm/views/dashlets/tasks":"crm","modules/crm/views/dashlets/meetings":"crm","modules/crm/views/dashlets/calls":"crm","modules/crm/views/dashlets/calendar":"crm","modules/crm/views/dashlets/activities":"crm","modules/crm/views/dashlets/options/sales-pipeline":"crm","modules/crm/views/dashlets/options/calendar":"crm","modules/crm/views/dashlets/options/activities":"crm","modules/crm/views/dashlets/options/sales-pipeline/fields/team":"crm","modules/crm/views/contact/detail":"crm","modules/crm/views/contact/record/detail-small":"crm","modules/crm/views/contact/modals/select-for-portal-user":"crm","modules/crm/views/contact/fields/title":"crm","modules/crm/views/contact/fields/opportunity-role":"crm","modules/crm/views/contact/fields/name-for-account":"crm","modules/crm/views/contact/fields/accounts":"crm","modules/crm/views/contact/fields/account":"crm","modules/crm/views/contact/fields/account-role":"crm","modules/crm/views/case/record/detail":"crm","modules/crm/views/case/record/panels/activities":"crm","modules/crm/views/campaign-tracking-url/record/edit":"crm","modules/crm/views/campaign-tracking-url/record/edit-small":"crm","modules/crm/views/campaign-log-record/fields/data":"crm","modules/crm/views/campaign/unsubscribe":"crm","modules/crm/views/campaign/tracking-url":"crm","modules/crm/views/campaign/detail":"crm","modules/crm/views/campaign/record/detail":"crm","modules/crm/views/campaign/record/panels/campaign-stats":"crm","modules/crm/views/campaign/record/panels/campaign-log-records":"crm","modules/crm/views/campaign/modals/mail-merge-pdf":"crm","modules/crm/views/campaign/fields/template":"crm","modules/crm/views/campaign/fields/int-with-percentage":"crm","modules/crm/views/call/detail":"crm","modules/crm/views/call/record/list-expanded":"crm","modules/crm/views/call/record/edit-small":"crm","modules/crm/views/call/record/detail":"crm","modules/crm/views/call/record/row-actions/default":"crm","modules/crm/views/call/record/row-actions/dashlet":"crm","modules/crm/views/call/fields/leads":"crm","modules/crm/views/call/fields/date-start":"crm","modules/crm/views/calendar/mode-buttons":"crm","modules/crm/views/calendar/calendar-page":"crm","modules/crm/views/calendar/modals/shared-options":"crm","modules/crm/views/calendar/modals/edit":"crm","modules/crm/views/admin/entity-manager/fields/status-list":"crm","modules/crm/views/activities/list":"crm","modules/crm/views/account/detail":"crm","modules/crm/views/account/fields/shipping-address":"crm","modules/crm/view-setup-handlers/document/record-list-drag-n-drop":"crm","modules/crm/handlers/task/reminders-handler":"crm","modules/crm/handlers/task/menu":"crm","modules/crm/handlers/task/detail-actions":"crm","modules/crm/handlers/opportunity/defaults-preparator":"crm","modules/crm/handlers/opportunity/contacts-create":"crm","modules/crm/handlers/meeting/external-service":"crm","modules/crm/handlers/knowledge-base-article/send-in-email":"crm","modules/crm/handlers/knowledge-base-article/move":"crm","modules/crm/handlers/event/reminders-handler":"crm","modules/crm/handlers/case/detail-actions":"crm","modules/crm/handlers/campaign/mass-emails-create":"crm","modules/crm/controllers/unsubscribe":"crm","modules/crm/controllers/tracking-url":"crm","modules/crm/controllers/task":"crm","modules/crm/controllers/lead":"crm","modules/crm/controllers/event-confirmation":"crm","modules/crm/controllers/calendar":"crm","modules/crm/controllers/activities":"crm","modules/crm/acl-portal/document":"crm","modules/crm/acl-portal/contact":"crm","modules/crm/acl-portal/account":"crm","modules/crm/acl/mass-email":"crm","modules/crm/acl/campaign-tracking-url":"crm","modules/crm/acl/call":"crm","modules/crm/views/dashlets/abstract/chart":"chart","modules/crm/views/dashlets/sales-pipeline":"chart","modules/crm/views/dashlets/sales-by-month":"chart","modules/crm/views/dashlets/opportunities-by-stage":"chart","modules/crm/views/dashlets/opportunities-by-lead-source":"chart","modules/crm/views/calendar/calendar":"calendar","modules/crm/views/scheduler/scheduler":"timeline","modules/crm/views/calendar/timeline":"timeline"});
+Espo.loader.addBundleMapping({"views/admin/layouts/base":"admin","views/admin/layouts/rows":"admin","views/admin/layouts/side-panels-detail":"admin","views/admin/dynamic-logic/conditions-string/item-base":"admin","views/admin/link-manager/modals/edit-params":"admin","views/admin/layouts/grid":"admin","views/admin/layouts/default-page":"admin","views/admin/layouts/bottom-panels-detail":"admin","views/admin/layouts/modals/create":"admin","views/admin/field-manager/detail-fields/attributes":"admin","views/admin/dynamic-logic/conditions-string/item-operator-only-base":"admin","views/admin/dynamic-logic/conditions/field-types/base":"admin","views/settings/record/edit":"admin","views/settings/fields/quick-create-list":"admin","views/role/record/table":"admin","views/role/record/list":"admin","views/role/record/edit":"admin","views/role/record/detail":"admin","views/inbound-email/record/detail":"admin","views/admin/index":"admin","views/admin/pipelines/list-for-entity-type":"admin","views/admin/link-manager/index":"admin","views/admin/layouts/list":"admin","views/admin/layouts/index":"admin","views/admin/layouts/detail":"admin","views/admin/layouts/bottom-panels-edit":"admin","views/admin/integrations/edit":"admin","views/admin/field-manager/modals/view-details":"admin","views/admin/field-manager/fields/options":"admin","views/admin/entity-manager/record/edit-formula":"admin","views/admin/entity-manager/modals/export":"admin","views/admin/entity-manager/fields/primary-filters":"admin","views/admin/entity-manager/fields/acl-contact-link":"admin","views/admin/dynamic-logic/conditions-string/item-operator-only-date":"admin","views/admin/dynamic-logic/conditions-string/group-base":"admin","views/admin/dynamic-logic/conditions/group-base":"admin","views/admin/dynamic-logic/conditions/field-types/link-multiple":"admin","views/email-account/fields/test-send":"admin","views/email-account/fields/test-connection":"admin","views/email-account/fields/folders":"admin","views/email-account/fields/folder":"admin","views/templates/event/record/detail":"admin","views/settings/edit":"admin","views/settings/modals/tab-list-field-add":"admin","views/settings/modals/edit-tab-url":"admin","views/settings/modals/edit-tab-group":"admin","views/settings/modals/edit-tab-divider":"admin","views/settings/fields/time-zone":"admin","views/settings/fields/time-format":"admin","views/settings/fields/thousand-separator":"admin","views/settings/fields/tab-url":"admin","views/settings/fields/stream-email-with-content-entity-type-list":"admin","views/settings/fields/stream-email-notifications-entity-list":"admin","views/settings/fields/sms-provider":"admin","views/settings/fields/phone-number-preferred-country-list":"admin","views/settings/fields/pdf-engine":"admin","views/settings/fields/outbound-email-from-address":"admin","views/settings/fields/oidc-teams":"admin","views/settings/fields/oidc-redirect-uri":"admin","views/settings/fields/language":"admin","views/settings/fields/history-entity-list":"admin","views/settings/fields/group-tab-list":"admin","views/settings/fields/global-search-entity-list":"admin","views/settings/fields/fiscal-year-shift":"admin","views/settings/fields/email-address-lookup-entity-type-list":"admin","views/settings/fields/default-currency":"admin","views/settings/fields/date-format":"admin","views/settings/fields/dashboard-layout":"admin","views/settings/fields/currency-list":"admin","views/settings/fields/calendar-entity-list":"admin","views/settings/fields/busy-ranges-entity-list":"admin","views/settings/fields/baseline-role":"admin","views/settings/fields/available-reactions":"admin","views/settings/fields/authentication-method":"admin","views/settings/fields/auth-two-fa-method-list":"admin","views/settings/fields/assignment-notifications-entity-list":"admin","views/settings/fields/assignment-email-notifications-entity-list":"admin","views/settings/fields/address-preview":"admin","views/settings/fields/activities-entity-list":"admin","views/scheduled-job/list":"admin","views/scheduled-job/record/list":"admin","views/scheduled-job/record/detail":"admin","views/scheduled-job/record/panels/log":"admin","views/scheduled-job/fields/scheduling":"admin","views/scheduled-job/fields/job":"admin","views/role/list":"admin","views/role/record/detail-side":"admin","views/role/record/panels/side":"admin","views/role/modals/add-field":"admin","views/role/fields/permission":"admin","views/role/fields/info":"admin","views/portal-role/list":"admin","views/portal-role/record/table":"admin","views/portal-role/record/list":"admin","views/portal-role/record/edit":"admin","views/portal-role/record/detail":"admin","views/portal/record/list":"admin","views/portal/fields/tab-list":"admin","views/portal/fields/quick-create-list":"admin","views/portal/fields/custom-id":"admin","views/lead-capture-log-record/modals/detail":"admin","views/layout-set/layouts":"admin","views/layout-set/record/list":"admin","views/layout-set/fields/layout-list":"admin","views/layout-set/fields/edit":"admin","views/inbound-email/record/list":"admin","views/inbound-email/record/edit":"admin","views/inbound-email/fields/test-send":"admin","views/inbound-email/fields/test-connection":"admin","views/inbound-email/fields/target-user-position":"admin","views/inbound-email/fields/name":"admin","views/inbound-email/fields/folders":"admin","views/inbound-email/fields/folder":"admin","views/inbound-email/fields/email-address":"admin","views/extension/record/row-actions":"admin","views/extension/record/list":"admin","views/authentication-provider/record/edit":"admin","views/authentication-provider/record/detail":"admin","views/authentication-provider/fields/method":"admin","views/api-user/list":"admin","views/admin/user-interface":"admin","views/admin/sms":"admin","views/admin/settings":"admin","views/admin/outbound-emails":"admin","views/admin/notifications":"admin","views/admin/jobs-settings":"admin","views/admin/inbound-emails":"admin","views/admin/currency":"admin","views/admin/currency-main":"admin","views/admin/authentication":"admin","views/admin/upgrade/ready":"admin","views/admin/upgrade/index":"admin","views/admin/upgrade/done":"admin","views/admin/template-manager/index":"admin","views/admin/template-manager/edit":"admin","views/admin/template-manager/fields/body":"admin","views/admin/system-requirements/index":"admin","views/admin/pipelines/main":"admin","views/admin/panels/notifications":"admin","views/admin/link-manager/modals/edit":"admin","views/admin/link-manager/fields/foreign-link-entity-type-list":"admin","views/admin/layouts/side-panels-edit":"admin","views/admin/layouts/side-panels-edit-small":"admin","views/admin/layouts/side-panels-detail-small":"admin","views/admin/layouts/mass-update":"admin","views/admin/layouts/list-small":"admin","views/admin/layouts/kanban":"admin","views/admin/layouts/filters":"admin","views/admin/layouts/detail-small":"admin","views/admin/layouts/detail-convert":"admin","views/admin/layouts/default-side-panel":"admin","views/admin/layouts/bottom-panels-edit-small":"admin","views/admin/layouts/bottom-panels-detail-small":"admin","views/admin/layouts/record/edit-attributes":"admin","views/admin/layouts/modals/panel-attributes":"admin","views/admin/layouts/modals/edit-attributes":"admin","views/admin/layouts/fields/width-complex":"admin","views/admin/label-manager/index":"admin","views/admin/label-manager/edit":"admin","views/admin/label-manager/category":"admin","views/admin/job/list":"admin","views/admin/job/record/list":"admin","views/admin/job/record/detail-small":"admin","views/admin/job/modals/detail":"admin","views/admin/job/fields/name":"admin","views/admin/integrations/oauth2":"admin","views/admin/integrations/index":"admin","views/admin/integrations/google-maps":"admin","views/admin/formula-sandbox/index":"admin","views/admin/formula-sandbox/record/edit":"admin","views/admin/formula/modals/add-function":"admin","views/admin/formula/modals/add-attribute":"admin","views/admin/formula/fields/attribute":"admin","views/admin/field-manager/list":"admin","views/admin/field-manager/index":"admin","views/admin/field-manager/header":"admin","views/admin/field-manager/edit":"admin","views/admin/field-manager/modals/add-field":"admin","views/admin/field-manager/fields/source-list":"admin","views/admin/field-manager/fields/pattern":"admin","views/admin/field-manager/fields/options-with-style":"admin","views/admin/field-manager/fields/options-reference":"admin","views/admin/field-manager/fields/not-actual-options":"admin","views/admin/field-manager/fields/entity-list":"admin","views/admin/field-manager/fields/dynamic-logic-options":"admin","views/admin/field-manager/fields/dynamic-logic-conditions":"admin","views/admin/field-manager/fields/dynamic-logic-cascading":"admin","views/admin/field-manager/fields/currency-default":"admin","views/admin/field-manager/fields/text/attachment-field":"admin","views/admin/field-manager/fields/phone/default":"admin","views/admin/field-manager/fields/options/default":"admin","views/admin/field-manager/fields/options/default-multi":"admin","views/admin/field-manager/fields/link-multiple/default":"admin","views/admin/field-manager/fields/link/default":"admin","views/admin/field-manager/fields/int/max":"admin","views/admin/field-manager/fields/foreign/link":"admin","views/admin/field-manager/fields/foreign/field":"admin","views/admin/field-manager/fields/date/default":"admin","views/admin/field-manager/fields/date/after-before":"admin","views/admin/extensions/ready":"admin","views/admin/extensions/index":"admin","views/admin/extensions/done":"admin","views/admin/entity-manager/scope":"admin","views/admin/entity-manager/index":"admin","views/admin/entity-manager/formula":"admin","views/admin/entity-manager/edit":"admin","views/admin/entity-manager/record/edit":"admin","views/admin/entity-manager/modals/select-icon":"admin","views/admin/entity-manager/modals/select-formula":"admin","views/admin/entity-manager/fields/icon-class":"admin","views/admin/entity-manager/fields/duplicate-check-field-list":"admin","views/admin/entity-manager/fields/acl-account-link":"admin","views/admin/dynamic-logic/modals/edit":"admin","views/admin/dynamic-logic/modals/add-field":"admin","views/admin/dynamic-logic/fields/user-id":"admin","views/admin/dynamic-logic/fields/field":"admin","views/admin/dynamic-logic/conditions-string/item-value-varchar":"admin","views/admin/dynamic-logic/conditions-string/item-value-link":"admin","views/admin/dynamic-logic/conditions-string/item-value-enum":"admin","views/admin/dynamic-logic/conditions-string/item-multiple-values-base":"admin","views/admin/dynamic-logic/conditions-string/item-is-today":"admin","views/admin/dynamic-logic/conditions-string/item-in-past":"admin","views/admin/dynamic-logic/conditions-string/item-in-future":"admin","views/admin/dynamic-logic/conditions-string/group-not":"admin","views/admin/dynamic-logic/conditions/or":"admin","views/admin/dynamic-logic/conditions/not":"admin","views/admin/dynamic-logic/conditions/and":"admin","views/admin/dynamic-logic/conditions/field-types/multi-enum":"admin","views/admin/dynamic-logic/conditions/field-types/link":"admin","views/admin/dynamic-logic/conditions/field-types/link-parent":"admin","views/admin/dynamic-logic/conditions/field-types/enum":"admin","views/admin/dynamic-logic/conditions/field-types/date":"admin","views/admin/dynamic-logic/conditions/field-types/current-user":"admin","views/admin/dynamic-logic/conditions/field-types/current-user-teams":"admin","views/admin/complex-expression/modals/add-function":"admin","views/admin/authentication/fields/test-connection":"admin","views/admin/auth-token/record/list":"admin","views/admin/auth-token/record/detail":"admin","views/admin/auth-token/record/detail-small":"admin","views/admin/auth-token/record/row-actions/default":"admin","views/admin/auth-token/modals/detail":"admin","views/admin/auth-log-record/record/list":"admin","views/admin/auth-log-record/record/detail":"admin","views/admin/auth-log-record/record/detail-small":"admin","views/admin/auth-log-record/modals/detail":"admin","views/admin/auth-log-record/fields/authentication-method":"admin","views/admin/app-secret/fields/value":"admin","views/admin/app-log-record/record/list":"admin","controllers/role":"admin","controllers/portal-role":"admin","controllers/admin":"admin","views/import/record/panels/imported":"extra","views/email-account/record/detail":"extra","views/personal-data/record/record":"extra","views/personal-data/modals/personal-data":"extra","views/outbound-email/modals/test-send":"extra","views/import-error/fields/validation-failures":"extra","views/import-error/fields/line-number":"extra","views/import/step2":"extra","views/import/step1":"extra","views/import/list":"extra","views/import/index":"extra","views/import/detail":"extra","views/import/record/list":"extra","views/import/record/detail":"extra","views/import/record/row-actions/duplicates":"extra","views/import/record/panels/updated":"extra","views/import/record/panels/duplicates":"extra","views/group-email-folder/list":"extra","views/group-email-folder/record/list":"extra","views/group-email-folder/record/edit-small":"extra","views/group-email-folder/record/row-actions/default":"extra","views/external-account/oauth2":"extra","views/external-account/index":"extra","views/email-account/list":"extra","views/email-account/record/list":"extra","views/email-account/record/edit":"extra","views/email-account/modals/select-folder":"extra","views/email-account/fields/email-folder":"extra","views/email-account/fields/email-address":"extra","modules/crm/views/meeting/record/row-actions/default":"crm","modules/crm/views/meeting/fields/attendees":"crm","modules/crm/views/calendar/fields/teams":"crm","modules/crm/knowledge-base-helper":"crm","modules/crm/views/task/record/list":"crm","modules/crm/views/task/record/row-actions/default":"crm","modules/crm/views/record/panels/tasks":"crm","modules/crm/views/record/panels/activities":"crm","modules/crm/views/meeting/detail":"crm","modules/crm/views/meeting/record/list":"crm","modules/crm/views/meeting/record/row-actions/dashlet":"crm","modules/crm/views/mass-email/record/edit":"crm","modules/crm/views/mass-email/modals/send-test":"crm","modules/crm/views/dashlets/options/chart":"crm","modules/crm/views/contact/record/detail":"crm","modules/crm/views/call/record/list":"crm","modules/crm/views/call/fields/contacts":"crm","modules/crm/views/calendar/modals/edit-view":"crm","modules/crm/views/calendar/fields/users":"crm","modules/crm/acl/meeting":"crm","modules/crm/views/user/record/panels/tasks":"crm","modules/crm/views/task/list":"crm","modules/crm/views/task/detail":"crm","modules/crm/views/task/record/list-expanded":"crm","modules/crm/views/task/record/detail":"crm","modules/crm/views/task/record/row-actions/dashlet":"crm","modules/crm/views/task/fields/tasks":"crm","modules/crm/views/task/fields/priority-for-dashlet":"crm","modules/crm/views/task/fields/is-overdue":"crm","modules/crm/views/task/fields/date-end":"crm","modules/crm/views/target-list/record/detail":"crm","modules/crm/views/target-list/record/row-actions/opted-out":"crm","modules/crm/views/target-list/record/row-actions/default":"crm","modules/crm/views/target-list/record/panels/relationship":"crm","modules/crm/views/target-list/record/panels/opted-out":"crm","modules/crm/views/target-list/fields/target-status":"crm","modules/crm/views/target-list/fields/including-action-list":"crm","modules/crm/views/stream/notes/event-confirmation":"crm","modules/crm/views/record/list-activities-dashlet":"crm","modules/crm/views/record/row-actions/tasks":"crm","modules/crm/views/record/row-actions/relationship-target":"crm","modules/crm/views/record/row-actions/history":"crm","modules/crm/views/record/row-actions/activities":"crm","modules/crm/views/record/row-actions/activities-dashlet":"crm","modules/crm/views/record/panels/target-lists":"crm","modules/crm/views/record/panels/history":"crm","modules/crm/views/opportunity/detail":"crm","modules/crm/views/opportunity/record/list":"crm","modules/crm/views/opportunity/record/kanban":"crm","modules/crm/views/opportunity/record/edit":"crm","modules/crm/views/opportunity/record/edit-small":"crm","modules/crm/views/opportunity/record/panels/activities":"crm","modules/crm/views/opportunity/fields/stage":"crm","modules/crm/views/opportunity/fields/lead-source":"crm","modules/crm/views/opportunity/fields/last-stage":"crm","modules/crm/views/opportunity/fields/contacts":"crm","modules/crm/views/opportunity/fields/contact-role":"crm","modules/crm/views/opportunity/admin/field-manager/fields/probability-map":"crm","modules/crm/views/notification/items/event-attendee":"crm","modules/crm/views/meeting/popup-notification":"crm","modules/crm/views/meeting/record/list-expanded":"crm","modules/crm/views/meeting/record/edit-small":"crm","modules/crm/views/meeting/record/detail":"crm","modules/crm/views/meeting/record/panels/scheduler":"crm","modules/crm/views/meeting/record/panels/attendees":"crm","modules/crm/views/meeting/modals/send-invitations":"crm","modules/crm/views/meeting/modals/send-cancellation":"crm","modules/crm/views/meeting/modals/detail":"crm","modules/crm/views/meeting/modals/acceptance-status":"crm","modules/crm/views/meeting/fields/users":"crm","modules/crm/views/meeting/fields/reminders":"crm","modules/crm/views/meeting/fields/external-service":"crm","modules/crm/views/meeting/fields/date-start":"crm","modules/crm/views/meeting/fields/date-end":"crm","modules/crm/views/meeting/fields/contacts":"crm","modules/crm/views/meeting/fields/acceptance-status":"crm","modules/crm/views/mass-email/detail":"crm","modules/crm/views/mass-email/record/list-for-campaign":"crm","modules/crm/views/mass-email/record/edit-small":"crm","modules/crm/views/mass-email/record/detail":"crm","modules/crm/views/mass-email/record/detail-bottom":"crm","modules/crm/views/mass-email/record/row-actions/for-campaign":"crm","modules/crm/views/mass-email/fields/smtp-account":"crm","modules/crm/views/mass-email/fields/from-address":"crm","modules/crm/views/mass-email/fields/email-template":"crm","modules/crm/views/lead/detail":"crm","modules/crm/views/lead/convert":"crm","modules/crm/views/lead/record/detail":"crm","modules/crm/views/lead/record/detail-side":"crm","modules/crm/views/lead/record/panels/converted-to":"crm","modules/crm/views/lead/fields/industry":"crm","modules/crm/views/lead/fields/created-opportunity":"crm","modules/crm/views/lead/fields/created-contact":"crm","modules/crm/views/lead/fields/acceptance-status":"crm","modules/crm/views/knowledge-base-article/list":"crm","modules/crm/views/knowledge-base-article/record/list":"crm","modules/crm/views/knowledge-base-article/record/edit":"crm","modules/crm/views/knowledge-base-article/record/edit-quick":"crm","modules/crm/views/knowledge-base-article/record/detail":"crm","modules/crm/views/knowledge-base-article/record/detail-quick":"crm","modules/crm/views/knowledge-base-article/modals/select-records":"crm","modules/crm/views/knowledge-base-article/fields/status":"crm","modules/crm/views/knowledge-base-article/fields/language":"crm","modules/crm/views/knowledge-base-article/fields/body":"crm","modules/crm/views/fields/ico":"crm","modules/crm/views/event-confirmation/confirmation":"crm","modules/crm/views/email-queue-item/list":"crm","modules/crm/views/email-queue-item/record/list":"crm","modules/crm/views/document/list":"crm","modules/crm/views/document/modals/select-records":"crm","modules/crm/views/document/fields/name":"crm","modules/crm/views/document/fields/file":"crm","modules/crm/views/dashlets/tasks":"crm","modules/crm/views/dashlets/meetings":"crm","modules/crm/views/dashlets/calls":"crm","modules/crm/views/dashlets/calendar":"crm","modules/crm/views/dashlets/activities":"crm","modules/crm/views/dashlets/options/sales-pipeline":"crm","modules/crm/views/dashlets/options/calendar":"crm","modules/crm/views/dashlets/options/activities":"crm","modules/crm/views/dashlets/options/sales-pipeline/fields/team":"crm","modules/crm/views/contact/detail":"crm","modules/crm/views/contact/record/detail-small":"crm","modules/crm/views/contact/modals/select-for-portal-user":"crm","modules/crm/views/contact/fields/title":"crm","modules/crm/views/contact/fields/opportunity-role":"crm","modules/crm/views/contact/fields/name-for-account":"crm","modules/crm/views/contact/fields/accounts":"crm","modules/crm/views/contact/fields/account":"crm","modules/crm/views/contact/fields/account-role":"crm","modules/crm/views/case/record/detail":"crm","modules/crm/views/case/record/panels/activities":"crm","modules/crm/views/campaign-tracking-url/record/edit":"crm","modules/crm/views/campaign-tracking-url/record/edit-small":"crm","modules/crm/views/campaign-log-record/fields/data":"crm","modules/crm/views/campaign/unsubscribe":"crm","modules/crm/views/campaign/tracking-url":"crm","modules/crm/views/campaign/detail":"crm","modules/crm/views/campaign/record/detail":"crm","modules/crm/views/campaign/record/panels/campaign-stats":"crm","modules/crm/views/campaign/record/panels/campaign-log-records":"crm","modules/crm/views/campaign/modals/mail-merge-pdf":"crm","modules/crm/views/campaign/fields/template":"crm","modules/crm/views/campaign/fields/int-with-percentage":"crm","modules/crm/views/call/detail":"crm","modules/crm/views/call/record/list-expanded":"crm","modules/crm/views/call/record/edit-small":"crm","modules/crm/views/call/record/detail":"crm","modules/crm/views/call/record/row-actions/default":"crm","modules/crm/views/call/record/row-actions/dashlet":"crm","modules/crm/views/call/fields/leads":"crm","modules/crm/views/call/fields/date-start":"crm","modules/crm/views/calendar/mode-buttons":"crm","modules/crm/views/calendar/calendar-page":"crm","modules/crm/views/calendar/modals/shared-options":"crm","modules/crm/views/calendar/modals/edit":"crm","modules/crm/views/admin/entity-manager/fields/status-list":"crm","modules/crm/views/activities/list":"crm","modules/crm/views/account/detail":"crm","modules/crm/views/account/fields/shipping-address":"crm","modules/crm/view-setup-handlers/document/record-list-drag-n-drop":"crm","modules/crm/handlers/task/reminders-handler":"crm","modules/crm/handlers/task/menu":"crm","modules/crm/handlers/task/detail-actions":"crm","modules/crm/handlers/opportunity/defaults-preparator":"crm","modules/crm/handlers/opportunity/contacts-create":"crm","modules/crm/handlers/meeting/external-service":"crm","modules/crm/handlers/knowledge-base-article/send-in-email":"crm","modules/crm/handlers/knowledge-base-article/move":"crm","modules/crm/handlers/event/reminders-handler":"crm","modules/crm/handlers/case/detail-actions":"crm","modules/crm/handlers/campaign/mass-emails-create":"crm","modules/crm/controllers/unsubscribe":"crm","modules/crm/controllers/tracking-url":"crm","modules/crm/controllers/task":"crm","modules/crm/controllers/lead":"crm","modules/crm/controllers/event-confirmation":"crm","modules/crm/controllers/calendar":"crm","modules/crm/controllers/activities":"crm","modules/crm/acl-portal/document":"crm","modules/crm/acl-portal/contact":"crm","modules/crm/acl-portal/account":"crm","modules/crm/acl/mass-email":"crm","modules/crm/acl/campaign-tracking-url":"crm","modules/crm/acl/call":"crm","modules/crm/views/dashlets/abstract/chart":"chart","modules/crm/views/dashlets/sales-pipeline":"chart","modules/crm/views/dashlets/sales-by-month":"chart","modules/crm/views/dashlets/opportunities-by-stage":"chart","modules/crm/views/dashlets/opportunities-by-lead-source":"chart","modules/crm/views/calendar/calendar":"calendar","modules/crm/views/scheduler/scheduler":"timeline","modules/crm/views/calendar/timeline":"timeline"});
 
 Espo.layoutTemplates = {"record":"<% var hasHiddenPanel = false; %>\r\n\r\n<% _.each(layout, function (panel, columnNumber) { %>\r\n    <% hasHiddenPanel = panel.hidden || hasHiddenPanel; %>\r\n    <div\r\n        class=\"panel panel-<%= panel.style %><%= panel.label ? ' headered' : '' %><%= panel.tabNumber ? ' tab-hidden' : '' %><% if (panel.name) { %>{{#if hiddenPanels.<%= panel.name %>}} hidden{{/if}}<% } %>\"\r\n        <% if (panel.name) print('data-name=\"'+panel.name+'\"') %>\r\n        <% if (panel.style) print('data-style=\"'+panel.style+'\"') %>\r\n        data-tab=\"<%= panel.tabNumber %>\"\r\n    >\r\n        <% if (panel.label) { %>\r\n        <div class=\"panel-heading\"><h4 class=\"panel-title\"><%= panel.label %></h4></div>\r\n        <% } %>\r\n        <div class=\"panel-body panel-body-form\">\r\n\r\n        <% if (panel.noteText) { %>\r\n        <div class=\"alert alert-<%= panel.noteStyle %>\"><%= panel.noteText %></div>\r\n        <% } %>\r\n\r\n        <% var rows = panel.rows || [] %>\r\n        <% var columns = panel.columns || [] %>\r\n\r\n        <% _.each(rows, function (row, rowNumber) { %>\r\n            <div class=\"row\">\r\n            <% var columnCount = row.length; %>\r\n            <% _.each(row, function (cell, cellNumber) { %>\r\n\r\n                <%\r\n                    var spanClassBase;\r\n                    if (columnCount === 1) {\r\n                        spanClassBase = 'col-sm-12';\r\n                    } else if (columnCount === 2) {\r\n                        spanClassBase = 'col-sm-6';\r\n                    } else if (columnCount === 3) {\r\n                        spanClassBase = 'col-sm-4';\r\n                    } else if (columnCount === 4) {\r\n                        spanClassBase = 'col-md-3 col-sm-6';\r\n                    } else {\r\n                        spanClass = 'col-sm-12';\r\n                    }\r\n                %>\r\n                <% if (cell != false) { %>\r\n                    <%\r\n                        var spanClass;\r\n                        if (columnCount === 1 || cell.fullWidth) {\r\n                            spanClass = 'col-sm-12';\r\n                        } else if (columnCount === 2) {\r\n                            if (cell.span === 2) {\r\n                                spanClass = 'col-sm-12';\r\n                            } else {\r\n                                spanClass = 'col-sm-6';\r\n                            }\r\n                        } else if (columnCount === 3) {\r\n                            if (cell.span === 2) {\r\n                                spanClass = 'col-sm-8';\r\n                            } else if (cell.span === 3) {\r\n                                spanClass = 'col-sm-12';\r\n                            } else {\r\n                                spanClass = 'col-sm-4';\r\n                            }\r\n                        } else if (columnCount === 4) {\r\n                            if (cell.span === 2) {\r\n                                spanClass = 'col-sm-6';\r\n                            } else if (cell.span === 3) {\r\n                                spanClass = 'col-sm-9';\r\n                            } else if (cell.span === 4) {\r\n                                spanClass = 'col-sm-12';\r\n                            } else {\r\n                                spanClass = 'col-md-3 col-sm-6';\r\n                            }\r\n                        } else {\r\n                            spanClass = 'col-sm-12';\r\n                        }\r\n                    %>\r\n                    <div\r\n                        class=\"cell <%= spanClass %> form-group<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden-cell{{/if}}<% } %>\"\r\n                        data-name=\"<%= cell.field %>\"\r\n                        tabindex=\"-1\"\r\n                    >\r\n                        <% if (!cell.noLabel) { %><label class=\"control-label<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden{{/if}}<% } %>\" data-name=\"<%= cell.field %>\"><span class=\"label-text\"><%\r\n                            if ('customLabel' in cell) {\r\n                                print (cell.customLabel);\r\n                            } else {\r\n                                var label = cell.label || cell.field;\r\n                                print (\"{{translate \\\"\"+label+\"\\\" scope=\\\"\"+model.name+\"\\\" category='fields'}}\");\r\n                            }\r\n                        %></span></label><% } %>\r\n                        <div class=\"field<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden{{/if}}<% } %>\" data-name=\"<%= cell.field %>\"><%\r\n                            if ('customCode' in cell) {\r\n                                print (cell.customCode);\r\n                            } else {\r\n                                print (\"{{{this.\"+cell.name+\"}}}\");\r\n                            }\r\n                        %></div>\r\n                    </div>\r\n                <% } else { %>\r\n                    <div class=\"<%= spanClassBase %>\"></div>\r\n                <% } %>\r\n            <% }); %>\r\n            </div>\r\n        <% }); %>\r\n\r\n        <%\r\n            var columnCount = columns.length;\r\n            if (columnCount) {\r\n                %>\r\n            <div class=\"row\">\r\n                <%\r\n            }\r\n        %>\r\n        <% _.each(columns, function (column, columnNumber) { %>\r\n            <%\r\n                var spanClass;\r\n                if (!columnCount) return;\r\n\r\n                if (columnCount === 1 || column.fullWidth) {\r\n                    spanClass = 'col-sm-12';\r\n                } else if (columnCount === 2) {\r\n                    if (column.span === 2) {\r\n                        spanClass = 'col-sm-12';\r\n                    } else {\r\n                        spanClass = 'col-sm-6';\r\n                    }\r\n                } else if (columnCount === 3) {\r\n                    if (column.span === 2) {\r\n                        spanClass = 'col-sm-8';\r\n                    } else if (column.span === 3) {\r\n                        spanClass = 'col-sm-12';\r\n                    } else {\r\n                        spanClass = 'col-sm-4';\r\n                    }\r\n                } else if (columnCount === 4) {\r\n                    if (column.span === 2) {\r\n                        spanClass = 'col-sm-6';\r\n                    } else if (column.span === 3) {\r\n                        spanClass = 'col-sm-9';\r\n                    } else if (column.span === 4) {\r\n                        spanClass = 'col-sm-12';\r\n                    } else {\r\n                        spanClass = 'col-md-3 col-sm-6';\r\n                    }\r\n                } else {\r\n                    spanClass = 'col-sm-12';\r\n                }\r\n            %>\r\n            <div class=\"column <%= spanClass %>\">\r\n                <% _.each(column, function (cell, cellNumber) { %>\r\n                    <div class=\"cell form-group<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden-cell{{/if}}<% } %>\" data-name=\"<%= cell.field %>\">\r\n                        <% if (!cell.noLabel) { %><label class=\"control-label<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden{{/if}}<% } %>\" data-name=\"<%= cell.field %>\"><span class=\"label-text\"><%\r\n                            if ('customLabel' in cell) {\r\n                                print (cell.customLabel);\r\n                            } else {\r\n                                print (\"{{translate \\\"\"+cell.field+\"\\\" scope=\\\"\"+model.name+\"\\\" category='fields'}}\");\r\n                            }\r\n                        %></span></label><% } %>\r\n                        <div class=\"field<% if (cell.field) { %>{{#if hiddenFields.<%= cell.field %>}} hidden{{/if}}<% } %>\" data-name=\"<%= cell.field %>\"><%\r\n                            if ('customCode' in cell) {\r\n                                print (cell.customCode);\r\n                            } else {\r\n                                print (\"{{{this.\"+cell.name+\"}}}\");\r\n                            }\r\n                        %></div>\r\n                    </div>\r\n                <% }); %>\r\n            </div>\r\n        <% }); %>\r\n        <%\r\n            if (columnCount) {\r\n                %>\r\n            </div>\r\n                <%\r\n            }\r\n        %>\r\n        </div>\r\n    </div>\r\n<% }); %>\r\n\r\n<%\r\nif (hasHiddenPanel) {\r\n%>\r\n<div class=\"panel panel-default panels-show-more-delimiter\" data-name=\"showMoreDelimiter\" data-tab=\"0\">\r\n    <a role=\"button\" tabindex=\"0\" data-action=\"showMoreDetailPanels\" title=\"{{translate 'Show more'}}\">\r\n        <span class=\"fas fa-ellipsis-h fa-lg\"></span>\r\n    </a>\r\n</div>\r\n<%\r\n}\r\n%>\r\n","list-row":"<% _.each(layout, function (defs, key) { %>\r\n    <%\r\n        let width = null;\r\n\r\n        if (defs.options && defs.options.defs && defs.options.defs.width !== undefined) {\r\n            width = (defs.options.defs.width + '%') || null;\r\n        }\r\n\r\n        if (defs.options && defs.options.defs && defs.options.defs.widthPx !== undefined) {\r\n            width = defs.options.defs.widthPx || null;\r\n        }\r\n\r\n        let align = false;\r\n\r\n        if (defs.options && defs.options.defs) {\r\n            align = defs.options.defs.align || false;\r\n        }\r\n    %>\r\n    <td\r\n        class=\"cell\"\r\n        data-name=\"<%= defs.columnName %>\"\r\n        <% if (width || align) { %>\r\n        style=\"<% if (width) print('width: ' + width); %>;<% if (align) print(' text-align: ' + align);%>\"\r\n        <% } %>\r\n    >\r\n    <%\r\n            var tag = 'tag' in defs ? defs.tag : false;\r\n            if (tag) {\r\n                print( '<' + tag);\r\n                if ('id' in defs) {\r\n                    print(' id=\"'+defs.id+'\"');\r\n                }\r\n                if ('class' in defs) {\r\n                    print(' class=\"'+defs.class+'\"');\r\n                };\r\n                print('>');\r\n            }\r\n        %>{{{this.<%= defs.name %>}}}<%\r\n            if (tag) {\r\n                print( '</' + tag + '>');\r\n            }\r\n    %>\r\n    </td>\r\n<% }); %>\r\n","list-row-expanded":"<% if (layout.right) { %>\r\n<div class=\"pull-right right cell\" data-name=\"buttons\">\r\n    {{{<%= layout.right.name %>}}}\r\n</div>\r\n<% } %>\r\n<% _.each(layout.rows, function (row, key) { %><div class=\"expanded-row\"><% _.each(row, function (defs, key) { %><span class=\"cell<%= defs.align ? ' pull-right' : '' %><%= defs.small ? ' small' : '' %><%= defs.soft ? ' text-soft' : '' %>\" data-name=\"<%= defs.field %>\"><%\r\n                var tag = 'tag' in defs ? defs.tag : false;\r\n                if (tag) {\r\n                    print( '<' + tag);\r\n                    if ('id' in defs) {\r\n                        print(' id=\"'+defs.id+'\"');\r\n                    }\r\n                    if ('class' in defs) {\r\n                        print(' class=\"'+defs.class+'\"');\r\n                    };\r\n                    print('>');\r\n                }\r\n            %>{{{this.<%= defs.name %>}}}<%\r\n                if (tag) {\r\n                    print( '</' + tag + '>');\r\n                }\r\n        %></span><% }); %></div>\r\n<% }); %>\r\n","default":"<% _.each(layout, function (defs, key) {\r\n        var tag = 'tag' in defs ? defs.tag : 'div';\r\n        print( '<' + tag);\r\n        if ('id' in defs) {\r\n            print(' id=\"'+defs.id+'\"');\r\n        }\r\n        if ('class' in defs) {\r\n            print(' class=\"'+defs.class+'\"');\r\n        }\r\n        print('>');\r\n    %>\r\n        {{{this.<%= defs.name %>}}}\r\n        <%= '</' + tag + '>' %>\r\n<% }); %>\r\n","columns-2":"<% _.each(layout, function (row, rowNumber) { %>\r\n    <div class=\"col-sm-6\">\r\n    <% _.each(row, function (defs, key) { %>\r\n        <%\r\n            var tag = 'tag' in defs ? defs.tag : 'div';\r\n            print( '<' + tag);\r\n            if ('id' in defs) {\r\n                print(' id=\"'+defs.id+'\"');\r\n            }\r\n            print(' class=\"');\r\n            if ('class' in defs) {\r\n                print(defs.class);\r\n            };\r\n            print('\"');\r\n            print('>');\r\n        %>\r\n            {{{this.<%= defs.name %>}}}\r\n            <%= '</' + tag + '>' %>\r\n    <% }); %>\r\n    </div>\r\n<% }); %>\r\n"};

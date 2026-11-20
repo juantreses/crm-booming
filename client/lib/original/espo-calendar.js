@@ -414,7 +414,7 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
         title = this.dateToMoment(view.currentStart).format(format);
       }
       if (this.options.userId && this.options.userName) {
-        title += ' (' + this.options.userName + ')';
+        title += ' · ' + this.options.userName;
       }
       return title;
     }
@@ -712,6 +712,7 @@ define("modules/crm/views/calendar/calendar", ["exports", "view", "moment", "ful
 
       /** @type {CalendarOptions & Object.<string, *>} */
       const options = {
+        direction: this.getThemeManager().getDirection(),
         scrollTime: this.scrollHour + ':00',
         headerToolbar: false,
         slotLabelFormat: slotLabelFormat,
