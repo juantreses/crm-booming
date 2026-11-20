@@ -52,6 +52,6 @@
   "presetFilters": {
     "portalUsers": "Потребители на портала",
     "notPortalUsers": "Не потребители на портала",
-    "accountActive": "Активна връзка"
+    "accountActive": "Активен"
   }
 }

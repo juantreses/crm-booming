@@ -214,6 +214,8 @@ class GoogleMaps implements Helper
 
         $raw = curl_exec($c);
 
+        curl_close($c);
+
         return $raw;
     }
 }

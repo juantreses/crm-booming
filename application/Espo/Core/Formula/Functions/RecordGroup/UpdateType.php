@@ -29,55 +29,46 @@
 
 namespace Espo\Core\Formula\Functions\RecordGroup;
 
-use Espo\Core\Formula\EvaluatedArgumentList;
+use Espo\Core\Formula\ArgumentList;
 use Espo\Core\Formula\Exceptions\BadArgumentType;
-use Espo\Core\Formula\Exceptions\NotAllowedUsage;
-use Espo\Core\Formula\Exceptions\TooFewArguments;
-use Espo\Core\Formula\Func;
+use Espo\Core\Formula\Functions\BaseFunction;
+use Espo\Core\Di;
 use Espo\Core\Formula\Utils\EntityUtil;
-use Espo\ORM\EntityManager;
-use Espo\ORM\Name\Attribute;
+use RuntimeException;
 use stdClass;
 
 /**
  * @noinspection PhpUnused
  */
-class UpdateType implements Func
+class UpdateType extends BaseFunction implements
+    Di\EntityManagerAware
 {
-    public function __construct(
-        private EntityManager $entityManager,
-        private EntityUtil $entityUtil,
-    ) {}
+    use Di\EntityManagerSetter;
 
-    public function process(EvaluatedArgumentList $arguments): bool
+    public function process(ArgumentList $args)
     {
-        if (count($arguments) < 2) {
-            throw TooFewArguments::create(2);
+        if (count($args) < 2) {
+            $this->throwTooFewArguments(2);
         }
 
-        $entityType = $arguments[0];
-        $id = $arguments[1];
+        $args = $this->evaluate($args);
+
+        if (!is_array($args)) {
+            throw new RuntimeException();
+        }
+
+        $entityType = $args[0];
+        $id = $args[1];
 
         if (!is_string($entityType)) {
-            throw BadArgumentType::create(1, 'string');
+            $this->throwBadArgumentType(1, 'string');
         }
 
         if (!is_string($id)) {
-            throw BadArgumentType::create(2, 'string');
+            $this->throwBadArgumentType(2, 'string');
         }
 
-        $data = $this->getData($arguments, $entityType);
-
-        $notAllowedAttributes = array_intersect(
-            array_keys($data),
-            $this->entityUtil->getWriteRestrictedAttributeList($entityType),
-        );
-
-        $notAllowedAttributes = array_values($notAllowedAttributes);
-
-        if ($notAllowedAttributes) {
-            throw new NotAllowedUsage("Cannot write $entityType.$notAllowedAttributes[0].");
-        }
+        $data = $this->getData($args, $entityType);
 
         $entity = $this->entityManager->getEntityById($entityType, $id);
 
@@ -85,9 +76,9 @@ class UpdateType implements Func
             return false;
         }
 
-        $entity->setMultiple($data);
+        $entity->set($data);
 
-        $this->entityUtil->assertUpdateAccess($entity);
+        EntityUtil::checkUpdateAccess($entity);
 
         $this->entityManager->saveEntity($entity);
 
@@ -95,13 +86,14 @@ class UpdateType implements Func
     }
 
     /**
+     * @param array<int, mixed> $args
      * @return array<string, mixed>
      * @throws BadArgumentType
      */
-    private function getData(EvaluatedArgumentList $args, mixed $entityType): array
+    private function getData(array $args, mixed $entityType): array
     {
         if (count($args) >= 3 && $args[2] instanceof stdClass) {
-            return $this->filterData(get_object_vars($args[2]));
+            return get_object_vars($args[2]);
         }
 
         $data = [];
@@ -112,7 +104,7 @@ class UpdateType implements Func
             $attribute = $args[$i];
 
             if (!is_string($entityType)) {
-                throw BadArgumentType::create($i + 1, 'string');
+                $this->throwBadArgumentType($i + 1, 'string');
             }
 
             /** @var string $attribute */
@@ -123,17 +115,6 @@ class UpdateType implements Func
 
             $i = $i + 2;
         }
-
-        return $this->filterData($data);
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     * @return array<string, mixed>
-     */
-    private function filterData(array $data): array
-    {
-        unset($data[Attribute::ID]);
 
         return $data;
     }

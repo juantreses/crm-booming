@@ -102,15 +102,6 @@ class Call extends Entity
         return $this;
     }
 
-    /**
-     * @param int $duration Duration in seconds.
-     * @since 10.0.6
-     */
-    public function setDuration(int $duration): self
-    {
-        return $this->set('duration', $duration);
-    }
-
     public function setAssignedUserId(?string $assignedUserId): self
     {
         $this->set('assignedUserId', $assignedUserId);

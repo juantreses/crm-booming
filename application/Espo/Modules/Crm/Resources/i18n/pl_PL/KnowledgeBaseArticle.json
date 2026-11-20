@@ -10,7 +10,6 @@
   },
   "fields": {
     "name": "Nazwa",
-    "status": "Status",
     "type": "Typ",
     "attachments": "Załączniki",
     "publishDate": "Data publikacji",
@@ -19,8 +18,7 @@
     "body": "Treść",
     "categories": "Kategorie",
     "language": "Język",
-    "portals": "Portale",
-    "bodyPlain": "Treść (zwykły tekst)"
+    "portals": "Portale"
   },
   "links": {
     "cases": "Sprawy",
@@ -38,9 +36,6 @@
     "type": {
       "Article": "Artykuł"
     }
-  },
-  "presetFilters": {
-    "published": "Opublikowane"
   },
   "tooltips": {
     "portals": "Artykuł będzie dostępny tylko w konkretnych portalach."

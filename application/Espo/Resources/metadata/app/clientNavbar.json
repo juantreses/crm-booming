@@ -6,12 +6,6 @@
             "order": 5,
             "disabled": false
         },
-        "lastViewed": {
-            "view": "views/site/navbar/last-viewed",
-            "class": "",
-            "order": 7,
-            "disabled": false
-        },
         "quickCreate": {
             "view": "views/site/navbar/quick-create",
             "class": "dropdown hidden-xs quick-create-container",
@@ -35,15 +29,22 @@
                 {
                     "isAdminOnly": true
                 }
-            ],
-            "iconClass": "fas fa-gear"
+            ]
         },
         "preferences": {
             "order": 1,
             "groupIndex": 1,
             "link": "#Preferences",
-            "labelTranslation": "Global.labels.Preferences",
-            "iconClass": "fas fa-user-gear"
+            "labelTranslation": "Global.labels.Preferences"
+        },
+        "lastViewed": {
+            "order": 0,
+            "groupIndex": 5,
+            "link": "#LastViewed",
+            "labelTranslation": "Global.scopeNamesPlural.LastViewed",
+            "configCheck": "!actionHistoryDisabled",
+            "handler": "handlers/navbar-menu",
+            "actionFunction": "lastViewed"
         },
         "about": {
             "order": 0,
@@ -56,8 +57,7 @@
             "groupIndex": 10,
             "labelTranslation": "Global.labels.Log Out",
             "handler": "handlers/navbar-menu",
-            "actionFunction": "logout",
-            "iconClass": "fas fa-arrow-right-to-bracket"
+            "actionFunction": "logout"
         }
     }
 }

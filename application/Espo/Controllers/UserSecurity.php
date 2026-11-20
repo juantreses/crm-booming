@@ -32,22 +32,28 @@ namespace Espo\Controllers;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\BadRequest;
+
 use Espo\Core\Api\Request;
+
 use Espo\Core\Exceptions\NotFound;
 use Espo\Tools\UserSecurity\Service as Service;
+
 use Espo\Entities\User;
 
 use stdClass;
 
 class UserSecurity
 {
+    private Service $service;
+    private User $user;
+
     /**
      * @throws Forbidden
      */
-    public function __construct(
-        private Service $service,
-        private User $user,
-    ) {
+    public function __construct(Service $service, User $user)
+    {
+        $this->service = $service;
+        $this->user = $user;
 
         if (
             !$this->user->isAdmin() &&
@@ -71,7 +77,7 @@ class UserSecurity
             throw new BadRequest();
         }
 
-        if (!$this->user->isEffectiveAdmin() && $id !== $this->user->getId()) {
+        if (!$this->user->isAdmin() && $id !== $this->user->getId()) {
             throw new Forbidden();
         }
 
@@ -94,7 +100,7 @@ class UserSecurity
             throw new BadRequest("No 'id'.");
         }
 
-        if (!$this->user->isEffectiveAdmin() && $id !== $this->user->getId()) {
+        if (!$this->user->isAdmin() && $id !== $this->user->getId()) {
             throw new Forbidden();
         }
 
@@ -116,7 +122,7 @@ class UserSecurity
             throw new BadRequest();
         }
 
-        if (!$this->user->isEffectiveAdmin() && $id !== $this->user->getId()) {
+        if (!$this->user->isAdmin() && $id !== $this->user->getId()) {
             throw new Forbidden();
         }
 

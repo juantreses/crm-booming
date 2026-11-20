@@ -6,7 +6,6 @@
   "fields": {
     "target": "Doel",
     "targetType": "Doel type",
-    "script": "Script",
     "output": "Uitgang",
     "error": "Fout"
   },

@@ -29,7 +29,7 @@
 
 namespace Espo\Core\Formula\Functions\ExtGroup\EmailGroup;
 
-use Espo\Core\Formula\Exceptions\FunctionRuntimeError;
+use Espo\Core\ApplicationUser;
 use Espo\Core\Mail\ConfigDataProvider;
 use Espo\Core\ORM\Repository\Option\SaveOption;
 use Espo\Core\Formula\ArgumentList;
@@ -37,22 +37,21 @@ use Espo\Core\Formula\Functions\BaseFunction;
 use Espo\Core\Utils\SystemUser;
 use Espo\Entities\Email;
 use Espo\Tools\Email\SendService;
+
 use Espo\Core\Di;
+
 use Exception;
 
-/**
- * @noinspection PhpUnused
- */
 class SendType extends BaseFunction implements
     Di\EntityManagerAware,
+    Di\ServiceFactoryAware,
     Di\ConfigAware,
-    Di\InjectableFactoryAware,
-    Di\RecordServiceContainerAware
+    Di\InjectableFactoryAware
 {
     use Di\EntityManagerSetter;
+    use Di\ServiceFactorySetter;
     use Di\ConfigSetter;
     use Di\InjectableFactorySetter;
-    use Di\RecordServiceContainerSetter;
 
     public function process(ArgumentList $args)
     {
@@ -70,35 +69,43 @@ class SendType extends BaseFunction implements
 
         $em = $this->entityManager;
 
-        $email = $em->getRDBRepositoryByClass(Email::class)->getById($id);
+        /** @var ?Email $email */
+        $email = $em->getEntityById(Email::ENTITY_TYPE, $id);
 
         if (!$email) {
-            throw new FunctionRuntimeError("Email $id does not exist.");
+            $this->log("Email '{$id}' does not exist.");
+
+            return false;
         }
 
-        if ($email->getStatus() === Email::STATUS_SENT) {
-            throw new FunctionRuntimeError("Can't send email that has 'Sent' status.");
+        $status = $email->getStatus();
+
+        if ($status === Email::STATUS_SENT) {
+            $this->log("Can't send email that has 'Sent' status.");
+
+            return false;
         }
 
-        $this->recordServiceContainer
-            ->getByClass(Email::class)
-            ->loadAdditionalFields($email);
+        /** @var \Espo\Services\Email $service */
+        $service = $this->serviceFactory->create(Email::ENTITY_TYPE);
+
+        $service->loadAdditionalFields($email);
 
         $toSave = false;
 
-        if ($email->getStatus() !== Email::STATUS_SENDING) {
-            $email->setStatus(Email::STATUS_SENDING);
+        if ($status !== Email::STATUS_SENDING) {
+            $email->set('status', Email::STATUS_SENDING);
 
             $toSave = true;
         }
 
-        if (!$email->getFromAddress()) {
+        if (!$email->get('from')) {
             $from = $this->injectableFactory
                 ->create(ConfigDataProvider::class)
                 ->getSystemOutboundAddress();
 
             if ($from) {
-                $email->setFromAddress($from);
+                $email->set('from', $from);
 
                 $toSave = true;
             }
@@ -118,10 +125,10 @@ class SendType extends BaseFunction implements
         try {
             $sendService->send($email);
         } catch (Exception $e) {
-            $email->setStatus(Email::STATUS_FAILED);
-            $em->saveEntity($email);
+            $message = $e->getMessage();
+            $this->log("Error while sending. Message: {$message}." , 'error');
 
-            throw new FunctionRuntimeError("Error while sending email. {$e->getMessage()}", previous: $e);
+            return false;
         }
 
         return true;

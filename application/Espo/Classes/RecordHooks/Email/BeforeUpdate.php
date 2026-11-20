@@ -64,7 +64,7 @@ class BeforeUpdate implements SaveHook
     {
         $skipFilter = false;
 
-        if ($this->user->isEffectiveAdmin()) {
+        if ($this->user->isAdmin()) {
             $skipFilter = true;
         }
 

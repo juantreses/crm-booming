@@ -81,7 +81,6 @@
                 class="action folder-icon btn-text"
                 data-action="openCategory"
                 data-id="{{categoryData.upperId}}"
-                data-name="{{categoryData.upperName}}"
                 title="{{translate 'Up'}}"
             ><span class="fas fa-arrow-up text-soft transform-flip-x"></span></a>
         </div>
@@ -95,7 +94,7 @@
                     <div class="category-item" data-id="{{id}}">
                         <a
                             href="{{link}}"
-                            class="action text-default"
+                            class="action link-gray"
                             data-action="openCategory"
                             data-id="{{id}}"
                             data-name="{{name}}"
@@ -107,20 +106,16 @@
 
             {{#if showMoreIsActive}}
                 <div class="category-cell">
-                    <div
-                        class="category-item show-more"
-                        data-owner-cid="{{viewObject.cid}}"
-                    >
-                        <span class="category-item-name">
-                            <a
-                                role="button"
-                                tabindex="0"
-                                class="action"
-                                data-action="showMore"
-                                data-owner-cid="{{viewObject.cid}}"
-                                title="{{translate 'Show more'}}"
-                            >...</a>
-                    </span>
+                    <div class="category-item show-more">
+                <span class="category-item-name">
+                    <a
+                        role="button"
+                        tabindex="0"
+                        class="action"
+                        data-action="showMore"
+                        title="{{translate 'Show more'}}"
+                    >...</a>
+                </span>
                     </div>
                 </div>
             {{/if}}

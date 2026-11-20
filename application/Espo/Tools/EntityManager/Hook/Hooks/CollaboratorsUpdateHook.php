@@ -36,9 +36,6 @@ use Espo\Core\ORM\Type\FieldType;
 use Espo\Core\Utils\Log;
 use Espo\Core\Utils\Metadata;
 use Espo\Entities\User;
-use Espo\Modules\Crm\Entities\CaseObj;
-use Espo\Modules\Crm\Entities\Task;
-use Espo\ORM\Defs\Params\FieldParam;
 use Espo\ORM\Defs\Params\RelationParam;
 use Espo\ORM\Type\RelationType;
 use Espo\Tools\EntityManager\Hook\UpdateHook;
@@ -54,14 +51,6 @@ class CollaboratorsUpdateHook implements UpdateHook
     private const RELATION_NAME = 'entityCollaborator';
 
     private const DEFAULT_MAX_COUNT = 30;
-
-    /**
-     * @var string[]
-     */
-    private array $enabledByDefaultEntityTypeList = [
-        CaseObj::ENTITY_TYPE,
-        Task::ENTITY_TYPE,
-    ];
 
     public function __construct(
         private Metadata $metadata,
@@ -92,13 +81,43 @@ class CollaboratorsUpdateHook implements UpdateHook
             return;
         }
 
-        if ($this->isEnabledByDefault($entityType)) {
-            $this->addEnabledByDefault($entityType);
-        } else {
-            $this->addInternal($entityType);
-        }
+        $this->metadata->set('entityDefs', $entityType, [
+            'fields' => [
+                self::FIELD => [
+                    'type' => FieldType::LINK_MULTIPLE,
+                    'view' => 'views/fields/collaborators',
+                    'maxCount' => self::DEFAULT_MAX_COUNT,
+                    'fieldManagerParamList' => [
+                        'readOnly',
+                        'readOnlyAfterCreate',
+                        'audited',
+                        'autocompleteOnEmpty',
+                        'maxCount',
+                        'inlineEditDisabled',
+                        'tooltipText'
+                    ]
+                ],
+            ],
+            'links' => [
+                self::FIELD => [
+                    'type' => RelationType::HAS_MANY,
+                    'entity' => User::ENTITY_TYPE,
+                    RelationParam::RELATION_NAME => self::RELATION_NAME,
+                    'layoutRelationshipsDisabled' => true,
+                ],
+            ],
+        ]);
+
+        $this->metadata->set('entityAcl', $entityType, [
+            'links' => [
+                self::FIELD => [
+                    'readOnly' => true,
+                ],
+            ],
+        ]);
 
         $this->metadata->save();
+
         $this->dataManager->rebuild([$entityType]);
     }
 
@@ -123,79 +142,5 @@ class CollaboratorsUpdateHook implements UpdateHook
         ]);
 
         $this->metadata->save();
-
-        // Must be after metadata is saved.
-        if ($this->isEnabledByDefault($entityType)) {
-            $this->metadata->set('entityDefs', $entityType, [
-                'fields' => [
-                    self::FIELD => [
-                        FieldParam::DISABLED => true,
-                    ],
-                ],
-                'links' => [
-                    self::FIELD => [
-                        RelationParam::DISABLED => true,
-                    ],
-                ],
-            ]);
-
-            $this->metadata->save();
-        }
-    }
-
-    private function addInternal(string $entityType): void
-    {
-        $this->metadata->set('entityDefs', $entityType, [
-            'fields' => [
-                self::FIELD => [
-                    'type' => FieldType::LINK_MULTIPLE,
-                    'view' => 'views/fields/collaborators',
-                    'maxCount' => self::DEFAULT_MAX_COUNT,
-                    'fieldManagerParamList' => [
-                        'readOnly',
-                        'readOnlyAfterCreate',
-                        'audited',
-                        'autocompleteOnEmpty',
-                        'maxCount',
-                        'inlineEditDisabled',
-                        'tooltipText',
-                    ]
-                ],
-            ],
-            'links' => [
-                self::FIELD => [
-                    'type' => RelationType::HAS_MANY,
-                    'entity' => User::ENTITY_TYPE,
-                    RelationParam::RELATION_NAME => self::RELATION_NAME,
-                    'layoutRelationshipsDisabled' => true,
-                    RelationParam::READ_ONLY => true,
-                ],
-            ],
-        ]);
-
-        $this->metadata->set('entityAcl', $entityType, [
-            'links' => [
-                self::FIELD => [
-                    'readOnly' => true,
-                ],
-            ],
-        ]);
-    }
-
-    private function addEnabledByDefault(string $entityType): void
-    {
-        $this->metadata->delete('entityDefs', $entityType, [
-            'fields.' . self::FIELD,
-            'links.' . self::FIELD,
-        ]);
-    }
-
-    /**
-     * @param string $entityType
-     * @return bool
-     */
-    private function isEnabledByDefault(string $entityType): bool
-    {
-        return in_array($entityType, $this->enabledByDefaultEntityTypeList);
     }
 }

@@ -12,9 +12,6 @@
             "DejaVu Sans",
             "DejaVu Serif",
             "DejaVu Sans Mono"
-        ],
-        "additionalParams": {
-            "fonts": []
-        }
+        ]
     }
 }

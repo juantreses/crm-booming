@@ -9,18 +9,9 @@
         data-action="mailTo"
         title="{{value}}"
         class="selectable text-default"
-    ><span
-        class="{{#if isOptedOut}} text-strikethrough {{/if}}"
-    >{{value}}</span></a>
+        {{#if isOptedOut}}style="text-decoration: line-through;"{{/if}}
+    >{{value}}</a>
 {{else}}
-    <span
-        class="fas fa-exclamation-circle fa-sm text-muted"
-        title="{{translate 'Invalid' scope='EmailAddress'}}"
-    ></span>
-    {{~null~}}<span style="user-select: none">&nbsp;</span>{{~null~}}
-    <span
-        title="{{value}}"
-        class="text-soft {{#if isOptedOut}} text-strikethrough {{/if}}"
-    >{{value}}</span>
+    <span title="{{value}}" style="text-decoration: line-through;">{{value}}</span>
 {{/unless}}
 {{/if}}

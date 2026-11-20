@@ -31,8 +31,7 @@
     "acceptanceStatusMeetings": "Akcepta statuss (tikšanās)",
     "acceptanceStatusCalls": "Akcepta statuss (zvani)",
     "convertedAt": "Pārveidots pie",
-    "originalEmail": "Sākotnējais e-pasta vēstule",
-    "pipeline": "Caurule"
+    "originalEmail": "Sākotnējais e-pasta vēstule"
   },
   "links": {
     "targetLists": "Mērķa adresātu saraksti",
@@ -42,8 +41,7 @@
     "createdContact": "Kontakts",
     "createdOpportunity": "Iespēja",
     "cases": "Lietas",
-    "documents": "Dokumenti",
-    "pipeline": "Caurule"
+    "documents": "Dokumenti"
   },
   "options": {
     "status": {

@@ -31,7 +31,6 @@ namespace Espo\Core\Formula;
 
 use Espo\Core\Formula\Exceptions\Error;
 use Espo\Core\Formula\Exceptions\ExecutionException;
-use Espo\Core\Formula\Exceptions\GeneralError;
 use Espo\Core\Formula\Exceptions\SyntaxError;
 use Espo\Core\Formula\Exceptions\UnsafeFunction;
 use Espo\Core\Formula\Functions\Base as DeprecatedBaseFunction;
@@ -40,8 +39,6 @@ use Espo\Core\Formula\Parser\Ast\Attribute;
 use Espo\Core\Formula\Parser\Ast\Node;
 use Espo\Core\Formula\Parser\Ast\Value;
 use Espo\Core\Formula\Parser\Ast\Variable;
-use Espo\Core\Formula\Utils\PositionUtil;
-use Espo\Core\Utils\Log;
 use Espo\ORM\Entity;
 use Espo\Core\InjectableFactory;
 
@@ -55,8 +52,6 @@ use stdClass;
  */
 class Evaluator
 {
-    private const int ERROR_PART_LENGTH = 50;
-
     private Parser $parser;
     private AttributeFetcher $attributeFetcher;
     /** @var array<string, (Node|Value|Attribute|Variable)> */
@@ -69,8 +64,7 @@ class Evaluator
     public function __construct(
         private InjectableFactory $injectableFactory,
         private array $functionClassNameMap = [],
-        private array $unsafeFunctionList = [],
-        private ?Log $log = null,
+        private array $unsafeFunctionList = []
     ) {
         $this->attributeFetcher = $injectableFactory->create(AttributeFetcher::class);
         $this->parser = new Parser();
@@ -128,14 +122,6 @@ class Evaluator
             $result = $processor->process($item);
         } catch (ExecutionException $e) {
             throw new LogicException('Unexpected ExecutionException.', 0, $e);
-        } catch (GeneralError $e) {
-            $this->processLog($e, $expression);
-
-            throw GeneralError::create(
-                message: $e->getMessage(),
-                position: $e->getPosition(),
-                previous: $e,
-            );
         }
 
         $this->attributeFetcher->resetRuntimeCache();
@@ -173,25 +159,5 @@ class Evaluator
         foreach ($data->getChildNodes() as $subData) {
             $this->checkIsSafe($subData);
         }
-    }
-
-    private function processLog(GeneralError $exception, string $expression): void
-    {
-        $position = $exception->getPosition();
-
-        if ($position === null) {
-            return;
-        }
-
-        $excerpt = substr($expression, $position, self::ERROR_PART_LENGTH);
-
-        [$line, $column] = PositionUtil::getLineAndColumn($expression, $position);
-
-        $this->log?->info("Failed formula script; line: {line}, column: {column}. Code:\n{excerpt}", [
-            'excerpt' => $excerpt,
-            'line' => $line,
-            'column' => $column,
-            'position' => $position,
-        ]);
     }
 }

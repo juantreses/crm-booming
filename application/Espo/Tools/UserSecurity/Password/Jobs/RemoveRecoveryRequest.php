@@ -37,9 +37,12 @@ use RuntimeException;
 
 class RemoveRecoveryRequest implements Job
 {
-    public function __construct(
-        private EntityManager $entityManager,
-    ) {}
+    private EntityManager $entityManager;
+
+    public function __construct(EntityManager $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
 
     public function run(Data $data): void
     {

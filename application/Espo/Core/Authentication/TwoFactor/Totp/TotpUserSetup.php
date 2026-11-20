@@ -38,7 +38,6 @@ use Espo\Core\Authentication\TwoFactor\UserSetup;
 use Espo\Core\Utils\Config;
 
 use RuntimeException;
-use SensitiveParameter;
 use stdClass;
 
 /**
@@ -93,7 +92,7 @@ class TotpUserSetup implements UserSetup
         return $this->totp->verifyCode($secret, $codeModified);
     }
 
-    private function storeSecret(User $user, #[SensitiveParameter] string $secret): void
+    private function storeSecret(User $user, string $secret): void
     {
         $userData = $this->getUserDataRepository()->getByUserId($user->getId());
 

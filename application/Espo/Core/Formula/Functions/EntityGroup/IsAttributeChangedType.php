@@ -29,28 +29,22 @@
 
 namespace Espo\Core\Formula\Functions\EntityGroup;
 
-use Espo\Core\Formula\Exceptions\BadArgumentType;
-use Espo\Core\Formula\Exceptions\Error;
-use Espo\Core\Formula\Exceptions\TooFewArguments;
-use Espo\Core\Formula\Functions\Base;
+use Espo\Core\Exceptions\Error;
 
-class IsAttributeChangedType extends Base
+class IsAttributeChangedType extends \Espo\Core\Formula\Functions\Base
 {
     /**
      * @return bool
      * @throws Error
+     * @throws \Espo\Core\Formula\Exceptions\Error
      */
     public function process(\stdClass $item)
     {
         if (count($item->value) < 1) {
-            throw TooFewArguments::create(1);
+            throw new Error("isAttributeChanged: too few arguments.");
         }
 
         $attribute = $this->evaluate($item->value[0]);
-
-        if (!is_string($attribute)) {
-            throw BadArgumentType::create(1, 'string');
-        }
 
         return $this->check($attribute);
     }

@@ -30,7 +30,6 @@
 namespace Espo\Core\Mail\Account\PersonalAccount;
 
 use Espo\Core\Exceptions\ErrorSilent;
-use Espo\Core\Mail\Account\Util\AddressUtil;
 use Espo\Core\Mail\Account\Util\NotificationHelper;
 use Espo\Core\Mail\Exceptions\ImapError;
 use Espo\Core\Mail\Exceptions\NoImap;
@@ -41,7 +40,6 @@ use Espo\Core\Exceptions\Error;
 use Espo\Core\Mail\Account\Fetcher;
 use Espo\Core\Mail\Account\Storage\Params;
 use Espo\Core\Mail\Account\StorageFactory;
-use Espo\Core\Utils\Security\HostCheck;
 use Espo\Entities\User;
 use Espo\Core\Mail\Sender\Message;
 
@@ -55,9 +53,7 @@ class Service
         private StorageFactory $storageFactory,
         private User $user,
         private Log $log,
-        private NotificationHelper $notificationHelper,
-        private HostCheck $hostCheck,
-        private AddressUtil $addressUtil,
+        private NotificationHelper $notificationHelper
     ) {}
 
     /**
@@ -89,21 +85,27 @@ class Service
      */
     public function getFolderList(Params $params): array
     {
-        $params = $this->connectPreProcess($params);
+        $userId = $params->getUserId();
 
-        try {
-            $storage = $this->storageFactory->createWithParams($params);
-
-            return $storage->getFolderNames();
-        } catch (Exception $e) {
-            $this->log->warning("IMAP get folder list failed.", [
-                'exception' => $e,
-            ]);
-
-            $message = $e instanceof ImapError ? $e->getMessage() : '';
-
-            throw new ErrorSilent($message);
+        if (
+            $userId &&
+            !$this->user->isAdmin() &&
+            $userId !== $this->user->getId()
+        ) {
+            throw new Forbidden();
         }
+
+        if ($params->getId()) {
+            $account = $this->accountFactory->create($params->getId());
+
+            $params = $params
+                ->withPassword($this->getPassword($params, $account))
+                ->withImapHandlerClassName($account->getImapHandlerClassName());
+        }
+
+        $storage = $this->storageFactory->createWithParams($params);
+
+        return $storage->getFolderNames();
     }
 
     /**
@@ -112,18 +114,46 @@ class Service
      */
     public function testConnection(Params $params): void
     {
-        $params = $this->connectPreProcess($params);
+        $userId = $params->getUserId();
+
+        if (
+            $userId &&
+            !$this->user->isAdmin() &&
+            $userId !== $this->user->getId()
+        ) {
+            throw new Forbidden();
+        }
+
+        if (!$params->getId() && $params->getPassword() === null) {
+            throw new Forbidden();
+        }
+
+        if ($params->getId()) {
+            $account = $this->accountFactory->create($params->getId());
+
+            if (
+                !$this->user->isAdmin() &&
+                $account->getUser()->getId() !== $this->user->getId()
+            ) {
+                throw new Forbidden();
+            }
+
+            $params = $params
+                ->withPassword($this->getPassword($params, $account))
+                ->withImapHandlerClassName($account->getImapHandlerClassName());
+        }
 
         try {
             $storage = $this->storageFactory->createWithParams($params);
-
             $storage->getFolderNames();
         } catch (Exception $e) {
-            $this->log->warning("IMAP test connection failed.", [
+            $this->log->warning("IMAP test connection failed; {message}", [
                 'exception' => $e,
+                'message' => $e->getMessage(),
             ]);
 
-            $message = $e instanceof ImapError ? $e->getMessage() : '';
+            $message = $e instanceof ImapError ?
+                $e->getMessage() : '';
 
             throw new ErrorSilent($message);
         }
@@ -161,51 +191,5 @@ class Service
         $storage = $this->storageFactory->create($account);
 
         $storage->appendMessage($message->toString(), $folder);
-    }
-
-    /**
-     * @throws Error
-     * @throws Forbidden
-     */
-    private function connectPreProcess(Params $params): Params
-    {
-        $userId = $params->getUserId();
-
-        if (
-            $userId &&
-            !$this->user->isEffectiveAdmin() &&
-            $userId !== $this->user->getId()
-        ) {
-            throw new Forbidden();
-        }
-
-        if (!$params->getId() && $params->getPassword() === null) {
-            throw new Forbidden();
-        }
-
-        if (
-            $params->getHost() &&
-            !$this->addressUtil->isAllowedAddress($params) &&
-            !$this->hostCheck->isHostAndNotInternal($params->getHost())
-        ) {
-            throw new Forbidden("Not allowed internal host.");
-        }
-
-        if ($params->getId()) {
-            $account = $this->accountFactory->create($params->getId());
-
-            if (
-                !$this->user->isEffectiveAdmin() &&
-                $account->getUser()->getId() !== $this->user->getId()
-            ) {
-                throw new Forbidden();
-            }
-
-            $params = $params
-                ->withPassword($this->getPassword($params, $account))
-                ->withImapHandlerClassName($account->getImapHandlerClassName());
-        }
-
-        return $params;
     }
 }

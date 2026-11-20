@@ -15,8 +15,7 @@
             "type": "array",
             "displayAsList": true,
             "tooltip": true,
-            "audited": true,
-            "noEmptyString": true
+            "audited": true
         },
         "userRole": {
             "type": "varchar",

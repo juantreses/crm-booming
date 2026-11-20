@@ -29,54 +29,135 @@
 
 namespace Espo\Services;
 
-use Espo\Core\Record\ReadResult;
+use Espo\ORM\Entity;
+use Espo\Core\ExternalAccount\Clients\OAuth2Abstract;
+use Espo\Core\ExternalAccount\ClientManager;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Core\Exceptions\NotFoundSilent;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Record\ReadParams;
+use Espo\Core\Di;
 use Espo\Entities\ExternalAccount as ExternalAccountEntity;
-use Espo\Tools\ExternalAccount\OAuthService;
+use Espo\Entities\Integration as IntegrationEntity;
 use Exception;
 
 /**
  * @extends Record<ExternalAccountEntity>
  */
-class ExternalAccount extends Record
+class ExternalAccount extends Record implements Di\HookManagerAware
 {
-    /**
-     * @return bool
-     * @deprecated As of v10.0. Use `Espo\Tools\OAuthService`.
-     * @todo Fix all usages.
-     * @todo Remove in v11.0.
-     */
-    public function ping(string $integration, string $userId)
-    {
-        return $this->injectableFactory->create(OAuthService::class)->ping($integration, $userId);
-    }
+    use Di\HookManagerSetter;
 
     /**
      * @throws NotFound
      * @throws Error
-     * @throws Exception
-     * @deprecated As of v10.0. Use `Espo\Tools\OAuthService`.
-     * @todo Fix all usages.
-     * @todo Remove in v11.0.
      */
-    public function authorizationCode(string $integration, string $userId, string $code): void
+    private function getClient(string $integration, string $id): ?object
     {
-        $this->injectableFactory->create(OAuthService::class)->authorizationCode($integration, $userId, $code);
+        /** @var IntegrationEntity|null $integrationEntity */
+        $integrationEntity = $this->entityManager->getEntityById(IntegrationEntity::ENTITY_TYPE, $integration);
+
+        if (!$integrationEntity) {
+            throw new NotFound();
+        }
+
+        if (!$integrationEntity->get('enabled')) {
+            throw new Error("$integration is disabled.");
+        }
+
+        return $this->injectableFactory
+            ->create(ClientManager::class)
+            ->create($integration, $id);
     }
 
-    public function read(string $id, ReadParams $params = new ReadParams()): ReadResult
+    private function getExternalAccountEntity(string $integration, string $userId): ?ExternalAccountEntity
+    {
+        $id = $integration . '__' . $userId;
+
+        /** @var ?ExternalAccountEntity */
+        return $this->entityManager->getEntityById(ExternalAccountEntity::ENTITY_TYPE, $id);
+    }
+
+    /**
+     * @return bool
+     * @todo In v9.1. Move to Tools. Fix all usages.
+     */
+    public function ping(string $integration, string $userId)
+    {
+        try {
+            $client = $this->getClient($integration, $userId);
+
+            if ($client && method_exists($client, 'ping')) {
+                /** @var bool */
+                return $client->ping();
+            }
+        } catch (Exception) {}
+
+        return false;
+    }
+
+    /**
+     * @return bool
+     * @throws NotFound
+     * @throws Error
+     * @throws Exception
+     * @todo In v9.1. Return void. Move to Tools. Fix all usages.
+     */
+    public function authorizationCode(string $integration, string $userId, string $code)
+    {
+        $entity = $this->getExternalAccountEntity($integration, $userId);
+
+        if (!$entity) {
+            throw new NotFound();
+        }
+
+        $entity->set('enabled', true);
+
+        $this->entityManager->saveEntity($entity);
+
+        $client = $this->getClient($integration, $userId);
+
+        if (!$client instanceof OAuth2Abstract) {
+            throw new Error("Could not load client for $integration.");
+        }
+
+
+        $result = $client->getAccessTokenFromAuthorizationCode($code);
+
+        if (empty($result) || empty($result['accessToken'])) {
+            throw new Error("Could not get access token for $integration.");
+        }
+
+        $entity->clear('accessToken');
+        $entity->clear('refreshToken');
+        $entity->clear('tokenType');
+        $entity->clear('expiresAt');
+
+        foreach ($result as $name => $value) {
+            $entity->set($name, $value);
+        }
+
+        $this->entityManager->saveEntity($entity);
+
+        $this->hookManager->process('ExternalAccount', 'afterConnect', $entity, [
+            'integration' => $integration,
+            'userId' => $userId,
+            'code' => $code,
+        ]);
+
+        return true;
+    }
+
+    public function read(string $id, ReadParams $params): Entity
     {
         [, $userId] = explode('__', $id);
 
-        if ($this->user->getId() !== $userId && !$this->user->isEffectiveAdmin()) {
+        if ($this->user->getId() !== $userId && !$this->user->isAdmin()) {
             throw new Forbidden();
         }
 
-        $entity = $this->entityManager->getRDBRepositoryByClass(ExternalAccountEntity::class)->getById($id);
+        $entity = $this->entityManager->getEntityById(ExternalAccountEntity::ENTITY_TYPE, $id);
 
         if (!$entity) {
             throw new NotFoundSilent();
@@ -91,6 +172,6 @@ class ExternalAccount extends Record
             $entity->clear($a);
         }
 
-        return new ReadResult($entity);
+        return $entity;
     }
 }

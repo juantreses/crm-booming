@@ -61,17 +61,13 @@
 
         {{#if showMoreEnabled}}
         {{#if showMoreActive}}
-        <div
-            class="show-more {{#unless showMoreActive}} hidden {{/unless}}"
-            data-owner-cid="{{viewObject.cid}}"
-        >
+        <div class="show-more{{#unless showMoreActive}} hidden{{/unless}}">
             <a
                 type="button"
                 role="button"
                 tabindex="0"
                 class="btn btn-default btn-block"
                 data-action="showMore"
-                data-owner-cid="{{viewObject.cid}}"
                 {{#if showCount}}title="{{translate 'Total'}}: {{totalCountFormatted}}"{{/if}}
             >
                 {{#if showCount}}

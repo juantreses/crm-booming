@@ -40,6 +40,7 @@ use Espo\Core\Utils\Util;
 use Espo\Entities\Attachment;
 use Espo\ORM\EntityManager;
 use Espo\Tools\EntityManager\NameUtil;
+
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -47,7 +48,7 @@ use ZipArchive;
 
 class ExportCustom
 {
-    private string $minVersion = '9.3.0';
+    private string $minVersion = '9.1.0';
 
     /** @var string[] */
     private array $metadataFolderList = [
@@ -67,7 +68,7 @@ class ExportCustom
         private FileManager $fileManager,
         private NameUtil $nameUtil,
         private FileStorageManager $fileStorageManager,
-        private EntityManager $entityManager,
+        private EntityManager $entityManager
     ) {}
 
     public function process(Params $params): Result
@@ -102,10 +103,13 @@ class ExportCustom
 
     private function copy(Data $data): void
     {
-        $source = 'custom/Espo/Custom/Resources';
-        $dest = $data->getDestDir() . '/Resources';
+        $customDir = 'custom/Espo/Custom';
 
-        $this->fileManager->copy($source, $dest, true);
+        $this->fileManager->copy(
+            $customDir . '/Resources',
+            $data->getDestDir() . '/Resources',
+            true
+        );
     }
 
     private function fixMetadata(Params $params, Data $data): void
@@ -344,9 +348,6 @@ class ExportCustom
             'Google',
             'Outlook',
             'Voip',
-            'Intelligence',
-            'ProjectManagement',
-            'MeetingScheduler',
         ];
 
         if (in_array($params->getModule(), $forbiddenModuleNames)) {

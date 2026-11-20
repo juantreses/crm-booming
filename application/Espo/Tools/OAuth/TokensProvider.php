@@ -45,7 +45,7 @@ use LogicException;
 
 class TokensProvider
 {
-    private const int EXPIRATION_LEAD_TIME = 60;
+    private const EXPIRATION_LEAD_TIME = 60;
 
     public function __construct(
         private EntityManager $entityManager,
@@ -131,6 +131,7 @@ class TokensProvider
 
     /**
      * @throws TokenObtainingFailure
+     * @noinspection PhpDocRedundantThrowsInspection
      */
     private function refresh(OAuthAccount $account): void
     {
@@ -158,7 +159,6 @@ class TokensProvider
             ->getRDBRepositoryByClass(OAuthAccount::class)
             ->forUpdate()
             ->sth()
-            ->select(Attribute::ID)
             ->where([Attribute::ID => $account->getId()])
             ->find();
 

@@ -770,6 +770,14 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
       const key = 'calendarEnabledScopeList';
       this.getStorage().set('state', key, enabledScopeList);
     }
+    getTitle() {
+      let title = '';
+      if (this.options.userId && this.options.userName) {
+        title += ' (' + this.options.userName + ')';
+      }
+      title = this.getHelper().escapeString(title);
+      return title;
+    }
 
     /**
      * @param {Object.<string, *>} o
@@ -937,7 +945,6 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
       this.fetchEvents(this.start, this.end, eventList => {
         const itemsDataSet = new _visData.DataSet(eventList);
         this.timeline = new _visTimeline.Timeline($timeline.get(0), itemsDataSet, this.groupsDataSet, {
-          rtl: this.getThemeManager().getDirection() === 'rtl',
           dataAttributes: 'all',
           start: this.start.toDate(),
           end: this.end.toDate(),
@@ -978,8 +985,7 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
           locale: 'myLocale',
           margin: {
             item: {
-              vertical: 12,
-              horizontal: 0
+              vertical: 12
             },
             axis: 6
           }
@@ -1220,26 +1226,16 @@ define("modules/crm/views/calendar/timeline", ["exports", "view", "vis-data", "v
       });
       this.groupsDataSet = new _visData.DataSet(list);
     }
-
-    /**
-     * @private
-     * @param {string} id
-     * @param {string} name
-     * @return {string}
-     */
     getGroupContent(id, name) {
+      if (this.calendarType === 'single') {
+        return (0, _jquery.default)('<span>').text(name).get(0).outerHTML;
+      }
       let avatarHtml = this.getAvatarHtml(id);
       if (avatarHtml) {
         avatarHtml += ' ';
       }
       return avatarHtml + (0, _jquery.default)('<span>').attr('data-id', id).addClass('group-title').text(name).get(0).outerHTML;
     }
-
-    /**
-     * @private
-     * @param {string} id
-     * @return {string}
-     */
     getAvatarHtml(id) {
       if (this.getConfig().get('avatarsDisabled')) {
         return '';

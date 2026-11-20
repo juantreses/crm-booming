@@ -4,7 +4,6 @@
     "dateStart": "Start datum",
     "dateEnd": "Eind datum",
     "duration": "Duur",
-    "status": "Status",
     "reminders": "Herinneringen",
     "dateStartDate": "Startdatum (de hele dag)",
     "dateEndDate": "Datum einde (hele dag)",
@@ -23,7 +22,6 @@
   "labels": {
     "Create {entityType}": "Creëer {entityTypeTranslated}",
     "Schedule {entityType}": "Schema {entityTypeTranslated}",
-    "Log {entityType}": "Log {entityTypeTranslated}",
     "Set Held": "Gedaan",
     "Set Not Held": "Niet gedaan"
   },

@@ -84,10 +84,6 @@
                 "select_account"
             ],
             "maxLength": 14
-        },
-        "oidcAuthorizationPkce": {
-            "type": "bool",
-            "default": true
         }
     }
 }

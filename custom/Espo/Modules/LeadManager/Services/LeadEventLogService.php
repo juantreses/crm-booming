@@ -48,7 +48,7 @@ readonly class LeadEventLogService
         $event = $this->entityManager->getNewEntity('CLeadEvent');
         $dt = DateTimeFactory::parseToUtc($eventDate);
 
-        $event->setMultiple([
+        $event->set([
             'eventType' => $eventType->value,
             'eventDate' => DateTimeFactory::formatUtc($dt),
             'description' => $description,

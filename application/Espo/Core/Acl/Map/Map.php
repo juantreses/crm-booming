@@ -30,8 +30,10 @@
 namespace Espo\Core\Acl\Map;
 
 use Espo\Core\Acl\Table;
-use Espo\Core\Utils\Cache\DataCacheAccess;
+use Espo\Core\Utils\Config;
+use Espo\Core\Utils\DataCache;
 use Espo\Core\Utils\ObjectUtil;
+
 use stdClass;
 use RuntimeException;
 
@@ -40,6 +42,8 @@ use RuntimeException;
  */
 class Map
 {
+    private stdClass $data;
+    private string $cacheKey;
     /** @var array<string, string[]> */
     private $forbiddenFieldsCache = [];
     /** @var array<string, string[]> */
@@ -50,20 +54,28 @@ class Map
         Table::LEVEL_NO,
     ];
 
-    /**
-     * @param DataCacheAccess<stdClass> $dataCacheAccess
-     */
     public function __construct(
         Table $table,
         private DataBuilder $dataBuilder,
+        private DataCache $dataCache,
         CacheKeyProvider $cacheKeyProvider,
-        private DataCacheAccess $dataCacheAccess,
+        Config\SystemConfig $systemConfig,
     ) {
 
-        $this->dataCacheAccess->init(
-            key: $cacheKeyProvider->get(),
-            loader: fn () => $this->dataBuilder->build($table),
-        );
+        $this->cacheKey = $cacheKeyProvider->get();
+
+        if ($systemConfig->useCache() && $this->dataCache->has($this->cacheKey)) {
+            /** @var stdClass $cachedData */
+            $cachedData = $this->dataCache->get($this->cacheKey);
+
+            $this->data = $cachedData;
+        } else {
+            $this->data = $this->dataBuilder->build($table);
+
+            if ($systemConfig->useCache()) {
+                $this->dataCache->store($this->cacheKey, $this->data);
+            }
+        }
     }
 
     /**
@@ -71,7 +83,7 @@ class Map
      */
     public function getData(): stdClass
     {
-        return ObjectUtil::clone($this->dataCacheAccess->get());
+        return ObjectUtil::clone($this->data);
     }
 
     /**
@@ -102,9 +114,7 @@ class Map
             return $this->forbiddenAttributesCache[$key];
         }
 
-        $data = $this->dataCacheAccess->get();
-
-        $fieldTableQuickAccess = $data->fieldTableQuickAccess;
+        $fieldTableQuickAccess = $this->data->fieldTableQuickAccess;
 
         if (
             !isset($fieldTableQuickAccess->$scope) ||
@@ -176,9 +186,7 @@ class Map
             return $this->forbiddenFieldsCache[$key];
         }
 
-        $data = $this->dataCacheAccess->get();
-
-        $fieldTableQuickAccess = $data->fieldTableQuickAccess;
+        $fieldTableQuickAccess = $this->data->fieldTableQuickAccess;
 
         if (
             !isset($fieldTableQuickAccess->$scope) ||

@@ -38,7 +38,7 @@ class Webhook extends Record
 {
     protected function checkAccess(): bool
     {
-        if (!$this->user->isEffectiveAdmin() && !$this->user->isApi()) {
+        if (!$this->user->isAdmin() && !$this->user->isApi()) {
             return false;
         }
 

@@ -13,9 +13,7 @@
     "documents": "Dokumenti",
     "account": "Konts",
     "opportunity": "Iespēja",
-    "contact": "Kontakts",
-    "meetingsChildren": "Sanāksmes Bērni",
-    "callsChildren": "Zvana bērniem"
+    "contact": "Kontakts"
   },
   "scopeNames": {
     "Account": "Konts",

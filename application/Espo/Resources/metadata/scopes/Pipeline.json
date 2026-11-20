@@ -1,9 +1,0 @@
-{
-    "entity": true,
-    "importable": true,
-    "statusField": "status",
-    "exportFormatList": ["csv"],
-    "duplicateCheckFieldList": [
-        "name"
-    ]
-}

@@ -45,7 +45,7 @@ class Mandatory implements Filter
 
     public function apply(SelectBuilder $queryBuilder): void
     {
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             $queryBuilder->where([
                 'isActive' => true,
                 'type!=' => User::TYPE_API,

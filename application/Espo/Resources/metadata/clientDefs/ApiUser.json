@@ -30,18 +30,5 @@
     },
     "filterList": [
     ],
-    "boolFilterList": [],
-    "menu": {
-        "list": {
-            "dropdown": [
-                {
-                    "name": "openApiSpec",
-                    "label": "OpenAPI spec",
-                    "link": "api/v1/OpenApi",
-                    "handler": "handlers/api-user/open-api-spec-action",
-                    "actionFunction": "process"
-                }
-            ]
-        }
-    }
+    "boolFilterList": []
 }

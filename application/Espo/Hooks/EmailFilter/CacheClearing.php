@@ -32,7 +32,6 @@ namespace Espo\Hooks\EmailFilter;
 use Espo\Core\Hook\Hook\AfterRemove;
 use Espo\Core\Hook\Hook\AfterSave;
 use Espo\Core\Utils\DataCache;
-use Espo\Core\Utils\User\UserStateProvider;
 use Espo\Entities\EmailFilter;
 use Espo\Entities\User;
 use Espo\ORM\Entity;
@@ -45,12 +44,9 @@ use Espo\ORM\Repository\Option\SaveOptions;
  */
 class CacheClearing implements AfterSave, AfterRemove
 {
-    private const string CACHE_KEY = 'emailFilters';
+    private const CACHE_KEY = 'emailFilters';
 
-    public function __construct(
-        private DataCache $dataCache,
-        private UserStateProvider $userStateProvider,
-    ) {}
+    public function __construct(private DataCache $dataCache) {}
 
     /**
      * @param EmailFilter $entity
@@ -77,8 +73,6 @@ class CacheClearing implements AfterSave, AfterRemove
         $cacheKey = $this->composeCacheKey($entity->getParentId());
 
         $this->dataCache->clear($cacheKey);
-
-        $this->userStateProvider->bumpEmailFiltersVersionNumber($entity->getParentId());
     }
 
     private function composeCacheKey(string $userId): string

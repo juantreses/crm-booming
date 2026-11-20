@@ -35,7 +35,6 @@ use Espo\Core\Name\Field;
 use Espo\Core\Notification\DefaultAssignmentNotificator;
 use Espo\Entities\EmailAddress;
 use Espo\Entities\EmailFolder;
-use Espo\Entities\Note;
 use Espo\Modules\Crm\Entities\Account;
 use Espo\Modules\Crm\Entities\Contact;
 use Espo\Modules\Crm\Entities\Lead;
@@ -166,9 +165,9 @@ class Email implements AssignmentNotificator
             ]);
 
             if ($person) {
-                $data[Note::DATA_ATTR_PERSON_TYPE] = $person->getEntityType();
-                $data[Note::DATA_ATTR_PERSON_NAME] = $person->get(Field::NAME);
-                $data[Note::DATA_ATTR_PERSON_ID] = $person->getId();
+                $data['personEntityType'] = $person->getEntityType();
+                $data['personEntityName'] = $person->get(Field::NAME);
+                $data['personEntityId'] = $person->getId();
             }
         }
 
@@ -178,11 +177,11 @@ class Email implements AssignmentNotificator
             $userIdFrom = $person->getId();
         }
 
-        if (empty($data[Note::DATA_ATTR_PERSON_ID])) {
-            $data[Note::DATA_ATTR_FROM_STRING] = Util::parseFromName($entity->getFromString() ?? '');
+        if (empty($data['personEntityId'])) {
+            $data['fromString'] = Util::parseFromName($entity->getFromString() ?? '');
 
-            if (empty($data[Note::DATA_ATTR_FROM_STRING]) && $from) {
-                $data[Note::DATA_ATTR_FROM_STRING] = $from;
+            if (empty($data['fromString']) && $from) {
+                $data['fromString'] = $from;
             }
         }
 
@@ -281,7 +280,7 @@ class Email implements AssignmentNotificator
                 ->setType(Notification::TYPE_EMAIL_RECEIVED)
                 ->setUserId($userId)
                 ->setData($data)
-                ->setRelated(LinkParent::fromEntity($entity))
+                ->setRelated(LinkParent::createFromEntity($entity))
                 ->setActionId($params->getActionId());
 
             $this->entityManager->saveEntity($notification);

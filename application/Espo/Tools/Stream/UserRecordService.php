@@ -40,12 +40,16 @@ use Espo\Entities\StreamSubscription;
 use Espo\Entities\User;
 use Espo\Entities\Note;
 use Espo\Entities\Email;
+use Espo\Core\Utils\Metadata;
 use Espo\Core\Acl;
 use Espo\Core\AclManager;
 use Espo\Core\Acl\Table;
 use Espo\Core\Record\Collection as RecordCollection;
 use Espo\Core\Utils\Acl\UserAclManagerProvider;
+use Espo\ORM\Query\Part\Condition as Cond;
+use Espo\ORM\Query\Part\Expression as Expr;
 use Espo\ORM\Query\Part\Order;
+use Espo\ORM\Query\Part\Where\OrGroup;
 use Espo\ORM\Query\Select;
 use Espo\ORM\Query\SelectBuilder;
 use Espo\Tools\Stream\RecordService\Helper;
@@ -54,11 +58,12 @@ use Espo\Tools\Stream\RecordService\QueryHelper;
 
 class UserRecordService
 {
-    private const string FILTER_POSTS = 'posts';
+    private const FILTER_POSTS = 'posts';
 
     public function __construct(
         private EntityManager $entityManager,
         private User $user,
+        private Metadata $metadata,
         private Acl $acl,
         private UserAclManagerProvider $userAclManagerProvider,
         private NoteAccessControl $noteAccessControl,
@@ -207,6 +212,41 @@ class UserRecordService
     }
 
     /**
+     * @return string[]
+     */
+    private function getNotAllEntityTypeList(User $user): array
+    {
+        if (!$user->isPortal()) {
+            return [];
+        }
+
+        $aclManager = $this->getUserAclManager($user);
+
+        $list = [];
+
+        $scopes = $this->metadata->get('scopes', []);
+
+        foreach ($scopes as $scope => $item) {
+            if ($scope === User::ENTITY_TYPE) {
+                continue;
+            }
+
+            if (empty($item['entity']) || empty($item['object'])) {
+                continue;
+            }
+
+            if (
+                !$aclManager ||
+                $aclManager->getLevel($user, $scope, Table::ACTION_READ) !== Table::LEVEL_ALL
+            ) {
+                $list[] = $scope;
+            }
+        }
+
+        return $list;
+    }
+
+    /**
      * @param Select[] $queryList
      */
     private function buildSubscriptionQueriesPortal(
@@ -223,13 +263,15 @@ class UserRecordService
             'isInternal' => false,
         ]);
 
+        $notAllEntityTypeList = $this->getNotAllEntityTypeList($user);
+
         $orGroup = [
             [
                 'relatedId' => null,
             ],
             [
                 'relatedId!=' => null,
-                'relatedType!=' => $this->helper->getNotAllEntityTypeList($user),
+                'relatedType!=' => $notAllEntityTypeList,
             ],
         ];
 
@@ -299,11 +341,7 @@ class UserRecordService
             return;
         }
 
-        $this->queryHelper->buildAccessQueries(
-            user: $user,
-            baseBuilder: $builder,
-            queryList: $queryList,
-        );
+        $this->buildAccessQueries($user, $builder, $queryList, true);
     }
 
     /**
@@ -364,12 +402,7 @@ class UserRecordService
             ->where(['superParentType' => Account::ENTITY_TYPE])
             ->where($ignoreWhereClause);
 
-        $this->queryHelper->buildAccessQueries(
-            user: $user,
-            baseBuilder: $builder,
-            queryList: $queryList,
-            super: true,
-        );
+        $this->buildAccessQueries($user, $builder, $queryList);
     }
 
     /**
@@ -428,6 +461,117 @@ class UserRecordService
         }
 
         $queryList[] = $query;
+    }
+
+    /**
+     * Split into tree queries for all, team and own.
+     * Note that only notes with 'related' and 'superParent' are subject
+     * to access control. Notes with only 'parent' don't have teams and
+     * users set.
+     *
+     * @param Select[] $queryList
+     * @param bool $noParentFilter False is for 'superParent'.
+     */
+    private function buildAccessQueries(
+        User $user,
+        SelectBuilder $baseBuilder,
+        array &$queryList,
+        bool $noParentFilter = false
+    ): void {
+
+        $onlyTeamEntityTypeList = $this->helper->getOnlyTeamEntityTypeList($user);
+        $onlyOwnEntityTypeList = $this->helper->getOnlyOwnEntityTypeList($user);
+
+        $allBuilder = clone $baseBuilder;
+
+        $orWhere = [
+            [
+                'relatedId!=' => null,
+                'relatedType!=' => array_merge($onlyTeamEntityTypeList, $onlyOwnEntityTypeList),
+            ],
+        ];
+
+        $orWhere[] = $noParentFilter ?
+            ['relatedId=' => null] :
+            [
+                'relatedId=' => null,
+                'parentType!=' => array_merge($onlyTeamEntityTypeList, $onlyOwnEntityTypeList),
+            ];
+
+        $allBuilder->where(['OR' => $orWhere]);
+
+        $queryList[] = $allBuilder->build();
+
+        if ($onlyTeamEntityTypeList !== []) {
+            $teamBuilder = clone $baseBuilder;
+
+            $orWhere = [
+                ['relatedType=' => $onlyTeamEntityTypeList],
+            ];
+
+            if (!$noParentFilter) {
+                $orWhere[] = [
+                    'relatedId=' => null,
+                    'parentType=' => $onlyTeamEntityTypeList,
+                ];
+            }
+
+            $teamBuilder
+                ->where(['OR' => $orWhere])
+                ->where(
+                    // Separate sub-queries perform faster that a single with two LEFT JOINs inside.
+                    OrGroup::create(
+                        Cond::in(
+                            Expr::column('id'),
+                            SelectBuilder::create()
+                                ->from('NoteTeam')
+                                ->select('noteId')
+                                ->where(['teamId' => $user->getTeamIdList()])
+                                ->build()
+                        ),
+                        Cond::in(
+                            Expr::column('id'),
+                            SelectBuilder::create()
+                                ->from('NoteUser')
+                                ->select('noteId')
+                                ->where(['userId' => $user->getId()])
+                                ->build()
+                        ),
+                    )
+                );
+
+            $queryList[] = $teamBuilder->build();
+        }
+
+        if ($onlyOwnEntityTypeList !== []) {
+            $ownBuilder = clone $baseBuilder;
+
+            $orWhere = [
+                ['relatedType=' => $onlyOwnEntityTypeList],
+            ];
+
+            if (!$noParentFilter) {
+                $orWhere[] = [
+                    'relatedId=' => null,
+                    'parentType=' => $onlyOwnEntityTypeList,
+                ];
+            }
+
+            $ownBuilder
+                ->where(['OR' => $orWhere])
+                ->where(
+                    Cond::in(
+                        Expr::column('id'),
+                        SelectBuilder::create()
+                            ->from('NoteUser')
+                            ->select('noteId')
+                            ->where(['userId' => $user->getId()])
+                            ->build()
+                    )
+                );
+
+            $queryList[] = $ownBuilder->build();
+        }
     }
 
     /**

@@ -36,7 +36,6 @@
                     "labelTranslation": "Global.scopeNames.Settings",
                     "link": "#Admin/currency",
                     "handler": "handlers/currency-record/menu-action-settings",
-                    "actionFunction": "process",
                     "checkVisibilityFunction": "isVisible"
                 }
             ]

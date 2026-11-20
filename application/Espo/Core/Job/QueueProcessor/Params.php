@@ -31,12 +31,30 @@ namespace Espo\Core\Job\QueueProcessor;
 
 class Params
 {
+    private bool $useProcessPool = false;
+    private bool $noLock = false;
     private ?string $queue = null;
     private ?string $group = null;
     private int $limit = 0;
     /** @var ?Params[] */
     private ?array $subQueueParamsList = null;
     private float $weight = 1.0;
+
+    public function withUseProcessPool(bool $useProcessPool): self
+    {
+        $obj = clone $this;
+        $obj->useProcessPool = $useProcessPool;
+
+        return $obj;
+    }
+
+    public function withNoLock(bool $noLock): self
+    {
+        $obj = clone $this;
+        $obj->noLock = $noLock;
+
+        return $obj;
+    }
 
     public function withQueue(?string $queue): self
     {
@@ -79,6 +97,16 @@ class Params
         $obj->subQueueParamsList = $subQueueParamsList;
 
         return $obj;
+    }
+
+    public function useProcessPool(): bool
+    {
+        return $this->useProcessPool;
+    }
+
+    public function noLock(): bool
+    {
+        return $this->noLock;
     }
 
     public function getQueue(): ?string

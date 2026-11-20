@@ -44,12 +44,8 @@
         "pattern"
     ],
     "mandatoryValidationList": [
-        "pattern",
-        "cascadingSelect"
+        "pattern"
     ],
-    "validatorClassNameMap": {
-        "cascadingSelect": "Espo\\Classes\\FieldValidators\\Common\\Link\\CascadingSelect"
-    },
     "filter": true,
     "notCreatable": true,
     "valueFactoryClassName": "Espo\\Core\\Field\\Link\\LinkFactory",

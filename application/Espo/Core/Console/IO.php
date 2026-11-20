@@ -32,7 +32,6 @@ namespace Espo\Core\Console;
 use RuntimeException;
 
 use const STDOUT;
-use const STDERR;
 use const PHP_EOL;
 
 /**
@@ -46,7 +45,7 @@ class IO
     private int $exitStatus = 0;
 
     /**
-     * Write a string to the output.
+     * Write a string to output.
      */
     public function write(string $string): void
     {
@@ -54,32 +53,11 @@ class IO
     }
 
     /**
-     * Write a string followed by the current line terminator to the output.
+     * Write a string followed by the current line terminator to output.
      */
     public function writeLine(string $string): void
     {
         fwrite(STDOUT, $string . PHP_EOL);
-    }
-
-    /**
-     * Write a string to the error output.
-     *
-     * @since 10.0.0
-     * @noinspection PhpUnused
-     */
-    public function writeError(string $string): void
-    {
-        fwrite(STDERR, $string);
-    }
-
-    /**
-     * Write a string followed by the current line terminator to the error output.
-     *
-     * @since 10.0.0
-     */
-    public function writeErrorLine(string $string): void
-    {
-        fwrite(STDERR, $string . PHP_EOL);
     }
 
     /**

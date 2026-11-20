@@ -32,14 +32,13 @@ namespace Espo\Classes\AppInfo;
 use Espo\Core\Console\Command\Params;
 use Espo\Core\Container as ContainerService;
 use Espo\Core\Utils\Metadata;
-use Espo\Tools\ConsoleAppInfo\InfoProvider;
 
-class Container implements InfoProvider
+class Container
 {
     public function __construct(private ContainerService $container, private Metadata $metadata)
     {}
 
-    public function get(Params $params): string
+    public function process(Params $params): string
     {
         $nameOnly = $params->hasFlag('nameOnly');
 
@@ -53,7 +52,6 @@ class Container implements InfoProvider
             'dataManager',
             'metadata',
             'user',
-            'systemDataCache',
         ];
 
         /** @var string[] $fileList */

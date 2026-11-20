@@ -84,7 +84,7 @@ class AccessChecker implements AccessEntityCREDSChecker
     {
         /** @var Email $entity */
 
-        if ($user->isEffectiveAdmin()) {
+        if ($user->isAdmin()) {
             return true;
         }
 

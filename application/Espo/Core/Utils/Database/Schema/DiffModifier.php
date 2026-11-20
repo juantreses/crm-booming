@@ -30,10 +30,8 @@
 namespace Espo\Core\Utils\Database\Schema;
 
 use Doctrine\DBAL\Exception as DbalException;
-use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Schema\Column as Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
-use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaDiff;
 use Doctrine\DBAL\Schema\TableDiff;
@@ -42,27 +40,18 @@ use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Espo\Core\Utils\Database\Dbal\Types\LongtextType;
 use Espo\Core\Utils\Database\Dbal\Types\MediumtextType;
-use Espo\Core\Utils\Database\Helper;
-use Espo\ORM\Name\Attribute;
 
 class DiffModifier
 {
-    private const int DEFAULT_VARCHAR_LENGTH = 255;
-
-    public function __construct(
-        private Helper $helper,
-    ) {}
-
-
     /**
      * @param RebuildMode::* $mode
      * @throws DbalException
      */
     public function modify(
-        SchemaDiff &$diff,
+        SchemaDiff $diff,
         Schema $schema,
         bool $secondRun = false,
-        string $mode = RebuildMode::SOFT,
+        string $mode = RebuildMode::SOFT
     ): bool {
 
         $reRun = false;
@@ -70,136 +59,114 @@ class DiffModifier
 
         $diff = $this->handleRemovedSequences($diff, $schema);
 
-        $alteredTables = [];
+        $diff->removedTables = [];
 
-        foreach ($diff->getAlteredTables() as $tableDiff) {
-            [$newTableDiff, $itemReRun] = $this->amendTableDiff($tableDiff, $secondRun, $isHard);
-
-            if ($itemReRun) {
-                $reRun = true;
-            }
-
-            $alteredTables[] = $newTableDiff;
+        foreach ($diff->changedTables as $tableDiff) {
+            $reRun = $this->amendTableDiff($tableDiff, $secondRun, $isHard) || $reRun;
         }
-
-        $diff = new SchemaDiff(
-            createdSchemas: $diff->getCreatedSchemas(),
-            droppedSchemas: [],
-            createdTables: $diff->getCreatedTables(),
-            alteredTables: $alteredTables,
-            droppedTables: [],
-            createdSequences: $diff->getCreatedSequences(),
-            alteredSequences: $diff->getAlteredSequences(),
-            droppedSequences: $diff->getDroppedSequences(),
-        );
 
         return $reRun;
     }
 
     /**
-     * @return array{TableDiff, bool}
      * @throws DbalException
      */
-    private function amendTableDiff(TableDiff $tableDiff, bool $secondRun, bool $isHard): array
+    private function amendTableDiff(TableDiff $tableDiff, bool $secondRun, bool $isHard): bool
     {
         $reRun = false;
 
-        foreach ($tableDiff->getDroppedColumns() as $column) {
-            $itemTableDiff = $this->moveRemovedAutoincrementColumnToChanged($tableDiff, $column);
+        /**
+         * @todo Leave only for MariaDB?
+         * MariaDB supports RENAME INDEX as of v10.5.
+         * Find out how long does it take to rename for different databases.
+         */
 
-            if ($itemTableDiff) {
-                $tableDiff = $itemTableDiff;
+        if (!$isHard) {
+            // Prevent index renaming as an operation may take a lot of time.
+            $tableDiff->renamedIndexes = [];
+        }
 
-                $reRun = true;
-            }
-
-            if (!$isHard && $secondRun) {
-                $itemTableDiff = $this->moveDroppedNotNullableToChangedNullable($tableDiff, $column);
-
-                if ($itemTableDiff) {
-                    $tableDiff = $itemTableDiff;
-                }
-            }
+        foreach ($tableDiff->removedColumns as $name => $column) {
+            $reRun = $this->moveRemovedAutoincrementColumnToChanged($tableDiff, $column, $name) || $reRun;
         }
 
         if (!$isHard) {
-            $tableDiff = $this->cloneTableDiffWithoutDroppedColumns($tableDiff);
+            // Prevent column removal to prevent data loss.
+            $tableDiff->removedColumns = [];
         }
 
-        if ($this->helper->getDbalConnection()->getDatabasePlatform() instanceof AbstractMySQLPlatform) {
-            foreach ($tableDiff->getAddedColumns() as $column) {
-                $reRun = $this->amendAddedColumnAutoincrement($column) || $reRun;
-            }
+        // Prevent column renaming as a not desired behavior.
+        foreach ($tableDiff->renamedColumns as $renamedColumn) {
+            $addedName = strtolower($renamedColumn->getName());
+            $tableDiff->addedColumns[$addedName] = $renamedColumn;
         }
 
-        $changedColumns = [];
+        $tableDiff->renamedColumns = [];
 
-        foreach ($tableDiff->getChangedColumns() as $name => $columnDiff) {
-            $newColumnDiff = $columnDiff;
+        foreach ($tableDiff->addedColumns as $column) {
+            // Suppress autoincrement as need having a unique index first.
+            $reRun = $this->amendAddedColumnAutoincrement($column) || $reRun;
+        }
 
-            $this->fixPlatformOptions($columnDiff);
-
-            if ($columnDiff->countChangedProperties() === 0) {
-                continue;
-            }
-
+        foreach ($tableDiff->changedColumns as $name => $columnDiff) {
             if (!$isHard) {
-                $this->amendColumnDiffLength($columnDiff);
-                $this->amendColumnDiffTextType($columnDiff);
-                $this->amendColumnDiffCollation($columnDiff);
-                $this->amendColumnDiffCharset($columnDiff);
+                // Prevent decreasing length for string columns to prevent data loss.
+                $this->amendColumnDiffLength($tableDiff, $columnDiff, $name);
+                // Prevent longtext => mediumtext to prevent data loss.
+                $this->amendColumnDiffTextType($tableDiff, $columnDiff, $name);
+                // Prevent changing collation.
+                $this->amendColumnDiffCollation($tableDiff, $columnDiff, $name);
+                // Prevent changing charset.
+                $this->amendColumnDiffCharset($tableDiff, $columnDiff, $name);
             }
 
             // Prevent setting autoincrement in first run.
             if (!$secondRun) {
-                [$newColumnDiff, $itemReRun] = $this->amendColumnDiffAutoincrement($columnDiff);
-
-                if ($itemReRun) {
-                    $reRun = $itemReRun;
-                }
+                $reRun = $this->amendColumnDiffAutoincrement($tableDiff, $columnDiff, $name) || $reRun;
             }
-
-            $changedColumns[$name] = $newColumnDiff;
         }
 
-        $tableDiff = $this->cloneTableDiffWithChangedColumns($tableDiff, $changedColumns);
-
-        return [$tableDiff, $reRun];
+        return $reRun;
     }
 
-    /**
-     * Prevent decreasing length for string columns to prevent data loss.
-     */
-    private function amendColumnDiffLength(ColumnDiff $columnDiff): void
+    private function amendColumnDiffLength(TableDiff $tableDiff, ColumnDiff $columnDiff, string $name): void
     {
-        $fromColumn = $columnDiff->getOldColumn();
-        $column = $columnDiff->getNewColumn();
+        $fromColumn = $columnDiff->fromColumn;
+        $column = $columnDiff->column;
 
-        if (!$columnDiff->hasLengthChanged()) {
+        if (!$fromColumn) {
             return;
         }
 
-        $fromLength = $fromColumn->getLength() ?? self::DEFAULT_VARCHAR_LENGTH;
-        $length = $column->getLength() ?? self::DEFAULT_VARCHAR_LENGTH;
+        if (!in_array('length', $columnDiff->changedProperties)) {
+            return;
+        }
+
+        $fromLength = $fromColumn->getLength() ?? 255;
+        $length = $column->getLength() ?? 255;
 
         if ($fromLength <= $length) {
             return;
         }
 
         $column->setLength($fromLength);
+
+        self::unsetChangedColumnProperty($tableDiff, $columnDiff, $name, 'length');
     }
 
     /**
-     * Prevent longtext => mediumtext to prevent data loss.
-     *
      * @throws DbalException
      */
-    private function amendColumnDiffTextType(ColumnDiff $columnDiff): void
+    private function amendColumnDiffTextType(TableDiff $tableDiff, ColumnDiff $columnDiff, string $name): void
     {
-        $fromColumn = $columnDiff->getOldColumn();
-        $column = $columnDiff->getNewColumn();
+        $fromColumn = $columnDiff->fromColumn;
+        $column = $columnDiff->column;
 
-        if (!$columnDiff->hasTypeChanged()) {
+        if (!$fromColumn) {
+            return;
+        }
+
+        if (!in_array('type', $columnDiff->changedProperties)) {
             return;
         }
 
@@ -219,93 +186,93 @@ class DiffModifier
             LongtextType::NAME,
         ];
 
-        $fromName = $fromType::getTypeRegistry()->lookupName($fromType);
-        $toName = $type::getTypeRegistry()->lookupName($type);
-
-        $fromIndex = array_search($fromName, $typePriority);
-        $index = array_search($toName, $typePriority);
+        $fromIndex = array_search($fromType->getName(), $typePriority);
+        $index = array_search($type->getName(), $typePriority);
 
         if ($index >= $fromIndex) {
             return;
         }
 
-        $column->setType(Type::getType($fromName));
+        $column->setType(Type::getType($fromType->getName()));
+
+        self::unsetChangedColumnProperty($tableDiff, $columnDiff, $name, 'type');
     }
 
-    /**
-     * Prevent changing collation.
-     */
-    private function amendColumnDiffCollation(ColumnDiff $columnDiff): void
+    private function amendColumnDiffCollation(TableDiff $tableDiff, ColumnDiff $columnDiff, string $name): void
     {
-        $fromColumn = $columnDiff->getOldColumn();
-        $column = $columnDiff->getNewColumn();
+        $fromColumn = $columnDiff->fromColumn;
+        $column = $columnDiff->column;
 
-        $fromCollation = $fromColumn->getCollation();
-        $collation = $column->getCollation();
+        if (!$fromColumn) {
+            return;
+        }
 
-        if (!$fromCollation || $fromCollation === $collation) {
+        if (!in_array('collation', $columnDiff->changedProperties)) {
+            return;
+        }
+
+        $fromCollation = $fromColumn->getPlatformOption('collation');
+
+        if (!$fromCollation) {
             return;
         }
 
         $column->setPlatformOption('collation', $fromCollation);
+
+        self::unsetChangedColumnProperty($tableDiff, $columnDiff, $name, 'collation');
     }
 
-    /**
-     * Prevent changing charset.
-     */
-    private function amendColumnDiffCharset(ColumnDiff $columnDiff): void
+    private function amendColumnDiffCharset(TableDiff $tableDiff, ColumnDiff $columnDiff, string $name): void
     {
-        $fromColumn = $columnDiff->getOldColumn();
-        $column = $columnDiff->getNewColumn();
+        $fromColumn = $columnDiff->fromColumn;
+        $column = $columnDiff->column;
 
-        $fromCharset = $fromColumn->getCharset();
-        $charset = $column->getCharset();
+        if (!$fromColumn) {
+            return;
+        }
 
-        if (!$fromCharset || $fromCharset === $charset) {
+        if (!in_array('charset', $columnDiff->changedProperties)) {
+            return;
+        }
+
+        $fromCharset = $fromColumn->getPlatformOption('charset');
+
+        if (!$fromCharset) {
             return;
         }
 
         $column->setPlatformOption('charset', $fromCharset);
+
+        self::unsetChangedColumnProperty($tableDiff, $columnDiff, $name, 'charset');
     }
 
-    /**
-     * @param ColumnDiff $columnDiff
-     * @return array{ColumnDiff, bool}
-     */
-    private function amendColumnDiffAutoincrement(ColumnDiff $columnDiff): array
+    private function amendColumnDiffAutoincrement(TableDiff $tableDiff, ColumnDiff $columnDiff, string $name): bool
     {
-        $fromColumn = $columnDiff->getOldColumn();
-        $column = $columnDiff->getNewColumn();
+        $fromColumn = $columnDiff->fromColumn;
+        $column = $columnDiff->column;
 
-        if (!$columnDiff->hasAutoIncrementChanged()) {
-            return [$columnDiff, false];
+        if (!$fromColumn) {
+            return false;
         }
 
-        $notNull = false;
-
-        if ($fromColumn->getAutoincrement()) {
-            // Need to preserve while the sequence is still there.
-            // To be set to false in the second run.
-            $notNull = $fromColumn->getNotnull();
+        if (!in_array('autoincrement', $columnDiff->changedProperties)) {
+            return false;
         }
 
         $column
             ->setAutoincrement(false)
-            ->setNotnull($notNull)
+            ->setNotnull(false)
             ->setDefault(null);
 
-        $name = $column->getObjectName()->getIdentifier()->getValue();
-
-        if ($name === Attribute::ID) {
+        if ($name === 'id') {
             $column->setNotnull(true);
         }
 
-        return [$columnDiff, true];
+        self::unsetChangedColumnProperty($tableDiff, $columnDiff, $name, 'autoincrement');
+
+        return true;
     }
 
-    /**
-     * Suppress autoincrement as need having a unique index first.
-     */
     private function amendAddedColumnAutoincrement(Column $column): bool
     {
         if (!$column->getAutoincrement()) {
@@ -320,35 +287,11 @@ class DiffModifier
         return true;
     }
 
-    /**
-     * Fixes the DBAL's bug that platform options are detected as changed for FLOAT columns.
-     */
-    private function fixPlatformOptions(ColumnDiff $columnDiff): void
-    {
-        $oldColumn = $columnDiff->getOldColumn();
-        $newColumn = $columnDiff->getNewColumn();
-
-        if (!$columnDiff->hasPlatformOptionsChanged()) {
-            return;
-        }
-
-        if (
-            $oldColumn->getCollation() === null &&
-            $newColumn->getCollation() === null &&
-            $oldColumn->getCharset() === null &&
-            $newColumn->getCharset() === null
-        ) {
-            $oldColumn->setPlatformOptions([]);
-        }
-    }
-
-    private function moveRemovedAutoincrementColumnToChanged(TableDiff $tableDiff, Column $column): ?TableDiff
+    private function moveRemovedAutoincrementColumnToChanged(TableDiff $tableDiff, Column $column, string $name): bool
     {
         if (!$column->getAutoincrement()) {
-            return null;
+            return false;
         }
-
-        $name = $column->getObjectName()->getIdentifier()->getValue();
 
         $newColumn = clone $column;
 
@@ -357,63 +300,40 @@ class DiffModifier
             ->setNotnull(false)
             ->setDefault(null);
 
-        $columnDiff = new ColumnDiff(
-            oldColumn: $column,
-            newColumn: $newColumn,
-        );
+        $changedProperties = [
+            'autoincrement',
+            'notnull',
+            'default',
+        ];
 
-        $changedColumns = [...$tableDiff->getChangedColumns(), $name => $columnDiff];
+        $tableDiff->changedColumns[$name] = new ColumnDiff($name, $newColumn, $changedProperties, $column);
 
-        $tableDiff = $this->cloneTableDiffWithChangedColumns($tableDiff, $changedColumns);
-
-        $droppedIndexes = [];
-
-        foreach ($tableDiff->getDroppedIndexes() as $index) {
-            if (
-                count($index->getIndexedColumns()) === 1 &&
-                $index->getIndexedColumns()[0]->getColumnName()->toString() === $name
-            ) {
-                continue;
+        foreach ($tableDiff->removedIndexes as $indexName => $index) {
+            if ($index->getColumns() === [$name]) {
+                unset($tableDiff->removedIndexes[$indexName]);
             }
-
-            $droppedIndexes[] = $index;
         }
 
-        return $this->cloneTableDiffWithDroppedIndexes($tableDiff, $droppedIndexes);
+        return true;
     }
 
-    /**
-     * After autoincrement is removed, the column is still not-nullable after the first run.
-     * Otherwise, a conflict with the sequence occurs. Here, it is set to nullable.
-     */
-    private function moveDroppedNotNullableToChangedNullable(TableDiff $tableDiff, Column $column): ?TableDiff
-    {
-        if (!$column->getNotnull()) {
-            return null;
+    private static function unsetChangedColumnProperty(
+        TableDiff $tableDiff,
+        ColumnDiff $columnDiff,
+        string $name,
+        string $property
+    ): void {
+
+        if (count($columnDiff->changedProperties) === 1) {
+            unset($tableDiff->changedColumns[$name]);
         }
 
-        $newColumn = clone $column;
-
-        $newColumn
-            ->setNotnull(false);
-
-        $columnDiff = new ColumnDiff(
-            oldColumn: $column,
-            newColumn: $newColumn,
-        );
-
-        $name = $column->getObjectName()->getIdentifier()->getValue();
-
-        $changedColumns = [...$tableDiff->getChangedColumns(), $name => $columnDiff];
-
-        return $this->cloneTableDiffWithChangedColumns($tableDiff, $changedColumns);
+        $columnDiff->changedProperties = array_diff($columnDiff->changedProperties, [$property]);
     }
 
     /**
      * DBAL does not handle autoincrement columns that are not primary keys,
      * making them dropped.
-     *
-     * @todo Remove? Not needed anymore?
      */
     private function handleRemovedSequences(SchemaDiff $diff, Schema $schema): SchemaDiff
     {
@@ -448,75 +368,8 @@ class DiffModifier
             }
         }
 
-        $droppedSequences = array_values($droppedSequences);
+        $diff->removedSequences = array_values($droppedSequences);
 
-        return new SchemaDiff(
-            createdSchemas: $diff->getCreatedSchemas(),
-            droppedSchemas: $diff->getDroppedSchemas(),
-            createdTables: $diff->getCreatedTables(),
-            alteredTables: $diff->getAlteredTables(),
-            droppedTables: $diff->getDroppedTables(),
-            createdSequences: $diff->getCreatedSequences(),
-            alteredSequences: $diff->getAlteredSequences(),
-            droppedSequences: $droppedSequences,
-        );
-    }
-
-    private function cloneTableDiffWithoutDroppedColumns(TableDiff $tableDiff): TableDiff
-    {
-        return new TableDiff(
-            oldTable: $tableDiff->getOldTable(),
-            addedColumns: $tableDiff->getAddedColumns(),
-            changedColumns: $tableDiff->getChangedColumns(),
-            // Prevents column removal to prevent data loss.
-            droppedColumns: [],
-            addedIndexes: $tableDiff->getAddedIndexes(),
-            modifiedIndexes: $tableDiff->getModifiedIndexes(),
-            droppedIndexes: $tableDiff->getDroppedIndexes(),
-            renamedIndexes: $tableDiff->getRenamedIndexes(),
-            addedForeignKeys: $tableDiff->getAddedForeignKeys(),
-            modifiedForeignKeys: $tableDiff->getModifiedForeignKeys(),
-            droppedForeignKeys: $tableDiff->getDroppedForeignKeys(),
-        );
-    }
-
-    /**
-     * @param array<string, ColumnDiff> $changedColumns
-     */
-    private function cloneTableDiffWithChangedColumns(TableDiff $tableDiff, array $changedColumns): TableDiff
-    {
-        return new TableDiff(
-            oldTable: $tableDiff->getOldTable(),
-            addedColumns: $tableDiff->getAddedColumns(),
-            changedColumns: $changedColumns,
-            droppedColumns: $tableDiff->getDroppedColumns(),
-            addedIndexes: $tableDiff->getAddedIndexes(),
-            modifiedIndexes: $tableDiff->getModifiedIndexes(),
-            droppedIndexes: $tableDiff->getDroppedIndexes(),
-            renamedIndexes: $tableDiff->getRenamedIndexes(),
-            addedForeignKeys: $tableDiff->getAddedForeignKeys(),
-            modifiedForeignKeys: $tableDiff->getModifiedForeignKeys(),
-            droppedForeignKeys: $tableDiff->getDroppedForeignKeys(),
-        );
-    }
-
-    /**
-     * @param Index[] $droppedIndexes
-     */
-    private function cloneTableDiffWithDroppedIndexes(TableDiff $tableDiff, array $droppedIndexes): TableDiff
-    {
-        return new TableDiff(
-            oldTable: $tableDiff->getOldTable(),
-            addedColumns: $tableDiff->getAddedColumns(),
-            changedColumns: $tableDiff->getChangedColumns(),
-            droppedColumns: $tableDiff->getDroppedColumns(),
-            addedIndexes: $tableDiff->getAddedIndexes(),
-            modifiedIndexes: $tableDiff->getModifiedIndexes(),
-            droppedIndexes: $droppedIndexes,
-            renamedIndexes: $tableDiff->getRenamedIndexes(),
-            addedForeignKeys: $tableDiff->getAddedForeignKeys(),
-            modifiedForeignKeys: $tableDiff->getModifiedForeignKeys(),
-            droppedForeignKeys: $tableDiff->getDroppedForeignKeys(),
-        );
+        return $diff;
     }
 }

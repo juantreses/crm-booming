@@ -31,25 +31,17 @@ namespace Espo\Core\Acl\Table;
 
 use Espo\Entities\User;
 
-final class DefaultCacheKeyProvider implements CacheKeyProvider
+class DefaultCacheKeyProvider implements CacheKeyProvider
 {
-    public function __construct(private User $user)
-    {}
+    private $user;
+
+    public function __construct(User $user)
+    {
+        $this->user = $user;
+    }
 
     public function get(): string
     {
-        $key = 'acl/' . $this->user->getId();
-
-        $scopes = $this->user->getScopes();
-
-        if ($scopes === null) {
-            return $key;
-        }
-
-        $hash = hash('xxh128', implode(' ', $scopes));
-
-        $key .= '/' . $hash;
-
-        return $key;
+        return 'acl/' . $this->user->getId();
     }
 }

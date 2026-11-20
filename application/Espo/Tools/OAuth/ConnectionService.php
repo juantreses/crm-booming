@@ -29,28 +29,19 @@
 
 namespace Espo\Tools\OAuth;
 
-use Espo\Core\Authentication\Oidc\PkceUtil;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Exceptions\Forbidden;
-use Espo\Core\Session\Session;
 use Espo\Entities\OAuthAccount;
-use Espo\Entities\OAuthProvider;
 use Espo\ORM\EntityManager;
 use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
-use League\OAuth2\Client\Provider\GenericProvider;
-use stdClass;
 
 class ConnectionService
 {
-    public const string SESSION_KEY_CODE_VERIFIER = 'oauthCodeVerifier';
-
     public function __construct(
         private EntityManager $entityManager,
         private GenericProviderFactory $genericProviderFactory,
         private TokenSetter $tokenSetter,
-        private Session $session,
-        private ConfigDataProvider $configDataProvider,
     ) {}
 
     /**
@@ -65,7 +56,7 @@ class ConnectionService
             throw new Forbidden("Provider is not active.");
         }
 
-        $genericProvider = $this->prepareGenericProvider($provider);
+        $genericProvider = $this->genericProviderFactory->create($provider);
 
         try {
             $tokens = $genericProvider->getAccessToken('authorization_code', ['code' => $code]);
@@ -87,51 +78,5 @@ class ConnectionService
         $account->setExpiresAt(null);
 
         $this->entityManager->saveEntity($account);
-    }
-
-    private function prepareGenericProvider(OAuthProvider $provider): GenericProvider
-    {
-        $genericProvider = $this->genericProviderFactory->create($provider);
-
-        if ($provider->useAuthorizationPkce()) {
-            $codeVerifier = $this->session->get(self::SESSION_KEY_CODE_VERIFIER);
-
-            $genericProvider->setPkceCode($codeVerifier);
-        }
-
-        return $genericProvider;
-    }
-
-    public function getAuthorizationData(OAuthAccount $account): stdClass
-    {
-        $provider = $account->getProvider();
-
-        $scope = null;
-
-        if ($provider->getScopes()) {
-            $scope = implode($provider->getScopeSeparator() ?? ' ', $provider->getScopes());
-        }
-
-        $codeChallenge = $provider->useAuthorizationPkce() ? $this->prepareCodeChallenge() : null;
-
-        return (object) [
-            'endpoint' => $provider->getAuthorizationEndpoint(),
-            'clientId' => $provider->getClientId(),
-            'redirectUri' => $this->configDataProvider->getRedirectUri(),
-            'scope' => $scope,
-            'prompt' => $provider->getAuthorizationPrompt(),
-            'params' => $provider->getAuthorizationParams(),
-            'codeChallenge' => $codeChallenge,
-            'codeChallengeMethod' => $codeChallenge ? 'S256' : null,
-        ];
-    }
-
-    private function prepareCodeChallenge(): string
-    {
-        $codeVerifier = PkceUtil::generateCodeVerifier();
-
-        $this->session->set(self::SESSION_KEY_CODE_VERIFIER, $codeVerifier);
-
-        return PkceUtil::hashAndEncodeCodeVerifier($codeVerifier);
     }
 }

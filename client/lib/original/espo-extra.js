@@ -86,7 +86,6 @@ define("views/email-account/record/detail", ["exports", "views/record/detail"], 
    ************************************************************************/
 
   class _default extends _detail.default {
-    hasModifyDetailLayout = true;
     setup() {
       super.setup();
       this.setupFieldsBehaviour();
@@ -322,7 +321,7 @@ define("views/personal-data/record/record", ["exports", "views/record/base"], fu
           const value = this.model.get(attribute);
           if (value) {
             if (Object.prototype.toString.call(value) === '[object Array]') {
-              if (!value.length) {
+              if (value.length) {
                 return;
               }
             }
@@ -894,9 +893,8 @@ define("views/import/step2", ["exports", "view", "ui/select"], function (_export
       selectList.forEach(select => _select.default.init(select));
     }
     resetFieldFilterQuickSearch() {
-      var _this$$fieldQuickSear, _this$$defaultFieldLi;
-      (_this$$fieldQuickSear = this.$fieldQuickSearch) === null || _this$$fieldQuickSear === void 0 || _this$$fieldQuickSear.val('');
-      (_this$$defaultFieldLi = this.$defaultFieldList) === null || _this$$defaultFieldLi === void 0 || (_this$$defaultFieldLi = _this$$defaultFieldLi.find('li.item')) === null || _this$$defaultFieldLi === void 0 || _this$$defaultFieldLi.removeClass('hidden');
+      this.$fieldQuickSearch.val('');
+      this.$defaultFieldList.find('li.item').removeClass('hidden');
     }
     initQuickSearchUi() {
       this.$addFieldButton.parent().on('show.bs.dropdown', () => {
@@ -1253,7 +1251,7 @@ define("views/import/step2", ["exports", "view", "ui/select"], function (_export
   var _default = _exports.default = Step2ImportView;
 });
 
-define("views/import/step1", ["exports", "view", "model", "intl-tel-input"], function (_exports, _view, _model, _intlTelInput) {
+define("views/import/step1", ["exports", "view", "model", "intl-tel-input-globals"], function (_exports, _view, _model, _intlTelInputGlobals) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -1262,7 +1260,7 @@ define("views/import/step1", ["exports", "view", "model", "intl-tel-input"], fun
   _exports.default = void 0;
   _view = _interopRequireDefault(_view);
   _model = _interopRequireDefault(_model);
-  _intlTelInput = _interopRequireDefault(_intlTelInput);
+  _intlTelInputGlobals = _interopRequireDefault(_intlTelInputGlobals);
   function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
   /************************************************************************
    * This file is part of EspoCRM.
@@ -1291,6 +1289,8 @@ define("views/import/step1", ["exports", "view", "model", "intl-tel-input"], fun
    * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
    * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
    ************************************************************************/
+
+  // noinspection NpmUsedModulesInstalled
 
   class Step1ImportView extends _view.default {
     template = 'import/step-1';
@@ -1543,9 +1543,9 @@ define("views/import/step1", ["exports", "view", "model", "intl-tel-input"], fun
         name: 'phoneNumberCountry',
         mode: 'edit',
         params: {
-          options: ['', ..._intlTelInput.default.getAllCountries().map(item => item.iso2)]
+          options: ['', ..._intlTelInputGlobals.default.getCountryData().map(item => item.iso2)]
         },
-        translatedOptions: _intlTelInput.default.getAllCountries().reduce((map, item) => {
+        translatedOptions: _intlTelInputGlobals.default.getCountryData().reduce((map, item) => {
           map[item.iso2] = `${item.iso2.toUpperCase()} +${item.dialCode}`;
           return map;
         }, {})
@@ -1694,10 +1694,6 @@ define("views/import/step1", ["exports", "view", "model", "intl-tel-input"], fun
       const $container = $('#import-preview');
       $container.empty().append($table);
     }
-
-    /**
-     * @todo Use a better alternative that can parse double quotes.
-     */
     csvToArray(strData, strDelimiter, strQualifier) {
       strDelimiter = strDelimiter || ',';
       strQualifier = strQualifier || '\"';
@@ -1838,7 +1834,7 @@ define("views/import/list", ["exports", "views/list"], function (_exports, _list
     setup() {
       super.setup();
       this.menu.buttons.unshift({
-        iconClass: 'fas fa-plus fa-sm',
+        iconHtml: '<span class="fas fa-plus fa-sm"></span>',
         text: this.translate('New Import', 'labels', 'Import'),
         link: '#Import',
         acl: 'edit'
@@ -2307,7 +2303,7 @@ define("views/import/record/row-actions/duplicates", ["exports", "views/record/r
       const list = super.getActionList();
       list.push({
         action: 'unmarkAsDuplicate',
-        text: this.getLanguage().translatePath('Import.labels.Set as Not Duplicate'),
+        label: 'Set as Not Duplicate',
         data: {
           id: this.model.id,
           type: this.model.entityType
@@ -3205,7 +3201,6 @@ define("views/email-account/record/edit", ["exports", "views/record/edit", "view
    ************************************************************************/
 
   class _default extends _edit.default {
-    hasModifyDetailLayout = true;
     setup() {
       super.setup();
       _detail.default.prototype.setupFieldsBehaviour.call(this);

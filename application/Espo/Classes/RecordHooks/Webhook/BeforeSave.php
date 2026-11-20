@@ -71,7 +71,7 @@ class BeforeSave implements SaveHook
         $this->checkEntityUserIsApi($entity);
         $this->processEntityEventData($entity);
 
-        if ($entity->isNew() && !$this->user->isEffectiveAdmin()) {
+        if ($entity->isNew() && !$this->user->isAdmin()) {
             $this->checkMaxCount();
         }
     }
@@ -167,6 +167,7 @@ class BeforeSave implements SaveHook
             return;
         }
 
+        /** @noinspection PhpRedundantOptionalArgumentInspection */
         $entity->set('field', null);
     }
 

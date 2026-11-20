@@ -3,8 +3,7 @@
         "name": {
             "type": "varchar",
             "required": true,
-            "pattern": "$noBadCharacters",
-            "audited": true
+            "pattern": "$noBadCharacters"
         },
         "number": {
             "type": "autoincrement",
@@ -58,8 +57,7 @@
             "cutHeight": 500
         },
         "account": {
-            "type": "link",
-            "audited": true
+            "type": "link"
         },
         "lead": {
             "type": "link"
@@ -72,8 +70,7 @@
             "view": "views/fields/link-multiple-with-primary",
             "orderBy": "name",
             "detailLayoutIncompatibleFieldList": ["contact"],
-            "primaryLink": "contact",
-            "audited": true
+            "primaryLink": "contact"
         },
         "inboundEmail": {
             "type": "link",
@@ -89,8 +86,7 @@
             "directAccessDisabled": true
         },
         "isInternal": {
-            "type": "bool",
-            "audited": true
+            "type": "bool"
         },
         "createdAt": {
             "type": "datetime",
@@ -126,21 +122,6 @@
             "type": "linkMultiple",
             "view": "views/fields/teams"
         },
-        "collaborators": {
-            "type": "linkMultiple",
-            "view": "views/fields/collaborators",
-            "maxCount": 30,
-            "fieldManagerParamList": [
-                "readOnly",
-                "readOnlyAfterCreate",
-                "audited",
-                "autocompleteOnEmpty",
-                "maxCount",
-                "inlineEditDisabled",
-                "tooltipText"
-            ],
-            "dynamicLogicVisibleDisabled": true
-        },
         "attachments": {
             "type": "attachmentMultiple"
         }
@@ -162,12 +143,6 @@
             "type": "hasMany",
             "entity": "Team",
             "relationName": "entityTeam",
-            "layoutRelationshipsDisabled": true
-        },
-        "collaborators": {
-            "type": "hasMany",
-            "entity": "User",
-            "relationName": "entityCollaborator",
             "layoutRelationshipsDisabled": true
         },
         "inboundEmail": {

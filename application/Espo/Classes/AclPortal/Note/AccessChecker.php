@@ -51,15 +51,25 @@ class AccessChecker implements AccessEntityCREDChecker
 {
     use DefaultAccessCheckerDependency;
 
-    private const string EDIT_PERIOD = '7 days';
-    private const string DELETE_PERIOD = '1 month';
+    private const EDIT_PERIOD = '7 days';
+    private const DELETE_PERIOD = '1 month';
+
+    private DefaultAccessChecker $defaultAccessChecker;
+    private AclManager $aclManager;
+    private EntityManager $entityManager;
+    private Config $config;
 
     public function __construct(
-        private DefaultAccessChecker $defaultAccessChecker,
-        private AclManager $aclManager,
-        private EntityManager $entityManager,
-        private Config $config,
-    ) {}
+        DefaultAccessChecker $defaultAccessChecker,
+        AclManager $aclManager,
+        EntityManager $entityManager,
+        Config $config
+    ) {
+        $this->defaultAccessChecker = $defaultAccessChecker;
+        $this->aclManager = $aclManager;
+        $this->entityManager = $entityManager;
+        $this->config = $config;
+    }
 
     /**
      * @param Note $entity
@@ -87,20 +97,17 @@ class AccessChecker implements AccessEntityCREDChecker
      */
     public function checkEntityRead(User $user, Entity $entity, ScopeData $data): bool
     {
-        if ($entity->isInternal()) {
-            return false;
-        }
+        $parentId = $entity->getParentId();
+        $parentType = $entity->getParentType();
 
-        if ($entity->getRelated() && !$this->aclManager->tryCheck($user, $entity->getRelated())) {
-            return false;
-        }
+        if ($parentId && $parentType) {
+            $parent = $this->entityManager->getEntityById($parentType, $parentId);
 
-        if ($entity->getParentId() && $entity->getParentType()) {
-            if (!$entity->getParent()) {
+            if (!$parent) {
                 return false;
             }
 
-            return $this->aclManager->checkEntityStream($user, $entity->getParent());
+            return $this->aclManager->checkEntityStream($user, $parent);
         }
 
         if ($entity->getType() !== Note::TYPE_POST) {
@@ -148,7 +155,7 @@ class AccessChecker implements AccessEntityCREDChecker
             if ($dt->format('U') > (new DateTime($createdAt))->format('U')) {
                 return false;
             }
-        } catch (Exception) {
+        } catch (Exception $e) {
             return false;
         }
 
@@ -185,7 +192,7 @@ class AccessChecker implements AccessEntityCREDChecker
             if ($dt->format('U') > (new DateTime($createdAt))->format('U')) {
                 return false;
             }
-        } catch (Exception) {
+        } catch (Exception $e) {
             return false;
         }
 

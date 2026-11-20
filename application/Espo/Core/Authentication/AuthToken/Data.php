@@ -41,9 +41,9 @@ class Data
 {
     private string $userId;
     private ?string $portalId = null;
+    private ?string $hash = null;
     private ?string $ipAddress = null;
     private bool $createSecret = false;
-    private ?int $passwordVersion = null;
 
     private function __construct()
     {}
@@ -65,21 +65,19 @@ class Data
     }
 
     /**
+     * A hash.
+     */
+    public function getHash(): ?string
+    {
+        return $this->hash;
+    }
+
+    /**
      * An ID address.
      */
     public function getIpAddress(): ?string
     {
         return $this->ipAddress;
-    }
-
-    /**
-     * A password version.
-     *
-     * @since 10.0.0
-     */
-    public function getPasswordVersion(): ?int
-    {
-        return $this->passwordVersion;
     }
 
     /**
@@ -94,7 +92,7 @@ class Data
      * @param array{
      *     userId: string,
      *     portalId?: ?string,
-     *     passwordVersion?: ?int,
+     *     hash?: ?string,
      *     ipAddress?: ?string,
      *     createSecret?: ?bool,
      * } $data
@@ -111,9 +109,9 @@ class Data
 
         $obj->userId = $userId;
         $obj->portalId = $data['portalId'] ?? null;
+        $obj->hash = $data['hash'] ?? null;
         $obj->ipAddress = $data['ipAddress'] ?? null;
         $obj->createSecret = $data['createSecret'] ?? false;
-        $obj->passwordVersion = $data['passwordVersion'] ?? null;
 
         return $obj;
     }

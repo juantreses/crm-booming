@@ -11,7 +11,7 @@
                 ]
             }
         },
-        "calendars": {
+        "users": {
             "visible": {
                 "conditionGroup": [
                     {
@@ -19,36 +19,8 @@
                         "value": [
                             {
                                 "type": "isNotEmpty",
-                                "attribute": "calendarsIds"
+                                "attribute": "id"
                             },
-                            {
-                                "type": "isEmpty",
-                                "attribute": "usersIds"
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        "users": {
-            "required": {
-                "conditionGroup": [
-                    {
-                        "type": "or",
-                        "value": [
-                            {
-                                "type": "isEmpty",
-                                "attribute": "calendarsIds"
-                            }
-                        ]
-                    }
-                ]
-            },
-            "visible": {
-                "conditionGroup": [
-                    {
-                        "type": "or",
-                        "value": [
                             {
                                 "type": "isNotEmpty",
                                 "attribute": "usersIds"

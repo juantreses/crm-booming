@@ -60,8 +60,8 @@ class Ics
 
     /**
      * @param array{
-     *     organizer?: array{0: string, 1: ?string}|null,
-     *     attendees?: array{0: string, 1: ?string, 2: string|null}[],
+     *     organizer?: array{string, ?string}|null,
+     *     attendees?: array{string, ?string}[],
      *     startDate?: ?int,
      *     endDate?: ?int,
      *     summary?: ?string,
@@ -115,19 +115,14 @@ class Ics
         $organizerPart = '';
 
         if ($this->organizer) {
-            $organizerPart = "ORGANIZER;{$this->preparePerson($this->organizer[0], $this->organizer[1], null)}";
+            $organizerPart = "ORGANIZER;{$this->preparePerson($this->organizer[0], $this->organizer[1])}";
         }
-
-        $locationValuePart = $this->escapeString($this->formatMultiline($this->address));
-
-        $locationPart = $locationValuePart ?
-            "LOCATION:$locationValuePart\r\n" : '';
 
         $body =
             "DTSTART:{$this->formatTimestamp($this->startDate)}\r\n" .
             "DTEND:{$this->formatTimestamp($this->endDate)}\r\n" .
-            "SUMMARY:{$this->escapeString($this->formatMultiline($this->summary))}\r\n" .
-            $locationPart .
+            "SUMMARY:{$this->escapeString($this->summary)}\r\n" .
+            "LOCATION:{$this->escapeString($this->address)}\r\n" .
             $organizerPart .
             "DESCRIPTION:{$this->escapeString($this->formatMultiline($this->description))}\r\n" .
             "UID:$this->uid\r\n" .
@@ -136,7 +131,7 @@ class Ics
             "STATUS:$this->status\r\n";
 
         foreach ($this->attendees as $attendee) {
-            $body .= "ATTENDEE;{$this->preparePerson($attendee[0], $attendee[1], $attendee[2] ?? null)}";
+            $body .= "ATTENDEE;{$this->preparePerson($attendee[0], $attendee[1])}";
         }
 
         $end =
@@ -146,17 +141,9 @@ class Ics
         $this->output = $start . $body . $end;
     }
 
-    private function preparePerson(string $address, ?string $name, ?string $status): string
+    private function preparePerson(string $address, ?string $name): string
     {
-        $output = '';
-
-        if ($status) {
-            $output .= "PARTSTAT=$status;";
-        }
-
-        $output .= "CN={$this->escapeString($name)}:MAILTO:{$this->escapeString($address)}\r\n";
-
-        return $output;
+        return "CN={$this->escapeString($name)}:MAILTO:{$this->escapeString($address)}\r\n";
     }
 
     private function formatTimestamp(?int $timestamp): string
@@ -167,7 +154,6 @@ class Ics
 
         return date('Ymd\THis\Z', $timestamp);
     }
-
 
     private function escapeString(?string $string): string
     {

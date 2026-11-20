@@ -9,18 +9,15 @@
     "name": "Naam",
     "emailAddress": "E-mail",
     "title": "Titel",
-    "website": "Website",
     "phoneNumber": "Telefoon",
     "accountName": "Relatie naam",
     "doNotCall": "Niet Bellen",
     "address": "Adres",
-    "status": "Status",
     "source": "Bron",
     "opportunityAmount": "Kans bedrag",
     "opportunityAmountConverted": "Kans bedrag (geconverteerd)",
     "description": "Beschrijving",
     "createdAccount": "Relatie",
-    "createdContact": "Contact",
     "createdOpportunity": "Kans",
     "campaign": "Campagne",
     "targetLists": "Doellijsten",
@@ -31,19 +28,16 @@
     "acceptanceStatusMeetings": "Acceptatiestatus (vergaderingen)",
     "acceptanceStatusCalls": "Acceptatiestatus (oproepen)",
     "convertedAt": "Geconverteerd op",
-    "originalEmail": "Originele e-mail",
-    "pipeline": "Pijpleiding"
+    "originalEmail": "Originele e-mail"
   },
   "links": {
     "targetLists": "Doellijsten",
     "campaignLogRecords": "Campagne log",
     "campaign": "Campagne",
     "createdAccount": "Relatie",
-    "createdContact": "Contact",
     "createdOpportunity": "Kans",
     "cases": "Tickets",
-    "documents": "Documenten",
-    "pipeline": "Pijpleiding"
+    "documents": "Documenten"
   },
   "options": {
     "status": {
@@ -58,8 +52,6 @@
       "Call": "Gesprek",
       "Email": "E-mail",
       "Existing Customer": "Bestaande klant",
-      "Partner": "Partner",
-      "Public Relations": "Public Relations",
       "Web Site": "Website",
       "Campaign": "Campagne",
       "Other": "Overig"
@@ -67,7 +59,6 @@
   },
   "presetFilters": {
     "active": "Actief",
-    "converted": "Geconverteerd",
-    "actual": "Open"
+    "converted": "Geconverteerd"
   }
 }

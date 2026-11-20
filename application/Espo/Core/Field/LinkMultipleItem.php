@@ -29,8 +29,6 @@
 
 namespace Espo\Core\Field;
 
-use Espo\Core\Name\Field;
-use Espo\ORM\Entity;
 use InvalidArgumentException;
 
 /**
@@ -101,10 +99,8 @@ class LinkMultipleItem
 
     /**
      * Clone with a name.
-     *
-     * @param ?string $name Is nullable since 10.0.0.
      */
-    public function withName(?string $name): self
+    public function withName(string $name): self
     {
         $obj = $this->clone();
         $obj->name = $name;
@@ -136,30 +132,6 @@ class LinkMultipleItem
         $obj->name = $name;
 
         return $obj;
-    }
-
-    /**
-     * Create from a link.
-     *
-     * @throws InvalidArgumentException
-     *
-     * @since 10.0.0
-     */
-    public static function fromLink(Link $link): self
-    {
-        return self::create($link->getId(), $link->getName());
-    }
-
-    /**
-     * Create from an entity.
-     *
-     * @throws InvalidArgumentException
-     *
-     * @since 10.0.0
-     */
-    public static function fromEntity(Entity $entity): self
-    {
-        return self::create($entity->getId());
     }
 
     private function clone(): self

@@ -283,10 +283,7 @@ class Queue
         } catch (Exception $e) {
             $this->failQueueItemList($itemList, true);
 
-            $this->log->error("Webhook Queue: Webhook '{id}' sending failed.", [
-                'exception' => $e,
-                'id' => $webhook->getId(),
-            ]);
+            $this->log->error("Webhook Queue: Webhook '{$webhook->getId()}' sending failed. Error: {$e->getMessage()}");
 
             return;
         }
@@ -308,10 +305,7 @@ class Queue
 
     protected function logSending(Webhook $webhook, int $code): void
     {
-        $this->log->debug("Webhook Queue: Webhook '{id}' sent, response code: {code}.", [
-            'id' => $webhook->getId(),
-            'code' => $code,
-        ]);
+        $this->log->debug("Webhook Queue: Webhook '{$webhook->getId()}' sent, response code: $code.");
     }
 
     /**

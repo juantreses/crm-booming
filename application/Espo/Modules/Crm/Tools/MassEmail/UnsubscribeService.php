@@ -30,7 +30,6 @@
 namespace Espo\Modules\Crm\Tools\MassEmail;
 
 use Espo\Core\Exceptions\NotFound;
-use Espo\Core\Exceptions\NotFoundSilent;
 use Espo\Core\HookManager;
 use Espo\Core\Name\Field;
 use Espo\Core\ORM\EntityManager;
@@ -316,10 +315,10 @@ class UnsubscribeService
      */
     private function getEmailAddressWithHash(string $emailAddress, string $hash): EmailAddress
     {
-        $hashActual = $this->hasher->hash($emailAddress);
+        $hash2 = $this->hasher->hash($emailAddress);
 
-        if (!hash_equals($hashActual, $hash)) {
-            throw new NotFoundSilent();
+        if ($hash2 !== $hash) {
+            throw new NotFound();
         }
 
         $address = $this->getEmailAddressRepository()->getByAddress($emailAddress);

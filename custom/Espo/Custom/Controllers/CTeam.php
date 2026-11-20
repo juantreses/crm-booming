@@ -7,7 +7,6 @@ use Espo\Core\Api\Response;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Core\Templates\Controllers\Base;
-use Espo\Custom\Services\CTeamStatisticsService;
 use Espo\ORM\Entity;
 
 class CTeam extends Base
@@ -35,9 +34,9 @@ class CTeam extends Base
         $endDate = $request->getQueryParam('endDate');
 
         try {
-            $statistics = $this->injectableFactory
-                ->create(CTeamStatisticsService::class)
-                ->getTeamStatistics($id, $startDate, $endDate);
+            $statsService = $this->getServiceFactory()->create('CTeamStatisticsService');
+
+            $statistics = $statsService->getTeamStatistics($id, $startDate, $endDate);
 
             return [
                 'success' => true,

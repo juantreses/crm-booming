@@ -30,7 +30,6 @@
 namespace Espo\EntryPoints;
 
 use Espo\Core\Utils\Client\Script;
-use Espo\Core\Utils\Client\SecurityParams;
 use Espo\Tools\LeadCapture\FormService;
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
@@ -64,7 +63,7 @@ class LeadCaptureForm implements EntryPoint
             throw new BadRequest("No ID.");
         }
 
-        [$leadCapture, $data, $captchaScript, $direction] = $this->service->getData($id);
+        [$leadCapture, $data, $captchaScript] = $this->service->getData($id);
 
         $params = new ActionRenderer\Params(
             controller: 'controllers/lead-capture-form',
@@ -73,14 +72,9 @@ class LeadCaptureForm implements EntryPoint
         );
 
         $params = $params
+            ->withFrameAncestors($leadCapture->getFormFrameAncestors())
             ->withPageTitle($leadCapture->getFormTitle())
-            ->withTheme($leadCapture->getFormTheme())
-            ->withDirection($direction)
-            ->withSecurityParams(
-                new SecurityParams(
-                    frameAncestors: $leadCapture->getFormFrameAncestors(),
-                )
-            );
+            ->withTheme($leadCapture->getFormTheme());
 
         if ($captchaScript) {
             $params = $params->withScripts([new Script(source: $captchaScript)]);

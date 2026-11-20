@@ -90,13 +90,7 @@ class Record extends RecordBase
         if (!empty($data->massRelate)) {
             $searchParams = $this->fetchMassLinkSearchParamsFromRequest($request);
 
-            $result = $this->getRecordService()->massLink($id, $link, $searchParams);
-
-            if ($result->getAffectedCount() === 0) {
-                return false;
-            }
-
-            return true;
+            return $this->getRecordService()->massLink($id, $link, $searchParams);
         }
 
         $foreignIdList = [];

@@ -1,13 +1,1 @@
-{
-  "fields": {
-    "event": "Renginys",
-    "target": "Tikslinė",
-    "data": "Duomenys",
-    "isProcessed": "Yra apdorotas",
-    "user": "Vartotojas"
-  },
-  "links": {
-    "target": "Tikslinė",
-    "user": "Vartotojas"
-  }
-}
+{}

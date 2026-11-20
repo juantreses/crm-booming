@@ -50,6 +50,7 @@
   },
   "presetFilters": {
     "portalUsers": "Користувачі порталів",
-    "notPortalUsers": "Не користувачі порталу"
+    "notPortalUsers": "Не користувачі порталу",
+    "accountActive": "Активний"
   }
 }

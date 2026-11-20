@@ -29,14 +29,12 @@
 
 namespace Espo\Entities;
 
-use Espo\Core\Field\Link;
 use Espo\Core\Name\Field;
-use Espo\Core\ORM\Entity as CoreEntity;
+use Espo\Core\ORM\Entity;
 
 use Espo\Core\Field\LinkParent;
-use Espo\ORM\Entity;
 
-class Attachment extends CoreEntity
+class Attachment extends Entity
 {
     public const ENTITY_TYPE = 'Attachment';
 
@@ -115,25 +113,9 @@ class Attachment extends CoreEntity
         return $this->get('parentType');
     }
 
-    /**
-     * @since 10.0.8
-     */
-    public function getParentId(): ?string
-    {
-        return $this->get('parentId');
-    }
-
     public function getRelatedType(): ?string
     {
         return $this->get('relatedType');
-    }
-
-    /**
-     * @since 10.0.8
-     */
-    public function getRelatedId(): ?string
-    {
-        return $this->get('relatedId');
     }
 
     public function isBeingUploaded(): bool
@@ -232,14 +214,5 @@ class Attachment extends CoreEntity
         $this->relations->set('related', $related);
 
         return $this;
-    }
-
-    /**
-     * @since 9.3.5
-     */
-    public function getCreatedBy(): ?Link
-    {
-        /** @var ?Link */
-        return $this->getValueObject(Field::CREATED_BY);
     }
 }

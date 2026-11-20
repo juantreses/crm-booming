@@ -29,13 +29,11 @@
 
 namespace Espo\Hooks\Common;
 
-use Espo\Core\Formula\Exceptions\ValidationFunctionException;
 use Espo\ORM\Entity;
-use Espo\ORM\Exceptions\PersistenceException;
-use Espo\ORM\Exceptions\ValidationException;
 use Espo\ORM\Repository\Option\SaveOptions;
 use Espo\Core\Hook\Hook\BeforeSave;
 use Espo\Core\Formula\Manager as FormulaManager;
+use Espo\Core\Utils\Log;
 use Espo\Core\Utils\Metadata;
 
 use Exception;
@@ -51,6 +49,7 @@ class Formula implements BeforeSave
     public function __construct(
         private Metadata $metadata,
         private FormulaManager $formulaManager,
+        private Log $log
     ) {}
 
     public function beforeSave(Entity $entity, SaveOptions $options): void
@@ -81,13 +80,10 @@ class Formula implements BeforeSave
         try {
             $this->formulaManager->run($script, $entity, $variables);
         } catch (Exception $e) {
-            if ($e instanceof ValidationFunctionException) {
-                throw new ValidationException("Before-save validation error.", previous: $e);
-            }
-
-            $entityType = $entity->getEntityType();
-
-            throw new PersistenceException("Before-save formula script failed for '$entityType'.", previous: $e);
+            $this->log->critical('Before-save formula script failed. {message}', [
+                'message' => $e->getMessage(),
+                'exception' => $e,
+            ]);
         }
     }
 }

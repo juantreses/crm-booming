@@ -50,7 +50,6 @@ class EntityUtil implements Command
 
         if (!$subCommand) {
             $io->writeLine("No sub-command specified.");
-            $io->setExitStatus(1);
 
             return;
         }

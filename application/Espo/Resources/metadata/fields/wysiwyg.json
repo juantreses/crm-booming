@@ -7,7 +7,7 @@
         },
         {
             "name": "default",
-            "type": "wysiwyg"
+            "type": "text"
         },
         {
             "name": "height",
@@ -32,8 +32,7 @@
         },
         {
             "name": "useIframe",
-            "type": "bool",
-            "default": true
+            "type": "bool"
         },
         {
             "name": "maxLength",

@@ -16,7 +16,6 @@
                 value="{{phoneNumber}}"
                 autocomplete="espo-{{../name}}"
                 maxlength={{../itemMaxLength}}
-                spellcheck="false"
             >
         </span>
         {{#unless ../onlyPrimary}}

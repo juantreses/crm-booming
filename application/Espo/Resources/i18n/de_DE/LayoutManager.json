@@ -1,10 +1,7 @@
 {
   "fields": {
-    "link": "Link",
     "notSortable": "Nicht sortierbar",
     "align": "Ausrichten",
-    "panelName": "Panel Name",
-    "style": "Style",
     "isLarge": "Große Schriftgröße",
     "dynamicLogicVisible": "Bedingungen, die das Panel sichtbar machen",
     "hidden": "Versteckt",
@@ -27,14 +24,12 @@
       "default": "Standard",
       "success": "Erfolgreich",
       "danger": "Gefahr",
-      "info": "Info",
       "warning": "Warnung",
       "primary": "Primär"
     }
   },
   "labels": {
-    "New panel": "Neues Panel",
-    "Layout": "Layout"
+    "New panel": "Neues Panel"
   },
   "tooltips": {
     "link": "Wenn diese Option aktiviert ist, wird ein Feldwert als Link angezeigt, der auf die Detailansicht des Datensatzes verweist. Normalerweise wird er für *Name*-Felder verwendet.",

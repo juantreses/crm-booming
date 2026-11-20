@@ -141,19 +141,18 @@ class Url
 
     public static function getRedirectUrlWithTrailingSlash(): ?string
     {
-        $uri = $_SERVER['REQUEST_URI'] ?? '';
-        $path = explode('?', $uri, 2)[0];
+        $uri = $_SERVER['REQUEST_URI'];
 
-        if ($path === '' || $path === '/' || str_ends_with($path, '/')) {
+        if ($uri === '' || $uri === '/' || str_ends_with($uri, '/')) {
             return null;
         }
 
-        $output = $path . '/';
+        $output = $uri . '/';
 
         $queryString = $_SERVER['QUERY_STRING'] ?? null;
 
         if ($queryString !== null && $queryString !== '') {
-            $output .= '?' . $queryString;
+            $output .= '?' . $_SERVER['QUERY_STRING'];
         }
 
         return $output;

@@ -34,20 +34,12 @@
         },
         "calendars": {
             "type": "linkMultiple",
-            "tooltip": true,
-            "validatorClassNameList": [
-                "Espo\\Classes\\FieldValidators\\WorkingTimeRange\\Calendars\\OnlyIfNoUsers",
-                "Espo\\Classes\\FieldValidators\\WorkingTimeRange\\Calendars\\RequiredIfNoUsers"
-            ],
-            "autocompleteOnEmpty": true
+            "tooltip": true
         },
         "users": {
             "type": "linkMultiple",
             "view": "views/working-time-range/fields/users",
-            "tooltip": true,
-            "validatorClassNameList": [
-                "Espo\\Classes\\FieldValidators\\WorkingTimeRange\\Users\\OnlyIfNoCalendars"
-            ]
+            "tooltip": true
         },
         "createdAt": {
             "type": "datetime",

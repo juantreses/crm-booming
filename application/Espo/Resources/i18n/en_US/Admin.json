@@ -87,7 +87,6 @@
         "Fail": "Fail",
         "Configuration Instructions": "Configuration Instructions",
         "Formula Sandbox": "Formula Sandbox",
-        "Pipelines": "Pipelines",
         "is recommended": "is recommended",
         "extension is missing": "extension is missing"
     },
@@ -206,7 +205,6 @@
         "dynamicLogicOptions": "Conditional options",
         "dynamicLogicInvalid": "Conditions making field invalid",
         "dynamicLogicReadOnlySaved": "Saved state conditions making field read-only",
-        "dynamicLogicCascading": "Cascading select",
         "probabilityMap": "Stage Probabilities (%)",
         "notActualOptions": "Not Actual Options",
         "activeOptions": "Active Options",
@@ -215,7 +213,6 @@
         "preview": "Preview",
         "attachmentField": "Attachment Field",
         "maxFileSize": "Max File Size (Mb)",
-        "capture": "Capture",
         "isPersonalData": "Is Personal Data",
         "useIframe": "Use Iframe",
         "useNumericFormat": "Use Numeric Format",
@@ -245,17 +242,12 @@
         "aclScope": "ACL Scope",
         "onlyAdmin": "Only for Admin",
         "notStorable": "Not Storable",
-        "itemsEditable": "Items Editable",
-        "openInNewTab": "Open in new tab",
-        "notLockable": "Not Lockable",
-        "protocolRequired": "Protocol Required",
-        "cascadeRemoval": "Cascade Removal"
+        "itemsEditable": "Items Editable"
     },
     "strings" : {
         "rebuildRequired": "Rebuild is required"
     },
     "messages": {
-        "noPipelinesEnabled": "No entity types have pipelines enabled.",
         "cacheIsDisabled": "Cache is disabled, the application will run slow. Enable cache in the [settings](#Admin/settings).",
         "formulaFunctions": "More functions can be found in [documentation]({documentationUrl}).",
         "rebuildRequired": "You need to run rebuild from CLI.",
@@ -331,9 +323,7 @@
         "pdfTemplates": "Templates for printing to PDF.",
         "formulaSandbox": "Write and test formula scripts.",
         "addressCountries": "Countries available for address fields.",
-        "oAuthProviders": "OAuth providers for integrations.",
-        "pipelines": "Configure multiple pipelines.",
-        "oAuthClients": "Register applications for API access via OAuth."
+        "oAuthProviders": "OAuth providers for integrations."
     },
     "keywords": {
         "settings": "system",
@@ -348,8 +338,7 @@
         "jobs": "cron",
         "labelManager": "language,translation",
         "appSecrets": "key,keys,password",
-        "leadCapture": "web forms",
-        "oAuthClients": "oauth,api,authentication"
+        "leadCapture": "web forms"
     },
     "options": {
         "previewSize": {
@@ -362,10 +351,6 @@
         "labelType": {
             "state": "State",
             "regular": "Regular"
-        },
-        "capture": {
-            "user": "User",
-            "environment": "Environment"
         }
     },
     "logicalOperators": {

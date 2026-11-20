@@ -37,7 +37,7 @@ use Espo\ORM\Entity;
 use Espo\Core\Record\UpdateParams;
 
 /**
- * @template TEntity of Entity = Entity
+ * @template TEntity of Entity
  */
 interface UpdateHook
 {

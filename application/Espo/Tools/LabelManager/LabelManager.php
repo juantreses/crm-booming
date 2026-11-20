@@ -42,11 +42,13 @@ use stdClass;
 class LabelManager implements
     Di\DefaultLanguageAware,
     Di\MetadataAware,
-    Di\FileManagerAware
+    Di\FileManagerAware,
+    Di\DataCacheAware
 {
     use Di\DefaultLanguageSetter;
     use Di\MetadataSetter;
     use Di\FileManagerSetter;
+    use Di\DataCacheSetter;
 
     /** @var string[] */
     protected $ignoreList = [
@@ -321,6 +323,8 @@ class LabelManager implements
                 /** @var stdClass $customData */
             }
         }
+
+        //die;
 
         $languageObj->saveScopeCustom($scope, $customData);
 

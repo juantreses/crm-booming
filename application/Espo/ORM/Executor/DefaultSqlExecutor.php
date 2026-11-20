@@ -29,7 +29,6 @@
 
 namespace Espo\ORM\Executor;
 
-use Espo\ORM\Exceptions\DeadlockException;
 use Espo\ORM\PDO\PDOProvider;
 use Psr\Log\LoggerInterface;
 
@@ -41,7 +40,7 @@ use RuntimeException;
 
 class DefaultSqlExecutor implements SqlExecutor
 {
-    private const int MAX_ATTEMPT_COUNT = 4;
+    private const MAX_ATTEMPT_COUNT = 4;
 
     private PDO $pdo;
 
@@ -70,33 +69,18 @@ class DefaultSqlExecutor implements SqlExecutor
         return $this->executeSqlWithDeadlockHandling($sql);
     }
 
-    /**
-     * @throws DeadlockException
-     */
     private function executeSqlWithDeadlockHandling(string $sql, ?int $counter = null): PDOStatement
     {
         $counter = $counter ?? self::MAX_ATTEMPT_COUNT;
-
-        $inTransaction = $this->pdo->inTransaction();
 
         try {
             $sth = $this->pdo->query($sql);
         } catch (Exception $e) {
             $counter--;
 
-            $isDeadlock = $this->isExceptionIsDeadlock($e);
-
-            if (
-                $counter === 0 ||
-                !$isDeadlock ||
-                $inTransaction
-            ) {
+            if ($counter === 0 || !$this->isExceptionIsDeadlock($e)) {
                 if ($this->logFailed) {
                     $this->logger?->error("SQL failed: " . $sql, ['isSql' => true]);
-                }
-
-                if ($isDeadlock) {
-                    throw new DeadlockException($e->getMessage(), previous: $e);
                 }
 
                 /** @var PDOException $e */
@@ -115,20 +99,10 @@ class DefaultSqlExecutor implements SqlExecutor
 
     private function isExceptionIsDeadlock(Exception $e): bool
     {
-        if (!$e instanceof PDOException || !$e->errorInfo) {
+        if (!$e instanceof PDOException) {
             return false;
         }
 
-        $state = $e->errorInfo[0] ?? null;
-
-        if ($state === '40P01') {
-            return true;
-        }
-
-        if ($state === 'HY000' && (int) $e->errorInfo[1] === 1020) {
-            return true;
-        }
-
-        return $state === '40001' && (int) $e->errorInfo[1] === 1213;
+        return isset($e->errorInfo) && $e->errorInfo[0] == 40001 && $e->errorInfo[1] == 1213;
     }
 }

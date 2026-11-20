@@ -143,6 +143,7 @@ class EmailReminder
         $subject = $htmlizer->render(
             $entity,
             $subjectTpl,
+            'reminder-email-subject-' . $entityType,
             $data,
             true
         );
@@ -150,6 +151,7 @@ class EmailReminder
         $body = $htmlizer->render(
             $entity,
             $bodyTpl,
+            'reminder-email-body-' . $entityType,
             $data,
             false
         );

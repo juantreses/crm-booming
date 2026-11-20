@@ -29,7 +29,6 @@
 
 namespace Espo\Controllers;
 
-use Espo\Core\Acl;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Utils\Config;
@@ -53,11 +52,10 @@ class TemplateManager
         private Metadata $metadata,
         private TemplateFileManager $templateFileManager,
         private ApplicationState $applicationState,
-        private Config $config,
-        private Acl $acl,
+        private Config $config
     ) {
 
-        if (!$this->acl->checkAdmin()) {
+        if (!$this->applicationState->isAdmin()) {
             throw new Forbidden();
         }
     }

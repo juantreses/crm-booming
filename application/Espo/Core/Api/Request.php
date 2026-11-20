@@ -29,7 +29,6 @@
 
 namespace Espo\Core\Api;
 
-use Psr\Http\Message\ServerRequestInterface as Psr7Request;
 use Psr\Http\Message\UriInterface;
 
 use stdClass;
@@ -126,18 +125,4 @@ interface Request
      * @return mixed
      */
     public function getServerParam(string $name);
-
-    /**
-     * Get the content type.
-     *
-     * @since 10.1.0
-     */
-    public function getContentType(): ?string;
-
-    /**
-     * Get the PSR-7 request.
-     *
-     * @since 10.1.0
-     */
-    public function toPsr7(): Psr7Request;
 }

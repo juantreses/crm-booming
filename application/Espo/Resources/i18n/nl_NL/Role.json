@@ -15,8 +15,7 @@
     "messagePermission": "Toestemming voor berichten",
     "auditPermission": "Controle Toestemming",
     "mentionPermission": "Vermeld toestemming",
-    "userCalendarPermission": "Gebruiker Kalendermachtiging",
-    "lockPermission": "Vergrendelingsrechten"
+    "userCalendarPermission": "Gebruiker Kalendermachtiging"
   },
   "links": {
     "users": "Gebruikers",
@@ -39,7 +38,6 @@
       "all": "alle",
       "team": "groep",
       "account": "relatie",
-      "contact": "contact",
       "own": "eigen",
       "no": "nee",
       "yes": "ja",
@@ -50,7 +48,6 @@
     "read": "Lees",
     "edit": "Bewerken",
     "delete": "Verwijder",
-    "stream": "Stream",
     "create": "Creëer"
   },
   "messages": {
@@ -68,7 +65,6 @@
     "auditPermission": "Hiermee kan het auditlogboek worden bekeken.",
     "mentionPermission": "Hiermee kunnen andere gebruikers in de stream worden genoemd.\n\n* all - kan iedereen vermelden\n* team - kan alleen teamgenoten noemen\n* nee - kan niet vermelden",
     "userPermission": "Bekijken van streams van andere gebruikers. Stelt gebruikers in staat rechten te bekijken van  gebruikers  voor specifieke records.",
-    "userCalendarPermission": "Sta toe om agenda's van andere gebruikers te bekijken.",
-    "lockPermission": "Hiermee kun je records vergrendelen en ontgrendelen."
+    "userCalendarPermission": "Sta toe om agenda's van andere gebruikers te bekijken."
   }
 }

@@ -38,8 +38,6 @@ use Espo\ORM\Type\AttributeType;
 
 /**
  * A single JSON column instead of multiple field columns.
- *
- * @noinspection PhpUnused
  */
 class JsonData implements EntityDefsModifier
 {

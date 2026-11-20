@@ -30,7 +30,6 @@
 namespace Espo\Entities;
 
 use Espo\Core\ORM\Entity;
-use Espo\ORM\Entity\EmptyValue;
 use Espo\ORM\Name\Attribute;
 use stdClass;
 
@@ -82,12 +81,7 @@ class Integration extends Entity
         $this->set(self::ATTR_DATA, $data);
     }
 
-    public function setMultiple(array|stdClass $valueMap): static
-    {
-        return $this->set($valueMap);
-    }
-
-    public function set($attribute, $value = new EmptyValue()): static
+    public function set($attribute, $value = null): static
     {
         if (is_object($attribute)) {
             $attribute = get_object_vars($attribute);
@@ -97,10 +91,6 @@ class Integration extends Entity
             $this->populateFromArray($attribute, false);
 
             return $this;
-        }
-
-        if ($value instanceof EmptyValue) {
-            $value = null;
         }
 
         $name = $attribute;

@@ -111,7 +111,7 @@ readonly class SavingsCardService
         $cardEnd = $cardStart ? $this->cardEnd($cardStart) : null;
         $isActive = $cardEnd && $today->format('Y-m-d') <= $cardEnd && $this->hasOrderHistory($contact);
 
-        $contact->setMultiple([
+        $contact->set([
             'cSavingsCardStart' => $cardStart,
             'cSavingsCardEnd' => $cardEnd,
             'cSavingsPointsBalance' => $isActive

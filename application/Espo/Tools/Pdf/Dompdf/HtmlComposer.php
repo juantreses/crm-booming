@@ -29,6 +29,9 @@
 
 namespace Espo\Tools\Pdf\Dompdf;
 
+use chillerlan\QRCode\Common\EccLevel;
+use chillerlan\QRCode\Output\QRMarkupSVG;
+use chillerlan\QRCode\Output\QROutputInterface;
 use Espo\Core\Htmlizer\TemplateRendererFactory;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\Log;
@@ -37,15 +40,10 @@ use Espo\Tools\Pdf\Data;
 use Espo\Tools\Pdf\Params;
 use Espo\Tools\Pdf\Template;
 
-use Espo\Tools\Pdf\Util\RegExp;
 use Picqer\Barcode\BarcodeGeneratorSVG;
-use Picqer\Barcode\Exceptions\UnknownTypeException;
-
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
-use chillerlan\QRCode\Common\EccLevel;
-use chillerlan\QRCode\Output\QROutputInterface;
-
+use Picqer\Barcode\Exceptions\UnknownTypeException;
 use RuntimeException;
 
 class HtmlComposer
@@ -54,7 +52,7 @@ class HtmlComposer
         private Config $config,
         private TemplateRendererFactory $templateRendererFactory,
         private ImageSourceProvider $imageSourceProvider,
-        private Log $log,
+        private Log $log
     ) {}
 
     public function composeHead(Template $template, Entity $entity): string
@@ -80,10 +78,11 @@ class HtmlComposer
 
         $templateStyle = $template->getStyle() ?? '';
 
-        return <<<EOF
+        /** @noinspection HtmlRequiredTitleElement */
+        return "
             <head>
                 {$titleHtml}
-                <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+                <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>
             </head>
             <style>
             @page {
@@ -126,7 +125,7 @@ class HtmlComposer
 
             $templateStyle
             </style>
-            EOF;
+        ";
     }
 
     public function composeHeaderFooter(Template $template, Entity $entity, Params $params, Data $data): string
@@ -186,31 +185,40 @@ class HtmlComposer
     {
         /** @noinspection HtmlUnknownAttribute */
         $html = str_replace('<br pagebreak="true">', '<div style="page-break-after: always;"></div>', $html);
-        $html = preg_replace('/src="@([A-Za-z0-9+\/]*={0,2})"/', 'src="data:image/jpeg;base64,$1"', $html) ?? '';
+        $html = preg_replace('/src="@([A-Za-z0-9+\/]*={0,2})"/', 'src="data:image/jpeg;base64,$1"', $html);
+        $html = str_replace('?entryPoint=attachment&amp;', '?entryPoint=attachment&', $html ?? '');
 
-        $html = preg_replace_callback(RegExp::BARCODE, function ($matches) {
-            $dataString = $matches[1];
+        $html = preg_replace_callback(
+            '/<barcodeimage data="([^"]+)"\/>/',
+            function ($matches) {
+                $dataString = $matches[1];
 
-            $data = json_decode(urldecode($dataString), true);
+                $data = json_decode(urldecode($dataString), true);
 
-            return $this->composeBarcode($data);
-        }, $html) ?? '';
+                return $this->composeBarcode($data);
+            },
+            $html
+        ) ?? '';
 
-        return preg_replace_callback(RegExp::INLINE_ATTACHMENT, function ($matches) {
-            $id = $matches[1];
+        return preg_replace_callback(
+            "/src=\"\?entryPoint=attachment&id=([A-Za-z0-9\-]*)\"/",
+            function ($matches) {
+                $id = $matches[1];
 
-            if (!$id) {
-                return '';
-            }
+                if (!$id) {
+                    return '';
+                }
 
-            $src = $this->imageSourceProvider->get($id);
+                $src = $this->imageSourceProvider->get($id);
 
-            if (!$src) {
-                return '';
-            }
+                if (!$src) {
+                    return '';
+                }
 
-            return "src=\"$src\"";
-        }, $html) ?? '';
+                return "src=\"$src\"";
+            },
+            $html
+        ) ?? '';
     }
 
     private function replaceHeadTags(string $html): string

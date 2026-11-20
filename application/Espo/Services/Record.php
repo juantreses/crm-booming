@@ -29,6 +29,7 @@
 
 namespace Espo\Services;
 
+use Espo\Core\Select\SelectBuilderFactory;
 use Espo\ORM\Entity;
 use Espo\Core\Record\Service as RecordService;
 use Espo\Core\Utils\Util;

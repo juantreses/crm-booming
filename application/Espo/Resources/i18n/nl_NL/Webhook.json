@@ -4,7 +4,6 @@
   },
   "fields": {
     "event": "Actie",
-    "url": "URL",
     "isActive": "Is actief",
     "user": "API gebruiker",
     "entityType": "Type entiteit",

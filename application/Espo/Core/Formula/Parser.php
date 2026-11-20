@@ -36,6 +36,7 @@ use Espo\Core\Formula\Parser\Ast\Value;
 use Espo\Core\Formula\Parser\Ast\Variable;
 use Espo\Core\Formula\Parser\Statement\IfRef;
 use Espo\Core\Formula\Parser\Statement\StatementRef;
+
 use Espo\Core\Formula\Parser\Statement\WhileRef;
 use LogicException;
 
@@ -91,38 +92,21 @@ class Parser
      */
     public function parse(string $expression): Node|Attribute|Variable|Value
     {
-        return $this->split($expression, isRoot: true);
+        return $this->split($expression, true);
     }
 
     /**
      * @throws SyntaxError
      */
-    private function applyOperator(
-        string $operator,
-        string $firstPart,
-        string $secondPart,
-        int $firstPosition,
-        int $secondPosition,
-    ): Node {
-
-        $firstPosition = self::shiftPositionOnTrim($firstPart, $firstPosition);
-        $secondPosition = self::shiftPositionOnTrim($secondPart, $secondPosition);
-
-        $firstPart = trim($firstPart);
-        $secondPart = trim($secondPart);
-
+    private function applyOperator(string $operator, string $firstPart, string $secondPart): Node
+    {
         if ($operator === '=') {
             if (!strlen($firstPart)) {
                 throw new SyntaxError("Bad operator usage.");
             }
 
-            if ($firstPart[0] === '$') {
-                return $this->applyOperatorVariableAssign(
-                    firstPart: $firstPart,
-                    secondPart: $secondPart,
-                    firstPosition: $firstPosition,
-                    secondPosition: $secondPosition,
-                );
+            if ($firstPart[0] == '$') {
+                return $this->applyOperatorVariableAssign($firstPart, $secondPart);
             }
 
             if ($secondPart === '') {
@@ -130,8 +114,8 @@ class Parser
             }
 
             return new Node('setAttribute', [
-                new Value($firstPart, position: $firstPosition),
-                $this->split($secondPart, position: $secondPosition)
+                new Value($firstPart),
+                $this->split($secondPart)
             ]);
         }
 
@@ -142,8 +126,8 @@ class Parser
         }
 
         return new Node($functionName, [
-            $this->split($firstPart, position: $firstPosition),
-            $this->split($secondPart, position: $secondPosition),
+            $this->split($firstPart),
+            $this->split($secondPart),
         ]);
     }
 
@@ -164,8 +148,7 @@ class Parser
         string &$string,
         string &$modifiedString,
         ?array &$statementList = null,
-        bool $intoOneLine = false,
-        int $position = 0,
+        bool $intoOneLine = false
     ): bool {
 
         $isString = false;
@@ -272,7 +255,6 @@ class Parser
                     bracketCounter: $bracketCounter,
                     isLineComment: $isLineComment,
                     isComment: $isComment,
-                    position: $position,
                 );
             }
 
@@ -293,6 +275,18 @@ class Parser
             if ($isCommentEnding) {
                 $isComment = false;
             }
+
+            /*if ($isLineComment) {
+                if ($string[$i] === "\n") {
+                    $isLineComment = false;
+                }
+            }
+
+            if ($isComment) {
+                if ($string[$i - 1] === "*" && $string[$i] === "/") {
+                    $isComment = false;
+                }
+            }*/
         }
 
         if ($statementList !== null) {
@@ -328,7 +322,6 @@ class Parser
         int $bracketCounter,
         bool $isLineComment,
         bool $isComment,
-        int $position,
     ): void {
 
         $char = $string[$i];
@@ -382,21 +375,18 @@ class Parser
             !$lastStatement->isReady()
         ) {
             $toContinue = $this->processStringWhileStatement(
-                string: $string,
-                i: $i,
-                parenthesisCounter: $parenthesisCounter,
-                braceCounter: $braceCounter,
-                statement: $lastStatement,
+                $string,
+                $i,
+                $parenthesisCounter,
+                $braceCounter,
+                $lastStatement
             );
 
             if ($toContinue === null) {
                 // Not a `while` statement, but likely a `while` function.
                 array_pop($statementList);
 
-                $lastStatement = new StatementRef(
-                    start: $lastStatement->getStart(),
-                );
-
+                $lastStatement = new StatementRef($lastStatement->getStart());
                 $statementList[] = $lastStatement;
 
                 if ($char === ';') {
@@ -447,9 +437,7 @@ class Parser
             }
 
             if ($this->isOnWhile($string, $i)) {
-                $statementList[] = new WhileRef(
-                    start: $i,
-                );
+                $statementList[] = new WhileRef($i);
 
                 $i += 4;
 
@@ -461,9 +449,7 @@ class Parser
                 $char !== ';' &&
                 $char !== '/'
             ) {
-                $statementList[] = new StatementRef(
-                    start: $i,
-                );
+                $statementList[] = new StatementRef($i);
             }
         }
     }
@@ -794,14 +780,8 @@ class Parser
     /**
      * @throws SyntaxError
      */
-    private function split(
-        string $expression,
-        bool $isRoot = false,
-        int $position = 0,
-    ): Node|Attribute|Variable|Value {
-
-        $position = Parser::shiftPositionOnTrim($expression, $position);
-
+    private function split(string $expression, bool $isRoot = false): Node|Attribute|Variable|Value
+    {
         $expression = trim($expression);
 
         $parenthesisCounter = 0;
@@ -813,13 +793,7 @@ class Parser
 
         $statementList = [];
 
-        $isStringNotClosed = $this->processString(
-            string: $expression,
-            modifiedString: $modifiedExpression,
-            statementList: $statementList,
-            intoOneLine: true,
-            position: $position,
-        );
+        $isStringNotClosed = $this->processString($expression, $modifiedExpression, $statementList, true);
 
         if ($isStringNotClosed) {
             throw SyntaxError::create('String is not closed.');
@@ -880,20 +854,11 @@ class Parser
         ) {
             $expression = substr($expression, 1, strlen($expression) - 2);
 
-            return $this->split(
-                expression: $expression,
-                isRoot: true,
-                position: $position + 1,
-            );
+            return $this->split($expression, true);
         }
 
         if ($statementList !== null && count($statementList)) {
-            return $this->processStatementList(
-                expression: $expression,
-                statementList: $statementList,
-                isRoot: $isRoot,
-                position: $position,
-            );
+            return $this->processStatementList($expression, $statementList, $isRoot);
         }
 
         $firstOperator = null;
@@ -978,50 +943,34 @@ class Parser
         if ($firstOperator) {
             /** @var int $minIndex */
 
-            $secondIndex = $minIndex + strlen($firstOperator);
-
             $firstPart = substr($expression, 0, $minIndex);
-            $secondPart = substr($expression, $secondIndex);
+            $secondPart = substr($expression, $minIndex + strlen($firstOperator));
 
-            return $this->applyOperator(
-                operator: $firstOperator,
-                firstPart: $firstPart,
-                secondPart: $secondPart,
-                firstPosition: $position,
-                secondPosition: $position + $secondIndex,
-            );
+            $firstPart = trim($firstPart);
+            $secondPart = trim($secondPart);
+
+            return $this->applyOperator($firstOperator, $firstPart, $secondPart);
         }
-
-        $position = self::shiftPositionOnTrim($expression, $position);
 
         $expression = trim($expression);
 
         if ($expression[0] === '!') {
             return new Node('logical\\not', [
-                $this->split(
-                    expression: substr($expression, 1),
-                    position: $position + 1,
-                )
+                $this->split(substr($expression, 1))
             ]);
         }
 
         if ($expression[0] === '-') {
             return new Node('numeric\\subtraction', [
                 new Value(0),
-                $this->split(
-                    expression: substr($expression, 1),
-                    position: $position + 1,
-                )
+                $this->split(substr($expression, 1))
             ]);
         }
 
         if ($expression[0] === '+') {
             return new Node('numeric\\summation', [
                 new Value(0),
-                $this->split(
-                    expression: substr($expression, 1),
-                    position: $position + 1,
-                )
+                $this->split(substr($expression, 1))
             ]);
         }
 
@@ -1029,14 +978,11 @@ class Parser
             $expression[0] === "'" && $expression[strlen($expression) - 1] === "'" ||
             $expression[0] === "\"" && $expression[strlen($expression) - 1] === "\""
         ) {
-            return new Value(
-                value: self::prepareStringValue($expression),
-                position: $position,
-            );
+            return new Value(self::prepareStringValue($expression));
         }
 
         if ($expression[0] === "$") {
-            return $this->splitVariable($expression, position: $position);
+            return $this->splitVariable($expression);
         }
 
         if (is_numeric($expression)) {
@@ -1044,10 +990,7 @@ class Parser
                 (int) $expression :
                 (float) $expression;
 
-            return new Value(
-                value: $value,
-                position: $position,
-            );
+            return new Value($value);
         }
 
         if ($expression === 'true') {
@@ -1074,55 +1017,38 @@ class Parser
             $firstOpeningBraceIndex = strpos($expression, '(');
 
             if ($firstOpeningBraceIndex > 0) {
-                $functionNamePart = substr($expression, 0, $firstOpeningBraceIndex);
-
-                $functionPosition = self::shiftPositionOnTrim($functionNamePart, $position);
-
-                $functionName = trim($functionNamePart);
-
+                $functionName = trim(substr($expression, 0, $firstOpeningBraceIndex));
                 $functionContent = substr($expression, $firstOpeningBraceIndex + 1, -1);
 
-                $argumentPosition = $position + $firstOpeningBraceIndex + 1;
-
-                $argumentList = $this->parseArgumentListFromFunctionContent($functionContent, $argumentPosition);
+                $argumentList = $this->parseArgumentListFromFunctionContent($functionContent);
 
                 $argumentSplitList = [];
 
-                foreach ($argumentList as [$argument, $argumentPosition]) {
-                    $argumentSplitList[] = $this->split($argument, position: $argumentPosition);
+                foreach ($argumentList as $argument) {
+                    $argumentSplitList[] = $this->split($argument);
                 }
 
                 if ($functionName === '' || !preg_match($this->functionNameRegExp, $functionName)) {
-                    throw SyntaxError::create("Bad function name `$functionName`.", position: $position);
+                    throw new SyntaxError("Bad function name `$functionName`.");
                 }
 
-                return new Node(
-                    type: $functionName,
-                    childNodes: $argumentSplitList,
-                    position: $functionPosition,
-                );
+                return new Node($functionName, $argumentSplitList);
             }
         }
 
         if (str_contains($expression, ' ')) {
-            throw SyntaxError::create("Could not parse.", position: $position);
+            throw SyntaxError::create("Could not parse.");
         }
 
         if (!preg_match($this->attributeNameRegExp, $expression)) {
-            throw SyntaxError::create(
-                message: "Attribute name `$expression` contains not allowed characters.",
-                position: $position,
-            );
+            throw SyntaxError::create("Attribute name `$expression` contains not allowed characters.");
         }
 
         if (str_ends_with($expression, '.')) {
-            throw SyntaxError::create("Attribute ends with dot.", position: $position);
+            throw SyntaxError::create("Attribute ends with dot.");
         }
 
-        return new Attribute(
-            name: $expression,
-            position: $position,
-        );
+        return new Attribute($expression);
     }
 
     private function isAtAnotherOperator(int $index, string $operator, string $expression): bool
@@ -1169,8 +1095,7 @@ class Parser
     private function processStatementList(
         string $expression,
         array $statementList,
-        bool $isRoot,
-        int $position
+        bool $isRoot
     ): Node|Value|Attribute|Variable {
 
         $parsedPartList = [];
@@ -1186,16 +1111,14 @@ class Parser
                     throw new LogicException();
                 }
 
-                [$part, $shift] = self::sliceByStartEnd($expression, $start, $end);
+                $part = self::sliceByStartEnd($expression, $start, $end);
 
-                $itemPosition = $position + $start + $shift;
-
-                $parsedPart = $this->split($part, position: $itemPosition);
+                $parsedPart = $this->split($part);
             } else if ($statement instanceof IfRef) {
                 if (!$isRoot || !$statement->isReady()) {
                     throw SyntaxError::create(
-                        message: 'Incorrect if statement usage in expression ' . $expression . '.',
-                        shortMessage: 'Incorrect if statement.',
+                        'Incorrect if statement usage in expression ' . $expression . '.',
+                        'Incorrect if statement.'
                     );
                 }
 
@@ -1215,38 +1138,26 @@ class Parser
                     throw new LogicException();
                 }
 
-                [$conditionPart, $conditionShift] = self::sliceByStartEnd($expression, $conditionStart, $conditionEnd);
-
-                $conditionPosition = $position + $conditionStart + $conditionShift;
-
-                [$thenPart, $thenShift] = self::sliceByStartEnd($expression, $thenStart, $thenEnd);
-
-                $thenPosition = $position + $thenStart + $thenShift;
-
-                $elsePart = null;
-                $elsePosition = null;
-
-                if ($elseStart !== null && $elseEnd) {
-                    [$elsePart, $elseShift] = self::sliceByStartEnd($expression, $elseStart, $elseEnd);
-
-                    $elsePosition = $position + $elseStart + $elseShift;
-                }
+                $conditionPart = self::sliceByStartEnd($expression, $conditionStart, $conditionEnd);
+                $thenPart = self::sliceByStartEnd($expression, $thenStart, $thenEnd);
+                $elsePart = $elseStart !== null && $elseEnd !== null ?
+                    self::sliceByStartEnd($expression, $elseStart, $elseEnd) : null;
 
                 $parsedPart = $statement->getElseKeywordEnd() ?
                     new Node('ifThenElse', [
-                        $this->split($conditionPart, position: $conditionPosition),
-                        $this->split($thenPart, true, position: $thenPosition),
-                        $this->split($elsePart ?? '', true, position: $elsePosition ?? -1)
+                        $this->split($conditionPart),
+                        $this->split($thenPart, true),
+                        $this->split($elsePart ?? '', true)
                     ]) :
                     new Node('ifThen', [
-                        $this->split($conditionPart, position: $conditionPosition),
-                        $this->split($thenPart, true, position: $thenPosition)
+                        $this->split($conditionPart),
+                        $this->split($thenPart, true)
                     ]);
             } else if ($statement instanceof WhileRef) {
                 if (!$isRoot || !$statement->isReady()) {
                     throw SyntaxError::create(
-                        message: 'Incorrect while statement usage in expression ' . $expression . '.',
-                        shortMessage: 'Incorrect while statement.',
+                        'Incorrect while statement usage in expression ' . $expression . '.',
+                        'Incorrect while statement.'
                     );
                 }
 
@@ -1264,25 +1175,19 @@ class Parser
                     throw new LogicException();
                 }
 
-                [$conditionPart, $conditionShift] = self::sliceByStartEnd($expression, $conditionStart, $conditionEnd);
-
-                $conditionPosition = $position + $conditionStart + $conditionShift;
-
-                [$bodyPart, $bodyShift] = self::sliceByStartEnd($expression, $bodyStart, $bodyEnd);
-
-                $bodyPosition = $position + $bodyStart + $bodyShift;
+                $conditionPart = self::sliceByStartEnd($expression, $conditionStart, $conditionEnd);
+                $bodyPart = self::sliceByStartEnd($expression, $bodyStart, $bodyEnd);
 
                 $parsedPart = new Node('while', [
-                    $this->split($conditionPart, position: $conditionPosition),
-                    $this->split($bodyPart, true, position: $bodyPosition)
+                    $this->split($conditionPart),
+                    $this->split($bodyPart, true)
                 ]);
             }
 
             if (!$parsedPart) {
                 throw SyntaxError::create(
-                    message: 'Unknown syntax error in expression ' . $expression . '.',
-                    shortMessage: 'Unknown syntax error.',
-                    position: $position,
+                    'Unknown syntax error in expression ' . $expression . '.',
+                    'Unknown syntax error.'
                 );
             }
 
@@ -1296,22 +1201,21 @@ class Parser
         return new Node('bundle', $parsedPartList);
     }
 
-    /**
-     * @return array{string, int}
-     */
-    private static function sliceByStartEnd(string $expression, int $start, int $end): array
+    private static function sliceByStartEnd(string $expression, int $start, int $end): string
     {
-        $part = substr($expression, $start, $end - $start);
-
-        $shift = strlen($part) - strlen(ltrim($part));
-
-        return [trim($part), $shift];
+        return trim(
+            substr(
+                $expression,
+                $start,
+                $end - $start
+            )
+        );
     }
 
     /**
-     * @return array{string, int}[]
+     * @return string[]
      */
-    private function parseArgumentListFromFunctionContent(string $functionContent, int $position): array
+    private function parseArgumentListFromFunctionContent(string $functionContent): array
     {
         $functionContent = trim($functionContent);
 
@@ -1330,15 +1234,19 @@ class Parser
                 if (!$isString) {
                     $isString = true;
                     $isSingleQuote = true;
-                } else if ($isSingleQuote) {
-                    $isString = false;
+                } else {
+                    if ($isSingleQuote) {
+                        $isString = false;
+                    }
                 }
             } else if ($functionContent[$i] === "\"" && self::isNotAfterBackslash($functionContent, $i)) {
                 if (!$isString) {
                     $isString = true;
                     $isSingleQuote = false;
-                } else if (!$isSingleQuote) {
-                    $isString = false;
+                } else {
+                    if (!$isSingleQuote) {
+                        $isString = false;
+                    }
                 }
             }
 
@@ -1366,17 +1274,15 @@ class Parser
                 $previousCommaIndex = 0;
             }
 
-            $part = substr($functionContent, $previousCommaIndex, $commaIndexList[$i] - $previousCommaIndex);
+            $argument = trim(
+                substr(
+                    $functionContent,
+                    $previousCommaIndex,
+                    $commaIndexList[$i] - $previousCommaIndex
+                )
+            );
 
-            $itemPosition = self::shiftPositionOnTrim($part, $position + $previousCommaIndex);
-
-            $argument = trim($part);
-
-            if ($argument === '' && $i === count($commaIndexList) - 1) {
-                continue;
-            }
-
-            $argumentList[] = [$argument, $itemPosition];
+            $argumentList[] = $argument;
         }
 
         return $argumentList;
@@ -1449,13 +1355,8 @@ class Parser
     /**
      * @throws SyntaxError
      */
-    private function applyOperatorVariableAssign(
-        string $firstPart,
-        string $secondPart,
-        int $firstPosition,
-        int $secondPosition,
-    ): Node {
-
+    private function applyOperatorVariableAssign(string $firstPart, string $secondPart): Node
+    {
         $variable = substr($firstPart, 1);
 
         $isArrayAppend = false;
@@ -1472,27 +1373,19 @@ class Parser
             $variable = substr($firstPart, 1, $bracketPosition - 1);
 
             $keyPart = trim(substr($firstPart, $bracketPosition));
-
-            $keyPath = array_map(function ($it) use ($firstPosition) {
-                return $this->split(
-                    expression: $it,
-                    position: $firstPosition
-                );
-            }, $this->splitKeys($keyPart));
+            $keyPath = array_map(fn ($it) => $this->split($it), $this->splitKeys($keyPart));
 
             $isKeyValue = true;
         }
 
         if ($variable === '' || !preg_match($this->variableNameRegExp, $variable)) {
-            throw SyntaxError::create("Bad variable name `$variable`.", position: $firstPosition);
+            throw new SyntaxError("Bad variable name `$variable`.");
         }
-
-        $secondNode = $this->split($secondPart, position: $secondPosition);
 
         if ($isArrayAppend) {
             return new Node('arrayAppend', [
                 new Value($variable),
-                $secondNode
+                $this->split($secondPart)
             ]);
         }
 
@@ -1500,20 +1393,20 @@ class Parser
             return new Node('variableSetKeyValue', [
                 new Value($variable),
                 new Node('list', $keyPath),
-                $secondNode
+                $this->split($secondPart)
             ]);
         }
 
         return new Node('assign', [
             new Value($variable),
-            $secondNode
+            $this->split($secondPart)
         ]);
     }
 
     /**
      * @throws SyntaxError
      */
-    private function splitVariable(string $expression, int $position): Node|Variable
+    private function splitVariable(string $expression): Node|Variable
     {
         $value = substr($expression, 1);
 
@@ -1536,41 +1429,35 @@ class Parser
             $bracketPosition = strpos($expression, '[') ?: 0;
             $value = substr($expression, 1, $bracketPosition - 1);
             $keyPart = trim(substr($expression, $bracketPosition));
-
-            $keyPath = array_map(function ($it) use ($position) {
-                return $this->split($it, position: $position);
-            }, $this->splitKeys($keyPart));
+            $keyPath = array_map(fn ($it) => $this->split($it), $this->splitKeys($keyPart));
 
             $isKeyValue = true;
         }
 
         if ($value === '' || !preg_match($this->variableNameRegExp, $value)) {
-            throw SyntaxError::create("Bad variable name `$value`.", position: $position);
+            throw new SyntaxError("Bad variable name `$value`.");
         }
 
         if ($isIncrement) {
             return new Node('variableIncrement', [
-                new Value($value, position: $position),
+                new Value($value),
             ]);
         }
 
         if ($isDecrement) {
             return new Node('variableDecrement', [
-                new Value($value, position: $position),
+                new Value($value),
             ]);
         }
 
         if ($isKeyValue) {
             return new Node('variableGetValueByKey', [
-                new Value($value, position: $position),
-                new Node('list', $keyPath, position: $position),
+                new Value($value),
+                new Node('list', $keyPath),
             ]);
         }
 
-        return new Variable(
-            name: $value,
-            position: $position,
-        );
+        return new Variable($value);
     }
 
     /**
@@ -1581,11 +1468,7 @@ class Parser
     {
         $modifiedExpression = '';
 
-        $this->processString(
-            string: $expression,
-            modifiedString: $modifiedExpression,
-            intoOneLine: true,
-        );
+        $this->processString($expression, $modifiedExpression, $statementList, true);
 
         $expressionLength = strlen($modifiedExpression);
 
@@ -1632,8 +1515,10 @@ class Parser
         }
 
         foreach ($indexPairs as $i => $pair) {
-            if ($i > 0 && $indexPairs[$i - 1][1] !== $pair[0] - 2) {
-                throw new SyntaxError("Nested brackets must have no gaps in between.");
+            if ($i > 0) {
+                if ($indexPairs[$i - 1][1] !== $pair[0] - 2) {
+                    throw new SyntaxError("Nested brackets must have no gaps in between.");
+                }
             }
 
             $itemExpression = trim(substr($expression, $pair[0], $pair[1] - $pair[0]));
@@ -1646,12 +1531,5 @@ class Parser
         }
 
         return $output;
-    }
-
-    private static function shiftPositionOnTrim(string $expression, int $position): int
-    {
-        $position += strlen($expression) - strlen(ltrim($expression));
-
-        return $position;
     }
 }

@@ -32,23 +32,19 @@ namespace Espo\Core\Loaders;
 use Espo\Core\Container\Loader;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\DateTime as DateTimeService;
-use Espo\Core\Utils\DateTime\Clock;
 
 class DateTime implements Loader
 {
-    public function __construct(
-        private Config $config,
-        private Clock $clock,
-    ) {}
+    public function __construct(private Config $config)
+    {}
 
     public function load(): DateTimeService
     {
         return new DateTimeService(
-            dateFormat: $this->config->get('dateFormat'),
-            timeFormat: $this->config->get('timeFormat'),
-            timeZone: $this->config->get('timeZone'),
-            language: $this->config->get('language'),
-            clock: $this->clock,
+            $this->config->get('dateFormat'),
+            $this->config->get('timeFormat'),
+            $this->config->get('timeZone'),
+            $this->config->get('language')
         );
     }
 }

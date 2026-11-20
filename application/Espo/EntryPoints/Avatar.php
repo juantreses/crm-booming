@@ -147,7 +147,6 @@ class Avatar extends Image
             }
 
             $this->show(
-                request: $request,
                 response: $response,
                 id: $user->getAvatarId(),
                 size: $size,

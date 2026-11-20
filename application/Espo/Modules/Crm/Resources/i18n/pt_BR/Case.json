@@ -9,8 +9,7 @@
     "type": "Tipo",
     "description": "Descrição",
     "attachments": "Anexos",
-    "inboundEmail": "Conta de email do grupo",
-    "originalEmail": "Email Original"
+    "inboundEmail": "Conta de email do grupo"
   },
   "links": {
     "account": "Conta",

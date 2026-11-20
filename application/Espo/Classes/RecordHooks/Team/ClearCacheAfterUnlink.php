@@ -30,6 +30,7 @@
 namespace Espo\Classes\RecordHooks\Team;
 
 use Espo\Core\Acl\Cache\Clearer;
+use Espo\Core\DataManager;
 use Espo\Core\Record\Hook\UnlinkHook;
 use Espo\Entities\Team;
 use Espo\Entities\User;
@@ -42,6 +43,7 @@ class ClearCacheAfterUnlink implements UnlinkHook
 {
     public function __construct(
         private Clearer $clearer,
+        private DataManager $dataManager
     ) {}
 
     public function process(Entity $entity, string $link, Entity $foreignEntity): void
@@ -51,5 +53,6 @@ class ClearCacheAfterUnlink implements UnlinkHook
         }
 
         $this->clearer->clearForUser($foreignEntity);
+        $this->dataManager->updateCacheTimestamp();
     }
 }

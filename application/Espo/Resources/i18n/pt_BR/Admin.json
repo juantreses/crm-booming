@@ -19,10 +19,10 @@
     "Roles": "Regras",
     "Portals": "Portais",
     "Portal Roles": "Regras de Portal",
-    "Outbound Emails": "Emails de Saída",
+    "Outbound Emails": "E-mails de Saída",
     "Group Email Accounts": "Contas de Email de Grupo",
     "Personal Email Accounts": "Contas de Emails Pessoais",
-    "Inbound Emails": "Emails de Entrada",
+    "Inbound Emails": "E-mails de Entrada",
     "Email Templates": "Templates dos E-mails",
     "Import": "Importar",
     "Layout Manager": "Gerenciar Layout",
@@ -74,10 +74,7 @@
     "Messaging": "Mensagem",
     "Job Settings": "Config. de Trabalho",
     "Configuration Instructions": "Instruções de Configuração",
-    "Formula Sandbox": "Sandbox de Fórmula",
-    "Working Time Calendars": "Calendários de Horário de Trabalho",
-    "Group Email Folders": "Pastas de Email de Grupo",
-    "Authentication Providers": "Provedores de Autenticação"
+    "Formula Sandbox": "Sandbox de Fórmula"
   },
   "layouts": {
     "list": "Lista",
@@ -147,8 +144,8 @@
     "default": "Padrão",
     "maxLength": "Tamanho máximo",
     "options": "Opções (valores raw, não traduzíveis)",
-    "after": "Após (field)",
-    "before": "Antes (field)",
+    "after": "Antes (field)",
+    "before": "Após (field)",
     "field": "Campo",
     "min": "Mín",
     "max": "Máx",
@@ -164,8 +161,9 @@
     "minHeight": "Altura Mín (px)",
     "provider": "Provedor",
     "typeList": "Lista de Tipo",
+    "rows": "Número de linhas da áreadetexto",
     "lengthOfCut": "Extensão do corte",
-    "sourceList": "Lista de fontes",
+    "sourceList": "Lista fonte",
     "tooltipText": "Texto Tooltip",
     "prefix": "Prefixo",
     "nextNumber": "Próximo Número",
@@ -181,7 +179,6 @@
     "isPersonalData": "É Dado Pessoal",
     "useIframe": "Usar Iframe",
     "useNumericFormat": "Usar formato numérico",
-    "cutHeight": "Altura do Corte (px)",
     "inlineEditDisabled": "Desativar Edição em linha",
     "displayAsLabel": "Mostrar como Rótulo",
     "allowCustomOptions": "Permitir opções Personalizadas",
@@ -195,11 +192,7 @@
     "onlyDefaultCurrency": "Apenas moeda padrão",
     "dynamicLogicInvalid": "Condições que tornam o campo inválido",
     "conversionDisabled": "Desativar Conversão",
-    "decimalPlaces": "Casas Decimais",
-    "pattern": "Padrão",
-    "globalRestrictions": "Restrições Globais",
-    "copyToClipboard": "Botão Copiar para clipboard ",
-    "readOnlyAfterCreate": "Somente leitura após a criação"
+    "decimalPlaces": "Casas Decimais"
   },
   "messages": {
     "selectEntityType": "Escolha o tipo de entidade no menu a esquerda.",
@@ -254,6 +247,7 @@
     "actionHistory": "Log de ações do usuário.",
     "labelManager": "Personalizar os rótulos da aplicação.",
     "authLog": "Histórico de Login.",
+    "leadCapture": "Pontos de entrada da API para Web-to-Lead.",
     "attachments": "Todos os anexos de arquivo armazenados no sistema.",
     "templateManager": "Personalizar os modelos de mensagens.",
     "systemRequirements": "Requisitos de sistema para EspoCRM",
@@ -267,10 +261,7 @@
     "layoutSets": "Coleções de layouts que podem ser atribuídos a times e portais.",
     "jobsSettings": "Configurações de processamento de trabalho. Os trabalhos executam tarefas em segundo plano.",
     "sms": "Configurações de SMS.",
-    "formulaSandbox": "Escreva e teste scripts de fórmula.",
-    "workingTimeCalendars": "Horário de trabalho",
-    "groupEmailFolders": "Pastas de e-mail compartilhadas para equipes.",
-    "authenticationProviders": "Provedores de autenticação adicionais para portais."
+    "formulaSandbox": "Escreva e teste scripts de fórmula."
   },
   "options": {
     "previewSize": {
@@ -299,7 +290,6 @@
   "templates": {
     "accessInfo": "Informações de acesso",
     "accessInfoPortal": "Informações de Acesso para Portais",
-    "assignment": "Tarefa",
     "mention": "Menção",
     "notePost": "Nota sobre a Postagem",
     "notePostNoParent": "Nota sobre a Postagem (sem Pai)",
@@ -320,7 +310,6 @@
     "authTokens": "histórico,acesso,log",
     "entityManager": "campos,relações,relacionamentos",
     "templateManager": "notificações",
-    "authentication": "senha,segurança,ldap",
-    "labelManager": "idioma, tradução"
+    "authentication": "senha,segurança,ldap"
   }
 }

@@ -47,6 +47,11 @@ use stdClass;
 class RecordTree extends Record
 {
     /**
+     * @var string
+     */
+    public static $defaultAction = 'list';
+
+    /**
      * Get a category tree.
      *
      * @throws BadRequest

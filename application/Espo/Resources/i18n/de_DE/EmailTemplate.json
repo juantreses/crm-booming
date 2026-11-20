@@ -1,18 +1,14 @@
 {
   "fields": {
-    "name": "Name",
-    "status": "Status",
     "body": "Inhalt",
     "subject": "Betreff",
     "attachments": "Anhänge",
     "oneOff": "Einmalig",
     "category": "Kategorie",
-    "insertField": "Platzhalter",
-    "isHtml": "HTML"
+    "insertField": "Platzhalter"
   },
   "labels": {
     "Create EmailTemplate": "E-Mail Vorlage erstellen",
-    "Info": "Info",
     "Available placeholders": "Verfügbare Platzhalter"
   },
   "tooltips": {

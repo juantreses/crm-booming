@@ -29,7 +29,6 @@
 
 namespace Espo\Core\Formula;
 
-use Espo\Core\Binding\BindingContainerBuilder;
 use Espo\Core\Formula\Exceptions\UnknownFunction;
 use Espo\Core\Formula\Functions\Base;
 use Espo\Core\Formula\Functions\BaseFunction;
@@ -94,13 +93,7 @@ class FunctionFactory
             $class->implementsInterface(Func::class) ||
             $class->implementsInterface(FuncVariablesAware::class)
         ) {
-            $binding = new BindingContainerBuilder();
-
-            if ($entity) {
-                $binding->bindInstance(Entity::class, $entity);
-            }
-
-            return $this->injectableFactory->createWithBinding($className, $binding->build());
+            return $this->injectableFactory->create($className);
         }
 
         $object = $this->injectableFactory->createWith($className, [

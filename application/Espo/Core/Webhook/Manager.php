@@ -32,16 +32,16 @@ namespace Espo\Core\Webhook;
 use Espo\Core\Name\Field;
 use Espo\Core\ORM\Entity;
 use Espo\Core\ORM\EntityManager;
-use Espo\Core\Utils\Cache\DataCacheAccess;
 use Espo\Core\Utils\Config;
-use Espo\Core\Utils\Event\Context;
-use Espo\Core\Utils\Event\EventDispatcher;
+use Espo\Core\Utils\Config\SystemConfig;
+use Espo\Core\Utils\DataCache;
 use Espo\Core\Utils\FieldUtil;
 use Espo\Core\Utils\Log;
-use Espo\Core\Webhook\Events\UpdateGlobal;
 use Espo\Entities\Webhook;
 use Espo\Entities\WebhookEventQueueItem;
+
 use Espo\ORM\Name\Attribute;
+use RuntimeException;
 use stdClass;
 
 /**
@@ -63,30 +63,45 @@ class Manager
         Field::VERSION_NUMBER,
     ];
 
-    /**
-     * @param DataCacheAccess<array<string, bool>> $dataCacheAccess
-     */
+    /** @var ?array<string, bool> */
+    private $data = null;
+
     public function __construct(
         private Config $config,
+        private DataCache $dataCache,
         private EntityManager $entityManager,
         private FieldUtil $fieldUtil,
         private Log $log,
-        private DataCacheAccess $dataCacheAccess,
-        private EventDispatcher $eventDispatcher,
+        private SystemConfig $systemConfig,
     ) {
+        $this->loadData();
+    }
 
-        $this->dataCacheAccess->init(
-            key: $this->cacheKey,
-            loader: fn () => $this->buildData(),
-        );
+    private function loadData(): void
+    {
+        if ($this->systemConfig->useCache() && $this->dataCache->has($this->cacheKey)) {
+            /** @var array<string, bool> $data */
+            $data = $this->dataCache->get($this->cacheKey);
 
-        $this->eventDispatcher->subscribe(UpdateGlobal::class, function (UpdateGlobal $event, Context $context) {
-            if ($context->isLocal) {
-                return;
+            $this->data = $data;
+        }
+
+        if (is_null($this->data)) {
+            $this->data = $this->buildData();
+
+            if ($this->systemConfig->useCache()) {
+                $this->storeDataToCache();
             }
+        }
+    }
 
-            $this->dataCacheAccess->reset();
-        });
+    private function storeDataToCache(): void
+    {
+        if ($this->data === null) {
+            throw new RuntimeException("No data to store.");
+        }
+
+        $this->dataCache->store($this->cacheKey, $this->data);
     }
 
     /**
@@ -120,14 +135,11 @@ class Manager
      */
     public function addEvent(string $event): void
     {
-        $data = $this->dataCacheAccess->get();
+        $this->data[$event] = true;
 
-        $data[$event] = true;
-
-        $this->dataCacheAccess->set($data);
-        $this->dataCacheAccess->store();
-
-        $this->eventDispatcher->dispatch(new UpdateGlobal());
+        if ($this->systemConfig->useCache()) {
+            $this->storeDataToCache();
+        }
     }
 
     /**
@@ -148,21 +160,16 @@ class Manager
             return;
         }
 
-        $data = $this->dataCacheAccess->get();
+        unset($this->data[$event]);
 
-        unset($data[$event]);
-
-        $this->dataCacheAccess->set($data);
-        $this->dataCacheAccess->store();
-
-        $this->eventDispatcher->dispatch(new UpdateGlobal());
+        if ($this->systemConfig->useCache()) {
+            $this->storeDataToCache();
+        }
     }
 
     private function eventExists(string $event): bool
     {
-        $data = $this->dataCacheAccess->get();
-
-        return isset($data[$event]);
+        return isset($this->data[$event]);
     }
 
     private function logDebugEvent(string $event, Entity $entity): void

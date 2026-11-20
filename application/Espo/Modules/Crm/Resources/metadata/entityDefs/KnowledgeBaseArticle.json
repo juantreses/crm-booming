@@ -82,14 +82,12 @@
         "createdBy": {
             "type": "link",
             "readOnly": true,
-            "fieldManagerParamList": [],
-            "view": "views/fields/user"
+            "fieldManagerParamList": []
         },
         "modifiedBy": {
             "type": "link",
             "readOnly": true,
-            "fieldManagerParamList": [],
-            "view": "views/fields/user"
+            "fieldManagerParamList": []
         },
         "assignedUser": {
             "type": "link",
@@ -108,40 +106,13 @@
             "type": "attachmentMultiple"
         },
         "body": {
-            "type": "wysiwyg",
-            "view": "modules/crm/views/knowledge-base-article/fields/body",
-            "attachmentField": "attachments",
-            "audited": true,
-            "fieldManagerParamList": [
-                "required",
-                "audited",
-                "height",
-                "minHeight",
-                "useIframe",
-                "maxLength",
-                "readOnly",
-                "tooltipText"
-            ],
-            "useIframe": true
+            "type": "wysiwyg"
         },
         "bodyPlain": {
             "type": "text",
             "readOnly": true,
             "directUpdateDisabled": true,
-            "dynamicLogicDisabled": true,
             "fieldManagerParamList": []
-        },
-        "isHtml": {
-            "type": "bool",
-            "default": false,
-            "audited": true,
-            "fieldManagerParamList": [
-                "default",
-                "tooltipText"
-            ],
-            "inlineEditDisabled": true,
-            "layoutDefaultSidePanelDisabled": true,
-            "massUpdateDisabled": true
         }
     },
     "links": {

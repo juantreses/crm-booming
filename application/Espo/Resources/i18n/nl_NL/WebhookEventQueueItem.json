@@ -1,8 +1,6 @@
 {
   "fields": {
-    "event": "Event",
     "target": "Doel",
-    "data": "Data",
     "isProcessed": "Wordt verwerkt",
     "user": "Gebruiker"
   },

@@ -31,13 +31,12 @@ namespace Espo\Core\Portal\Acl;
 
 use Espo\Core\Acl\Table\DefaultTable as BaseTable;
 
-use RuntimeException;
 use stdClass;
 
 class Table extends BaseTable
 {
-    public const string LEVEL_ACCOUNT = 'account';
-    public const string LEVEL_CONTACT = 'contact';
+    public const LEVEL_ACCOUNT = 'account';
+    public const LEVEL_CONTACT = 'contact';
 
     protected string $type = 'aclPortal';
 
@@ -98,13 +97,6 @@ class Table extends BaseTable
 
                 unset($fieldTable->$scope);
             }
-        }
-    }
-
-    protected function stripScopes(stdClass $table, stdClass $fieldTable): void
-    {
-        if ($this->user->getScopes() !== null) {
-            throw new RuntimeException("Unexpected having scopes in portal user.");
         }
     }
 }

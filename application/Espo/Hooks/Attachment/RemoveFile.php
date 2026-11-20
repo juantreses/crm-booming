@@ -89,9 +89,7 @@ class RemoveFile implements AfterRemove
         $sizeList = array_keys($this->metadata->get(['app', 'image', 'sizes']) ?? []);
 
         foreach ($sizeList as $size) {
-            $file = basename("{$entity->getSourceId()}_$size");
-
-            $filePath = "data/upload/thumbs/$file";
+            $filePath = "data/upload/thumbs/{$entity->getSourceId()}_{$size}";
 
             if ($this->fileManager->isFile($filePath)) {
                 $this->fileManager->removeFile($filePath);

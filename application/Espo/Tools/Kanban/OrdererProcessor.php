@@ -29,7 +29,6 @@
 
 namespace Espo\Tools\Kanban;
 
-use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Exceptions\ForbiddenSilent;
 use Espo\Core\Utils\Id\RecordIdGenerator;
@@ -47,7 +46,6 @@ class OrdererProcessor
     private ?string $entityType = null;
     private ?string $group = null;
     private ?string $userId = null;
-    private bool $isPipeline = false;
 
     private int $maxNumber = self::DEFAULT_MAX_NUMBER;
 
@@ -57,16 +55,6 @@ class OrdererProcessor
         private RecordIdGenerator $idGenerator,
         private MetadataProvider $metadataProvider,
     ) {}
-
-    /**
-     * @since 10.0.0
-     */
-    public function setIsPipeline(bool $isPipeline): self
-    {
-        $this->isPipeline = $isPipeline;
-
-        return $this;
-    }
 
     public function setEntityType(string $entityType): self
     {
@@ -107,7 +95,6 @@ class OrdererProcessor
      *
      * @throws ForbiddenSilent
      * @throws Error
-     * @throws BadRequest
      */
     public function order(array $ids): void
     {
@@ -216,7 +203,6 @@ class OrdererProcessor
     /**
      * @throws Error
      * @throws ForbiddenSilent
-     * @throws BadRequest
      */
     private function validate(): void
     {
@@ -240,10 +226,6 @@ class OrdererProcessor
 
         if ($orderDisabled) {
             throw new LogicException("Order is disabled.");
-        }
-
-        if ($this->isPipeline) {
-            return;
         }
 
         $statusField = $this->metadataProvider->getStatusField($this->entityType);

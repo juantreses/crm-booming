@@ -310,13 +310,6 @@
                 "label": "Authentication Providers",
                 "iconClass": "fas fa-sign-in-alt",
                 "description": "authenticationProviders"
-            },
-            {
-                "url": "#Admin/oAuthClients",
-                "labelTranslation": "Global.scopeNamesPlural.OAuthClient",
-                "iconClass": "fas fa-user-lock",
-                "description": "oAuthClients",
-                "tabQuickSearch": true
             }
         ],
         "order": 24
@@ -365,12 +358,6 @@
                 "label": "OAuth Providers",
                 "iconClass": "fas fa-sign-in-alt",
                 "description": "oAuthProviders"
-            },
-            {
-                "url": "#Admin/pipelines",
-                "label": "Pipelines",
-                "iconClass": "fas fa-timeline",
-                "description": "pipelines"
             },
             {
                 "url": "#Admin/appLog",

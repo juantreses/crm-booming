@@ -144,6 +144,7 @@ class TemplateRenderer
         return $htmlizer->render(
             $this->entity,
             $template,
+            null,
             $this->data,
             $this->skipRelations,
             $this->skipInlineAttachmentHandling

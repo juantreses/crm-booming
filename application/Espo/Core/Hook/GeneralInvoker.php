@@ -36,8 +36,6 @@ use Espo\Core\Hook\Hook\AfterSave;
 use Espo\Core\Hook\Hook\AfterUnrelate;
 use Espo\Core\Hook\Hook\BeforeRemove;
 use Espo\Core\Hook\Hook\BeforeSave;
-use Espo\Core\Hook\Hook\LateAfterRemove;
-use Espo\Core\Hook\Hook\LateAfterSave;
 use Espo\ORM\Entity;
 use Espo\ORM\Query\Select;
 use Espo\ORM\Repository\Option\MassRelateOptions;
@@ -52,15 +50,13 @@ use LogicException;
  */
 class GeneralInvoker
 {
-    private const string HOOK_BEFORE_SAVE = 'beforeSave';
-    private const string HOOK_AFTER_SAVE = 'afterSave';
-    private const string HOOK_LATE_AFTER_SAVE = 'lateAfterSave';
-    private const string HOOK_BEFORE_REMOVE = 'beforeRemove';
-    private const string HOOK_AFTER_REMOVE = 'afterRemove';
-    private const string HOOK_LATE_AFTER_REMOVE = 'lateAfterRemove';
-    private const string HOOK_AFTER_RELATE = 'afterRelate';
-    private const string HOOK_AFTER_UNRELATE = 'afterUnrelate';
-    private const string HOOK_AFTER_MASS_RELATE = 'afterMassRelate';
+    private const HOOK_BEFORE_SAVE = 'beforeSave';
+    private const HOOK_AFTER_SAVE = 'afterSave';
+    private const HOOK_BEFORE_REMOVE = 'beforeRemove';
+    private const HOOK_AFTER_REMOVE = 'afterRemove';
+    private const HOOK_AFTER_RELATE = 'afterRelate';
+    private const HOOK_AFTER_UNRELATE = 'afterUnrelate';
+    private const HOOK_AFTER_MASS_RELATE = 'afterMassRelate';
 
     /**
      * @param object $hook A hook object.
@@ -74,7 +70,7 @@ class GeneralInvoker
         string $name,
         mixed $subject,
         array $options,
-        array $hookData,
+        array $hookData
     ): void {
 
         if ($name === self::HOOK_BEFORE_SAVE && $hook instanceof BeforeSave) {
@@ -93,16 +89,6 @@ class GeneralInvoker
             }
 
             $hook->afterSave($subject, SaveOptions::fromAssoc($options));
-
-            return;
-        }
-
-        if ($name === self::HOOK_LATE_AFTER_SAVE && $hook instanceof LateAfterSave) {
-            if (!$subject instanceof Entity) {
-                throw new LogicException();
-            }
-
-            $hook->lateAfterSave($subject, SaveOptions::fromAssoc($options));
 
             return;
         }
@@ -127,16 +113,6 @@ class GeneralInvoker
             return;
         }
 
-        if ($name === self::HOOK_LATE_AFTER_REMOVE && $hook instanceof LateAfterRemove) {
-            if (!$subject instanceof Entity) {
-                throw new LogicException();
-            }
-
-            $hook->lateAfterRemove($subject, RemoveOptions::fromAssoc($options));
-
-            return;
-        }
-
         if ($name === self::HOOK_AFTER_RELATE && $hook instanceof AfterRelate) {
             $relationName = $hookData['relationName'] ?? null;
             $relatedEntity = $hookData['foreignEntity'] ?? null;
@@ -151,11 +127,11 @@ class GeneralInvoker
             }
 
             $hook->afterRelate(
-                entity: $subject,
-                relationName: $relationName,
-                relatedEntity: $relatedEntity,
-                columnData: $columnData,
-                options: RelateOptions::fromAssoc($options),
+                $subject,
+                $relationName,
+                $relatedEntity,
+                $columnData,
+                RelateOptions::fromAssoc($options)
             );
 
             return;
@@ -174,10 +150,10 @@ class GeneralInvoker
             }
 
             $hook->afterUnrelate(
-                entity: $subject,
-                relationName: $relationName,
-                relatedEntity: $relatedEntity,
-                options: UnrelateOptions::fromAssoc($options),
+                $subject,
+                $relationName,
+                $relatedEntity,
+                UnrelateOptions::fromAssoc($options)
             );
 
             return;
@@ -197,11 +173,11 @@ class GeneralInvoker
             }
 
             $hook->afterMassRelate(
-                entity: $subject,
-                relationName: $relationName,
-                query: $query,
-                columnData: $columnData,
-                options: MassRelateOptions::fromAssoc($options),
+                $subject,
+                $relationName,
+                $query,
+                $columnData,
+                MassRelateOptions::fromAssoc($options)
             );
 
             return;

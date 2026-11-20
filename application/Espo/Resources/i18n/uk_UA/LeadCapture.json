@@ -20,8 +20,7 @@
     "skipOptInConfirmationIfSubscribed": "Пропустити підтвердження, якщо лід вже є у цільовому списку",
     "smtpAccount": "SMTP Акаунт",
     "inboundEmail": "Групова поштова скринька",
-    "exampleRequestHeaders": "Заголовки",
-    "phoneNumberCountry": "Телефонний код країни"
+    "exampleRequestHeaders": "Заголовки"
   },
   "links": {
     "targetList": "Цільовий список",

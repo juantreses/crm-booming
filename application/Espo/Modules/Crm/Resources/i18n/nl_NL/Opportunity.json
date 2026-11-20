@@ -46,7 +46,6 @@
     "Create Opportunity": "Creëer Kans"
   },
   "presetFilters": {
-    "open": "Open",
     "won": "Gewonnen",
     "lost": "Verloren"
   }

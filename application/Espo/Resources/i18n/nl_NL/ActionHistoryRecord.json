@@ -22,7 +22,6 @@
   "options": {
     "action": {
       "read": "Lees",
-      "update": "Update",
       "delete": "Verwijder",
       "create": "Creëer"
     }

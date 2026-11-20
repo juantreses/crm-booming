@@ -97,10 +97,7 @@ class Provider
         $key = $type . 'HookClassNameList';
 
         /** @var class-string[] $classNameList */
-        $classNameList = [
-            ...$this->metadata->get("app.record.$key", []),
-            ...$this->metadata->get("recordDefs.$entityType.$key", [])
-        ];
+        $classNameList = $this->metadata->get(['recordDefs', $entityType, $key]) ?? [];
 
         $interfaces = $this->typeInterfaceListMap[$type] ?? null;
 

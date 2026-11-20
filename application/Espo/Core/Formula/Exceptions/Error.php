@@ -29,9 +29,7 @@
 
 namespace Espo\Core\Formula\Exceptions;
 
-use Exception;
-
-class Error extends Exception
+class Error extends \Exception
 {
     /**
      * @var int

@@ -52,7 +52,10 @@ class Export extends Entity
             throw new RuntimeException("No 'params'.");
         }
 
-        return Params::fromSerializedRaw($raw);
+        /** @var Params $params */
+        $params = unserialize(base64_decode($raw));
+
+        return $params;
     }
 
     public function getStatus(): string

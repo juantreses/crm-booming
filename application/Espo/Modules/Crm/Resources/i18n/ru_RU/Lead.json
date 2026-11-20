@@ -30,9 +30,7 @@
     "opportunityAmountCurrency": "Валюта суммы сделки",
     "acceptanceStatusMeetings": "Статус принятия (Встречи)",
     "acceptanceStatusCalls": "Статус принятия (Звонки)",
-    "convertedAt": "Конвертирован в",
-    "originalEmail": "Оригинальное электронное письмо",
-    "pipeline": "Трубопровод"
+    "convertedAt": "Конвертирован в"
   },
   "links": {
     "targetLists": "Списки целей",
@@ -42,8 +40,7 @@
     "createdContact": "Контакт",
     "createdOpportunity": "Cделка",
     "cases": "Сделки",
-    "documents": "Документы",
-    "pipeline": "Трубопровод"
+    "documents": "Документы"
   },
   "options": {
     "status": {
@@ -67,7 +64,6 @@
   },
   "presetFilters": {
     "active": "Активный",
-    "converted": "Конвертированны",
-    "actual": "Открыть"
+    "converted": "Конвертированны"
   }
 }

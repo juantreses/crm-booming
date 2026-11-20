@@ -1,8 +1,6 @@
 {
   "fields": {
-    "name": "Name",
     "description": "Beschreibung",
-    "status": "Status",
     "type": "Typ",
     "startDate": "Startdatum",
     "endDate": "Enddatum",
@@ -18,7 +16,6 @@
     "leadCreatedCount": "Erstellte Interessenten",
     "revenue": "Umsatz",
     "revenueConverted": "Umsatz (umgerechnet)",
-    "budget": "Budget",
     "budgetConverted": "Budget (umgerechnet)",
     "contactsTemplate": "Kontaktvorlage",
     "leadsTemplate": "Interessentenvorlage",
@@ -37,7 +34,6 @@
     "opportunities": "Verkaufschancen",
     "campaignLogRecords": "Protokoll",
     "massEmails": "Massen E-Mails",
-    "trackingUrls": "Tracking URLs",
     "contactsTemplate": "Kontaktvorlage",
     "leadsTemplate": "Interessentenvorlage",
     "accountsTemplate": "Kontenvorlage",
@@ -46,11 +42,7 @@
   "options": {
     "type": {
       "Email": "E-Mail",
-      "Web": "Web",
       "Television": "Fernsehen",
-      "Radio": "Radio",
-      "Newsletter": "Newsletter",
-      "Mail": "Mail",
       "Informational Email": "Informationelle E-Mail"
     },
     "status": {

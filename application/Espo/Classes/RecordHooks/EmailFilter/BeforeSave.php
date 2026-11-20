@@ -115,10 +115,12 @@ class BeforeSave implements SaveHook
         }
 
         if ($entity->getAction() !== EmailFilter::ACTION_MOVE_TO_FOLDER) {
+            /** @noinspection PhpRedundantOptionalArgumentInspection */
             $entity->set('emailFolderId', null);
         }
 
         if ($entity->getAction() !== EmailFilter::ACTION_MOVE_TO_GROUP_FOLDER) {
+            /** @noinspection PhpRedundantOptionalArgumentInspection */
             $entity->set('groupEmailFolderId', null);
         }
     }

@@ -59,7 +59,7 @@ class FieldManager
      */
     protected function checkControllerAccess(): void
     {
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             throw new Forbidden();
         }
     }

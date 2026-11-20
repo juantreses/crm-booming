@@ -15,13 +15,11 @@
     "viewSetupHandlers": {
         "record/detail": [
             "__APPEND__",
-            "crm:handlers/event/reminders-handler",
-            "modules/crm/handlers/meeting/external-service"
+            "crm:handlers/event/reminders-handler"
         ],
         "record/edit": [
             "__APPEND__",
-            "crm:handlers/event/reminders-handler",
-            "modules/crm/handlers/meeting/external-service"
+            "crm:handlers/event/reminders-handler"
         ]
     },
     "sidePanels":{
@@ -129,6 +127,20 @@
     "additionalLayouts": {
         "bottomPanelsEditSmall": {
             "type": "bottomPanelsEditSmall"
+        }
+    },
+    "dynamicLogic":{
+        "fields": {
+            "duration": {
+                "readOnly": {
+                    "conditionGroup": [
+                        {
+                            "type": "isTrue",
+                            "attribute": "isAllDay"
+                        }
+                    ]
+                }
+            }
         }
     },
     "iconClass": "fas fa-calendar-check"

@@ -29,7 +29,6 @@
 
 namespace Espo\Entities;
 
-use Espo\Core\Mail\Account\FetchData;
 use Espo\Core\Name\Field;
 use Espo\Core\ORM\Entity;
 
@@ -85,29 +84,6 @@ class EmailAccount extends Entity
     public function storeSentEmails(): bool
     {
         return (bool) $this->get('storeSentEmails');
-    }
-
-    /**
-     * @since 10.0.0
-     */
-    public function getFetchValidityNumber(): int
-    {
-        return $this->get(InboundEmail::FIELD_FETCH_VALIDITY_NUMBER);
-    }
-
-    public function setFetchSince(Date $fetchSince): self
-    {
-        return $this->setValueObject('fetchSince', $fetchSince);
-    }
-
-    public function setFetchData(FetchData $data): self
-    {
-        return $this->set('fetchData', $data->getRaw());
-    }
-
-    public function setFetchValidityNumber(int $number): self
-    {
-        return $this->set(InboundEmail::FIELD_FETCH_VALIDITY_NUMBER, $number);
     }
 
     public function getFetchData(): stdClass

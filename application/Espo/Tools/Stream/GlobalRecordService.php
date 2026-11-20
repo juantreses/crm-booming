@@ -48,8 +48,8 @@ use Espo\Tools\Stream\RecordService\QueryHelper;
 
 class GlobalRecordService
 {
-    public const string SCOPE_NAME = 'GlobalStream';
-    private const int ITERATION_LIMIT = 50;
+    public const SCOPE_NAME = 'GlobalStream';
+    private const ITERATION_LIMIT = 50;
 
     public function __construct(
         private Acl $acl,
@@ -379,7 +379,7 @@ class GlobalRecordService
         SelectBuilder $builder,
         array &$queryList,
         array $entityTypeList,
-        array $ignoreList,
+        array $ignoreList
     ): void {
 
         $ignoreWhere = [];
@@ -393,14 +393,9 @@ class GlobalRecordService
             ];
         }
 
-        $baseBuilder = (clone $builder)
+        $queryList[] = (clone $builder)
             ->where(['parentType' => $entityTypeList])
-            ->where($ignoreWhere);
-
-        $this->queryHelper->buildAccessQueries(
-            user: $this->user,
-            baseBuilder: $baseBuilder,
-            queryList: $queryList,
-        );
+            ->where($ignoreWhere)
+            ->build();
     }
 }

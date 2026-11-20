@@ -32,11 +32,9 @@
 {{/if}}
 
 <div class="stream-date-container">
-    {{#if isPinned}}
-        <div class="pin-icon-container">
-            <span class="fas fa-map-pin fa-sm" title="{{translate 'Pinned' scope='Note'}}"></span>
-        </div>
-    {{/if}}
     <a class="text-muted small" href="#Note/view/{{model.id}}">{{{createdAt}}}</a>
+    {{#if isPinned}}
+        <span class="fas fa-map-pin fa-sm pin-icon" title="{{translate 'Pinned' scope='Note'}}"></span>
+    {{/if}}
     <div class="reactions-container">{{{reactions}}}</div>
 </div>

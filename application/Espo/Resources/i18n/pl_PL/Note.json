@@ -11,57 +11,27 @@
     "isInternal": "Prywatny (dla użytkowników wewnętrznych)",
     "related": "Powiązany",
     "createdByGender": "Stworzony przez płeć",
-    "data": "Dane",
-    "number": "Numer",
-    "isPinned": "Przypięta"
+    "number": "Numer"
   },
   "filters": {
     "all": "Wszystko",
     "posts": "Posty",
-    "updates": "Aktualizacje",
-    "activity": "Aktywność"
+    "updates": "Aktualizacje"
   },
   "messages": {
-    "writeMessage": "Tutaj wpisz swoją wiadomość",
-    "pinnedMaxCountExceeded": "Nie można przypiąć więcej notatek. Maksymalna dozwolona liczba to {count}."
+    "writeMessage": "Tutaj wpisz swoją wiadomość"
   },
   "options": {
-    "type": {
-      "Post": "Post",
-      "Create": "Utworzenie",
-      "CreateRelated": "Utworzenie powiązanego rekordu",
-      "Update": "Aktualizacja",
-      "Status": "Status",
-      "Assign": "Przypisanie",
-      "Relate": "Powiązanie",
-      "Unrelate": "Odłączenie",
-      "EmailReceived": "Otrzymanie e-maila",
-      "EmailSent": "Wysłanie e-maila"
-    },
     "targetType": {
-      "self": "Siebie",
-      "users": "Użytkownicy",
-      "teams": "Zespoły",
-      "all": "Wszyscy użytkownicy wewnętrzni",
-      "portals": "Użytkownicy portalu"
+      "self": "Do siebie",
+      "users": "Do wybranego użytkownika(ów)",
+      "teams": "Do wybranych grup(y)",
+      "all": "Do wszystkich użytkowników wewnętrznych",
+      "portals": "Do wszystkich użytkowników portalu"
     }
   },
   "links": {
     "superParent": "Super Rodzic",
-    "related": "Powiązane",
-    "portals": "Portale",
-    "attachments": "Załączniki"
-  },
-  "labels": {
-    "View Posts": "Pokaż posty",
-    "View Activity": "Pokaż aktywność",
-    "Pin": "Przypnij",
-    "Unpin": "Odepnij",
-    "Pinned": "Przypięte",
-    "Quote Reply": "Odpowiedz z cytatem",
-    "View Attachments": "Pokaż załączniki"
-  },
-  "otherFields": {
-    "to": "Do"
+    "related": "Powiązane"
   }
 }

@@ -17,8 +17,7 @@
     "dateEndDate": "Крайна дата (цял ден)",
     "isAllDay": "Цял ден",
     "sourceEmail": "Източник на имейла",
-    "joinUrl": "URL адрес за присъединяване",
-    "externalService": "Онлайн местоположение"
+    "joinUrl": "URL адрес за присъединяване"
   },
   "options": {
     "status": {
@@ -57,7 +56,6 @@
     "nothingHasBeenSent": "Нищо не беше изпратено",
     "selectAcceptanceStatus": "Задайте състоянието на приемане.",
     "sendInvitationsToSelectedAttendees": "Имейли с покани ще бъдат изпратени до избраните участници.",
-    "sendCancellationsToSelectedAttendees": "Имейли за анулиране ще бъдат изпратени до избраните участници.",
-    "invitationsSentTo": "Изпратени са покани по имейл до: {recipients}.\n\nНе можаха да бъдат изпратени до: {failedRecipients}."
+    "sendCancellationsToSelectedAttendees": "Имейли за анулиране ще бъдат изпратени до избраните участници."
   }
 }

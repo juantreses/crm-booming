@@ -33,32 +33,35 @@ use Espo\Core\Exceptions\Error;
 use Espo\Core\Exceptions\ErrorSilent;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\ForbiddenSilent;
-use Espo\Core\HttpClient\ClientFactory;
-use Espo\Core\HttpClient\Options;
 use Espo\Core\Utils\File\MimeType;
 use Espo\Core\Utils\Metadata;
 use Espo\Core\Utils\Security\UrlCheck;
 use Espo\Entities\Attachment as Attachment;
 use Espo\ORM\EntityManager;
 use Espo\Repositories\Attachment as AttachmentRepository;
-use Espo\Core\HttpClient;
-
-use const PATHINFO_EXTENSION;
 
 class UploadUrlService
 {
-
-    private const int CHUNK_SIZE = 8 * 1024;
+    private AccessChecker $accessChecker;
+    private Metadata $metadata;
+    private EntityManager $entityManager;
+    private MimeType $mimeType;
+    private DetailsObtainer $detailsObtainer;
 
     public function __construct(
-        private AccessChecker $accessChecker,
-        private Metadata $metadata,
-        private EntityManager $entityManager,
-        private MimeType $mimeType,
-        private DetailsObtainer $detailsObtainer,
-        private UrlCheck $urlCheck,
-        private ClientFactory $clientFactory,
-    ) {}
+        AccessChecker $accessChecker,
+        Metadata $metadata,
+        EntityManager $entityManager,
+        MimeType $mimeType,
+        DetailsObtainer $detailsObtainer,
+        private UrlCheck $urlCheck
+    ) {
+        $this->accessChecker = $accessChecker;
+        $this->metadata = $metadata;
+        $this->entityManager = $entityManager;
+        $this->mimeType = $mimeType;
+        $this->detailsObtainer = $detailsObtainer;
+    }
 
     /**
      * Upload an image from and URL and store as attachment.
@@ -69,33 +72,33 @@ class UploadUrlService
      */
     public function uploadImage(string $url, FieldData $data): Attachment
     {
-        if (!$this->urlCheck->isUrlAndNotInternal($url)) {
+        if (!$this->urlCheck->isNotInternalUrl($url)) {
             throw new ForbiddenSilent("Not allowed URL.");
         }
 
+        $attachment = $this->getAttachmentRepository()->getNew();
+
         $this->accessChecker->check($data);
 
-        $attachment = $this->getAttachmentRepository()->getNew()
-            ->setName($url)
-            ->setTargetField($data->getField());
-
-        $maxSize = $this->detailsObtainer->getUploadMaxSize($attachment);
-
-        [$type, $contents] = $this->getImageDataByUrl($url, $maxSize) ?? [null, null];
+        [$type, $contents] = $this->getImageDataByUrl($url) ?? [null, null];
 
         if (!$type || !$contents) {
             throw new ErrorSilent("Bad image data.");
         }
 
-        $attachment
-            ->setType($type)
-            ->setContents($contents)
-            ->setRole(Attachment::ROLE_ATTACHMENT);
+        $attachment->set([
+            'name' => $url,
+            'type' => $type,
+            'contents' => $contents,
+            'role' => Attachment::ROLE_ATTACHMENT,
+        ]);
 
         $attachment->set('parentType', $data->getParentType());
         $attachment->set('relatedType', $data->getRelatedType());
+        $attachment->set('field', $data->getField());
 
         $size = mb_strlen($contents, '8bit');
+        $maxSize = $this->detailsObtainer->getUploadMaxSize($attachment);
 
         if ($maxSize && $size > $maxSize) {
             throw new Error("File size should not exceed {$maxSize}Mb.");
@@ -111,70 +114,91 @@ class UploadUrlService
     /**
      * @param non-empty-string $url
      * @return ?array{string, string} A type and contents.
-     * @throws Error
      */
-    private function getImageDataByUrl(string $url, int $maxSize): ?array
+    private function getImageDataByUrl(string $url): ?array
     {
-        $client = $this->clientFactory->create(
-            new Options(
-                protocols: [HttpClient\Protocol::https, HttpClient\Protocol::http],
-                redirect: new HttpClient\Options\Redirect(
-                    allow: false,
-                ),
-                internalHostRestriction: new HttpClient\Options\InternalHostRestriction(
-                    restrict: true,
-                ),
-                stream: true,
-            )
-        );
+        $type = null;
 
-        $request = HttpClient\RequestCreator::create('GET', $url);
-
-        try {
-            $response = $client->send($request);
-        } catch (HttpClient\Exceptions\SendException $e) {
-            throw new Error(previous: $e);
+        if (!function_exists('curl_init')) {
+            return null;
         }
 
-        $type = $response->getHeader('Content-Type')[0] ?? null;
+        $opts = [];
 
-        if ($type) {
-            $type = trim(explode(';', $type)[0]);
+        $httpHeaders = [];
+        $httpHeaders[] = 'Expect:';
+
+        $opts[\CURLOPT_URL] = $url;
+        $opts[\CURLOPT_HTTPHEADER] = $httpHeaders;
+        $opts[\CURLOPT_CONNECTTIMEOUT] = 10;
+        $opts[\CURLOPT_TIMEOUT] = 10;
+        $opts[\CURLOPT_HEADER] = true;
+        $opts[\CURLOPT_VERBOSE] = true;
+        $opts[\CURLOPT_SSL_VERIFYPEER] = true;
+        $opts[\CURLOPT_SSL_VERIFYHOST] = 2;
+        $opts[\CURLOPT_RETURNTRANSFER] = true;
+        // Prevents Server Side Request Forgery by redirecting to an internal host.
+        $opts[\CURLOPT_FOLLOWLOCATION] = false;
+        $opts[\CURLOPT_MAXREDIRS] = 2;
+        $opts[\CURLOPT_IPRESOLVE] = \CURL_IPRESOLVE_V4;
+        $opts[\CURLOPT_PROTOCOLS] = \CURLPROTO_HTTPS | \CURLPROTO_HTTP;
+        $opts[\CURLOPT_REDIR_PROTOCOLS] = \CURLPROTO_HTTPS;
+
+        $ch = curl_init();
+
+        curl_setopt_array($ch, $opts);
+
+        /** @var string|false $response */
+        $response = curl_exec($ch);
+
+        if ($response === false) {
+            curl_close($ch);
+
+            return null;
+        }
+
+        $headerSize = curl_getinfo($ch, \CURLINFO_HEADER_SIZE);
+
+        $header = substr($response, 0, $headerSize);
+        $body = substr($response, $headerSize);
+
+        $headLineList = explode("\n", $header);
+
+        foreach ($headLineList as $i => $line) {
+            if ($i === 0) {
+                continue;
+            }
+
+            if (strpos(strtolower($line), strtolower('Content-Type:')) === 0) {
+                $part = trim(substr($line, 13));
+
+                if ($part) {
+                    $type = trim(explode(";", $part)[0]);
+                }
+            }
         }
 
         if (!$type) {
             /** @var string $extension */
-            $extension = preg_replace('#\?.*#', '', pathinfo($url, PATHINFO_EXTENSION));
+            $extension = preg_replace('#\?.*#', '', pathinfo($url, \PATHINFO_EXTENSION));
 
             $type = $this->mimeType->getMimeTypeByExtension($extension);
         }
+
+        curl_close($ch);
 
         if (!$type) {
             return null;
         }
 
         /** @var string[] $imageTypeList */
-        $imageTypeList = $this->metadata->get('app.image.allowedFileTypeList') ?? [];
+        $imageTypeList = $this->metadata->get(['app', 'image', 'allowedFileTypeList']) ?? [];
 
         if (!in_array($type, $imageTypeList)) {
             return null;
         }
 
-        $body = $response->getBody();
-
-        $contents = '';
-
-        while (!$body->eof()) {
-            $contents .= $body->read(self::CHUNK_SIZE);
-
-            if ($maxSize && strlen($contents) > $maxSize) {
-                $body->close();
-
-                throw new Error("Image size should not exceed {$maxSize}Mb.");
-            }
-        }
-
-        return [$type, $contents];
+        return [$type, $body];
     }
 
     private function getAttachmentRepository(): AttachmentRepository

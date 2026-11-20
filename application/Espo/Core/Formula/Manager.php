@@ -30,7 +30,6 @@
 namespace Espo\Core\Formula;
 
 use Espo\Core\InjectableFactory;
-use Espo\Core\Utils\Log;
 use Espo\Core\Utils\Metadata;
 use Espo\ORM\Entity;
 
@@ -43,21 +42,13 @@ class Manager
 {
     private Evaluator $evaluator;
 
-    public function __construct(
-        InjectableFactory $injectableFactory,
-        Metadata $metadata,
-        Log $log,
-    ) {
+    public function __construct(InjectableFactory $injectableFactory, Metadata $metadata)
+    {
         $functionClassNameMap = $metadata->get(['app', 'formula', 'functionClassNameMap'], []);
 
         $unsafeFunctionList = $this->getUnsafeFunctionList($metadata);
 
-        $this->evaluator = new Evaluator(
-            injectableFactory: $injectableFactory,
-            functionClassNameMap: $functionClassNameMap,
-            unsafeFunctionList: $unsafeFunctionList,
-            log: $log
-        );
+        $this->evaluator = new Evaluator($injectableFactory, $functionClassNameMap, $unsafeFunctionList);
     }
 
     /**

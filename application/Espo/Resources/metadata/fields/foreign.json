@@ -16,6 +16,11 @@
             "name": "relateOnImport",
             "type": "bool",
             "tooltip": true
+        },
+        {
+            "name": "view",
+            "type": "varchar",
+            "hidden": true
         }
     ],
     "fieldTypeList": [
@@ -64,6 +69,5 @@
     "notCreatable": false,
     "fieldDefs": {
         "readOnly": true
-    },
-    "hookClassName": "Espo\\Tools\\FieldManager\\Hooks\\ForeignType"
+    }
 }

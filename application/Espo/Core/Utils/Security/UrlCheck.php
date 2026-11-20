@@ -29,23 +29,24 @@
 
 namespace Espo\Core\Utils\Security;
 
+use const DNS_A;
+use const FILTER_FLAG_NO_PRIV_RANGE;
+use const FILTER_FLAG_NO_RES_RANGE;
+use const FILTER_VALIDATE_IP;
+use const FILTER_VALIDATE_URL;
+use const PHP_URL_HOST;
+
 class UrlCheck
 {
-    public function __construct(
-        private HostCheck $hostCheck,
-    ) {}
-
     public function isUrl(string $url): bool
     {
         return filter_var($url, FILTER_VALIDATE_URL) !== false;
     }
 
     /**
-     * Checks whether it's a URL, and it does not follow to an internal host.
-     *
-     * @since 10.0.8
+     * Checks whether a URL does not follow to an internal host.
      */
-    public function isUrlAndNotInternal(string $url): bool
+    public function isNotInternalUrl(string $url): bool
     {
         if (!$this->isUrl($url)) {
             return false;
@@ -57,123 +58,38 @@ class UrlCheck
             return false;
         }
 
-        return $this->hostCheck->isHostAndNotInternal($host);
-    }
-
-    /**
-     * @return ?string[] Null if not a domain name or not a URL.
-     * @internal
-     * @since 9.3.4
-     */
-    public function getCurlResolve(string $url): ?array
-    {
-        if (!$this->isUrl($url)) {
-            return null;
-        }
-
-        $host = parse_url($url, PHP_URL_HOST);
-        $port = parse_url($url, PHP_URL_PORT);
-        $scheme = parse_url($url, PHP_URL_SCHEME);
-
-        if ($port === null && $scheme) {
-            $port = match (strtolower($scheme)) {
-                'http' => 80,
-                'https'=> 443,
-                'ftp' => 21,
-                'ssh' => 22,
-                'smtp' => 25,
-                default  => null,
-            };
-        }
-
-        if ($port === null) {
-            return [];
-        }
-
-        if (!is_string($host)) {
-            return null;
-        }
+        $records = dns_get_record($host, DNS_A);
 
         if (filter_var($host, FILTER_VALIDATE_IP)) {
-            return null;
+            return $this->ipAddressIsNotInternal($host);
         }
 
-        if (!$this->hostCheck->isDomainHost($host)) {
-            return null;
-        }
-
-        $ipAddresses = $this->hostCheck->getHostIpAddresses($host);
-
-        $output = [];
-
-        $hasIpV4 = false;
-
-        foreach ($ipAddresses as $ipAddress) {
-            if (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                $hasIpV4 = true;
-
-                break;
-            }
-        }
-
-        foreach ($ipAddresses as $ipAddress) {
-            $ipPart = $ipAddress;
-
-            if (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-                if ($hasIpV4) {
-                    continue;
-                }
-
-                $ipPart = "[$ipPart]";
-            }
-
-            $output[] = "$host:$port:$ipPart";
-        }
-
-        return $output;
-    }
-
-    /**
-     * @param string[] $resolve
-     * @param string[] $allowed An allowed address list in the `{host}:{port}` format.
-     * @internal
-     */
-    public function validateCurlResolveNotInternal(array $resolve, array $allowed = []): bool
-    {
-        if ($resolve === []) {
+        if (!$records) {
             return false;
         }
 
-        $ipAddresses = [];
+        foreach ($records as $record) {
+            /** @var ?string $idAddress */
+            $idAddress = $record['ip'] ?? null;
 
-        foreach ($resolve as $item) {
-            $arr = explode(':', $item, 3);
-
-            if (count($arr) < 3) {
+            if (!$idAddress) {
                 return false;
             }
 
-            $ipAddress = $arr[2];
-            $port = $arr[1];
-            $domain = $arr[0];
-
-            if (in_array("$ipAddress:$port", $allowed) || in_array("$domain:$port", $allowed)) {
-                return true;
-            }
-
-            if (str_starts_with($ipAddress, '[') && str_ends_with($ipAddress, ']')) {
-                $ipAddress = substr($ipAddress, 1, -1);
-            }
-
-            $ipAddresses[] = $ipAddress;
-        }
-
-        foreach ($ipAddresses as $ipAddress) {
-            if (!$this->hostCheck->ipAddressIsNotInternal($ipAddress)) {
+            if (!$this->ipAddressIsNotInternal($idAddress)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private function ipAddressIsNotInternal(string $ipAddress): bool
+    {
+        return (bool) filter_var(
+            $ipAddress,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        );
     }
 }

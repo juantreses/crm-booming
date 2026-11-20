@@ -84,7 +84,6 @@ class Service
 
         $this->entityManager->saveEntity($entity);
 
-        $service->loadAdditionalFields($entity);
         $service->prepareEntityForOutput($entity);
 
         return $entity;
@@ -109,7 +108,6 @@ class Service
 
         $this->entityManager->saveEntity($entity);
 
-        $service->loadAdditionalFields($entity);
         $service->prepareEntityForOutput($entity);
 
         return $entity;
@@ -131,7 +129,7 @@ class Service
      */
     public function getSmtpAccountDataList(): array
     {
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             throw new Forbidden();
         }
 

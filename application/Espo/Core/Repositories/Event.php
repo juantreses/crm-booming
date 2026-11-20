@@ -29,10 +29,7 @@
 
 namespace Espo\Core\Repositories;
 
-use Espo\Core\Field\Date;
-use Espo\Core\Field\DateTime as DateTimeField;
 use Espo\Core\ORM\Entity as CoreEntity;
-use Espo\Modules\Crm\Entities\Meeting;
 use Espo\Modules\Crm\Entities\Reminder;
 use Espo\ORM\Entity;
 use Espo\Core\Di;
@@ -54,8 +51,6 @@ class Event extends Database implements
     use Di\DateTimeSetter;
     use Di\ConfigSetter;
 
-    private const string FIELD_DURATION = 'duration';
-
     /**
      * @param array<string, mixed> $options
      * @return void
@@ -63,38 +58,29 @@ class Event extends Database implements
     protected function beforeSave(Entity $entity, array $options = [])
     {
         if (
-            $entity->isAttributeChanged(Meeting::FIELD_STATUS) &&
-            in_array($entity->get(Meeting::FIELD_STATUS), $this->getNotActualStatuses())
+            $entity->isAttributeChanged('status') &&
+            in_array($entity->get('status'), $this->getNotActualStatuses())
         ) {
             $entity->set('reminders', []);
         }
 
-        if (
-            $entity->hasAttribute(Meeting::FIELD_IS_ALL_DAY) &&
-            $entity->get(Meeting::FIELD_IS_ALL_DAY) === false
-        ) {
-            $entity->setMultiple([
-                Meeting::FIELD_DATE_START_DATE => null,
-                Meeting::FIELD_DATE_END_DATE => null,
-            ]);
-        }
-
-        if ($entity->has(Meeting::FIELD_DATE_START_DATE)) {
-            $dateStartDate = $entity->get(Meeting::FIELD_DATE_START_DATE);
+        if ($entity->has('dateStartDate')) {
+            $dateStartDate = $entity->get('dateStartDate');
 
             if (!empty($dateStartDate)) {
                 $dateStart = $dateStartDate . ' 00:00:00';
 
                 $dateStart = $this->convertDateTimeToDefaultTimezone($dateStart);
 
-                $entity->set(Meeting::FIELD_DATE_START, $dateStart);
+                $entity->set('dateStart', $dateStart);
             } else {
-                $entity->set(Meeting::FIELD_DATE_START_DATE, null);
+                /** @noinspection PhpRedundantOptionalArgumentInspection */
+                $entity->set('dateStartDate', null);
             }
         }
 
-        if ($entity->has(Meeting::FIELD_DATE_END_DATE)) {
-            $dateEndDate = $entity->get(Meeting::FIELD_DATE_END_DATE);
+        if ($entity->has('dateEndDate')) {
+            $dateEndDate = $entity->get('dateEndDate');
 
             if (!empty($dateEndDate)) {
                 try {
@@ -108,34 +94,12 @@ class Event extends Database implements
                 $dt->modify('+1 day');
 
                 $dateEnd = $dt->format(DateTimeUtil::SYSTEM_DATE_TIME_FORMAT);
-                $entity->set(Meeting::FIELD_DATE_END, $dateEnd);
+                $entity->set('dateEnd', $dateEnd);
             } else {
-                $entity->set(Meeting::FIELD_DATE_END_DATE, null);
+                /** @noinspection PhpRedundantOptionalArgumentInspection */
+                $entity->set('dateEndDate', null);
             }
         }
-
-        if ($entity->hasAttribute(self::FIELD_DURATION)) {
-            if ($entity->get(Meeting::FIELD_DATE_START) && !$entity->get(Meeting::FIELD_DATE_END)) {
-                $start = DateTimeField::fromString($entity->get(Meeting::FIELD_DATE_START));
-                $duration = $entity->get(self::FIELD_DURATION) ?? 0;
-
-                $end = $start->addSeconds($duration);
-
-                $entity->set(Meeting::FIELD_DATE_END, $end->toString());
-            }
-
-            if ($entity->get(Meeting::FIELD_DATE_START_DATE) && !$entity->get(Meeting::FIELD_DATE_END_DATE)) {
-                $start = Date::fromString($entity->get(Meeting::FIELD_DATE_START_DATE));
-                $duration = $entity->get(self::FIELD_DURATION) ?? 0;
-
-                $days = (int) floor($duration / (3600 * 24));
-
-                $end = $start->addDays($days - 1);
-
-                $entity->set(Meeting::FIELD_DATE_END_DATE, $end->toString());
-            }
-        }
-
 
         parent::beforeSave($entity, $options);
     }

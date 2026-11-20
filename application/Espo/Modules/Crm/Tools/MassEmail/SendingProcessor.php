@@ -29,7 +29,6 @@
 
 namespace Espo\Modules\Crm\Tools\MassEmail;
 
-use Espo\Core\Binding\Attributes\Qualify;
 use Espo\Modules\Crm\Tools\MassEmail\MessagePreparator\Headers;
 use Espo\Core\Field\DateTime;
 use Espo\Core\Mail\ConfigDataProvider;
@@ -68,13 +67,12 @@ use Exception;
 
 class SendingProcessor
 {
-    private const int MAX_ATTEMPT_COUNT = 3;
-    private const int MAX_PER_HOUR_COUNT = 10000;
+    private const MAX_ATTEMPT_COUNT = 3;
+    private const MAX_PER_HOUR_COUNT = 10000;
 
     public function __construct(
         private Config $config,
         private EntityManager $entityManager,
-        #[Qualify(Language::QUALIFIER_DEFAULT)]
         private Language $defaultLanguage,
         private EmailSender $emailSender,
         private Log $log,
@@ -161,7 +159,7 @@ class SendingProcessor
         $emailData = $this->templateProcessor->process(
             $emailTemplate,
             TemplateParams::create()
-                ->withApplyAcl(false) // Has access to all fields.
+                ->withApplyAcl(false) // @todo Revise.
                 ->withCopyAttachments(false), // @todo Revise.
             TemplateData::create()
                 ->withParent($target)

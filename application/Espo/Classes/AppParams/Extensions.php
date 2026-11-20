@@ -53,7 +53,7 @@ class Extensions implements AppParam
      */
     public function get(): array
     {
-        if (!$this->user->isRegular() && !$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isRegular() && !$this->user->isAdmin()) {
             return [];
         }
 

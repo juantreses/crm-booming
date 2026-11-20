@@ -29,8 +29,6 @@
 
 namespace Espo\Core\Utils;
 
-use SensitiveParameter;
-
 /**
  * Hash a string. E.g. hash an email address to use it in opt-out URL
  * to recognize a recipient who clicked opt-out.
@@ -42,7 +40,7 @@ class Hasher
     public function __construct(private Config $config)
     {}
 
-    public function hash(#[SensitiveParameter] string $string): string
+    public function hash(string $string): string
     {
         $secretKey = $this->config->get($this->secretKeyParam) ?? '';
 

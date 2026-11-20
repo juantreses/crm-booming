@@ -31,8 +31,7 @@
     "acceptanceStatusMeetings": "Статус на приемане (Срещи)",
     "acceptanceStatusCalls": "Статус на приемане (Разговори)",
     "convertedAt": "Конвертирана на",
-    "originalEmail": "Оригинален имейл",
-    "pipeline": "Пайплайн"
+    "originalEmail": "Оригинален имейл"
   },
   "links": {
     "targetLists": "Целеви списъци",
@@ -42,8 +41,7 @@
     "createdContact": "Контакт",
     "createdOpportunity": "Сделка",
     "cases": "Тикети",
-    "documents": "Документи",
-    "pipeline": "Пайплайн"
+    "documents": "Документи"
   },
   "options": {
     "status": {

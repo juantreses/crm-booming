@@ -52,7 +52,7 @@
     "storeSentEmails": "Эл. письма будут храниться в CRM."
   },
   "presetFilters": {
-    "complete": "Завершенные",
-    "actual": "Активный"
+    "actual": "Актуальные",
+    "complete": "Завершенные"
   }
 }

@@ -29,13 +29,9 @@
 
 namespace Espo\Tools\EntityManager\Hook;
 
-use Espo\Core\Exceptions\Error;
 use Espo\Tools\EntityManager\Params;
 
 interface CreateHook
 {
-    /**
-     * @throws Error
-     */
     public function process(Params $params): void;
 }

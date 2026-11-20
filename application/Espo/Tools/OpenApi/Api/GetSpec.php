@@ -34,7 +34,6 @@ use Espo\Core\Api\Action;
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
 use Espo\Core\Api\ResponseComposer;
-use Espo\Core\Api\Route\ContentType;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Tools\OpenApi\Provider\Params;
 use Espo\Tools\OpenApi\ProviderFactory;
@@ -69,7 +68,7 @@ class GetSpec implements Action
 
         return ResponseComposer::empty()
             ->writeBody($spec)
-            ->setHeader('Content-Type', ContentType::APPLICATION_JSON);
+            ->setHeader('Content-Type', 'application/json');
     }
 
     /**

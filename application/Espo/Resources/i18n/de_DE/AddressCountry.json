@@ -4,7 +4,6 @@
     "Populate": "Befüllen"
   },
   "fields": {
-    "code": "Code",
     "isPreferred": "Wird bevorzugt"
   },
   "tooltips": {

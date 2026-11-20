@@ -32,38 +32,40 @@ namespace Espo\Core\Binding;
 use Closure;
 use Espo\Core\Binding\Key\NamedClassKey;
 use Espo\Core\Binding\Key\NamedKey;
-use Espo\Core\Binding\Key\QualifiedClassKey;
 use LogicException;
 
 class ContextualBinder
 {
+    private BindingData $data;
+    /** @var class-string<object> */
+    private string $className;
+
     /**
      * @param class-string<object> $className
      */
-    public function __construct(
-        private BindingData $data,
-        private string $className,
-    ) {}
+    public function __construct(BindingData $data, string $className)
+    {
+        $this->data = $data;
+        $this->className = $className;
+    }
 
     /**
      * Bind an interface to an implementation.
      *
      * @template T of object
-     * @param class-string<T>|NamedClassKey<T>|QualifiedClassKey<T> $key
-     *     An interface, an interface with a parameter name or an interface with a qualifier.
+     * @param class-string<T>|NamedClassKey<T> $key An interface or interface with a parameter name.
      * @param class-string<T> $implementationClassName An implementation class name.
      */
-    public function bindImplementation(
-        string|NamedClassKey|QualifiedClassKey $key,
-        string $implementationClassName,
-    ): self {
-
+    public function bindImplementation(string|NamedClassKey $key, string $implementationClassName): self
+    {
         $key = self::keyToString($key);
-        $this->validateBindingKeyNoName($key);
+        $this->validateBindingKeyNoParameterName($key);
 
-        $binding = Binding::createFromImplementationClassName($implementationClassName);
-
-        $this->data->addContext($this->className, $key, $binding);
+        $this->data->addContext(
+            $this->className,
+            $key,
+            Binding::createFromImplementationClassName($implementationClassName)
+        );
 
         return $this;
     }
@@ -72,16 +74,19 @@ class ContextualBinder
      * Bind an interface to a specific service.
      *
      * @template T of object
-     * @param class-string<T>|NamedClassKey<T>|QualifiedClassKey<T> $key
-     *     An interface, an interface with a parameter name or an interface with a qualifier.
+     * @param class-string<T>|NamedClassKey<T> $key An interface or interface with a parameter name.
      * @param string $serviceName A service name.
      */
-    public function bindService(string|NamedClassKey|QualifiedClassKey $key, string $serviceName): self
+    public function bindService(string|NamedClassKey $key, string $serviceName): self
     {
         $key = self::keyToString($key);
-        $this->validateBindingKeyNoName($key);
+        $this->validateBindingKeyNoParameterName($key);
 
-        $this->data->addContext($this->className, $key, Binding::createFromServiceName($serviceName));
+        $this->data->addContext(
+            $this->className,
+            $key,
+            Binding::createFromServiceName($serviceName)
+        );
 
         return $this;
     }
@@ -89,8 +94,7 @@ class ContextualBinder
     /**
      * Bind an interface or parameter name to a specific value.
      *
-     * @param string|NamedKey|NamedClassKey<object> $key
-     *     A parameter name (`$name`) or an interface with a parameter name.
+     * @param string|NamedKey|NamedClassKey<object> $key Parameter name (`$name`) or interface with a parameter name.
      * @param mixed $value A value of any type.
      */
     public function bindValue(string|NamedKey|NamedClassKey $key, $value): self
@@ -98,7 +102,11 @@ class ContextualBinder
         $key = self::keyToString($key);
         $this->validateBindingKeyParameterName($key);
 
-        $this->data->addContext($this->className, $key, Binding::createFromValue($value));
+        $this->data->addContext(
+            $this->className,
+            $key,
+            Binding::createFromValue($value)
+        );
 
         return $this;
     }
@@ -107,16 +115,20 @@ class ContextualBinder
      * Bind an interface to a specific instance.
      *
      * @template T of object
-     * @param class-string<T>|NamedClassKey<T>|QualifiedClassKey<T> $key
-     *    An interface, an interface with a parameter name or an interface with a qualifier.
+     * @param class-string<T>|NamedClassKey<T> $key An interface or interface with a parameter name.
      * @param T $instance An instance.
+     * @noinspection PhpDocSignatureInspection
      */
-    public function bindInstance(string|NamedClassKey|QualifiedClassKey $key, object $instance): self
+    public function bindInstance(string|NamedClassKey $key, object $instance): self
     {
         $key = self::keyToString($key);
-        $this->validateBindingKeyNoName($key);
+        $this->validateBindingKeyNoParameterName($key);
 
-        $this->data->addContext($this->className, $key, Binding::createFromValue($instance));
+        $this->data->addContext(
+            $this->className,
+            $key,
+            Binding::createFromValue($instance)
+        );
 
         return $this;
     }
@@ -124,17 +136,20 @@ class ContextualBinder
     /**
      * Bind an interface or parameter name to a callback.
      *
-     * @param class-string<object>|NamedClassKey<object>|NamedKey|QualifiedClassKey<object> $key
-     *     An interface, parameter name or both.
+     * @param class-string<object>|NamedClassKey<object>|NamedKey $key An interface, parameter name or both.
      * @param Closure $callback A callback that will resolve a dependency.
      * @todo Change to Closure(...): mixed Once https://github.com/phpstan/phpstan/issues/8214 is implemented.
      */
-    public function bindCallback(string|NamedClassKey|NamedKey|QualifiedClassKey $key, Closure $callback): self
+    public function bindCallback(string|NamedClassKey|NamedKey $key, Closure $callback): self
     {
         $key = self::keyToString($key);
         $this->validateBinding($key);
 
-        $this->data->addContext($this->className, $key, Binding::createFromCallback($callback));
+        $this->data->addContext(
+            $this->className,
+            $key,
+            Binding::createFromCallback($callback)
+        );
 
         return $this;
     }
@@ -143,16 +158,19 @@ class ContextualBinder
      * Bind an interface to a factory.
      *
      * @template T of object
-     * @param class-string<T>|NamedClassKey<T>|QualifiedClassKey<T> $key
-     *     An interface, an interface with a parameter name or an interface with a qualifier.
+     * @param class-string<T>|NamedClassKey<T> $key An interface or interface with a parameter name.
      * @param class-string<Factory<T>> $factoryClassName A factory class name.
      */
-    public function bindFactory(string|NamedClassKey|QualifiedClassKey $key, string $factoryClassName): self
+    public function bindFactory(string|NamedClassKey $key, string $factoryClassName): self
     {
         $key = self::keyToString($key);
-        $this->validateBindingKeyNoName($key);
+        $this->validateBindingKeyNoParameterName($key);
 
-        $this->data->addContext($this->className, $key, Binding::createFromFactoryClassName($factoryClassName));
+        $this->data->addContext(
+            $this->className,
+            $key,
+            Binding::createFromFactoryClassName($factoryClassName)
+        );
 
         return $this;
     }
@@ -164,16 +182,12 @@ class ContextualBinder
         }
     }
 
-    private function validateBindingKeyNoName(string $key): void
+    private function validateBindingKeyNoParameterName(string $key): void
     {
         $this->validateBinding($key);
 
         if ($key[0] === '$') {
             throw new LogicException("Can't bind a parameter name w/o an interface.");
-        }
-
-        if ($key[0] === '#') {
-            throw new LogicException("Can't bind a qualification name w/o an interface.");
         }
     }
 
@@ -187,9 +201,9 @@ class ContextualBinder
     }
 
     /**
-     * @param string|NamedKey|NamedClassKey<object>|QualifiedClassKey<object> $key
+     * @param string|NamedKey|NamedClassKey<object> $key
      */
-    private static function keyToString(string|NamedKey|NamedClassKey|QualifiedClassKey $key): string
+    private static function keyToString(string|NamedKey|NamedClassKey $key): string
     {
         return is_string($key) ? $key : $key->toString();
     }

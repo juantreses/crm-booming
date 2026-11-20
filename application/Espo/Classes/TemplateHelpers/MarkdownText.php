@@ -32,7 +32,7 @@ namespace Espo\Classes\TemplateHelpers;
 use Espo\Core\Htmlizer\Helper;
 use Espo\Core\Htmlizer\Helper\Data;
 use Espo\Core\Htmlizer\Helper\Result;
-use Espo\Core\Utils\Markdown\Markdown;
+use Michelf\MarkdownExtra as MarkdownTransformer;
 
 class MarkdownText implements Helper
 {
@@ -44,7 +44,7 @@ class MarkdownText implements Helper
             return Result::createEmpty();
         }
 
-        $transformed = Markdown::transform($value);
+        $transformed = MarkdownTransformer::defaultTransform($value);
 
         return Result::createSafeString($transformed);
     }

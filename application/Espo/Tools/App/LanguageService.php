@@ -96,7 +96,7 @@ class LanguageService
             unset($data['Campaign']['options']);
             unset($data['Campaign']['tooltips']);
             unset($data['Campaign']['presetFilters']);
-        } else if (!$this->user->isEffectiveAdmin()) {
+        } else if (!$this->user->isAdmin()) {
             /** @var string[] $scopeList */
             $scopeList = array_keys($this->metadata->get(['scopes'], []));
 
@@ -136,14 +136,14 @@ class LanguageService
                 }
             }
 
-            if (!$this->user->isEffectiveAdmin()) {
+            if (!$this->user->isAdmin()) {
                 $this->prepareDataNonAdmin($data, $language);
             }
         }
 
         $data['User']['fields'] = $data['User']['fields'] ?? [];
 
-        $data['User']['fields'][User::FIELD_PASSWORD] = $language->translate('password', 'fields', 'User');
+        $data['User']['fields']['password'] = $language->translate('password', 'fields', 'User');
         $data['User']['fields']['passwordConfirm'] = $language->translate('passwordConfirm', 'fields', 'User');
         $data['User']['fields']['newPassword'] = $language->translate('newPassword', 'fields', 'User');
         $data['User']['fields']['newPasswordConfirm'] = $language->translate('newPasswordConfirm', 'fields', 'User');

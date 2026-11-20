@@ -38,8 +38,7 @@
             ],
             "default": "New",
             "style": {
-                "Assigned": "primary",
-                "In Process": "warning",
+                "In Process": "primary",
                 "Converted": "success",
                 "Recycled": "info",
                 "Dead": "info"
@@ -217,22 +216,19 @@
         "createdAccount": {
             "type": "link",
             "layoutDetailDisabled": true,
-            "layoutMassUpdateDisabled": true,
-            "duplicateIgnore": true
+            "layoutMassUpdateDisabled": true
         },
         "createdContact": {
             "type": "link",
             "layoutDetailDisabled": true,
             "layoutMassUpdateDisabled": true,
-            "view": "crm:views/lead/fields/created-contact",
-            "duplicateIgnore": true
+            "view": "crm:views/lead/fields/created-contact"
         },
         "createdOpportunity": {
             "type": "link",
             "layoutDetailDisabled": true,
             "layoutMassUpdateDisabled": true,
-            "view": "crm:views/lead/fields/created-opportunity",
-            "duplicateIgnore": true
+            "view": "crm:views/lead/fields/created-opportunity"
         },
         "targetLists": {
             "type": "linkMultiple",
@@ -309,18 +305,6 @@
             "columnAttributeMap": {
                 "status": "acceptanceStatus"
             }
-        },
-        "meetingsChildren": {
-            "type": "hasChildren",
-            "entity": "Meeting",
-            "foreign": "parent",
-            "readOnly": true
-        },
-        "callsChildren": {
-            "type": "hasChildren",
-            "entity": "Call",
-            "foreign": "parent",
-            "readOnly": true
         },
         "tasks": {
             "type": "hasChildren",
@@ -404,12 +388,7 @@
     "collection": {
         "orderBy": "createdAt",
         "order": "desc",
-        "textFilterFields": [
-            "name",
-            "accountName",
-            "emailAddress",
-            "phoneNumber"
-        ]
+        "textFilterFields": ["name", "accountName", "emailAddress"]
     },
     "indexes": {
         "firstName": {

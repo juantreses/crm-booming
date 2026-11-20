@@ -1,6 +1,1 @@
-[
-    "status",
-    "assignedUser",
-    "teams",
-    "targetLists"
-]
+["status","assignedUser","teams"]

@@ -48,16 +48,14 @@
                     "name": "archiveEmail",
                     "label":"Archive Email",
                     "link":"#Email/create",
-                    "acl":"create",
-                    "iconClass": "fas fa-plus"
+                    "acl":"create"
                 },
                 {
                     "name": "importEml",
                     "label": "Import EML",
                     "handler": "handlers/email/list-actions",
                     "checkVisibilityFunction": "checkImportEml",
-                    "actionFunction": "importEml",
-                    "iconClass": "fas fa-upload"
+                    "actionFunction": "importEml"
                 },
                 false,
                 {
@@ -74,8 +72,7 @@
                         {
                             "inPortalDisabled": true
                         }
-                    ],
-                    "iconClass": "far fa-folder"
+                    ]
                 },
                 {
                     "label": "Group Folders",
@@ -88,8 +85,7 @@
                         {
                             "isAdminOnly": true
                         }
-                    ],
-                    "iconClass": "far fa-circle"
+                    ]
                 },
                 {
                     "label":"Filters",
@@ -107,20 +103,17 @@
                 {
                     "label":"Reply",
                     "action":"reply",
-                    "acl":"read",
-                    "iconClass": "fas fa-reply"
+                    "acl":"read"
                 },
                 {
                     "label":"Reply to All",
                     "action":"replyToAll",
-                    "acl":"read",
-                    "iconClass": "fas fa-reply-all"
+                    "acl":"read"
                 },
                 {
                     "label":"Forward",
                     "action":"forward",
-                    "acl":"read",
-                    "iconClass": "fas fa-reply fa-flip-horizontal"
+                    "acl":"read"
                 }
             ]
         }

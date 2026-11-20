@@ -45,8 +45,9 @@ class Client
 
     /**
      * @noinspection PhpUnused
+     * @noinspection SpellCheckingInspection
      */
-    const CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED = 'application/x-www-form-urlencoded';
+    const CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENENCODED = 'application/x-www-form-urlencoded';
     const CONTENT_TYPE_MULTIPART_FORM_DATA = 'multipart/form-data';
     const CONTENT_TYPE_APPLICATION_JSON = 'application/json';
 
@@ -388,6 +389,8 @@ class Client
 
         $resultArray = json_decode($responseBody, true);
 
+        curl_close($ch);
+
         /** @var array<string, mixed>|string $result */
         $result = ($resultArray !== null) ?
             $resultArray :
@@ -417,6 +420,7 @@ class Client
      *   contentType: string|false,
      *   header: string,
      * }
+     * @throws Exception
      */
     public function getAccessToken($url, $grantType, array $params)
     {
@@ -443,10 +447,6 @@ class Client
                 throw new LogicException("Bad auth type.");
         }
 
-        try {
-            return $this->execute($url, $params, self::HTTP_METHOD_POST, $httpHeaders, self::REFRESH_TOKEN_TIMEOUT);
-        } catch (Exception $e) {
-            throw new RuntimeException(previous: $e);
-        }
+        return $this->execute($url, $params, self::HTTP_METHOD_POST, $httpHeaders, self::REFRESH_TOKEN_TIMEOUT);
     }
 }

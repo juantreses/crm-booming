@@ -1,7 +1,4 @@
 {
-  "fields": {
-    "layoutList": "Layouts"
-  },
   "labels": {
     "Create LayoutSet": "Layout-Satz erstellen",
     "Edit Layouts": "Layouts bearbeiten"

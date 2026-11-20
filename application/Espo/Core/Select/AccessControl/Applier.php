@@ -29,10 +29,14 @@
 
 namespace Espo\Core\Select\AccessControl;
 
+use Espo\Core\Select\OrmSelectBuilder;
 use Espo\Core\Select\AccessControl\FilterFactory as AccessControlFilterFactory;
 use Espo\Core\Select\AccessControl\FilterResolverFactory as AccessControlFilterResolverFactory;
+use Espo\Core\Select\SelectManager;
+
 use Espo\Entities\User;
 use Espo\ORM\Query\SelectBuilder as QueryBuilder;
+
 use RuntimeException;
 
 class Applier
@@ -42,10 +46,21 @@ class Applier
         private User $user,
         private AccessControlFilterFactory $accessControlFilterFactory,
         private AccessControlFilterResolverFactory $accessControlFilterResolverFactory,
+        private SelectManager $selectManager
     ) {}
 
     public function apply(QueryBuilder $queryBuilder): void
     {
+        // For backward compatibility.
+        if (
+            $this->selectManager->hasInheritedAccessMethod() &&
+            $queryBuilder instanceof OrmSelectBuilder
+        ) {
+            $this->selectManager->applyAccessToQueryBuilder($queryBuilder);
+
+            return;
+        }
+
         $this->applyMandatoryFilter($queryBuilder);
 
         $accessControlFilterResolver = $this->accessControlFilterResolverFactory
@@ -54,6 +69,16 @@ class Applier
         $filterName = $accessControlFilterResolver->resolve();
 
         if (!$filterName) {
+            return;
+        }
+
+        // For backward compatibility.
+        if (
+            $this->selectManager->hasInheritedAccessFilterMethod($filterName) &&
+            $queryBuilder instanceof OrmSelectBuilder
+        ) {
+            $this->selectManager->applyAccessFilterToQueryBuilder($queryBuilder, $filterName);
+
             return;
         }
 

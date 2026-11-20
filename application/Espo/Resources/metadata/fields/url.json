@@ -19,10 +19,6 @@
             "tooltip": "urlStrip"
         },
         {
-            "name": "protocolRequired",
-            "type": "bool"
-        },
-        {
             "name": "copyToClipboard",
             "type": "bool",
             "default": false

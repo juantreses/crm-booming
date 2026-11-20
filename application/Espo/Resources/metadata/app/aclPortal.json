@@ -43,9 +43,7 @@
                 "edit": "own",
                 "delete": "no",
                 "create": "no"
-            },
-            "Pipeline": true,
-            "PipelineStage": true
+            }
         },
         "fieldLevel": {
         },
@@ -75,8 +73,7 @@
                 "assignmentEmailNotificationsIgnoreEntityTypeList": false,
                 "dashletsOptions": false,
                 "dashboardLayout": false,
-                "followAsCollaborator": false,
-                "notificationSound": false
+                "followAsCollaborator": false
             },
             "Call": {
                 "reminders": false

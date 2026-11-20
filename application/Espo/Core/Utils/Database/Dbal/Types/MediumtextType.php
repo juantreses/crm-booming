@@ -37,14 +37,14 @@ use Doctrine\DBAL\Types\TextType;
  */
 class MediumtextType extends TextType
 {
-    public const string NAME = 'mediumtext';
+    public const NAME = 'mediumtext';
 
-    public function getName(): string
+    public function getName()
     {
         return self::NAME;
     }
 
-    public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
+    public function getSQLDeclaration(array $column, AbstractPlatform $platform)
     {
         return 'MEDIUMTEXT';
     }

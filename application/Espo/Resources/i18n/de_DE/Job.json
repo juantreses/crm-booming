@@ -1,11 +1,12 @@
 {
   "fields": {
-    "status": "Status",
     "executeTime": "Ausführen um",
     "attempts": "Verbleibende Versuche",
     "failedAttempts": "Fehlgeschlagene Versuche",
+    "methodName": "Methode",
     "scheduledJob": "Geplante Aufgabe",
     "data": "Daten",
+    "method": "Methode",
     "scheduledJobJob": "Geplante Aufgabe Name",
     "executedAt": "Ausgeführt um",
     "startedAt": "Gestartet um",
@@ -13,11 +14,9 @@
     "targetId": "Ziel ID",
     "number": "Nummer",
     "queue": "Warteschlange",
-    "job": "Job",
     "group": "Gruppe",
     "className": "Klassenname",
-    "targetGroup": "Zielgruppe",
-    "pid": "PID"
+    "targetGroup": "Zielgruppe"
   },
   "options": {
     "status": {

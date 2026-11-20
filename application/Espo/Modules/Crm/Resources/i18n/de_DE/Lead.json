@@ -6,7 +6,6 @@
     "convert": "umwandeln"
   },
   "fields": {
-    "name": "Name",
     "emailAddress": "E-Mail",
     "title": "Funktion",
     "website": "Webseite",
@@ -14,7 +13,6 @@
     "accountName": "Firmenname",
     "doNotCall": "Anrufe unerwünscht",
     "address": "Adresse",
-    "status": "Status",
     "source": "Quelle",
     "opportunityAmount": "Verkaufschance Volumen",
     "opportunityAmountConverted": "Verkaufschance Volumen (umgerechnet)",
@@ -31,8 +29,7 @@
     "acceptanceStatusMeetings": "Akzeptanzstatus (Meetings)",
     "acceptanceStatusCalls": "Akzeptanzstatus (Anrufe)",
     "convertedAt": "Konvertiert am",
-    "originalEmail": "Ursprüngliche E-Mail",
-    "pipeline": "Pipeline"
+    "originalEmail": "Ursprüngliche E-Mail"
   },
   "links": {
     "targetLists": "Kontaktlisten",
@@ -42,8 +39,7 @@
     "createdContact": "Kontakt",
     "createdOpportunity": "Verkaufschance",
     "cases": "Fälle",
-    "documents": "Dokumente",
-    "pipeline": "Pipeline"
+    "documents": "Dokumente"
   },
   "options": {
     "status": {
@@ -58,8 +54,6 @@
       "Call": "Anruf",
       "Email": "E-Mail",
       "Existing Customer": "Bestandskunde",
-      "Partner": "Partner",
-      "Public Relations": "Public Relations",
       "Web Site": "Webseite",
       "Campaign": "Kampagne",
       "Other": "Andere"

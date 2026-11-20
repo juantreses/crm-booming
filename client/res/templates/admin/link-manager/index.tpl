@@ -56,7 +56,7 @@
     </thead>
     {{/unless}}
     {{#each linkDataList}}
-    <tr data-link="{{link}}" class="link-row {{#if accented}} accented {{/if}} ">
+    <tr data-link="{{link}}" class="link-row">
         <td style="">
             <span title="{{translate linkForeign category='links' scope=entityForeign}}">
                 {{linkForeign}}

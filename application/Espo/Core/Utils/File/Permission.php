@@ -41,17 +41,17 @@ class Permission
      *
      * @var string[]
      */
-    private $permissionError = [];
+    protected $permissionError = [];
 
     /**
      * @var ?array<string, mixed>
      */
-    private $permissionErrorRules = null;
+    protected $permissionErrorRules = null;
 
     /**
-     * @var array<string, array{recursive: bool}>
+     * @var array<string, array<string, mixed>>
      */
-    private $writableMap = [
+    protected $writableMap = [
         'data' => [
             'recursive' => true,
         ],
@@ -74,7 +74,7 @@ class Permission
      *   group: string|int|null,
      * }
      */
-    private $defaultPermissions = [
+    protected $defaultPermissions = [
         'dir' => '0755',
         'file' => '0644',
         'user' => null,
@@ -87,41 +87,37 @@ class Permission
      *   dir: string|int|null,
      * }
      */
-    private $writablePermissions = [
+    protected $writablePermissions = [
         'file' => '0664',
         'dir' => '0775',
     ];
 
     /**
-     * @param ?array{
-     *     defaultPermissions?: array{
-     *         dir?: string|int|null,
-     *         file?: string|int|null,
-     *         user?: string|int|null,
-     *         group?: string|int|null,
-     *  }
-     * } $params
+     * @param ?array<string, mixed> $params
      */
     public function __construct(private Manager $fileManager, ?array $params = null)
     {
-        $params ??= [];
+        if ($params) {
+            foreach ($params as $paramName => $paramValue) {
+                switch ($paramName) {
+                    case 'defaultPermissions':
+                        /** @phpstan-ignore-next-line */
+                        $this->defaultPermissions = array_merge($this->defaultPermissions, $paramValue);
 
-        $defaultPermissions = $params['defaultPermissions'] ?? null;
-
-        if ($defaultPermissions) {
-            $this->defaultPermissions = array_merge($this->defaultPermissions, $defaultPermissions);
+                        break;
+                }
+            }
         }
     }
     /**
-     * Get default permission and ownership settings.
+     * Get default settings.
      *
      * @return array{
-     *     dir: string|int|null,
-     *     file: string|int|null,
-     *     user: string|int|null,
-     *     group: string|int|null,
+     *   dir: string|int|null,
+     *   file: string|int|null,
+     *   user: string|int|null,
+     *   group: string|int|null,
      * }
-     * @noinspection PhpUnused
      */
     public function getDefaultPermissions(): array
     {
@@ -154,21 +150,21 @@ class Permission
      */
     public function getRequiredPermissions(string $path): array
     {
-        $path = Util::toAbsolutePath($path);
+        $permission = $this->getDefaultPermissions();
 
-        foreach ($this->writableMap as $writablePath => $writableOptions) {
-            $writablePath = Util::toAbsolutePath($writablePath);
-
-            $isMatch = $path === $writablePath ||
-                $writableOptions['recursive'] && str_starts_with($path, $writablePath . '/');
-
-            if ($isMatch) {
+        foreach ($this->getWritableMap() as $writablePath => $writableOptions) {
+            if (!$writableOptions['recursive'] && $path == $writablePath) {
                 /** @phpstan-ignore-next-line */
-                return array_merge($this->defaultPermissions, $this->writablePermissions);
+                return array_merge($permission, $this->writablePermissions);
+            }
+
+            if ($writableOptions['recursive'] && str_starts_with($path, $writablePath)) {
+                /** @phpstan-ignore-next-line */
+                return array_merge($permission, $this->writablePermissions);
             }
         }
 
-        return $this->defaultPermissions;
+        return $permission;
     }
 
     /**
@@ -282,7 +278,7 @@ class Permission
      * @param int $fileOctal Ex. 0644.
      * @param int $dirOctal Ex. 0755.
      */
-    private function chmodRecurse(string $path, $fileOctal = 0644, $dirOctal = 0755): bool
+    protected function chmodRecurse(string $path, $fileOctal = 0644, $dirOctal = 0755): bool
     {
         if (!file_exists($path)) {
             return false;
@@ -336,7 +332,7 @@ class Permission
      *
      * @param int|string $user
      */
-    private function chownRecurse(string $path, $user): bool
+    protected function chownRecurse(string $path, $user): bool
     {
         if (!file_exists($path)) {
             return false;
@@ -392,7 +388,7 @@ class Permission
      * @param int|string $group
      * @noinspection SpellCheckingInspection
      */
-    private function chgrpRecurse(string $path, $group): bool
+    protected function chgrpRecurse(string $path, $group): bool
     {
         if (!file_exists($path)) {
             return false;
@@ -417,7 +413,7 @@ class Permission
     /**
      * @param int $mode
      */
-    private function chmodReal(string $filename, $mode): bool
+    protected function chmodReal(string $filename, $mode): bool
     {
         $result = @chmod($filename, $mode);
 
@@ -447,7 +443,7 @@ class Permission
     /**
      * @param int|string $user
      */
-    private function chownReal(string $path, $user): bool
+    protected function chownReal(string $path, $user): bool
     {
         if (!function_exists('chown')) {
             return true;
@@ -462,7 +458,7 @@ class Permission
      * @todo Revise the need of exception handling.
      *
      */
-    private function chgrpReal(string $path, $group): bool
+    protected function chgrpReal(string $path, $group): bool
     {
         if (!function_exists('chgrp')) {
             return true;
@@ -478,7 +474,9 @@ class Permission
      */
     public function getDefaultOwner(bool $usePosix = false)
     {
-        $owner = $this->defaultPermissions['user'];
+        $defaultPermissions = $this->getDefaultPermissions();
+
+        $owner = $defaultPermissions['user'];
 
         if (empty($owner) && $usePosix) {
             $owner = function_exists('posix_getuid') ? posix_getuid() : null;
@@ -498,7 +496,9 @@ class Permission
      */
     public function getDefaultGroup(bool $usePosix = false)
     {
-        $group = $this->defaultPermissions['group'];
+        $defaultPermissions = $this->getDefaultPermissions();
+
+        $group = $defaultPermissions['group'];
 
         if (empty($group) && $usePosix) {
             $group = function_exists('posix_getegid') ? posix_getegid() : null;
@@ -521,7 +521,7 @@ class Permission
 
         $result = true;
 
-        foreach ($this->writableMap as $path => $options) {
+        foreach ($this->getWritableMap() as $path => $options) {
             if (!file_exists($path)) {
                 continue;
             }
@@ -619,8 +619,9 @@ class Permission
      *
      * @param string $search
      * @param string[] $array
+     * @return int
      */
-    private function getSearchCount(string $search, array $array): int
+    protected function getSearchCount(string $search, array $array)
     {
         $searchQuoted = $this->getPregQuote($search);
 
@@ -638,7 +639,7 @@ class Permission
     /**
      * @param string[] $array
      */
-    private function itemIncludes(string $item, array $array): bool
+    protected function itemIncludes(string $item, array $array): bool
     {
         foreach ($array as $value) {
             $value = $this->getPregQuote($value);
@@ -651,7 +652,10 @@ class Permission
         return false;
     }
 
-    private function getPregQuote(string $string): string
+    /**
+     * @return string
+     */
+    protected function getPregQuote(string $string): string
     {
         return preg_quote($string, '/-+=.');
     }

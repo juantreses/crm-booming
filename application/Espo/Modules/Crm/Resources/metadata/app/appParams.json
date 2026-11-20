@@ -1,6 +1,0 @@
-{
-    "meetingServices": {
-        "className": "Espo\\Modules\\Crm\\Tools\\Meeting\\MeetingServicesAppParam",
-        "enabled": true
-    }
-}

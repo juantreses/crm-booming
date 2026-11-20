@@ -15,11 +15,9 @@
     ],
     "beforeCreateHookClassNameList": [
         "Espo\\Classes\\RecordHooks\\EmailAccount\\BeforeCreate",
-        "Espo\\Classes\\RecordHooks\\EmailAccount\\BeforeSave",
-        "Espo\\Classes\\RecordHooks\\EmailAccount\\BeforeSaveValidateHosts"
+        "Espo\\Classes\\RecordHooks\\EmailAccount\\BeforeSave"
     ],
     "beforeUpdateHookClassNameList": [
-        "Espo\\Classes\\RecordHooks\\EmailAccount\\BeforeSave",
-        "Espo\\Classes\\RecordHooks\\EmailAccount\\BeforeSaveValidateHosts"
+        "Espo\\Classes\\RecordHooks\\EmailAccount\\BeforeSave"
     ]
 }

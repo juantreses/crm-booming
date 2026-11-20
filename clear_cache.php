@@ -27,7 +27,7 @@
  * these Appropriate Legal Notices must retain the display of the "EspoCRM" word.
  ************************************************************************/
 
-include __DIR__ . "/bootstrap.php";
+include "bootstrap.php";
 
 use Espo\Core\Application;
 use Espo\Core\ApplicationRunners\ClearCache;

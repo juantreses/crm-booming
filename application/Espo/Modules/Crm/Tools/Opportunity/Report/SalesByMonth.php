@@ -31,7 +31,6 @@ namespace Espo\Modules\Crm\Tools\Opportunity\Report;
 
 use DateTime;
 use Espo\Core\Acl;
-use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Select\SelectBuilderFactory;
 use Espo\Core\Utils\Config;
@@ -49,12 +48,11 @@ class SalesByMonth
         private Config $config,
         private EntityManager $entityManager,
         private SelectBuilderFactory $selectBuilderFactory,
-        private Util $util,
+        private Util $util
     ) {}
 
     /**
      * @throws Forbidden
-     * @throws BadRequest
      */
     public function run(DateRange $range): stdClass
     {

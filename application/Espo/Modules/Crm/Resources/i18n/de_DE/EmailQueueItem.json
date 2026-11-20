@@ -1,7 +1,5 @@
 {
   "fields": {
-    "name": "Name",
-    "status": "Status",
     "target": "Ziel",
     "sentAt": "Sendedatum",
     "attemptCount": "Versuche",
@@ -11,7 +9,7 @@
   },
   "links": {
     "target": "Ziel",
-    "massEmail": "Massen-E-Mails"
+    "massEmail": "Massen E-Mails"
   },
   "options": {
     "status": {

@@ -37,7 +37,6 @@ use Espo\Core\Field\DateTime as DateTimeField;
 use DateTime as DateTimeStd;
 use DateTimeImmutable;
 use DateTimeZone;
-use Espo\Core\Utils\DateTime\Clock;
 use Exception;
 use RuntimeException;
 
@@ -47,8 +46,8 @@ use RuntimeException;
  */
 class DateTime
 {
-    public const string SYSTEM_DATE_TIME_FORMAT = 'Y-m-d H:i:s';
-    public const string SYSTEM_DATE_FORMAT = 'Y-m-d';
+    public const SYSTEM_DATE_TIME_FORMAT = 'Y-m-d H:i:s';
+    public const SYSTEM_DATE_FORMAT = 'Y-m-d';
 
     private string $dateFormat;
     private string $timeFormat;
@@ -59,8 +58,7 @@ class DateTime
         ?string $dateFormat = 'YYYY-MM-DD',
         ?string $timeFormat = 'HH:mm',
         ?string $timeZone = 'UTC',
-        ?string $language = 'en_US',
-        private ?Clock $clock = null,
+        ?string $language = 'en_US'
     ) {
         $this->dateFormat = $dateFormat ?? 'YYYY-MM-DD';
         $this->timeFormat = $timeFormat ?? 'HH:mm';
@@ -170,8 +168,8 @@ class DateTime
             throw new RuntimeException($e->getMessage());
         }
 
-        $dateTime = $this->getNowInternal()
-            ->setTimezone($tz);
+        $dateTime = new DateTimeStd();
+        $dateTime->setTimezone($tz);
 
         $carbon = Carbon::instance($dateTime);
         $carbon->locale($this->language);
@@ -193,8 +191,9 @@ class DateTime
             throw new RuntimeException($e->getMessage());
         }
 
-        $dateTime = $this->getNowInternal()
-            ->setTimezone($tz);
+        $dateTime = new DateTimeStd();
+
+        $dateTime->setTimezone($tz);
 
         $carbon = Carbon::instance($dateTime);
 
@@ -258,7 +257,7 @@ class DateTime
      */
     public function getToday(): Date
     {
-        $string = $this->getNowInternal()
+        $string = (new DateTimeImmutable)
             ->setTimezone($this->timezone)
             ->format(self::SYSTEM_DATE_FORMAT);
 
@@ -272,7 +271,7 @@ class DateTime
      */
     public function getNow(): DateTimeField
     {
-        return DateTimeField::fromDateTime($this->getNowInternal())
+        return DateTimeField::createNow()
             ->withTimezone($this->timezone);
     }
 
@@ -307,10 +306,5 @@ class DateTime
     public function convertSystemDateTimeToGlobal(string $string): string
     {
         return $this->convertSystemDateTime($string);
-    }
-
-    private function getNowInternal(): DateTimeImmutable
-    {
-        return $this->clock?->now() ?? new DateTimeImmutable();
     }
 }

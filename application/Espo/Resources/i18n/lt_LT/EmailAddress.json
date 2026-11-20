@@ -6,8 +6,7 @@
   },
   "fields": {
     "optOut": "Atsisakyta",
-    "invalid": "Negaliojantis",
-    "lower": "Vardas mažosiomis raidėmis"
+    "invalid": "Negaliojantis"
   },
   "presetFilters": {
     "orphan": "Našlaitis"

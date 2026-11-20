@@ -32,17 +32,14 @@ namespace Espo\Core\Action\Actions\Merge;
 use Espo\Core\Acl;
 use Espo\Core\Acl\Table;
 use Espo\Core\Action\Params;
-use Espo\Core\Exceptions\BadRequest;
-use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Core\Name\Field;
 use Espo\Core\Name\Link;
 use Espo\Core\ORM\EntityManager;
 use Espo\Core\ORM\Type\FieldType;
-use Espo\Core\Record\DeleteParams;
+use Espo\Core\Record\ActionHistory\Action;
 use Espo\Core\Record\ServiceContainer;
-use Espo\Core\Record\UpdateParams;
 use Espo\Core\Utils\Metadata;
 use Espo\Core\Utils\ObjectUtil;
 use Espo\Entities\Attachment;
@@ -50,7 +47,7 @@ use Espo\Entities\Note;
 use Espo\ORM\Entity;
 use Espo\Entities\EmailAddress;
 use Espo\Entities\PhoneNumber;
-use Espo\ORM\Query\Part\Order;
+
 use Espo\ORM\Type\RelationType;
 use stdClass;
 
@@ -67,25 +64,8 @@ class Merger
      * @param string[] $sourceIdList
      * @throws NotFound
      * @throws Forbidden
-     * @throws Conflict
-     * @throws BadRequest
-     * @noinspection PhpDocRedundantThrowsInspection
      */
     public function process(Params $params, array $sourceIdList, stdClass $data): void
-    {
-        $this->entityManager->getTransactionManager()->run(function () use ($params, $sourceIdList, $data) {
-            $this->processInternal($params, $sourceIdList, $data);
-        });
-    }
-
-    /**
-     * @param string[] $sourceIdList
-     * @throws NotFound
-     * @throws Forbidden
-     * @throws Conflict
-     * @throws BadRequest
-     */
-    private function processInternal(Params $params, array $sourceIdList, stdClass $data): void
     {
         $clonedData = ObjectUtil::clone($data);
 
@@ -106,7 +86,7 @@ class Merger
 
         $service->filterUpdateInput($clonedData);
 
-        $entity->setMultiple($clonedData);
+        $entity->set($clonedData);
 
         $this->unsetNotActualAttributes($entity);
 
@@ -152,10 +132,18 @@ class Merger
             $this->updateNotes($sourceEntity, $entity);
         }
 
-        $this->mergeLinks($entity, $sourceEntityList);
+        $mergeLinkList = $this->getMergeLinkList($entityType);
 
         foreach ($sourceEntityList as $sourceEntity) {
-            $service->delete($sourceEntity->getId(), DeleteParams::create());
+            foreach ($mergeLinkList as $link) {
+                $this->updateRelations($sourceEntity, $entity, $link);
+            }
+        }
+
+        foreach ($sourceEntityList as $sourceEntity) {
+            $this->entityManager->removeEntity($sourceEntity);
+
+            $service->processActionHistoryRecord(Action::DELETE, $sourceEntity);
         }
 
         if ($hasPhoneNumber) {
@@ -166,7 +154,11 @@ class Merger
             $this->prepareEmailAddressData($emailAddressToRelateList, $clonedData);
         }
 
-        $service->update($id, $clonedData, UpdateParams::create()->withSkipDuplicateCheck());
+        $entity->set($clonedData);
+
+        $this->entityManager->saveEntity($entity);
+
+        $service->processActionHistoryRecord(Action::UPDATE, $entity);
     }
 
     /**
@@ -209,8 +201,7 @@ class Merger
 
         /** @var iterable<PhoneNumber> $collection */
         $collection = $this->entityManager
-            ->getRelation($entity, Link::PHONE_NUMBERS)
-            ->order('@relation.primary', Order::DESC)
+            ->getRelation($entity, 'phoneNumbers')
             ->find();
 
         foreach ($collection as $entity) {
@@ -230,7 +221,6 @@ class Merger
         /** @var iterable<EmailAddress> $collection */
         $collection = $this->entityManager
             ->getRelation($entity, Link::EMAIL_ADDRESSES)
-            ->order('@relation.primary', Order::DESC)
             ->find();
 
         foreach ($collection as $entity) {
@@ -445,19 +435,5 @@ class Merger
         }
 
         return $columnAttributeMap;
-    }
-
-    /**
-     * @param Entity[] $sourceEntityList
-     */
-    private function mergeLinks(Entity $entity, array $sourceEntityList): void
-    {
-        $mergeLinkList = $this->getMergeLinkList($entity->getEntityType());
-
-        foreach ($sourceEntityList as $sourceEntity) {
-            foreach ($mergeLinkList as $link) {
-                $this->updateRelations($sourceEntity, $entity, $link);
-            }
-        }
     }
 }

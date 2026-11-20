@@ -122,13 +122,11 @@ class FieldValidationManager
         foreach ($fieldList as $field) {
             $typeList = null;
 
-            $fieldDefs = $entityDefs->tryGetField($field);
-
             if (
                 !$entity->isNew() &&
                 $dataIsSet &&
-                !$fieldDefs?->getParam('forceValidation') &&
-                !$this->isFieldSetInData($entityType, $field, $data, $fieldDefs)
+                !$entityDefs->tryGetField($field)?->getParam('forceValidation') &&
+                !$this->isFieldSetInData($entityType, $field, $data)
             ) {
                 if (!$this->hasRequiredLogic($entityType, $field)) {
                     continue;
@@ -429,18 +427,9 @@ class FieldValidationManager
         $this->checkerCache[$key] = $this->checkerFactory->create($entityType, $field);
     }
 
-    private function isFieldSetInData(string $entityType, string $field, stdClass $data, ?Defs\FieldDefs $defs): bool
+    private function isFieldSetInData(string $entityType, string $field, stdClass $data): bool
     {
         $attributeList = $this->fieldUtil->getActualAttributeList($entityType, $field);
-
-        $additionalFieldList = $defs?->getParam('validationDependsOnFieldList') ?? [];
-
-        foreach ($additionalFieldList as $additionalField) {
-            $attributeList = array_merge(
-                $attributeList,
-                $this->fieldUtil->getActualAttributeList($entityType, $additionalField)
-            );
-        }
 
         $isSet = false;
 

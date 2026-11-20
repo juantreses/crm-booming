@@ -2,14 +2,5 @@
     {
         "name": "name",
         "link": true
-    },
-    {
-        "name": "timeZone",
-        "width": 20,
-        "notSortable": true
-    },
-    {
-        "name": "isDefault",
-        "width": 14
     }
 ]

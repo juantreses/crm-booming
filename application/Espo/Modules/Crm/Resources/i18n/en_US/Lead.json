@@ -31,8 +31,7 @@
         "opportunityAmountCurrency": "Opportunity Amount Currency",
         "acceptanceStatusMeetings": "Acceptance Status (Meetings)",
         "acceptanceStatusCalls": "Acceptance Status (Calls)",
-        "originalEmail": "Original Email",
-        "pipeline": "Pipeline"
+        "originalEmail": "Original Email"
     },
     "links": {
         "targetLists": "Target Lists",
@@ -42,8 +41,7 @@
         "createdContact": "Contact",
         "createdOpportunity": "Opportunity",
         "cases": "Cases",
-        "documents": "Documents",
-        "pipeline": "Pipeline"
+        "documents": "Documents"
     },
     "options": {
         "status": {

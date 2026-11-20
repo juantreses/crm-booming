@@ -10,25 +10,19 @@
     "excludingActionList": "Nie licząc",
     "optedOutCount": "Liczba rezygnacji",
     "targetStatus": "Stan docelowy",
-    "isOptedOut": "Zrezygnowano",
-    "sourceCampaign": "Kampania źródłowa",
-    "category": "Kategoria"
+    "isOptedOut": "Zrezygnowano"
   },
   "links": {
     "accounts": "Klienci",
     "contacts": "Kontakty",
-    "leads": "Potencjalne kontakty",
     "campaigns": "Kampanie",
-    "massEmails": "Wiadomości masowe",
-    "category": "Kategoria"
+    "massEmails": "Wiadomości masowe"
   },
   "options": {
     "type": {
       "Email": "E-mail",
       "Web": "Strona internetowa",
-      "Television": "Telewizja",
-      "Radio": "Radio",
-      "Newsletter": "Newsletter"
+      "Television": "Telewizja"
     },
     "targetStatus": {
       "Opted Out": "Wycofał się",
@@ -36,9 +30,7 @@
     }
   },
   "labels": {
-    "Create TargetList": "Utwórz listę docelową",
     "Opted Out": "Wypisany",
-    "Cancel Opt-Out": "Anuluj wypisanie",
     "Opt-Out": "Wypisz się"
   }
 }

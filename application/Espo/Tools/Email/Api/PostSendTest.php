@@ -38,10 +38,8 @@ use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
-use Espo\Core\Mail\Account\Util\AddressUtil;
 use Espo\Core\Mail\Exceptions\NoSmtp;
 use Espo\Core\Mail\SmtpParams;
-use Espo\Core\Utils\Security\HostCheck;
 use Espo\Entities\Email;
 use Espo\Tools\Email\SendService;
 use Espo\Tools\Email\TestSendData;
@@ -53,9 +51,7 @@ class PostSendTest implements Action
 {
     public function __construct(
         private SendService $sendService,
-        private Acl $acl,
-        private HostCheck $hostCheck,
-        private AddressUtil $addressUtil,
+        private Acl $acl
     ) {}
 
     /**
@@ -111,13 +107,6 @@ class PostSendTest implements Action
                 ->withUsername($username)
                 ->withPassword($password)
                 ->withAuthMechanism($authMechanism);
-        }
-
-        if (
-            !$this->addressUtil->isAllowedAddress($smtpParams) &&
-            !$this->hostCheck->isHostAndNotInternal($server)
-        ) {
-            throw new Forbidden("Not allowed internal host.");
         }
 
         $data = new TestSendData($emailAddress, $type, $id, $userId);

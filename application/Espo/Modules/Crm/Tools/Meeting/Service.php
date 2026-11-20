@@ -50,7 +50,7 @@ use LogicException;
 
 class Service
 {
-    private const string NOTE_TYPE_EVENT_CONFIRMATION = 'EventConfirmation';
+    private const NOTE_TYPE_EVENT_CONFIRMATION = 'EventConfirmation';
 
     public function __construct(
         private User $user,
@@ -90,13 +90,13 @@ class Service
             throw new LogicException();
         }
 
-        if (!$entity->hasLinkMultipleId(Meeting::LINK_USERS, $this->user->getId())) {
+        if (!$entity->hasLinkMultipleId('users', $this->user->getId())) {
             throw new Forbidden();
         }
 
         $currentStatus = $this->entityManager
             ->getRDBRepository($entityType)
-            ->getRelation($entity, Meeting::LINK_USERS)
+            ->getRelation($entity, 'users')
             ->getColumn($this->user, 'status');
 
         if ($currentStatus === $status) {
@@ -105,7 +105,7 @@ class Service
 
         $this->entityManager
             ->getRDBRepository($entityType)
-            ->getRelation($entity, Meeting::LINK_USERS)
+            ->getRelation($entity, 'users')
             ->updateColumnsById($this->user->getId(), ['status' => $status]);
 
         if ($this->metadata->get(['scopes', $entityType, 'stream'])) {
@@ -116,7 +116,7 @@ class Service
             'eventName' => $entity->get(Field::NAME),
             'eventType' => $entity->getEntityType(),
             'eventId' => $entity->getId(),
-            'dateStart' => $entity->get(Meeting::FIELD_DATE_START),
+            'dateStart' => $entity->get('dateStart'),
             'status' => $status,
             'link' => 'users',
             'inviteeType' => User::ENTITY_TYPE,
@@ -156,7 +156,7 @@ class Service
             throw new Forbidden();
         }
 
-        if (!$this->acl->checkField($entityType, Meeting::FIELD_STATUS, Acl\Table::ACTION_EDIT)) {
+        if (!$this->acl->checkField($entityType, 'status', Acl\Table::ACTION_EDIT)) {
             throw new Forbidden("No edit access to 'status' field.");
         }
 
@@ -167,7 +167,7 @@ class Service
                 continue;
             }
 
-            $entity->set(Meeting::FIELD_STATUS, Meeting::STATUS_HELD);
+            $entity->set('status', Meeting::STATUS_HELD);
 
             $this->entityManager->saveEntity($entity);
         }
@@ -183,7 +183,7 @@ class Service
             throw new Forbidden();
         }
 
-        if (!$this->acl->checkField($entityType, Meeting::FIELD_STATUS, Acl\Table::ACTION_EDIT)) {
+        if (!$this->acl->checkField($entityType, 'status', Acl\Table::ACTION_EDIT)) {
             throw new Forbidden("No edit access to 'status' field.");
         }
 
@@ -194,7 +194,7 @@ class Service
                 continue;
             }
 
-            $entity->set(Meeting::FIELD_STATUS, Meeting::STATUS_NOT_HELD);
+            $entity->set('status', Meeting::STATUS_NOT_HELD);
 
             $this->entityManager->saveEntity($entity);
         }
@@ -224,9 +224,9 @@ class Service
         }
 
         $linkList = [
-            Meeting::LINK_USERS,
-            Meeting::LINK_CONTACTS,
-            Meeting::LINK_LEADS,
+            'users',
+            'contacts',
+            'leads',
         ];
 
         $linkList = array_filter($linkList, function ($item) use ($entityType) {
@@ -241,13 +241,8 @@ class Service
             $itemCollection = $this->entityManager
                 ->getRDBRepository($entityType)
                 ->getRelation($entity, $link)
-                ->select([
-                    Attribute::ID,
-                    Field::NAME,
-                    'acceptanceStatus',
-                    Field::EMAIL_ADDRESS,
-                ])
-                ->order(Field::NAME)
+                ->select([Attribute::ID, Field::NAME, 'acceptanceStatus', 'emailAddress'])
+                ->order('name')
                 ->find();
 
             $list = array_merge($list, [...$itemCollection]);
@@ -257,18 +252,15 @@ class Service
         $collection = $this->entityManager->getCollectionFactory()->create(null, $list);
 
         foreach ($collection as $e) {
-            if (
-                $this->acl->checkEntityRead($e) &&
-                $this->acl->checkField($e->getEntityType(), Field::EMAIL_ADDRESS)
-            ) {
+            if ($this->acl->checkEntityRead($e) && $this->acl->checkField($entityType, 'emailAddress')) {
                 continue;
             }
 
-            if (!$e->get(Field::EMAIL_ADDRESS)) {
+            if (!$e->get('emailAddress')) {
                 continue;
             }
 
-            $e->set(Field::EMAIL_ADDRESS, 'dummy@dummy.dummy');
+            $e->set('emailAddress', 'dummy@dummy.dummy');
         }
 
         return RecordCollection::create($collection);

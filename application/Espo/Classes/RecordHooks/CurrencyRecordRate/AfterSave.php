@@ -31,7 +31,6 @@ namespace Espo\Classes\RecordHooks\CurrencyRecordRate;
 
 use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Record\Hook\SaveHook;
-use Espo\Core\Utils\Currency\DatabasePopulator;
 use Espo\Core\WebSocket\Submission;
 use Espo\Entities\CurrencyRecordRate;
 use Espo\ORM\Entity;
@@ -46,7 +45,6 @@ class AfterSave implements SaveHook
     public function __construct(
         private SyncManager $syncManager,
         private Submission $submission,
-        private DatabasePopulator $databasePopulator,
     ) {}
 
     public function process(Entity $entity): void
@@ -59,7 +57,6 @@ class AfterSave implements SaveHook
             throw new Conflict($e->getMessage(), previous: $e);
         }
 
-        $this->databasePopulator->process();
         $this->submission->submit('appParamsUpdate');
     }
 }

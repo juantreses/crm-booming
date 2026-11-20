@@ -29,11 +29,10 @@
 
 namespace Espo\Core\Utils;
 
-use Espo\Core\Binding\Attributes\Qualify;
-use Espo\Core\Utils\Cache\DataCacheAccess;
 use Espo\Core\Utils\File\Manager as FileManager;
 use Espo\Core\Utils\Metadata\Builder;
 use Espo\Core\Utils\Metadata\BuilderHelper;
+
 use stdClass;
 use LogicException;
 use RuntimeException;
@@ -43,51 +42,55 @@ use RuntimeException;
  */
 class Metadata
 {
+    /** @var ?array<string, mixed> */
+    private ?array $data = null;
+    private ?stdClass $objData = null;
+
     private string $cacheKey = 'metadata';
     private string $objCacheKey = 'objMetadata';
     private string $customPath = 'custom/Espo/Custom/Resources/metadata';
 
     /** @var array<string, array<string, mixed>>  */
     private $deletedData = [];
-
     /** @var array<string, array<string, mixed>> */
     private $changedData = [];
 
-    /**
-     * @param DataCacheAccess<array<string, mixed>> $data
-     * @param DataCacheAccess<stdClass> $objectData
-     */
     public function __construct(
         private FileManager $fileManager,
+        private DataCache $dataCache,
         private Module $module,
         private Builder $builder,
         private BuilderHelper $builderHelper,
-        #[Qualify(DataCache::QUALIFIER_SYSTEM)]
-        private DataCacheAccess $data,
-        #[Qualify(DataCache::QUALIFIER_SYSTEM)]
-        private DataCacheAccess $objectData,
-    ) {
-
-        $this->objectData->init(
-            key: $this->objCacheKey,
-            loader: fn () => $this->builder->build(),
-        );
-
-        $this->data->init(
-            key: $this->cacheKey,
-            loader: fn () => $this->getObjectConvertedToAssoc(),
-        );
-    }
+        private bool $useCache = false
+    ) {}
 
     /**
      * Init metadata.
-     *
-     * @internal
      */
-    public function init(): void
+    public function init(bool $reload = false): void
     {
-        $this->reloadObject();
-        $this->reload();
+        if (!$this->useCache) {
+            $reload = true;
+        }
+
+        if ($this->dataCache->has($this->cacheKey) && !$reload) {
+            /** @var array<string, mixed> $data */
+            $data = $this->dataCache->get($this->cacheKey);
+
+            $this->data = $data;
+
+            return;
+        }
+
+        $this->clearVars();
+
+        $objData = $this->getObjData($reload);
+
+        $this->data = Util::objectToArray($objData);
+
+        if ($this->useCache) {
+            $this->dataCache->store($this->cacheKey, $this->data);
+        }
     }
 
     /**
@@ -97,7 +100,13 @@ class Metadata
      */
     private function getData(): array
     {
-        return $this->data->get();
+        if (empty($this->data) || !is_array($this->data)) {
+            $this->init();
+        }
+
+        assert($this->data !== null);
+
+        return $this->data;
     }
 
     /**
@@ -109,9 +118,40 @@ class Metadata
     */
     public function get($key = null, $default = null)
     {
-        $data = $this->data->get();
+        return Util::getValueByKey($this->getData(), $key, $default);
+    }
 
-        return Util::getValueByKey($data, $key, $default);
+    private function objInit(bool $reload = false): void
+    {
+        if (!$this->useCache) {
+            $reload = true;
+        }
+
+        if ($this->dataCache->has($this->objCacheKey) && !$reload) {
+            /** @var stdClass $data */
+            $data = $this->dataCache->get($this->objCacheKey);
+
+            $this->objData = $data;
+
+            return;
+        }
+
+        $this->objData = $this->builder->build();
+
+        if ($this->useCache) {
+            $this->dataCache->store($this->objCacheKey, $this->objData);
+        }
+    }
+
+    private function getObjData(bool $reload = false): stdClass
+    {
+        if (!isset($this->objData) || $reload) {
+            $this->objInit($reload);
+        }
+
+        assert($this->objData !== null);
+
+        return $this->objData;
     }
 
     /**
@@ -123,16 +163,17 @@ class Metadata
     */
     public function getObjects($key = null, $default = null)
     {
-        return Util::getValueByKey($this->getAll(), $key, $default);
+        $objData = $this->getObjData();
+
+        return Util::getValueByKey($objData, $key, $default);
     }
 
-    /**
-     * Important. Do not modify without cloning.
-     */
     public function getAll(): stdClass
     {
-        return $this->objectData->get();
+        return $this->getObjData();
     }
+
+
 
     /**
      * Get metadata definition in custom directory.
@@ -142,7 +183,7 @@ class Metadata
      */
     public function getCustom(string $key1, string $key2, $default = null)
     {
-        $filePath = "$this->customPath/$key1/$key2.json";
+        $filePath = $this->customPath . "/$key1/$key2.json";
 
         if (!$this->fileManager->isFile($filePath)) {
             return $default;
@@ -172,13 +213,13 @@ class Metadata
             }
         }
 
-        $filePath = "$this->customPath/$key1/$key2.json";
+        $filePath = $this->customPath . "/$key1/$key2.json";
 
         $changedData = Json::encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         $this->fileManager->putContents($filePath, $changedData);
 
-        $this->init();
+        $this->init(true);
     }
 
     /**
@@ -223,13 +264,11 @@ class Metadata
 
         /** @var array<string, array<string, mixed>> $mergedChangedData */
         $mergedChangedData = Util::merge($this->changedData, $newData);
-
         /** @var array<string, mixed> $mergedData */
         $mergedData = Util::merge($this->getData(), $newData);
 
         $this->changedData = $mergedChangedData;
-
-        $this->data->set($mergedData);
+        $this->data = $mergedData;
 
         if (is_array($data)) {
             $this->undelete($key1, $key2, $data);
@@ -255,27 +294,24 @@ class Metadata
                 $unsetList = $unsets;
 
                 foreach ($unsetList as $unsetItem) {
-                    if (!preg_match('/fields\.([^.]+)/', $unsetItem, $matches)) {
-                        continue;
-                    }
+                    if (preg_match('/fields\.([^.]+)/', $unsetItem, $matches)) {
+                        $field = $matches[1];
+                        $fieldPath = [$key1, $key2, 'fields', $field];
 
-                    $field = $matches[1];
-                    $fieldPath = [$key1, $key2, 'fields', $field];
+                        // @todo Revise the need. Additional fields are supposed to exist only in the build?
+                        $additionalFields = $this->builderHelper->getAdditionalFields(
+                            field: $field,
+                            params: $this->get($fieldPath, []),
+                            defs: $defs,
+                        );
 
-                    // @todo Revise the need. Additional fields are supposed to exist only in the build?
-                    $additionalFields = $this->builderHelper->getAdditionalFields(
-                        field: $field,
-                        params: $this->get($fieldPath, []),
-                        defs: $defs,
-                    );
-
-                    if (is_array($additionalFields)) {
-                        foreach ($additionalFields as $additionalFieldName => $additionalFieldParams) {
-                            $unsets[] = 'fields.' . $additionalFieldName;
+                        if (is_array($additionalFields)) {
+                            foreach ($additionalFields as $additionalFieldName => $additionalFieldParams) {
+                                $unsets[] = 'fields.' . $additionalFieldName;
+                            }
                         }
                     }
                 }
-
                 break;
         }
 
@@ -307,8 +343,7 @@ class Metadata
 
         /** @var array<string, mixed> $data */
         $data = Util::unsetInArray($this->getData(), $metadataUnsetData, true);
-
-        $this->data->set($data);
+        $this->data = $data;
     }
 
     /**
@@ -316,15 +351,13 @@ class Metadata
      */
     private function undelete(string $key1, string $key2, $data): void
     {
-        if (!isset($this->deletedData[$key1][$key2])) {
-            return;
-        }
+        if (isset($this->deletedData[$key1][$key2])) {
+            foreach ($this->deletedData[$key1][$key2] as $unsetIndex => $unsetItem) {
+                $value = Util::getValueByKey($data, $unsetItem);
 
-        foreach ($this->deletedData[$key1][$key2] as $unsetIndex => $unsetItem) {
-            $value = Util::getValueByKey($data, $unsetItem);
-
-            if (isset($value)) {
-                unset($this->deletedData[$key1][$key2][$unsetIndex]);
+                if (isset($value)) {
+                    unset($this->deletedData[$key1][$key2][$unsetIndex]);
+                }
             }
         }
     }
@@ -337,7 +370,7 @@ class Metadata
         $this->changedData = [];
         $this->deletedData = [];
 
-        $this->init();
+        $this->init(true);
     }
 
     /**
@@ -345,52 +378,46 @@ class Metadata
      */
     public function save(): bool
     {
-        $result = true;
-        $problemPath = null;
+        $path = $this->customPath;
 
-        if ($this->changedData) {
+        $result = true;
+
+        if (!empty($this->changedData)) {
             foreach ($this->changedData as $key1 => $keyData) {
                 foreach ($keyData as $key2 => $data) {
                     if (empty($data)) {
                         continue;
                     }
 
-                    $filePath = "$this->customPath/$key1/$key2.json";
+                    $filePath = $path . "/$key1/$key2.json";
 
-                    $itemResult = $this->fileManager->mergeJsonContents($filePath, $data);
-
-                    $result &= $itemResult;
-
-                    if (!$itemResult && !$problemPath) {
-                        $problemPath = $filePath;
-                    }
+                    $result &= $this->fileManager->mergeJsonContents($filePath, $data);
                 }
             }
         }
 
-        if ($this->deletedData) {
+        if (!empty($this->deletedData)) {
             foreach ($this->deletedData as $key1 => $keyData) {
                 foreach ($keyData as $key2 => $unsetData) {
                     if (empty($unsetData)) {
                         continue;
                     }
 
-                    $filePath = "$this->customPath/$key1/$key2.json";
+                    $filePath = $path . "/$key1/$key2.json";
 
                     $rowResult = $this->fileManager->unsetJsonContents($filePath, $unsetData);
 
                     if (!$rowResult) {
-                        throw new LogicException("Metadata items $key1.$key2 can be deleted for custom code only.");
+                        throw new LogicException(
+                            "Metadata items $key1.$key2 can be deleted for custom code only."
+                        );
                     }
                 }
             }
         }
 
         if (!$result) {
-            $message = "Error while saving metadata. Usually it's a file permission problem. " .
-                "First problem path: `$problemPath`.";
-
-            throw new RuntimeException($message);
+            throw new RuntimeException("Error while saving metadata. See log file for details.");
         }
 
         $this->clearChanges();
@@ -416,29 +443,8 @@ class Metadata
         return $this->get(['scopes', $scopeName, 'module']);
     }
 
-    private function reloadObject(): void
+    private function clearVars(): void
     {
-        $data = $this->builder->build();
-
-        $this->objectData->set($data);
-        $this->objectData->store();
-    }
-
-    private function reload(): void
-    {
-        $data = $this->getObjectConvertedToAssoc();
-
-        $this->data->set($data);
-        $this->data->store();
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function getObjectConvertedToAssoc(): array
-    {
-        $data = $this->objectData->get();
-
-        return Util::objectToArray($data);
+        $this->data = null;
     }
 }

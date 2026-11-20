@@ -57,6 +57,7 @@ class Renamer
         ClassType::ENTITY,
         ClassType::CONTROLLER,
         ClassType::REPOSITORY,
+        ClassType::SELECT_MANAGER,
         ClassType::SERVICE,
     ];
 

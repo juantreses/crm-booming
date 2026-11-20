@@ -40,7 +40,6 @@ use Espo\Core\Job\JobSchedulerFactory;
 use Espo\Core\Mail\Exceptions\NoSmtp;
 use Espo\Core\Mail\Exceptions\SendingError;
 use Espo\Core\Mail\SmtpParams;
-use Espo\Core\Name\Field;
 use Espo\Core\Utils\Config\ApplicationConfig;
 use Espo\Core\Utils\Util;
 use Espo\Entities\Email;
@@ -64,11 +63,11 @@ use Espo\Tools\UserSecurity\Password\Recovery\UrlValidator;
 class RecoveryService
 {
     /** Milliseconds. */
-    private const int REQUEST_DELAY = 3000;
-    private const string REQUEST_LIFETIME = '3 hours';
-    private const string NEW_USER_REQUEST_LIFETIME = '2 days';
-    private const string EXISTING_USER_REQUEST_LIFETIME = '2 days';
-    private const string INTERNAL_SMTP_INTERVAL_PERIOD = '1 hour';
+    private const REQUEST_DELAY = 3000;
+    private const REQUEST_LIFETIME = '3 hours';
+    private const NEW_USER_REQUEST_LIFETIME = '2 days';
+    private const EXISTING_USER_REQUEST_LIFETIME = '2 days';
+    private const INTERNAL_SMTP_INTERVAL_PERIOD = '1 hour';
 
     public function __construct(
         private EntityManager $entityManager,
@@ -91,18 +90,26 @@ class RecoveryService
      */
     public function getRequest(string $id): PasswordChangeRequest
     {
-        $this->assertNotDisabled();
+        $config = $this->config;
+
+        if ($config->get('passwordRecoveryDisabled')) {
+            throw new Forbidden("Password recovery: Disabled.");
+        }
 
         $request = $this->entityManager
             ->getRDBRepositoryByClass(PasswordChangeRequest::class)
-            ->where([PasswordChangeRequest::FIELD_REQUEST_ID => $id])
+            ->where(['requestId' => $id])
             ->findOne();
 
         if (!$request) {
-            throw new NotFound("Password recovery: Request not found by ID.");
+            throw new NotFound("Password recovery: Request not found by id.");
         }
 
-        $request->getUserId();
+        $userId = $request->get('userId');
+
+        if (!$userId) {
+            throw new Error();
+        }
 
         return $request;
     }
@@ -111,7 +118,7 @@ class RecoveryService
     {
         $request = $this->entityManager
             ->getRDBRepositoryByClass(PasswordChangeRequest::class)
-            ->where([PasswordChangeRequest::FIELD_REQUEST_ID => $id])
+            ->where(['requestId' => $id])
             ->findOne();
 
         if ($request) {
@@ -130,7 +137,9 @@ class RecoveryService
 
         $noExposure = $config->get('passwordRecoveryNoExposure') ?? false;
 
-        $this->assertNotDisabled();
+        if ($config->get('passwordRecoveryDisabled')) {
+            throw new Forbidden("Password recovery: Disabled.");
+        }
 
         if ($url) {
             $this->urlValidator->validate($url);
@@ -139,8 +148,8 @@ class RecoveryService
         $user = $this->entityManager
             ->getRDBRepositoryByClass(User::class)
             ->where([
-                User::FIELD_USER_NAME => $userName,
-                Field::EMAIL_ADDRESS => $emailAddress,
+                'userName' => $userName,
+                'emailAddress' => $emailAddress,
             ])
             ->findOne();
 
@@ -208,7 +217,7 @@ class RecoveryService
 
         $existingRequest = $this->entityManager
             ->getRDBRepositoryByClass(PasswordChangeRequest::class)
-            ->where([PasswordChangeRequest::ATTR_USER_ID=> $user->getId()])
+            ->where(['userId' => $user->getId()])
             ->findOne();
 
         if ($existingRequest) {
@@ -257,10 +266,15 @@ class RecoveryService
     {
         $this->checkUser($user);
 
-        return $this->entityManager->getRDBRepositoryByClass(PasswordChangeRequest::class)->getNew()
-            ->setUserId($user->getId())
-            ->setRequestId(Util::generateCryptId())
-            ->setUrl($url);
+        $entity = $this->entityManager->getRDBRepositoryByClass(PasswordChangeRequest::class)->getNew();
+
+        $entity->set([
+            'userId' => $user->getId(),
+            'requestId' => Util::generateCryptId(),
+            'url' => $url,
+        ]);
+
+        return $entity;
     }
 
     /**
@@ -421,8 +435,8 @@ class RecoveryService
 
         $htmlizer = $this->htmlizerFactory->create(true);
 
-        $subject = $htmlizer->render($user, $subjectTpl, $data, true);
-        $body = $htmlizer->render($user, $bodyTpl, $data, true);
+        $subject = $htmlizer->render($user, $subjectTpl, null, $data, true);
+        $body = $htmlizer->render($user, $bodyTpl, null, $data, true);
 
         $email
             ->setSubject($subject)
@@ -550,15 +564,5 @@ class RecoveryService
         return $this->applicationState->isPortal() &&
             $this->authenticationMethodProvider->get() === LdapLogin::NAME &&
             !$this->config->get('ldapPortalUserLdapAuth');
-    }
-
-    /**
-     * @throws Forbidden
-     */
-    private function assertNotDisabled(): void
-    {
-        if ($this->config->get('passwordRecoveryDisabled')) {
-            throw new Forbidden("Password recovery: Disabled.");
-        }
     }
 }

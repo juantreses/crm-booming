@@ -29,7 +29,6 @@
 
 namespace Espo\Core\Acl\AccessChecker\AccessCheckers;
 
-use Espo\Core\AclManager;
 use Espo\Entities\User;
 use Espo\ORM\Entity;
 use Espo\Core\Utils\Metadata;
@@ -68,8 +67,7 @@ class Foreign implements
     public function __construct(
         private Metadata $metadata,
         DefaultAccessChecker $defaultAccessChecker,
-        private EntityManager $entityManager,
-        private AclManager $aclManager,
+        private EntityManager $entityManager
     ) {
         $this->defaultAccessChecker = $defaultAccessChecker;
     }
@@ -147,7 +145,7 @@ class Foreign implements
         $foreign = $this->getForeignEntity($entity);
 
         if (!$foreign) {
-            if ($this->aclManager->checkAdmin($user)) {
+            if ($user->isAdmin()) {
                 return true;
             }
 

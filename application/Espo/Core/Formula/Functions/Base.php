@@ -62,12 +62,8 @@ abstract class Base
      */
     private $variables;
 
-    public function __construct(
-        string $name,
-        Processor $processor,
-        ?Entity $entity = null,
-        ?stdClass $variables = null,
-    ) {
+    public function __construct(string $name, Processor $processor, ?Entity $entity = null, ?stdClass $variables = null)
+    {
         $this->name = $name;
         $this->processor = $processor;
         $this->entity = $entity;

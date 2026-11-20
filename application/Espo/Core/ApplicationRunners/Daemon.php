@@ -30,7 +30,6 @@
 namespace Espo\Core\ApplicationRunners;
 
 use Espo\Core\Application\Runner;
-use Espo\Core\Job\Processing\Util\ExitSetup;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\Log;
 
@@ -44,13 +43,8 @@ class Daemon implements Runner
 {
     use Cli;
 
-    private bool $stopped = false;
-
-    public function __construct(
-        private Config $config,
-        private Log $log,
-        private ExitSetup $exitSetup,
-    ) {}
+    public function __construct(private Config $config, private Log $log)
+    {}
 
     public function run(): void
     {
@@ -70,13 +64,9 @@ class Daemon implements Runner
             return;
         }
 
-        $this->exitSetup->setup(function () {
-            $this->stopped = true;
-        });
-
         $processList = [];
 
-        while (!$this->isStopped()) { /** @phpstan-ignore-line */
+        while (true) { /** @phpstan-ignore-line */
             $toSkip = false;
             $runningCount = 0;
 
@@ -104,20 +94,7 @@ class Daemon implements Runner
                 $processList[] = $process;
             }
 
-            /** @noinspection PhpConditionAlreadyCheckedInspection */
-            if ($this->isStopped()) {
-                break;
-            }
-
             sleep($interval);
         }
-    }
-
-    /**
-     * @phpstan-impure
-     */
-    private function isStopped(): bool
-    {
-        return $this->stopped;
     }
 }

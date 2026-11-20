@@ -35,6 +35,7 @@ use Espo\ORM\Query\Delete as DeleteQuery;
 use Espo\ORM\Query\DeleteBuilder;
 use Espo\ORM\Query\Insert as InsertQuery;
 use Espo\ORM\Query\LockTable as LockTableQuery;
+
 use Espo\ORM\Query\Part\Condition as Cond;
 use Espo\ORM\Query\SelectBuilder;
 use Espo\ORM\Query\Update as UpdateQuery;
@@ -46,7 +47,7 @@ class PostgresqlQueryComposer extends BaseQueryComposer
 {
     protected string $identifierQuoteCharacter = '"';
     protected bool $indexHints = false;
-    protected bool $skipForeignIfLock = true;
+    protected bool $skipForeignIfForUpdate = true;
     protected int $aliasMaxLength = 128;
 
     /** @var array<string, string> */
@@ -89,7 +90,7 @@ class PostgresqlQueryComposer extends BaseQueryComposer
     protected function quoteColumn(string $column): string
     {
         $list = explode('.', $column);
-        $list = array_map(fn ($item) => $this->quoteIdentifier($item), $list);
+        $list = array_map(fn ($item) => '"' . $item . '"', $list);
 
         return implode('.', $list);
     }
@@ -173,7 +174,7 @@ class PostgresqlQueryComposer extends BaseQueryComposer
         if ($function === 'UNIX_TIMESTAMP') {
             $arg = $argumentPartList[0] ?? 'NOW()';
 
-            return "FLOOR(EXTRACT(EPOCH FROM $arg::timestamp))";
+            return "FLOOR(EXTRACT(EPOCH FROM $arg))";
         }
 
         if ($function === 'BINARY') {
@@ -327,31 +328,27 @@ class PostgresqlQueryComposer extends BaseQueryComposer
             $from = $argumentPartList[0] ?? $this->quote(0);
             $to = $argumentPartList[1] ?? $this->quote(0);
 
-            $toEpoch = "EXTRACT(EPOCH FROM $to::timestamp)";
-            $fromEpoch = "EXTRACT(EPOCH FROM $from::timestamp)";
-
             switch ($function) {
                 case 'TIMESTAMPDIFF_YEAR':
-                    return "EXTRACT(YEAR FROM AGE($to::timestamp, $from::timestamp))";
+                    return "EXTRACT(YEAR FROM $to - $from)";
 
                 case 'TIMESTAMPDIFF_MONTH':
-                    return "EXTRACT(YEAR FROM AGE($to::timestamp, $from::timestamp)) * 12 + " .
-                        "EXTRACT(MONTH FROM AGE($to::timestamp, $from::timestamp))";
+                    return "EXTRACT(MONTH FROM $to - $from)";
 
                 case 'TIMESTAMPDIFF_WEEK':
-                    return "FLOOR(($toEpoch - $fromEpoch) / (3600 * 24) / 7)";
+                    return "FLOOR(EXTRACT(DAY FROM $to - $from) / 7)";
 
                 case 'TIMESTAMPDIFF_DAY':
-                    return "FLOOR(($toEpoch - $fromEpoch) / (3600 * 24))";
+                    return "EXTRACT(DAY FROM ($to) - $from)";
 
                 case 'TIMESTAMPDIFF_HOUR':
-                    return "FLOOR(($toEpoch - $fromEpoch) / 3600)";
+                    return "EXTRACT(HOUR FROM $to - $from)";
 
                 case 'TIMESTAMPDIFF_MINUTE':
-                    return "FLOOR(($toEpoch - $fromEpoch) / 60)";
+                    return "EXTRACT(MINUTE FROM $to - $from)";
 
                 case 'TIMESTAMPDIFF_SECOND':
-                    return "$toEpoch - $fromEpoch";
+                    return "FLOOR(EXTRACT(SECOND FROM $to - $from))";
             }
         }
 
@@ -530,11 +527,11 @@ class PostgresqlQueryComposer extends BaseQueryComposer
                 $alias = $this->sanitize($alias);
                 $column = $this->toDb($this->sanitize($attribute));
 
-                $left = $this->quoteColumn("$alias.$column");
+                $left = $this->quoteColumn("{$alias}.{$column}");
             } else {
                 $column = $this->toDb($this->sanitize($attribute));
 
-                $left = $this->quoteColumn("$column"); // Diff.
+                $left = $this->quoteColumn("{$column}"); // Diff.
             }
 
             $right = $isNotValue ?
@@ -583,12 +580,17 @@ class PostgresqlQueryComposer extends BaseQueryComposer
     protected function limit(string $sql, ?int $offset = null, ?int $limit = null): string
     {
         if (!is_null($offset) && !is_null($limit)) {
+            $offset = intval($offset);
+            $limit = intval($limit);
+
             $sql .= " LIMIT $limit OFFSET $offset";
 
             return $sql;
         }
 
         if (!is_null($limit)) {
+            $limit = intval($limit);
+
             $sql .= " LIMIT $limit";
 
             return $sql;

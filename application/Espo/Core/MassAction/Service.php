@@ -156,7 +156,7 @@ class Service
             ->create()
             ->setClassName(Process::class)
             ->setData(
-                JobData::create([Process::PARAM_USER_SCOPES => $this->user->getScopes()])
+                JobData::create()
                     ->withTargetId($entity->getId())
                     ->withTargetType($entity->getEntityType())
             )

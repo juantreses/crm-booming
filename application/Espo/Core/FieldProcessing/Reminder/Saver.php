@@ -31,7 +31,6 @@ namespace Espo\Core\FieldProcessing\Reminder;
 
 use Espo\Core\Field\DateTime;
 use Espo\Core\Name\Field;
-use Espo\Core\Utils\DateTime\Clock;
 use Espo\Core\Utils\Id\RecordIdGenerator;
 use Espo\Core\Utils\Metadata;
 use Espo\Entities\Preferences;
@@ -43,6 +42,7 @@ use Espo\Core\ORM\Entity as CoreEntity;
 use Espo\Core\FieldProcessing\Saver as SaverInterface;
 use Espo\Core\FieldProcessing\Saver\Params;
 use Espo\Core\ORM\EntityManager;
+
 use stdClass;
 
 /**
@@ -58,8 +58,7 @@ class Saver implements SaverInterface
         private EntityManager $entityManager,
         private RecordIdGenerator $idGenerator,
         private User $user,
-        private Metadata $metadata,
-        private Clock $clock,
+        private Metadata $metadata
     ) {}
 
     public function process(Entity $entity, Params $params): void
@@ -120,12 +119,14 @@ class Saver implements SaverInterface
                 $this->getPreferencesReminderList($typeList, $userId, $entityType) :
                 $this->getReminderList($entity, $typeList);
 
-            $this->createReminders($reminderList, $entity, $userId, $start);
+            foreach ($reminderList as $item) {
+                $this->createReminder($entity, $userId, $start, $item);
+            }
         }
     }
 
     /**
-     * @return array{seconds: int, type: string}[]
+     * @return object{seconds: int, type: string}[]
      */
     private function getEntityReminderDataList(CoreEntity $entity): array
     {
@@ -145,7 +146,7 @@ class Saver implements SaverInterface
             ->find();
 
         foreach ($collection as $reminder) {
-            $dataList[] = [
+            $dataList[] = (object) [
                 'seconds' => $reminder->getSeconds(),
                 'type' => $reminder->getType(),
             ];
@@ -281,7 +282,7 @@ class Saver implements SaverInterface
 
     /**
      * @param string[] $typeList
-     * @return array{seconds: int, type: string}[]
+     * @return object{seconds: int, type: string}[]
      */
     private function getReminderList(CoreEntity $entity, array $typeList): array
     {
@@ -301,7 +302,7 @@ class Saver implements SaverInterface
 
     /**
      * @param string[] $typeList
-     * @return array{seconds: int, type: string}[]
+     * @return object{seconds: int, type: string}[]
      */
     private function getPreferencesReminderList(array $typeList, string $userId, string $entityType): array
     {
@@ -327,7 +328,7 @@ class Saver implements SaverInterface
     /**
      * @param stdClass[] $list
      * @param string[] $typeList
-     * @return array{seconds: int, type: string}[]
+     * @return object{seconds: int, type: string}[]
      */
     private function sanitizeList(array $list, array $typeList): array
     {
@@ -341,7 +342,7 @@ class Saver implements SaverInterface
                 continue;
             }
 
-            $result[] = [
+            $result[] = (object) [
                 'seconds' => $seconds,
                 'type' => $type,
             ];
@@ -351,28 +352,22 @@ class Saver implements SaverInterface
     }
 
     /**
-     * @param array{seconds: int|null, type: string} $item
+     * @param object{seconds: int, type: string} $item
      */
     private function createReminder(
         CoreEntity $entity,
         string $userId,
         DateTime $start,
-        array $item,
-    ): bool {
+        object $item
+    ): void {
 
-        $seconds = $item['seconds'];
-        $type = $item['type'];
+        $seconds = $item->seconds;
+        $type = $item->type;
 
-        $now = DateTime::fromDateTime($this->clock->now());
+        $remindAt = $start->addSeconds(- $seconds);
 
-        if ($seconds !== null) {
-            $remindAt = $start->addSeconds(- $seconds);
-
-            if ($remindAt->isLessThan($now)) {
-                return false;
-            }
-        } else {
-            $remindAt = $now;
+        if ($remindAt->isLessThan(DateTime::createNow())) {
+            return;
         }
 
         $query = $this->entityManager
@@ -402,8 +397,6 @@ class Saver implements SaverInterface
             ->build();
 
         $this->entityManager->getQueryExecutor()->execute($query);
-
-        return true;
     }
 
     private function toRemove(CoreEntity $entity): bool
@@ -441,60 +434,5 @@ class Saver implements SaverInterface
         ];
 
         return in_array($statusFetched, $ignoreStatusList) && !in_array($status, $ignoreStatusList);
-    }
-
-    /**
-     * @param array{seconds: int, type: string}[] $list
-     */
-    private function createReminders(
-        array $list,
-        CoreEntity $entity,
-        string $userId,
-        DateTime $start,
-    ): void {
-
-        if ($list === []) {
-            return;
-        }
-
-        /** @var array<string, bool> $hasTypeMap */
-        $hasTypeMap = [];
-
-        /** @var array<string, bool> $createdTypeMap */
-        $createdTypeMap = [];
-
-        foreach ($list as $item) {
-            $type = $item['type'];
-            $hasTypeMap[$type] = true;
-
-            $isCreated = $this->createReminder(
-                entity: $entity,
-                userId: $userId,
-                start: $start,
-                item: $item,
-            );
-
-            if (!$isCreated) {
-                continue;
-            }
-
-            $createdTypeMap[$type] = true;
-        }
-
-        foreach (array_keys($hasTypeMap) as $type) {
-            if ($createdTypeMap[$type] ?? false) {
-                continue;
-            }
-
-            $this->createReminder(
-                entity: $entity,
-                userId: $userId,
-                start: $start,
-                item: [
-                    'type' => $type,
-                    'seconds' => null,
-                ],
-            );
-        }
     }
 }

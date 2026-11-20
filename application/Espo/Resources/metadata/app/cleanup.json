@@ -30,8 +30,5 @@
     },
     "appLog": {
         "className": "Espo\\Classes\\Cleanup\\AppLog"
-    },
-    "oAuthServer":{
-        "className": "Espo\\Tools\\OAuthServer\\Cleanup\\GeneralCleanup"
     }
 }

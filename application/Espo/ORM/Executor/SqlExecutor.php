@@ -29,7 +29,6 @@
 
 namespace Espo\ORM\Executor;
 
-use Espo\ORM\Exceptions\DeadlockException;
 use PDOStatement;
 
 /**
@@ -39,8 +38,6 @@ interface SqlExecutor
 {
     /**
      * Execute a query.
-     *
-     * @throws DeadlockException
      */
     public function execute(string $sql, bool $rerunIfDeadlock = false): PDOStatement;
 }

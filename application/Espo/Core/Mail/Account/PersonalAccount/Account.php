@@ -41,20 +41,15 @@ use Espo\Core\Mail\Account\ImapParams;
 use Espo\Core\Mail\Smtp\HandlerProcessor;
 use Espo\Core\Mail\SmtpParams;
 use Espo\Core\ORM\Repository\Option\SaveOption;
-use Espo\Core\ORM\Type\FieldType;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\Crypt;
 use Espo\Entities\EmailAccount;
-use Espo\Entities\InboundEmail;
 use Espo\Entities\User;
 use Espo\Entities\Email;
 use Espo\Core\Mail\Account\Account as AccountInterface;
 use Espo\Core\Mail\Account\FetchData;
 use Espo\ORM\EntityManager;
 
-use Espo\ORM\Mapper\Util;
-use Espo\ORM\Name\Attribute;
-use Espo\ORM\Query\UpdateBuilder;
 use RuntimeException;
 
 class Account implements AccountInterface
@@ -92,24 +87,9 @@ class Account implements AccountInterface
 
     public function updateFetchData(FetchData $fetchData): void
     {
-        $query = UpdateBuilder::create()
-            ->in(EmailAccount::ENTITY_TYPE)
-            ->where([
-                InboundEmail::FIELD_FETCH_VALIDITY_NUMBER => $fetchData->getValidityNumber(),
-                Attribute::ID => $this->entity->getId(),
-                Attribute::DELETED => false,
-            ])
-            ->set([
-                InboundEmail::FIELD_FETCH_DATA => Util::prepareValue(FieldType::JSON_OBJECT, $fetchData->getRaw()),
-            ])
-            ->build();
+        $this->entity->set('fetchData', $fetchData->getRaw());
 
-        $sth = $this->entityManager->getQueryExecutor()->execute($query);
-
-        if ($sth->rowCount() !== 0) {
-            $this->entity->setFetchData($fetchData);
-            $this->entity->setAsFetched();
-        }
+        $this->entityManager->saveEntity($this->entity, [SaveOption::SILENT => true]);
     }
 
     public function updateConnectedAt(): void
@@ -207,8 +187,7 @@ class Account implements AccountInterface
     public function getFetchData(): FetchData
     {
         return FetchData::fromRaw(
-            $this->entity->getFetchData(),
-            $this->entity->getFetchValidityNumber(),
+            $this->entity->getFetchData()
         );
     }
 

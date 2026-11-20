@@ -37,14 +37,14 @@ use Doctrine\DBAL\Types\Type;
  */
 class UuidType extends Type
 {
-    public const string NAME = 'uuid';
+    public const NAME = 'uuid';
 
-    public function getName(): string
+    public function getName()
     {
         return self::NAME;
     }
 
-    public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
+    public function getSQLDeclaration(array $column, AbstractPlatform $platform)
     {
         return 'UUID';
     }

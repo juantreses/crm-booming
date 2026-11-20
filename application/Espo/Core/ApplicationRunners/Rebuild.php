@@ -54,7 +54,6 @@ class Rebuild implements Runner
             $this->log->error('Rebuild: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'exception' => $e,
             ]);
 
             exit(1);

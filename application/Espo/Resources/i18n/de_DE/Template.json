@@ -1,6 +1,5 @@
 {
   "fields": {
-    "name": "Name",
     "body": "Inhalt",
     "entityType": "Entitätstyp",
     "header": "Kopfzeile",
@@ -20,8 +19,6 @@
     "headerPosition": "Kopfzeilen-Position",
     "printHeader": "Header ausgeben",
     "title": "Titel",
-    "style": "Style",
-    "status": "Status",
     "filename": "Dateiname"
   },
   "labels": {
@@ -30,8 +27,7 @@
   "tooltips": {
     "footer": "Verwenden Sie den Platzhalter {pageNumber}, um eine Seitennummer zu drucken.",
     "variables": "Kopieren und fügen Sie benötigte Platzhalter in die Kopfzeile, den Inhalt oder in die Fußzeile ein.",
-    "filename": "Ein optionaler Dateiname. Entitätsattribute können als Platzhalter verwendet werden.\n\nZusätzlicher Platzhalter:\n- `{{today}}`\n\nBeispiel:\n`Dokument_{{today}}_{{name}}`",
-    "body": "Weiterführende [Dokumentation](https://docs.espocrm.com/user-guide/printing-to-pdf/#templates).\n\nVerwenden Sie die Code-Ansicht für die präzise Bearbeitung des Markups.\n\nWeitere Tag-Attribute:\n- `x-if`\n- `iterate`"
+    "filename": "Ein optionaler Dateiname. Entitätsattribute können als Platzhalter verwendet werden.\n\nZusätzlicher Platzhalter:\n- `{{today}}`\n\nBeispiel:\n`Dokument_{{today}}_{{name}}`"
   },
   "options": {
     "pageOrientation": {

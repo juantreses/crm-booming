@@ -51,6 +51,7 @@
     "storeSentEmails": "Os emails serão armazenados no CRM."
   },
   "presetFilters": {
+    "actual": "Real",
     "complete": "Completo"
   }
 }

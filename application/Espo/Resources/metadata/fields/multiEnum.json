@@ -82,11 +82,6 @@
             "name": "optionsPath",
             "type": "varchar",
             "hidden": true
-        },
-        {
-            "name": "maxItemLength",
-            "type": "int",
-            "hidden": true
         }
     ],
     "validationList": [

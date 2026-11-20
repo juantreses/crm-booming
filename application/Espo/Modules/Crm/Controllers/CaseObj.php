@@ -40,7 +40,7 @@ use stdClass;
 
 class CaseObj extends Record
 {
-    protected string $name = CaseEntity::ENTITY_TYPE;
+    protected $name = CaseEntity::ENTITY_TYPE;
 
     /**
      * @return stdClass[]

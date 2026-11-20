@@ -50,14 +50,12 @@ class Route extends BaseRoute
             $path = '/{portalId}' . $path;
 
             $newRoute = new RouteItem(
-                method: $route->getMethod(),
-                route: $route->getRoute(),
-                adjustedRoute: $path,
-                params: $route->getParams(),
-                noAuth: $route->noAuth(),
-                consumes: $route->getConsumes(),
-                actionClassName: $route->getActionClassName(),
-                apiAuthForbidden: $route->apiAuthForbidden(),
+                $route->getMethod(),
+                $route->getRoute(),
+                $path,
+                $route->getParams(),
+                $route->noAuth(),
+                $route->getActionClassName()
             );
 
             $newRouteList[] = $newRoute;

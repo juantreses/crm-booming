@@ -34,23 +34,9 @@ use Espo\Core\ORM\Entity;
 
 class ScheduledJob extends Entity
 {
-    public const string ENTITY_TYPE = 'ScheduledJob';
+    public const ENTITY_TYPE = 'ScheduledJob';
 
-    public const string STATUS_ACTIVE = 'Active';
-
-    /**
-     * @since 10.1.0
-     */
-    public const string FIELD_SCHEDULING = 'scheduling';
-    /**
-     * @since 10.1.0
-     */
-    public const string FIELD_STATUS = 'status';
-
-    /**
-     * @since 10.0.0
-     */
-    public const string FIELD_JOB = 'job';
+    public const STATUS_ACTIVE = 'Active';
 
     public function getName(): ?string
     {
@@ -59,43 +45,11 @@ class ScheduledJob extends Entity
 
     public function getScheduling(): ?string
     {
-        return $this->get(self::FIELD_SCHEDULING);
+        return $this->get('scheduling');
     }
 
     public function getJob(): ?string
     {
-        return $this->get(self::FIELD_JOB);
-    }
-
-    /**
-     * @since 10.0.0
-     */
-    public function setActive(): self
-    {
-        return $this->set(self::FIELD_STATUS, self::STATUS_ACTIVE);
-    }
-
-    /**
-     * @since 10.0.0
-     */
-    public function setName(string $name): self
-    {
-        return $this->set(Field::NAME, $name);
-    }
-
-    /**
-     * @since 10.0.0
-     */
-    public function setScheduling(string $scheduling): self
-    {
-        return $this->set(self::FIELD_SCHEDULING, $scheduling);
-    }
-
-    /**
-     * @since 10.0.0
-     */
-    public function setJob(string $job): self
-    {
-        return $this->set(self::FIELD_JOB, $job);
+        return $this->get('job');
     }
 }

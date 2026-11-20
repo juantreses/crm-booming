@@ -73,9 +73,6 @@ class Service
             throw new NotFound();
         }
 
-        // It does not check field-level access to the email's attachments field.
-        // Do not treat it as a problem when scanning.
-
         $this->attachmentAccessChecker->check($fieldData);
 
         $list = [];

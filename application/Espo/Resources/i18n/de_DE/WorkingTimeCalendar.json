@@ -18,14 +18,9 @@
     "weekday3TimeRanges": "Mi Zeitplan",
     "weekday4TimeRanges": "Do Zeitplan",
     "weekday5TimeRanges": "Fr Zeitplan",
-    "weekday6TimeRanges": "Sa Zeitplan",
-    "isDefault": "Ist Standard"
+    "weekday6TimeRanges": "Sa Zeitplan"
   },
   "links": {
-    "ranges": "Ausnahmen",
-    "users": "Benutzer"
-  },
-  "tooltips": {
-    "isDefault": "Gibt an, ob dieser Kalender der Systemstandard ist. Der Standard-Arbeitszeitkalender kann unter „Administration > Einstellungen > Arbeitszeitkalender“ konfiguriert werden."
+    "ranges": "Ausnahmen"
   }
 }

@@ -27,10 +27,5 @@
   },
   "labels": {
     "Field": "Lauks"
-  },
-  "fields": {
-    "localField": "Vietējais lauks",
-    "foreignField": "Ārvalstu lauks",
-    "matchRequired": "Nepieciešama atbilsme"
   }
 }

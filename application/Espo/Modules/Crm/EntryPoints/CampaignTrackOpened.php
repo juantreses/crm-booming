@@ -30,7 +30,9 @@
 namespace Espo\Modules\Crm\EntryPoints;
 
 use Espo\Entities\User;
+use Espo\Modules\Crm\Entities\Campaign;
 use Espo\Modules\Crm\Entities\EmailQueueItem;
+use Espo\Modules\Crm\Entities\MassEmail;
 use Espo\Modules\Crm\Tools\Campaign\LogService;
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
@@ -40,9 +42,6 @@ use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Core\ORM\EntityManager;
 
-/**
- * @noinspection PhpUnused
- */
 class CampaignTrackOpened implements EntryPoint
 {
     use NoAuth;

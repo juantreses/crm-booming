@@ -1,8 +1,6 @@
 {
   "fields": {
-    "name": "Name",
     "number": "Nummer",
-    "status": "Status",
     "account": "Firma",
     "contact": "Kontakt",
     "contacts": "Kontakte",
@@ -19,7 +17,6 @@
     "account": "Firma",
     "contact": "Kontakt (Primär)",
     "Contacts": "Kontakte",
-    "meetings": "Meetings",
     "calls": "Anrufe",
     "tasks": "Aufgaben",
     "emails": "E-Mails",
@@ -39,14 +36,12 @@
     },
     "priority": {
       "Low": "Niedrig",
-      "Normal": "Normal",
       "High": "Hoch",
       "Urgent": "Dringend"
     },
     "type": {
       "Question": "Frage",
-      "Incident": "Vorfall",
-      "Problem": "Problem"
+      "Incident": "Vorfall"
     }
   },
   "labels": {

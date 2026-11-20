@@ -40,32 +40,14 @@ use stdClass;
 
 class Job extends Entity
 {
-    public const string ENTITY_TYPE = 'Job';
-
-    /** @since v10.1.0  */
-    public const string FIELD_STATUS = 'status';
-    /** @since v10.1.0  */
-    public const string FIELD_TARGET_GROUP = 'targetGroup';
-    /** @since v10.1.0  */
-    public const string FIELD_GROUP = 'group';
-    /** @since v10.1.0  */
-    public const string FIELD_QUEUE = 'queue';
-    /** @since v10.1.0  */
-    public const string FIELD_EXECUTION_TIME = 'executeTime';
-
-    /** @since v10.1.0 */
-    public const string ATTR_SCHEDULED_JOB_ID = 'scheduledJobId';
-    /** @since v10.1.0 */
-    public const string ATTR_TARGET_ID = 'targetId';
-    /** @since v10.1.0 */
-    public const string ATTR_TARGET_TYPE = 'targetType';
+    public const ENTITY_TYPE = 'Job';
 
     /**
      * Get a status.
      */
     public function getStatus(): string
     {
-        return $this->get(self::FIELD_STATUS);
+        return $this->get('status');
     }
 
     /**
@@ -143,11 +125,27 @@ class Job extends Entity
     }
 
     /**
+     * Get a service name.
+     */
+    public function getServiceName(): ?string
+    {
+        return $this->get('serviceName');
+    }
+
+    /**
+     * Get a method name.
+     */
+    public function getMethodName(): ?string
+    {
+        return $this->get('methodName');
+    }
+
+    /**
      * Get a scheduled job ID.
      */
     public function getScheduledJobId(): ?string
     {
-        return $this->get(self::ATTR_SCHEDULED_JOB_ID);
+        return $this->get('scheduledJobId');
     }
 
     /**
@@ -189,7 +187,7 @@ class Job extends Entity
      */
     public function setStatus(string $status): self
     {
-        return $this->set(self::FIELD_STATUS, $status);
+        return $this->set('status', $status);
     }
 
     /**
@@ -238,12 +236,12 @@ class Job extends Entity
 
     public function setTargetId(?string $targetId): self
     {
-        return $this->set(self::ATTR_TARGET_ID, $targetId);
+        return $this->set('targetId', $targetId);
     }
 
     public function setTargetType(?string $targetType): self
     {
-        return $this->set(self::ATTR_TARGET_TYPE, $targetType);
+        return $this->set('targetType', $targetType);
     }
 
     public function setData(?JobJob\Data $data): self
@@ -257,19 +255,6 @@ class Job extends Entity
 
     public function setExecuteTime(?DateTime $executeTime): self
     {
-        return $this->setValueObject(self::FIELD_EXECUTION_TIME, $executeTime);
-    }
-
-    /**
-     * @since 10.1.0
-     */
-    public function setScheduleJobId(?string $scheduledJobId): self
-    {
-        return $this->set(self::ATTR_SCHEDULED_JOB_ID, $scheduledJobId);
-    }
-
-    public function setTargetGroup(?string $group): self
-    {
-        return $this->set(self::FIELD_TARGET_GROUP, $group);
+        return $this->setValueObject('executeTime', $executeTime);
     }
 }

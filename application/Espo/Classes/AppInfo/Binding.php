@@ -33,15 +33,17 @@ use Espo\Core\Binding\Binding as BindingItem;
 use Espo\Core\Binding\EspoBindingLoader;
 use Espo\Core\Console\Command\Params;
 use Espo\Core\Utils\Module;
-use Espo\Tools\ConsoleAppInfo\InfoProvider;
 
-class Binding implements InfoProvider
+class Binding
 {
+    private Module $module;
 
-    public function __construct(private Module $module)
-    {}
+    public function __construct(Module $module)
+    {
+        $this->module = $module;
+    }
 
-    public function get(Params $params): string
+    public function process(Params $params): string
     {
         $result = '';
 

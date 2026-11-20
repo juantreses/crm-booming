@@ -57,7 +57,7 @@ class Settings
      */
     public function putActionUpdate(Request $request): stdClass
     {
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             throw new Forbidden();
         }
 
@@ -70,6 +70,13 @@ class Settings
 
     private function getConfigData(): stdClass
     {
-        return $this->service->getConfigData();
+        $data = $this->service->getConfigData();
+        $metadataData = $this->service->getMetadataConfigData();
+
+        foreach (get_object_vars($metadataData) as $key => $value) {
+            $data->$key = $value;
+        }
+
+        return $data;
     }
 }

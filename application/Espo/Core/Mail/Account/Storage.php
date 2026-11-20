@@ -30,7 +30,6 @@
 namespace Espo\Core\Mail\Account;
 
 use Espo\Core\Field\DateTime;
-use Espo\Core\Mail\Account\Storage\FolderStatus;
 use Espo\Core\Mail\Exceptions\ImapError;
 
 interface Storage
@@ -110,12 +109,4 @@ interface Storage
      * @throws ImapError
      */
     public function appendMessage(string $content, string $folder): void;
-
-    /**
-     * Get folder status. Should be called after the folder is selected.
-     *
-     * @throws ImapError
-     * @since 10.0
-     */
-    public function getFolderStatus(): FolderStatus;
 }

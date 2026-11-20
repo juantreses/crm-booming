@@ -29,33 +29,13 @@
 
 namespace Espo\Core\Formula\Functions;
 
-use Espo\Core\Formula\Exceptions\BadArgumentType;
 use Espo\Core\Formula\Exceptions\Error;
-use Espo\Core\Formula\Exceptions\NotAllowedUsage;
-use Espo\Core\Formula\Exceptions\TooFewArguments;
-use Espo\Core\Formula\Processor;
 use Espo\Core\Formula\Utils\EntityUtil;
-use Espo\ORM\Entity;
 use Espo\ORM\Name\Attribute;
 use stdClass;
 
 class SetAttributeType extends Base
 {
-    public function __construct(
-        private EntityUtil $entityUtil,
-        string $name,
-        Processor $processor,
-        ?Entity $entity = null,
-        ?stdClass $variables = null,
-    ) {
-        parent::__construct(
-            name: $name,
-            processor: $processor,
-            entity: $entity,
-            variables: $variables,
-        );
-    }
-
     /**
      * @return mixed
      * @throws Error
@@ -63,32 +43,26 @@ class SetAttributeType extends Base
     public function process(stdClass $item)
     {
         if (count($item->value) < 2) {
-            throw TooFewArguments::create(2);
+            throw new Error("SetAttribute: Too few arguments.");
         }
 
-        $attribute = $this->evaluate($item->value[0]);
+        $name = $this->evaluate($item->value[0]);
 
-        if (!is_string($attribute)) {
-            throw BadArgumentType::create(1, 'string');
+        if (!is_string($name)) {
+            throw new Error("SetAttribute: First argument is not string.");
         }
 
-        if ($attribute === Attribute::ID) {
-            throw new NotAllowedUsage("Not allowed to set `id` attribute.");
+        if ($name === Attribute::ID) {
+            throw new Error("Formula set-attribute: Not allowed to set `id` attribute.");
         }
 
         $value = $this->evaluate($item->value[1]);
 
         $entity = $this->getEntity();
 
-        $entityType = $entity->getEntityType();
+        $entity->set($name, $value);
 
-        if (in_array($attribute, $this->entityUtil->getWriteRestrictedAttributeList($entityType))) {
-            throw new NotAllowedUsage("Cannot write $entityType.$attribute.");
-        }
-
-        $entity->set($attribute, $value);
-
-        $this->entityUtil->assertUpdateAccess($entity);
+        EntityUtil::checkUpdateAccess($entity);
 
         return $value;
     }

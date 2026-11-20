@@ -29,7 +29,6 @@
 
 namespace Espo\Core\Api;
 
-use Espo\Core\Api\Route\ContentType;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\Error;
@@ -48,7 +47,7 @@ use Slim\Psr7\Factory\ResponseFactory;
  */
 class ActionHandler implements RequestHandlerInterface
 {
-    private const string DEFAULT_CONTENT_TYPE = ContentType::APPLICATION_JSON;
+    private const DEFAULT_CONTENT_TYPE = 'application/json';
 
     public function __construct(
         private Action $action,

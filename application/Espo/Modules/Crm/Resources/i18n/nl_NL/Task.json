@@ -2,7 +2,6 @@
   "fields": {
     "name": "Naam",
     "parent": "Behorende bij",
-    "status": "Status",
     "dateStart": "Start Datum",
     "dateEnd": "Voltooi datum",
     "dateStartDate": "Startdatum (de hele dag)",
@@ -14,13 +13,11 @@
     "dateCompleted": "Datum voltooid",
     "attachments": "Bijlagen",
     "reminders": "Herinneringen",
-    "contact": "Contact",
     "originalEmail": "Originele e-mail"
   },
   "links": {
     "attachments": "Bijlagen",
     "account": "Relatie",
-    "contact": "Contact",
     "email": "E-mail"
   },
   "options": {
@@ -34,8 +31,7 @@
     "priority": {
       "Low": "Laag",
       "Normal": "Normaal",
-      "High": "Hoog",
-      "Urgent": "Urgent"
+      "High": "Hoog"
     }
   },
   "labels": {
@@ -47,8 +43,7 @@
     "completed": "Voltooid",
     "todays": "Vandaag",
     "overdue": "Verstreken",
-    "deferred": "Uitgestelde",
-    "actual": "Open"
+    "deferred": "Uitgestelde"
   },
   "nameOptions": {
     "replyToEmail": "E-mail beantwoorden"

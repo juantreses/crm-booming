@@ -164,7 +164,7 @@ class PostUsers implements Action
 
         $notification
             ->setType('EmailInbox')
-            ->setRelated(LinkParent::fromEntity($email))
+            ->setRelated(LinkParent::createFromEntity($email))
             ->setUserId($user->getId())
             ->setData([
                 'emailName' => $email->getSubject(),

@@ -54,7 +54,7 @@ use Espo\Tools\Stream\RecordService\QueryHelper;
 
 class RecordService
 {
-    private const int PINNED_MAX_SIZE = 100;
+    private const PINNED_MAX_SIZE = 100;
 
     public function __construct(
         private EntityManager $entityManager,
@@ -111,7 +111,7 @@ class RecordService
             throw new Forbidden();
         }
 
-        if ($entity instanceof User && !$this->user->isEffectiveAdmin()) {
+        if ($entity instanceof User && !$this->user->isAdmin()) {
             throw new Forbidden();
         }
 
@@ -141,7 +141,7 @@ class RecordService
         ];
 
         if ($this->user->isPortal()) {
-            $where[] = ['isInternal' => false];
+            $where[] = ['isInternal' => true];
         }
 
         $this->applyPortalAccess($builder, $where);
@@ -344,13 +344,15 @@ class RecordService
             return;
         }
 
+        $notAllEntityTypeList = $this->helper->getNotAllEntityTypeList($this->user);
+
         $orGroup = [
             [
                 'relatedId' => null,
             ],
             [
                 'relatedId!=' => null,
-                'relatedType!=' => $this->helper->getNotAllEntityTypeList($this->user),
+                'relatedType!=' => $notAllEntityTypeList,
             ],
         ];
 
@@ -461,8 +463,6 @@ class RecordService
             ->create()
             ->from(Attachment::ENTITY_TYPE)
             ->withSearchParams($searchParams)
-            ->withComplexExpressionsForbidden()
-            ->withWherePermissionCheck()
             ->buildQueryBuilder()
             ->where(
                 Condition::in(

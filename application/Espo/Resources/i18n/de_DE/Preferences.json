@@ -19,7 +19,6 @@
     "receiveAssignmentEmailNotifications": "E-Mail Nachrichten bei Zuweisungen erhalten",
     "receiveMentionEmailNotifications": "E-Mail-Benachrichtigungen über Erwähnungen in Beiträgen",
     "receiveStreamEmailNotifications": "E-Mail-Benachrichtigungen über Beiträge und Statusaktualisierungen",
-    "dashboardLayout": "Dashboard Layout",
     "emailReplyForceHtml": "E-Mail Antwort als HTML",
     "autoFollowEntityTypeList": "Automatisches Abonnieren",
     "emailReplyToAllByDefault": "Standardmäßig allen antworten",
@@ -39,10 +38,7 @@
     "reactionNotifications": "In-App-Benachrichtigungen über Reaktionen",
     "pageContentWidth": "Inhaltsbreite",
     "reactionNotificationsNotFollowed": "Benachrichtigungen über Reaktionen auf nicht verfolgte Datensätze",
-    "followAsCollaborator": "Automatisches Folgen, wenn als Mitwirkender hinzugefügt",
-    "notificationGrouping": "Gruppenbenachrichtigungen",
-    "notificationSound": "Benachrichtigungston",
-    "recordContentWidth": "Breite des Datensatzinhalts"
+    "followAsCollaborator": "Automatisches Folgen, wenn als Mitwirkender hinzugefügt"
   },
   "options": {
     "weekStart": {
@@ -50,14 +46,7 @@
       "1": "Montag"
     },
     "pageContentWidth": {
-      "": "Normal",
-      "Wide": "Breit",
-      "Full": "Volle"
-    },
-    "recordContentWidth": {
-      "": "Normal",
-      "Wide": "Breit",
-      "Full": "Volle"
+      "Wide": "Breit"
     }
   },
   "labels": {
@@ -72,13 +61,10 @@
     "addCustomTabs": "Wenn diese Option aktiviert ist, werden benutzerdefinierte Registerkarten an die Standardregisterkarten angehängt. Andernfalls werden benutzerdefinierte Registerkarten anstelle der Standardregisterkarten verwendet.",
     "doNotFillAssignedUserIfNotRequired": "Beim Anlegen eines neuen Datensatzes wird der zugewiesene Benutzer nicht automatisch mit dem eigenen Benutzer vorausgefüllt.  Wenn das Feld „Zugewiesener Benutzer“ erforderlich ist, hat dieser Parameter keine Auswirkung.",
     "followCreatedEntities": "Erstellte Datensätze werden automatisch abonniert, unabhängig davon, wem sie zugewiesen wurden.",
-    "followCreatedEntityTypeList": "Datensätze der ausgewählten Entitätstypen werden automatisch abonniert, unabhängig davon, wem sie zugewiesen sind. Verwenden Sie diesen Parameter, um nur bestimmte Entitätstypen zu abonnieren.",
-    "pageContentWidth": "Die maximale Breite des Inhaltsbereichs. Die Einstellung „Normal“ sorgt für eine bessere Lesbarkeit, während mit der Einstellung „Breit“ mehr Spalten in Listen angezeigt werden können.",
-    "recordContentWidth": "Die maximale Breite des Bereichs für die Detailansicht des Datensatzes. Bei der Einstellung „Volle“ wird der gesamte Seiteninhaltsbereich ausgenutzt."
+    "followCreatedEntityTypeList": "Datensätze der ausgewählten Entitätstypen werden automatisch abonniert, unabhängig davon, wem sie zugewiesen sind. Verwenden Sie diesen Parameter, um nur bestimmte Entitätstypen zu abonnieren."
   },
   "tabFields": {
     "label": "Bezeichnung",
-    "iconClass": "Icon",
     "color": "Farbe"
   }
 }

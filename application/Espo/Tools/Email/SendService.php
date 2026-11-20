@@ -102,7 +102,6 @@ class SendService
         private PersonalAccountFactory $personalAccountFactory,
         private GroupAccountFactory $groupAccountFactory,
         private ConfigDataProvider $configDataProvider,
-        private GroupFolderApplier $groupFolderApplier,
     ) {}
 
     /**
@@ -235,7 +234,7 @@ class SendService
 
             $this->entityManager->saveEntity($entity, [SaveOption::SILENT => true]);
 
-            $this->log->error("Email sending error.", ['exception' => $e]);
+            $this->log->error("Email sending: " . $e->getMessage(), ['exception' => $e]);
 
             $errorData = [
                 'id' => $entity->getId(),
@@ -411,7 +410,7 @@ class SendService
         if (
             $userId &&
             $userId !== $this->user->getId() &&
-            !$this->user->isEffectiveAdmin()
+            !$this->user->isAdmin()
         ) {
             throw new Forbidden();
         }
@@ -425,11 +424,11 @@ class SendService
             throw new NotFound("User not found.");
         }
 
-        $email = $this->entityManager->getRDBRepositoryByClass(Email::class)->getNew();
+        /** @var Email $email */
+        $email = $this->entityManager->getNewEntity(Email::ENTITY_TYPE);
 
         $email
             ->setSubject('EspoCRM: Test Email')
-            ->setBody('Email sending test.')
             ->setIsHtml(false)
             ->addToAddress($emailAddress);
 
@@ -559,7 +558,7 @@ class SendService
             $personalAccount = $this->personalAccountFactory->create($id);
 
             if (
-                !$this->user->isEffectiveAdmin() &&
+                !$this->user->isAdmin() &&
                 $personalAccount->getUser()->getId() !== $this->user->getId()
             ) {
                 throw new Forbidden();
@@ -570,7 +569,7 @@ class SendService
             return $smtpParams?->getPassword();
         }
 
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             throw new Forbidden();
         }
 
@@ -600,8 +599,6 @@ class SendService
 
         if ($replied && $replied->getGroupFolder()) {
             $entity->setGroupFolder($replied->getGroupFolder());
-
-            $this->groupFolderApplier->apply($entity, $replied->getGroupFolder());
         }
     }
 }

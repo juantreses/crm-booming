@@ -1,11 +1,9 @@
 {
   "fields": {
-    "status": "Status",
     "executeTime": "Wykonaj o",
     "attempts": "Pozostałe próby",
-    "failedAttempts": "Nieudane próby",
     "scheduledJob": "Zaplanowane zadanie",
-    "data": "Dane",
+    "method": "Metoda (przestarzała)",
     "scheduledJobJob": "Nazwa zaplanowanego zadania",
     "executedAt": "Wykonano",
     "startedAt": "Rozpoczęto",
@@ -13,17 +11,12 @@
     "targetId": "ID celu",
     "number": "Numer",
     "queue": "Kolejka",
-    "job": "Praca",
-    "group": "Grupa",
-    "className": "Nazwa klasy",
-    "targetGroup": "Grupa docelowa"
+    "job": "Praca"
   },
   "options": {
     "status": {
       "Pending": "Oczekiwanie",
-      "Success": "Sukces",
-      "Running": "W trakcie",
-      "Failed": "Niepowodzenie"
+      "Success": "Sukces"
     }
   }
 }

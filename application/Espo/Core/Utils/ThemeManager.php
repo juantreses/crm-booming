@@ -29,7 +29,6 @@
 
 namespace Espo\Core\Utils;
 
-use Espo\Core\Utils\Theme\Direction;
 use Espo\Core\Utils\Theme\MetadataProvider;
 
 class ThemeManager
@@ -52,32 +51,6 @@ class ThemeManager
     public function getStylesheet(): string
     {
         return $this->metadataProvider->getStylesheet($this->getName());
-    }
-
-    public function getDirection(): Direction
-    {
-        $rawDirection = $this->config->get('themeParams.direction');
-        $direction = is_string($rawDirection) ? Direction::tryFrom($rawDirection) : null;
-
-        if ($direction) {
-            return $direction;
-        }
-
-        $rawDirection = $this->metadata->get(
-            ['themes', $this->getName(), 'params', 'direction', 'default']
-        );
-
-        if (!is_string($rawDirection)) {
-            return Direction::Ltr;
-        }
-
-        $direction = Direction::tryFrom($rawDirection);
-
-        if (!$direction) {
-            return Direction::Ltr;
-        }
-
-        return $direction;
     }
 
     public function getLogoSrc(): string

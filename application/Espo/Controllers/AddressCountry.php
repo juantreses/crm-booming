@@ -36,7 +36,7 @@ class AddressCountry extends RecordBase
 {
     protected function checkAccess(): bool
     {
-        return $this->user->isEffectiveAdmin();
+        return $this->user->isAdmin();
     }
 
     public function postActionPopulateDefaults(): bool

@@ -69,9 +69,6 @@ class FilterProvider
     private function getClassNameList(string $entityType): array
     {
         /** @var class-string<Filter<Entity>>[] */
-        return [
-            ...$this->metadata->get("app.record.outputFilterClassNameList", []),
-            ...$this->metadata->get("recordDefs.$entityType.outputFilterClassNameList", []),
-        ];
+        return $this->metadata->get("recordDefs.$entityType.outputFilterClassNameList") ?? [];
     }
 }

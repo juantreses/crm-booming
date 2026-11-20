@@ -35,28 +35,16 @@ use Espo\Core\ORM\Entity as BaseEntity;
 
 class AuthToken extends BaseEntity implements AuthTokenInterface
 {
-    public const string ENTITY_TYPE = 'AuthToken';
-
-    /** @since 10.0.0 */
-    public const string FIELD_PASSWORD_VERSION = 'passwordVersion';
-
-    /** @since 10.1.0 */
-    public const string FIELD_IS_ACTIVE = 'isActive';
-
-    /** @since 10.1.0 */
-    public const string FIELD_TOKEN = 'token';
-
-    /** @since 10.1.0 */
-    public const string ATTR_USER_ID = 'userId';
+    public const ENTITY_TYPE = 'AuthToken';
 
     public function getToken(): string
     {
-        return $this->get(self::FIELD_TOKEN);
+        return $this->get('token');
     }
 
     public function getUserId(): string
     {
-        return $this->get(self::ATTR_USER_ID);
+        return $this->get('userId');
     }
 
     public function getPortalId(): ?string
@@ -71,34 +59,24 @@ class AuthToken extends BaseEntity implements AuthTokenInterface
 
     public function isActive(): bool
     {
-        return $this->get(self::FIELD_IS_ACTIVE);
+        return $this->get('isActive');
     }
 
-    public function getPasswordVersion(): ?int
+    public function getHash(): ?string
     {
-        return $this->get(self::FIELD_PASSWORD_VERSION);
-    }
-
-    /**
-     * @since 10.0.0
-     */
-    public function setPasswordVersion(?int $version): self
-    {
-        $this->set(self::FIELD_PASSWORD_VERSION, $version);
-
-        return $this;
+        return $this->get('hash');
     }
 
     public function setIsActive(bool $isActive): self
     {
-        $this->set(self::FIELD_IS_ACTIVE, $isActive);
+        $this->set('isActive', $isActive);
 
         return $this;
     }
 
     public function setUserId(string $userId): self
     {
-        $this->set(self::ATTR_USER_ID, $userId);
+        $this->set('userId', $userId);
 
         return $this;
     }
@@ -110,9 +88,16 @@ class AuthToken extends BaseEntity implements AuthTokenInterface
         return $this;
     }
 
+    public function setHash(?string $hash): self
+    {
+        $this->set('hash', $hash);
+
+        return $this;
+    }
+
     public function setToken(string $token): self
     {
-        $this->set(self::FIELD_TOKEN, $token);
+        $this->set('token', $token);
 
         return $this;
     }

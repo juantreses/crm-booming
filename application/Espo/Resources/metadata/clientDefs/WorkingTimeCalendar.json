@@ -15,17 +15,5 @@
                 }
             ]
         }
-    },
-    "relationshipPanels": {
-        "teams": {
-            "createDisabled": true,
-            "editDisabled": true,
-            "removeDisabled": true
-        },
-        "users": {
-            "createDisabled": true,
-            "editDisabled": true,
-            "removeDisabled": true
-        }
     }
 }

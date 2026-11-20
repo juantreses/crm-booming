@@ -44,7 +44,7 @@
         },
         "defaults": {
             "displayRecords": 10,
-            "autorefreshInterval": null,
+            "autorefreshInterval": 0.5,
             "expandedLayout": {
                 "rows": []
             }

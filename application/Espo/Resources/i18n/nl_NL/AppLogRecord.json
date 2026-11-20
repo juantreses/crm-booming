@@ -1,7 +1,6 @@
 {
   "fields": {
     "message": "Bericht",
-    "code": "Code",
     "level": "Niveau",
     "exceptionClass": "Uitzonderings klasse",
     "file": "Bestand",

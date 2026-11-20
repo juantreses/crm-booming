@@ -29,60 +29,32 @@
 
 namespace Espo\Core\Formula\Functions\EntityGroup;
 
-use Espo\Core\Acl\SystemRestriction;
-use Espo\Core\Formula\EvaluatedArgumentList;
-use Espo\Core\Formula\Exceptions\BadArgumentType;
 use Espo\Core\Formula\Exceptions\Error;
-use Espo\Core\Formula\Exceptions\NotAllowedUsage;
-use Espo\Core\Formula\Exceptions\NotPassedEntity;
-use Espo\Core\Formula\Exceptions\TooFewArguments;
-use Espo\Core\Formula\Func;
-use Espo\Core\ORM\Entity as CoreEntity;
-use Espo\ORM\Entity;
-use Espo\ORM\EntityManager;
+use Espo\Core\Formula\Functions\Base;
 
-/**
- * @noinspection PhpUnused
- */
-class IsRelatedType implements Func
+use Espo\Core\Di;
+
+class IsRelatedType extends Base implements
+    Di\EntityManagerAware
 {
-    public function __construct(
-        private SystemRestriction $systemRestriction,
-        private EntityManager $entityManager,
-        private ?Entity $entity = null,
-    ) {}
+    use Di\EntityManagerSetter;
 
-    public function process(EvaluatedArgumentList $arguments): bool
+    /**
+     * @return bool
+     * @throws Error
+     */
+    public function process(\stdClass $item)
     {
-        $entity = $this->entity ?? throw new NotPassedEntity();
-
-        if (!$entity instanceof CoreEntity) {
-            throw new Error("Non-core entity.");
+        if (count($item->value) < 2) {
+            throw new Error("isRelated: roo few arguments.");
         }
 
-        if (count($arguments) < 2) {
-            throw TooFewArguments::create(1);
-        }
-
-        $link = $arguments[0];
-        $id = $arguments[1];
-
-        if (!is_string($link)) {
-            throw BadArgumentType::create(1, 'string');
-        }
-
-        if (!is_string($id)) {
-            throw BadArgumentType::create(2, 'string');
-        }
-
-        $entityType = $entity->getEntityType();
-
-        if (!$this->systemRestriction->checkLinkRead($entityType, $link)) {
-            throw new NotAllowedUsage("Cannot read restricted field $entityType.$link.");
-        }
+        $link = $this->evaluate($item->value[0]);
+        $id = $this->evaluate($item->value[1]);
 
         return $this->entityManager
-            ->getRelation($entity, $link)
+            ->getRDBRepository($this->getEntity()->getEntityType())
+            ->getRelation($this->getEntity(), $link)
             ->isRelatedById($id);
     }
 }

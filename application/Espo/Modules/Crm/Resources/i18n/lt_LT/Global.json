@@ -13,9 +13,7 @@
     "documents": "Dokumentai",
     "account": "Įmonė",
     "opportunity": "Galimybė",
-    "contact": "Kontaktas",
-    "meetingsChildren": "Susitikimai su vaikais",
-    "callsChildren": "Skambina vaikams"
+    "contact": "Kontaktas"
   },
   "scopeNames": {
     "Account": "Įmonė",

@@ -29,23 +29,15 @@
 
 namespace Espo\Core\Formula\Functions\RecordGroup;
 
-use Espo\Core\Acl\SystemRestriction;
 use Espo\Core\Formula\ArgumentList;
-use Espo\Core\Formula\Exceptions\BadArgumentType;
-use Espo\Core\Formula\Exceptions\NotAllowedUsage;
 use Espo\Core\Formula\Functions\BaseFunction;
 use Espo\Core\Di;
 use stdClass;
 
-/**
- * @noinspection PhpUnused
- */
 class RelateType extends BaseFunction implements
-    Di\EntityManagerAware,
-    Di\InjectableFactoryAware
+    Di\EntityManagerAware
 {
     use Di\EntityManagerSetter;
-    use Di\InjectableFactorySetter;
 
     public function process(ArgumentList $args)
     {
@@ -60,22 +52,20 @@ class RelateType extends BaseFunction implements
         $columnData = count($args) > 4 ? $this->evaluate($args[4]) : null;
 
         if (!$entityType || !is_string($entityType)) {
-            throw BadArgumentType::create(1, 'string');
+            $this->throwBadArgumentType(1, 'string');
         }
 
-        if (!is_string($id)) {
-            throw BadArgumentType::create(2, 'string');
+        if (!$id) {
+            return null;
         }
 
         if (!$link || !is_string($link)) {
-            throw BadArgumentType::create(3, 'string');
+            $this->throwBadArgumentType(3, 'string');
         }
 
         if ($columnData !== null && !$columnData instanceof stdClass) {
-            throw BadArgumentType::create(4, 'object');
+            $this->throwBadArgumentType(4, 'object');
         }
-
-        $this->assertLinkWrite($entityType, $link);
 
         if ($columnData instanceof stdClass) {
             $columnData = get_object_vars($columnData);
@@ -114,21 +104,5 @@ class RelateType extends BaseFunction implements
         $relation->relateById($foreignId, $columnData);
 
         return true;
-    }
-
-    /**
-     * @throws NotAllowedUsage
-     */
-    private function assertLinkWrite(string $entityType, string $link): void
-    {
-        $restriction = $this->injectableFactory->create(SystemRestriction::class);
-
-        if (!$restriction->checkEntityTypeWrite($entityType)) {
-            throw new NotAllowedUsage("Cannot write '$entityType'.");
-        }
-
-        if (!$restriction->checkLinkWrite($entityType, $link) ) {
-            throw new NotAllowedUsage("Cannot write restricted link $entityType.$link.");
-        }
     }
 }

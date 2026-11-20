@@ -36,74 +36,91 @@ use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\ForbiddenSilent;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Core\Exceptions\NotFoundSilent;
-use Espo\Core\InjectableFactory;
 use Espo\Core\Record\ServiceContainer as RecordServiceContainer;
 use Espo\Core\Record\SearchParamsFetcher;
 use Espo\Core\Record\CreateParamsFetcher;
 use Espo\Core\Record\ReadParamsFetcher;
+use Espo\Core\Record\UpdateContext;
 use Espo\Core\Record\UpdateParamsFetcher;
 use Espo\Core\Record\DeleteParamsFetcher;
 use Espo\Core\Record\FindParamsFetcher;
 use Espo\Core\Record\Service as RecordService;
+use Espo\Core\Container;
 use Espo\Core\Acl;
+use Espo\Core\AclManager;
 use Espo\Core\Utils\Config;
+use Espo\Core\Utils\Metadata;
+use Espo\Core\ServiceFactory;
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
 use Espo\Core\Select\SearchParams;
+use Espo\Core\Di;
 use Espo\Entities\User;
+use Espo\Entities\Preferences;
 use Espo\ORM\Entity;
+use Espo\ORM\EntityManager;
+
 use stdClass;
 
-class RecordBase
+class RecordBase extends Base implements
+
+    Di\EntityManagerAware,
+    Di\InjectableFactoryAware
 {
+    use Di\EntityManagerSetter;
+    use Di\InjectableFactorySetter;
+
+    /** @var string */
+    public static $defaultAction = 'list';
+
+    /** @var RecordServiceContainer */
+    protected $recordServiceContainer;
+    /** @var Config */
+    protected $config;
+    /** @var User */
+    protected $user;
+    /** @var Acl */
+    protected $acl;
 
     /**
-     * @internal
+     * @deprecated
+     * @var EntityManager
      */
-    protected string $name;
+    protected $entityManager;
 
-    public static string $defaultAction = 'list';
-
-    /**
-     * @throws Forbidden
-     */
     public function __construct(
         protected SearchParamsFetcher $searchParamsFetcher,
         protected CreateParamsFetcher $createParamsFetcher,
         protected ReadParamsFetcher $readParamsFetcher,
         protected UpdateParamsFetcher $updateParamsFetcher,
         protected DeleteParamsFetcher $deleteParamsFetcher,
-        protected RecordServiceContainer $recordServiceContainer,
+        RecordServiceContainer $recordServiceContainer,
         protected FindParamsFetcher $findParamsFetcher,
-        protected Config $config,
-        protected User $user,
-        protected Acl $acl,
-        protected InjectableFactory $injectableFactory,
+        Config $config,
+        User $user,
+        Acl $acl,
+        // Parameters below are for backward compatibility.
+        Container $container,
+        AclManager $aclManager,
+        Preferences $preferences,
+        Metadata $metadata,
+        ServiceFactory $serviceFactory
     ) {
+        $this->recordServiceContainer = $recordServiceContainer;
+        $this->config = $config;
+        $this->user = $user;
+        $this->acl = $acl;
 
-        if (empty($this->name)) {
-            $name = get_class($this);
-
-            $matches = null;
-
-            if (preg_match('@\\\\([\w]+)$@', $name, $matches)) {
-                $name = $matches[1];
-            }
-
-            $this->name = $name;
-        }
-
-        if (!$this->checkAccess()) {
-            throw new Forbidden("No access to '$this->name'.");
-        }
-    }
-
-    /**
-     * Check access to controller.
-     */
-    protected function checkAccess(): bool
-    {
-        return true;
+        parent::__construct(
+            $container,
+            $user,
+            $acl,
+            $aclManager,
+            $config,
+            $preferences,
+            $metadata,
+            $serviceFactory
+        );
     }
 
     protected function getEntityType(): string
@@ -142,9 +159,9 @@ class RecordBase
             throw new BadRequest("No ID.");
         }
 
-        $result = $this->getRecordService()->read($id, $params);
+        $entity = $this->getRecordService()->read($id, $params);
 
-        return $result->getValueMap();
+        return $entity->getValueMap();
     }
 
     /**
@@ -164,9 +181,9 @@ class RecordBase
         $data = $request->getParsedBody();
         $params = $this->createParamsFetcher->fetch($request);
 
-        $result = $this->getRecordService()->create($data, $params);
+        $entity = $this->getRecordService()->create($data, $params);
 
-        return $result->getValueMap();
+        return $entity->getValueMap();
     }
 
     /**
@@ -206,13 +223,17 @@ class RecordBase
 
         $params = $this->updateParamsFetcher->fetch($request);
 
-        $result = $this->getRecordService()->update($id, $data, $params);
+        $context = new UpdateContext();
 
-        if ($result->isLinkUpdated()) {
+        $params = $params->withContext($context);
+
+        $entity = $this->getRecordService()->update($id, $data, $params);
+
+        if ($context->linkUpdated) {
             $response->setHeader('X-Record-Link-Updated', 'true');
         }
 
-        return $result->getValueMap();
+        return $entity->getValueMap();
     }
 
     /**
@@ -301,7 +322,7 @@ class RecordBase
      */
     public function postActionRestoreDeleted(Request $request): bool
     {
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             throw new Forbidden();
         }
 
@@ -314,5 +335,14 @@ class RecordBase
         $this->getRecordService()->restoreDeleted($id);
 
         return true;
+    }
+
+    /**
+     * @deprecated
+     * @return EntityManager
+     */
+    protected function getEntityManager()
+    {
+        return $this->entityManager;
     }
 }

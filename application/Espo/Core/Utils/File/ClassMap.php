@@ -29,7 +29,6 @@
 
 namespace Espo\Core\Utils\File;
 
-use Espo\Core\Binding\Attributes\Qualify;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\DataCache;
 use Espo\Core\Utils\File\Manager as FileManager;
@@ -44,7 +43,6 @@ class ClassMap
     public function __construct(
         private FileManager $fileManager,
         private Module $module,
-        #[Qualify(DataCache::QUALIFIER_SYSTEM)]
         private DataCache $dataCache,
         private PathProvider $pathProvider,
         private Config\SystemConfig $systemConfig,

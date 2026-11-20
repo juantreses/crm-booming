@@ -37,5 +37,7 @@ class ClassType
 
     public const REPOSITORY = 'Repositories';
 
+    public const SELECT_MANAGER = 'SelectManagers';
+
     public const SERVICE = 'Services';
 }

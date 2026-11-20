@@ -34,12 +34,7 @@ use stdClass;
 
 class Role extends Entity
 {
-    public const string ENTITY_TYPE = 'Role';
-
-    /** @since 10.0.4 */
-    public const string FIELD_DATA = 'data';
-    /** @since 10.0.4 */
-    public const string FIELD_FIELD_DATA = 'fieldData';
+    public const ENTITY_TYPE = 'Role';
 
     public function getRawData(): stdClass
     {

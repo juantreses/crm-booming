@@ -38,6 +38,6 @@ class AppSecret extends Record
 {
     protected function checkAccess(): bool
     {
-        return $this->user->isEffectiveAdmin();
+        return $this->user->isAdmin();
     }
 }

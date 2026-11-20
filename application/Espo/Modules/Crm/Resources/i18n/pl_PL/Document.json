@@ -5,7 +5,6 @@
   },
   "fields": {
     "name": "Nazwa",
-    "status": "Status",
     "file": "Plik",
     "type": "Typ",
     "publishDate": "Data publikacji",
@@ -31,8 +30,6 @@
     "type": {
       "": "Brak",
       "Contract": "Kontrakt",
-      "NDA": "NDA",
-      "EULA": "EULA",
       "License Agreement": "Postanowienia licencyjne"
     }
   },

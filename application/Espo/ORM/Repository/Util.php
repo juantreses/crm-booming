@@ -31,7 +31,6 @@ namespace Espo\ORM\Repository;
 
 use Espo\ORM\Entity;
 
-use Espo\ORM\Type\RelationType;
 use ReflectionClass;
 use InvalidArgumentException;
 
@@ -54,15 +53,5 @@ class Util
         }
 
         return $class->getShortName();
-    }
-
-    /**
-     * @internal
-     */
-    public static function isRelationshipEligibleForCascadeRemoval(string $type, string $foreignType): bool
-    {
-        return in_array($type, [RelationType::HAS_CHILDREN, RelationType::HAS_ONE]) ||
-            $type === RelationType::BELONGS_TO && $foreignType === RelationType::HAS_ONE ||
-            $type === RelationType::HAS_MANY && $foreignType === RelationType::BELONGS_TO;
     }
 }

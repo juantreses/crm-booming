@@ -48,11 +48,6 @@ class CaseObj extends Entity
     public const STATUS_REJECTED = 'Rejected';
     public const STATUS_DUPLICATE = 'Duplicate';
 
-    /**
-     * @since 10.0.8
-     */
-    public const string FIELD_ATTACHMENTS = 'attachments';
-
     protected $entityType = 'Case';
 
     public function getNumber(): ?int

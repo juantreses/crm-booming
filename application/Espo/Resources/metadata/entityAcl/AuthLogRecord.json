@@ -30,6 +30,5 @@
         "requestMethod": {
             "readOnly": true
         }
-    },
-    "systemWriteForbidden": true
+    }
 }

@@ -4,19 +4,13 @@
   },
   "fields": {
     "event": "Wydarzenie",
-    "url": "URL",
     "isActive": "Jest aktywne",
     "user": "Użytkownik API",
     "entityType": "Typ modułu",
     "field": "Pole",
-    "secretKey": "Sekretny klucz",
-    "skipOwn": "Pomijaj własne"
+    "secretKey": "Sekretny klucz"
   },
   "links": {
-    "user": "Użytkownik",
-    "queueItems": "Elementy kolejki"
-  },
-  "tooltips": {
-    "skipOwn": "Nie wysyłaj, jeśli zdarzenie zostało zainicjowane przez użytkownika będącego właścicielem webhooka."
+    "user": "Użytkownik"
   }
 }

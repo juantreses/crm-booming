@@ -30,12 +30,12 @@
 namespace Espo\Core\Portal;
 
 use Espo\Core\Acl\Permission;
-use Espo\Core\Portal\Acl\Events\PortalUserRoleUpdate;
-use Espo\Core\Utils\Event\EventDispatcher;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
+
 use Espo\Entities\Portal;
 use Espo\Entities\User;
+
 use Espo\Core\Acl\GlobalRestriction;
 use Espo\Core\Acl\Map\Map;
 use Espo\Core\Acl\OwnerUserFieldProvider;
@@ -70,8 +70,7 @@ class AclManager extends InternalAclManager
         GlobalRestriction $globalRestriction,
         OwnerUserFieldProvider $ownerUserFieldProvider,
         EntityManager $entityManager,
-        InternalAclManager $internalAclManager,
-        EventDispatcher $eventDispatcher,
+        InternalAclManager $internalAclManager
     ) {
         $this->accessCheckerFactory = $accessCheckerFactory;
         $this->ownershipCheckerFactory = $ownershipCheckerFactory;
@@ -81,9 +80,6 @@ class AclManager extends InternalAclManager
         $this->ownerUserFieldProvider = $ownerUserFieldProvider;
         $this->entityManager = $entityManager;
         $this->internalAclManager = $internalAclManager;
-        $this->eventDispatcher = $eventDispatcher;
-
-        $this->initEventHandling();
     }
 
     public function setPortal(Portal $portal): void
@@ -341,19 +337,5 @@ class AclManager extends InternalAclManager
     public function get(User $user, string $permission): string
     {
         return $this->getPermissionLevel($user, $permission);
-    }
-
-    protected function initEventHandling(): void
-    {
-        $this->eventDispatcher->subscribe(PortalUserRoleUpdate::class, function (PortalUserRoleUpdate $event) {
-            if ($this->portal?->getId() !== $event->portalId) {
-                return;
-            }
-
-            $userId = $event->userId;
-
-            unset($this->tableHashMap[$userId]);
-            unset($this->mapHashMap[$userId]);
-        });
     }
 }

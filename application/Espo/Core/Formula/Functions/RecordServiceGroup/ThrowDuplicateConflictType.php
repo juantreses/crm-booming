@@ -33,16 +33,13 @@ use Espo\Core\Di\EntityManagerAware;
 use Espo\Core\Di\EntityManagerSetter;
 use Espo\Core\Di\RecordServiceContainerAware;
 use Espo\Core\Di\RecordServiceContainerSetter;
+use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\ConflictSilent;
 use Espo\Core\Formula\ArgumentList;
-use Espo\Core\Formula\Exceptions\WrapperException;
 use Espo\Core\Formula\Functions\BaseFunction;
 use Espo\Core\Name\Field;
 use Espo\Core\Utils\Json;
 
-/**
- * @noinspection PhpUnused
- */
 class ThrowDuplicateConflictType extends BaseFunction implements
     EntityManagerAware,
     RecordServiceContainerAware
@@ -50,6 +47,10 @@ class ThrowDuplicateConflictType extends BaseFunction implements
     use EntityManagerSetter;
     use RecordServiceContainerSetter;
 
+    /**
+     * @inheritDoc
+     * @throws Conflict
+     */
     public function process(ArgumentList $args)
     {
         if (empty($this->getVariables()->__isRecordService)) {
@@ -89,8 +90,6 @@ class ThrowDuplicateConflictType extends BaseFunction implements
             $list[] = $entity->getValueMap();
         }
 
-        throw WrapperException::create(
-            ConflictSilent::createWithBody('duplicate', Json::encode($list))
-        );
+        throw ConflictSilent::createWithBody('duplicate', Json::encode($list));
     }
 }

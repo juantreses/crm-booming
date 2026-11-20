@@ -130,7 +130,7 @@ class Service
     private function applyTemplate(Entity $preferences, DashboardTemplate $template, bool $append): void
     {
         if (!$append) {
-            $preferences->setMultiple([
+            $preferences->set([
                 'dashboardLayout' => $template->get('layout'),
                 'dashletsOptions' => $template->get('dashletsOptions'),
             ]);
@@ -168,7 +168,7 @@ class Service
                 $dashletsOptions->$id = $item;
             }
 
-            $preferences->setMultiple([
+            $preferences->set([
                 'dashboardLayout' => $dashboardLayout,
                 'dashletsOptions' => $dashletsOptions,
             ]);

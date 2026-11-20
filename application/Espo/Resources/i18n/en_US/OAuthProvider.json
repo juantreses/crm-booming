@@ -13,8 +13,7 @@
         "scopeSeparator": "Scope Separator",
         "hasAccessToken": "Has Access Token",
         "authorizationPrompt": "Authorization Prompt",
-        "authorizationParams": "Authorization Params",
-        "authorizationPkce": "Use PKCE"
+        "authorizationParams": "Authorization Params"
     },
     "links": {
         "accounts": "Accounts"

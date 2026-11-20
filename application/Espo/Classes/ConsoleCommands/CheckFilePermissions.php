@@ -60,10 +60,6 @@ class CheckFilePermissions implements Command
 
             $msg = " " . ($isWritable ? "OK" : "FAIL") . " : $path";
 
-            if (!$isWritable) {
-                $io->setExitStatus(1);
-            }
-
             $io->writeLine($msg);
         }
     }

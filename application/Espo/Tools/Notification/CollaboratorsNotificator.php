@@ -79,9 +79,7 @@ class CollaboratorsNotificator
                 'relatedName' => $entity->get(Field::NAME),
                 'createdByName' => $this->user->getName(),
             ])
-            ->setRelated(LinkParent::fromEntity($entity))
-            // Needed for grouping.
-            ->setRelatedParent(LinkParent::fromEntity($entity))
+            ->setRelated(LinkParent::createFromEntity($entity))
             ->setActionId($params->getActionId());
 
         $this->entityManager->saveEntity($notification);

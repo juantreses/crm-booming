@@ -387,8 +387,8 @@
         "createdAt": {
             "columns": ["createdAt", "deleted"]
         },
-        "stageCreatedAt": {
-            "columns": ["stage", "createdAt"]
+        "createdAtStage": {
+            "columns": ["createdAt", "stage"]
         },
         "createdAtId": {
             "unique": true,

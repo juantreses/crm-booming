@@ -1,10 +1,6 @@
 
 {{#if topBar}}
 <div class="list-buttons-container clearfix">
-    {{#if usePipeline}}
-        <div class="btn-group">{{{pipelineDropdown}}}</div>
-    {{/if}}
-
     {{#if displayTotalCount}}
         <div class="text-muted total-count">
             <span

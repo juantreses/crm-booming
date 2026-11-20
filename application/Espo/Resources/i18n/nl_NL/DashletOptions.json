@@ -6,7 +6,6 @@
     "autorefreshInterval": "Automatisch bijwerken interval",
     "displayRecords": "Velden weergeven",
     "isDoubleHeight": "Hoogte 2x",
-    "mode": "Mode",
     "enabledScopeList": "Wat te tonen",
     "users": "Gebruikers",
     "entityType": "Type entiteit",
@@ -15,7 +14,6 @@
     "expandedLayout": "Lay-out",
     "dateFilter": "Datumfilter",
     "skipOwn": "Geen eigen records tonen",
-    "url": "URL",
     "text": "Tekst",
     "folder": "Map",
     "includeShared": "Gedeeld opnemen",
@@ -24,8 +22,6 @@
   },
   "options": {
     "mode": {
-      "agendaWeek": "Week (agenda)",
-      "basicWeek": "Week",
       "month": "Maand",
       "basicDay": "Dag",
       "agendaDay": "Dag (agenda)",

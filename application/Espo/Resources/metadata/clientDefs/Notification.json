@@ -2,8 +2,7 @@
     "controller": "controllers/notification",
     "acl": "acl/notification",
     "aclPortal": "acl-portal/notification",
-    "model": "models/notification",
-    "collection": "collections/notification",
+    "collection": "collections/note",
     "itemViews": {
         "System": "views/notification/items/system",
         "EmailInbox": "views/notification/items/email-inbox"

@@ -13,9 +13,7 @@
     "documents": "Документи",
     "account": "Клиент",
     "opportunity": "Сделка",
-    "contact": "Контакт",
-    "meetingsChildren": "Дъщерни срещи",
-    "callsChildren": "Дъщерни обаждания"
+    "contact": "Контакт"
   },
   "scopeNames": {
     "Account": "Клиент",

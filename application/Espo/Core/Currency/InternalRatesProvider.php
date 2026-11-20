@@ -30,12 +30,10 @@
 namespace Espo\Core\Currency;
 
 use Espo\Core\Field\Date;
-use Espo\Core\Utils\Cache\DataCacheAccess;
+use Espo\Core\Utils\Config\SystemConfig;
+use Espo\Core\Utils\DataCache;
 use Espo\Core\Utils\DateTime;
-use Espo\Core\Utils\Event\EventDispatcher;
-use Espo\Tools\Currency\Events\CurrencyRateUpdate;
 use LogicException;
-use RuntimeException;
 use stdClass;
 
 /**
@@ -45,60 +43,74 @@ class InternalRatesProvider
 {
     private string $cacheKey = 'currencyRates';
 
-    private ?Date $today = null;
-    private ?string $base = null;
+    /** @var (stdClass&object{date: string, rates: stdClass})|null */
+    private ?stdClass $data = null;
 
-    /**
-     * @param DataCacheAccess<stdClass> $dataCacheAccess
-     */
     public function __construct(
+        private DataCache $dataCache,
+        private SystemConfig $systemConfig,
         private DateTime $dateTime,
         private InternalRateEntryProvider $rateEntryProvider,
-        private DataCacheAccess $dataCacheAccess,
-        private EventDispatcher $eventDispatcher,
-    ) {
-        $this->dataCacheAccess->init(
-            key: $this->cacheKey,
-            loader: function () {
-                if (!$this->today || $this->base === null) {
-                    throw new LogicException();
-                }
-
-                return $this->buildData($this->today, $this->base);
-            },
-            validityChecker: function (stdClass $data): bool {
-                if (!$this->today) {
-                    throw new LogicException();
-                }
-
-                $date = $data->date ?? null;
-
-                return $date === $this->today->toString();
-            },
-        );
-
-        $this->eventDispatcher->subscribe(CurrencyRateUpdate::class, function () {
-            $this->dataCacheAccess->reset();
-        });
-    }
+    ) {}
 
     /**
      * @return array<string, float>
      */
     public function get(string $base): array
     {
+        $this->data ??= $this->getCachedData();
+
         $today = $this->dateTime->getToday();
 
-        $this->today = $today;
-        $this->base = $base;
+        if (!$this->data || $this->data->date !== $today->toString()) {
+            $this->data = $this->buildData($today, $base);
 
-        $data = $this->dataCacheAccess->get();
-
-        if (!property_exists($data, 'rates')) {
-            throw new RuntimeException("Corrupted cache data in '$this->cacheKey'.");
+            $this->storeData();
         }
 
-        return get_object_vars($data->rates);
+        if ($this->data === null) {
+            throw new LogicException();
+        }
+
+        return get_object_vars($this->data->rates);
+    }
+
+    /**
+     * @return (stdClass&object{date: string, rates: stdClass})|null
+     */
+    private function getCachedData(): ?stdClass
+    {
+        if (!$this->systemConfig->useCache()) {
+            return null;
+        }
+
+        $cached = $this->dataCache->tryGet($this->cacheKey);
+
+        if (!$cached instanceof stdClass) {
+            return null;
+        }
+
+        if (!isset($cached->date) || !isset($cached->rates)) {
+            $this->dataCache->clear($this->cacheKey);
+
+            return null;
+        }
+
+        /** @var stdClass&object{date: string, rates: stdClass} */
+        return $cached;
+    }
+
+    private function storeData(): void
+    {
+        if (!$this->systemConfig->useCache()) {
+            return;
+        }
+
+        if (!$this->data instanceof stdClass) {
+            throw new LogicException();
+        }
+
+        $this->dataCache->store($this->cacheKey, $this->data);
     }
 
     /**

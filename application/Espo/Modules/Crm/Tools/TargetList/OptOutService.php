@@ -29,7 +29,6 @@
 
 namespace Espo\Modules\Crm\Tools\TargetList;
 
-use Espo\Core\Acl;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
 use Espo\Core\HookManager;
@@ -53,8 +52,7 @@ class OptOutService
         private EntityManager $entityManager,
         private MetadataProvider $metadataProvider,
         private EntityProvider $entityProvider,
-        private HookManager $hookManager,
-        private Acl $acl,
+        private HookManager $hookManager
     ) {}
 
     /**
@@ -65,8 +63,13 @@ class OptOutService
      */
     public function optOut(string $id, string $targetType, string $targetId): void
     {
-        $targetList = $this->getTargetListForEdit($id);
-        $target = $this->entityProvider->get($targetType, $targetId);
+        $targetList = $this->entityProvider->getByClass(TargetList::class, $id);
+
+        $target = $this->entityManager->getEntityById($targetType, $targetId);
+
+        if (!$target) {
+            throw new NotFound();
+        }
 
         $map = $this->metadataProvider->getEntityTypeLinkMap();
 
@@ -77,8 +80,9 @@ class OptOutService
         $link = $map[$targetType];
 
         $this->entityManager
+            ->getRDBRepository(TargetList::ENTITY_TYPE)
             ->getRelation($targetList, $link)
-            ->relateById($target->getId(), ['optedOut' => true]);
+            ->relateById($targetId, ['optedOut' => true]);
 
         $hookData = [
             'link' => $link,
@@ -97,8 +101,13 @@ class OptOutService
      */
     public function cancelOptOut(string $id, string $targetType, string $targetId): void
     {
-        $targetList = $this->getTargetListForEdit($id);
-        $target = $this->entityProvider->get($targetType, $targetId);
+        $targetList = $this->entityProvider->getByClass(TargetList::class, $id);
+
+        $target = $this->entityManager->getEntityById($targetType, $targetId);
+
+        if (!$target) {
+            throw new NotFound();
+        }
 
         $map = $this->metadataProvider->getEntityTypeLinkMap();
 
@@ -109,8 +118,9 @@ class OptOutService
         $link = $map[$targetType];
 
         $this->entityManager
+            ->getRDBRepository(TargetList::ENTITY_TYPE)
             ->getRelation($targetList, $link)
-            ->updateColumnsById($target->getId(), ['optedOut' => false]);
+            ->updateColumnsById($targetId, ['optedOut' => false]);
 
         $hookData = [
             'link' => $link,
@@ -180,7 +190,7 @@ class OptOutService
         while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
             $itemEntity = $this->entityManager->getNewEntity($row['entityType']);
 
-            $itemEntity->setMultiple($row);
+            $itemEntity->set($row);
             $itemEntity->setAsFetched();
 
             $collection[] = $itemEntity;
@@ -244,20 +254,5 @@ class OptOutService
     private function checkEntity(string $id): void
     {
         $this->entityProvider->getByClass(TargetList::class, $id);
-    }
-
-    /**
-     * @throws Forbidden
-     * @throws NotFound
-     */
-    private function getTargetListForEdit(string $id): TargetList
-    {
-        $targetList = $this->entityProvider->getByClass(TargetList::class, $id);
-
-        if (!$this->acl->checkEntityEdit($targetList)) {
-            throw new Forbidden("No edit access.");
-        }
-
-        return $targetList;
     }
 }

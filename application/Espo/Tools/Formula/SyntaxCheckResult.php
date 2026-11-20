@@ -32,16 +32,15 @@ namespace Espo\Tools\Formula;
 use Espo\Core\Formula\Exceptions\SyntaxError;
 use Espo\Core\Formula\Exceptions\Error;
 
-use Espo\Core\Formula\Utils\PositionUtil;
 use stdClass;
 
 class SyntaxCheckResult
 {
-    private bool $isSuccess;
+    private bool $isSuccess = false;
+
     private ?string $message = null;
+
     private ?Error $exception = null;
-    private ?int $line = null;
-    private ?int $column = null;
 
     private function __construct(bool $isSuccess)
     {
@@ -53,20 +52,12 @@ class SyntaxCheckResult
         return new self(true);
     }
 
-    public static function createError(SyntaxError $exception, ?string $expression = null): self
+    public static function createError(SyntaxError $exception): self
     {
         $obj = new self(false);
 
-        if ($expression !== null && $exception->getPosition() !== null) {
-            [$line, $column] = PositionUtil::getLineAndColumn($expression, $exception->getPosition());
-
-            $obj->line = $line;
-            $obj->column = $column;
-        }
-
         $obj->message = $exception->getShortMessage();
         $obj->exception = $exception;
-
 
         return $obj;
     }
@@ -96,27 +87,6 @@ class SyntaxCheckResult
             $data->message = $this->message;
         }
 
-        if ($this->line !== null && $this->column !== null) {
-            $data->line = $this->line;
-            $data->column = $this->column;
-        }
-
         return $data;
-    }
-
-    /**
-     * @since 10.1.0
-     */
-    public function getLine(): ?int
-    {
-        return $this->line;
-    }
-
-    /**
-     * @since 10.1.0
-     */
-    public function getColumn(): ?int
-    {
-        return $this->column;
     }
 }

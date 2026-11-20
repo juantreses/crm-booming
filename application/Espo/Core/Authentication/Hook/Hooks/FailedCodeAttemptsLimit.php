@@ -36,8 +36,9 @@ use Espo\Core\Authentication\Hook\BeforeLogin;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Entities\AuthLogRecord;
 use Espo\ORM\EntityManager;
-use Espo\ORM\Name\Attribute;
+
 use DateTime;
+use Espo\ORM\Name\Attribute;
 use Exception;
 use RuntimeException;
 
@@ -72,10 +73,10 @@ class FailedCodeAttemptsLimit implements BeforeLogin
         $failedAttemptsPeriod = $this->configDataProvider->getFailedCodeAttemptsPeriod();
 
         $where = [
-            AuthLogRecord::FIELD_REQUEST_TIME . '>' => $this->getTimeFrom($request, $failedAttemptsPeriod)->format('U'),
-            AuthLogRecord::FIELD_IS_DENIED => true,
-            AuthLogRecord::FIELD_USERNAME => $data->getUsername(),
-            AuthLogRecord::FIELD_DENIAL_REASON => AuthLogRecord::DENIAL_REASON_WRONG_CODE,
+            'requestTime>' => $this->getTimeFrom($request, $failedAttemptsPeriod)->format('U'),
+            'isDenied' => true,
+            'username' => $data->getUsername(),
+            'denialReason' => AuthLogRecord::DENIAL_REASON_WRONG_CODE,
         ];
 
         $wasFailed = (bool) $this->entityManager

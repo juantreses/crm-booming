@@ -88,9 +88,8 @@ class EntityPrinter implements EntityPrinterInterface
 
             $name = $attachment->getName() ?? 'file-' . $i;
             $description = $attachmentWrapper->getDescription() ?? '';
-            $mimeType = $attachment->getType() ?? 'application/octet-stream';
 
-            $cPdf->addEmbeddedFile($path, $name, $description, $mimeType, [$cPdf->catalogId => 'Data']);
+            $cPdf->addEmbeddedFile($path, $name, $description);
         }
     }
 }

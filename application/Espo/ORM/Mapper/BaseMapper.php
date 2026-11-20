@@ -1172,6 +1172,7 @@ class BaseMapper implements RDBMapper
                         $where[$typeKey] = $foreignEntityType;
                     }
 
+                    /** @noinspection PhpRedundantOptionalArgumentInspection */
                     $entity->set($typeKey, null);
                     $entity->setFetched($typeKey, null);
                 }
@@ -1481,7 +1482,17 @@ class BaseMapper implements RDBMapper
 
     private function prepareValueForInsert(?string $type, mixed $value): mixed
     {
-        return Util::prepareValue($type, $value);
+        if ($type == Entity::JSON_ARRAY && is_array($value)) {
+            $value = json_encode($value, JSON_UNESCAPED_UNICODE);
+        } else if ($type == Entity::JSON_OBJECT && (is_array($value) || $value instanceof stdClass)) {
+            $value = json_encode($value, JSON_UNESCAPED_UNICODE);
+        } else {
+            if (is_array($value) || is_object($value)) {
+                return null;
+            }
+        }
+
+        return $value;
     }
 
     /**
@@ -1582,7 +1593,7 @@ class BaseMapper implements RDBMapper
      */
     private function populateEntityFromRow(Entity $entity, $data): void
     {
-        $entity->setMultiple($data);
+        $entity->set($data);
     }
 
     /**

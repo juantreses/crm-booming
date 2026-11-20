@@ -29,80 +29,69 @@
 
 namespace Espo\Core\Formula\Functions\RecordGroup;
 
-use Espo\Core\Acl\SystemRestriction;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Forbidden;
-use Espo\Core\Formula\EvaluatedArgumentList;
-use Espo\Core\Formula\Exceptions\BadArgumentType;
-use Espo\Core\Formula\Exceptions\Error;
-use Espo\Core\Formula\Exceptions\NotAllowedUsage;
-use Espo\Core\Formula\Exceptions\TooFewArguments;
-use Espo\Core\Formula\Func;
 use Espo\Core\ORM\Entity as CoreEntity;
 use Espo\Core\Select\Primary\Filters\All;
 use Espo\Core\Select\SelectBuilderFactory;
 use Espo\ORM\Defs\Params\RelationParam;
-use Espo\ORM\EntityManager;
 use Espo\ORM\Name\Attribute;
+use Espo\Core\Formula\ArgumentList;
+use Espo\Core\Formula\Exceptions\Error;
+use Espo\Core\Formula\Functions\BaseFunction;
 use Espo\Core\Formula\Functions\RecordGroup\Util\FindQueryUtil;
+use Espo\Core\Di;
+use Espo\ORM\Query\Part\Order;
 use Espo\ORM\Type\RelationType;
 
 /**
  * @noinspection PhpUnused
  */
-class FindRelatedOneType implements Func
+class FindRelatedOneType extends BaseFunction implements
+    Di\EntityManagerAware,
+    Di\MetadataAware,
+    Di\InjectableFactoryAware,
+    Di\UserAware
 {
-    public function __construct(
-        private EntityManager $entityManager,
-        private SelectBuilderFactory $selectBuilderFactory,
-        private FindQueryUtil $findQueryUtil,
-        private SystemRestriction $systemRestriction,
-    ) {}
+    use Di\EntityManagerSetter;
+    use Di\MetadataSetter;
+    use Di\InjectableFactorySetter;
+    use Di\UserSetter;
 
-    public function process(EvaluatedArgumentList $arguments): ?string
+    public function process(ArgumentList $args)
     {
-        if (count($arguments) < 3) {
-            throw TooFewArguments::create(3);
+        if (count($args) < 3) {
+            $this->throwTooFewArguments(3);
         }
 
         $entityManager = $this->entityManager;
 
-        $entityType = $arguments[0];
-        $id = $arguments[1];
-        $link = $arguments[2];
+        $entityType = $this->evaluate($args[0]);
+        $id = $this->evaluate($args[1]);
+        $link = $this->evaluate($args[2]);
 
         $orderBy = null;
         $order = null;
 
-        if (count($arguments) > 3) {
-            $orderBy = $arguments[3];
+        if (count($args) > 3) {
+            $orderBy = $this->evaluate($args[3]);
         }
 
-        if (count($arguments) > 4) {
-            $order = $arguments[4];
+        if (count($args) > 4) {
+            $order = $this->evaluate($args[4]) ?? null;
         }
 
         if (!$entityType) {
-            throw BadArgumentType::create(1, 'string');
+            $this->throwBadArgumentType(1, 'string');
         }
 
-        if (!is_string($id)) {
-            throw BadArgumentType::create(2, 'string');
+        if (!$id) {
+            return null;
         }
 
-        if (!is_string($link)) {
-            throw BadArgumentType::create(3, 'string');
+        if (!$link) {
+            $this->throwBadArgumentType(3, 'string');
         }
-
-        if ($orderBy !== null && !is_string($orderBy)) {
-            throw BadArgumentType::create(4, 'string|null');
-        }
-
-        if ($order !== null && !is_string($order) && !is_bool($order)) {
-            throw BadArgumentType::create(5, 'string|bool|null');
-        }
-
-        $this->assertLinkRead($entityType, $link);
 
         $entity = $entityManager->getEntityById($entityType, $id);
 
@@ -110,11 +99,13 @@ class FindRelatedOneType implements Func
             return null;
         }
 
+        $metadata = $this->metadata;
+
         if (!$entity instanceof CoreEntity) {
-            throw new Error("Non-core entity.");
+            $this->throwError("Only core entities are supported.");
         }
 
-        $relationType = $entity->getRelationType($link);
+        $relationType = $entity->getRelationParam($link, 'type');
 
         if (
             in_array($relationType, [
@@ -129,46 +120,57 @@ class FindRelatedOneType implements Func
                 ->select([Attribute::ID])
                 ->findOne();
 
-            return $relatedEntity?->getId();
+            if (!$relatedEntity) {
+                return null;
+            }
+
+            return $relatedEntity->getId();
+        }
+
+        if (!$orderBy) {
+            $orderBy = $metadata->get(['entityDefs', $entityType, 'collection', 'orderBy']);
+
+            if (is_null($order)) {
+                $order = $metadata->get(['entityDefs', $entityType, 'collection', 'order']) ?? 'ASC';
+            }
+        } else {
+            $order = $order ?? Order::ASC;
         }
 
         $foreignEntityType = $entity->getRelationParam($link, RelationParam::ENTITY);
 
         if (!$foreignEntityType) {
-            throw new NotAllowedUsage("Bad or not supported link '$link'.");
+            $this->throwError("Bad or not supported link '$link'.");
         }
 
         $foreignLink = $entity->getRelationParam($link, RelationParam::FOREIGN);
 
         if (!$foreignLink) {
-            throw new NotAllowedUsage("Not supported link '$link'.");
+            $this->throwError("Not supported link '$link'.");
         }
 
-        $builder = $this->selectBuilderFactory
+        $builder = $this->injectableFactory->create(SelectBuilderFactory::class)
             ->create()
+            ->forUser($this->user)
             ->withPrimaryFilter(All::NAME)
             ->from($foreignEntityType);
 
-        $this->findQueryUtil->applyOrder($builder, $orderBy, $order, 5);
-
         $whereClause = [];
 
-        if (count($arguments) <= 6) {
+        if (count($args) <= 6) {
             $filter = null;
 
-            if (count($arguments) === 6) {
-                $filter = $arguments[5];
+            if (count($args) === 6) {
+                $filter = $this->evaluate($args[5]);
             }
 
-            $this->findQueryUtil->applyFilter($builder, $filter, 6);
+            (new FindQueryUtil())->applyFilter($builder, $filter, 6);
         } else {
             $i = 5;
 
-            while ($i < count($arguments) - 1) {
-                $key = $arguments[$i];
-                $value = $arguments[$i + 1];
-
-                $this->findQueryUtil->assertWhereClauseKeyValid($entityType, $key);
+            while ($i < count($args) - 1) {
+                $key = $this->evaluate($args[$i]);
+                $value = $this->evaluate($args[$i + 1]);
 
                 $whereClause[] = [$key => $value];
 
@@ -179,7 +181,7 @@ class FindRelatedOneType implements Func
         try {
             $queryBuilder = $builder->buildQueryBuilder();
         } catch (BadRequest|Forbidden $e) {
-            throw new NotAllowedUsage($e->getMessage(), 0, $e);
+            throw new Error($e->getMessage(), 0, $e);
         }
 
         if (!empty($whereClause)) {
@@ -195,8 +197,12 @@ class FindRelatedOneType implements Func
             $queryBuilder
                 ->join($foreignLink)
                 ->where([
-                    $foreignLink . '.' . Attribute::ID => $entity->getId(),
+                    $foreignLink . '.id' => $entity->getId(),
                 ]);
+        }
+
+        if ($orderBy) {
+            $queryBuilder->order($orderBy, $order);
         }
 
         $relatedEntity = $entityManager
@@ -205,16 +211,10 @@ class FindRelatedOneType implements Func
             ->select([Attribute::ID])
             ->findOne();
 
-        return $relatedEntity?->getId();
-    }
-
-    /**
-     * @throws NotAllowedUsage
-     */
-    private function assertLinkRead(string $entityType, string $link): void
-    {
-        if (!$this->systemRestriction->checkLinkRead($entityType, $link) ) {
-            throw new NotAllowedUsage("Cannot read restricted link $entityType.$link.");
+        if ($relatedEntity) {
+            return $relatedEntity->getId();
         }
+
+        return null;
     }
 }

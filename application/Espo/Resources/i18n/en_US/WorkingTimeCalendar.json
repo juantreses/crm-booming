@@ -18,14 +18,9 @@
         "weekday3TimeRanges": "Wed Schedule",
         "weekday4TimeRanges": "Thu Schedule",
         "weekday5TimeRanges": "Fri Schedule",
-        "weekday6TimeRanges": "Sat Schedule",
-        "isDefault": "Is Default"
+        "weekday6TimeRanges": "Sat Schedule"
     },
     "links": {
-        "users": "Users",
         "ranges": "Exceptions"
-    },
-    "tooltips": {
-        "isDefault": "Indicates whether this calendar is the system default. The default working time calendar can be configured in: Administration > Settings > Working Time Calendar."
     }
 }

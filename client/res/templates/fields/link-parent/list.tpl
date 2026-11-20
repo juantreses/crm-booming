@@ -3,6 +3,6 @@
         <a
             href="#{{foreignScope}}/view/{{idValue}}"
             title="{{nameValue}}"
-            class="{{#if linkClass}} {{linkClass}} {{/if}}"
+            class="text-default"
         >{{nameValue}}</a>
 {{~/if}}

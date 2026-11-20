@@ -34,18 +34,11 @@ use UnexpectedValueException;
 
 class Template extends Entity
 {
-    public const string ENTITY_TYPE = 'Template';
+    public const ENTITY_TYPE = 'Template';
 
-    public const string STATUS_ACTIVE = 'Active';
+    public const STATUS_ACTIVE = 'Active';
 
     public const string FIELD_ENTITY_TYPE = 'entityType';
-
-    /** @since 10.1.0 */
-    public const string FIELD_BODY = 'body';
-    /** @since 10.1.0 */
-    public const string FIELD_HEADER = 'header';
-    /** @since 10.1.0 */
-    public const string FIELD_FOOTER = 'footer';
 
     public function getTargetEntityType(): string
     {
@@ -66,29 +59,5 @@ class Template extends Entity
     public function getFilename(): ?string
     {
         return $this->get('filename');
-    }
-
-    /**
-     * since 10.1.0
-     */
-    public function getBody(): ?string
-    {
-        return $this->get(self::FIELD_BODY);
-    }
-
-    /**
-     * since 10.1.0
-     */
-    public function getHeader(): ?string
-    {
-        return $this->get(self::FIELD_HEADER);
-    }
-
-    /**
-     * since 10.1.0
-     */
-    public function getFooter(): ?string
-    {
-        return $this->get(self::FIELD_FOOTER);
     }
 }

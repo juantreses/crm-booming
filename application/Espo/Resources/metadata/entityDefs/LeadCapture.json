@@ -118,13 +118,6 @@
             "default": "Web Site",
             "audited": true
         },
-        "pipeline": {
-            "type": "link",
-            "validatorClassNameList": [
-                "Espo\\Classes\\FieldValidators\\LeadCapture\\Pipeline\\Valid"
-            ],
-            "autocompleteOnEmpty": true
-        },
         "apiKey": {
             "type": "varchar",
             "maxLength": 36,
@@ -275,10 +268,6 @@
             "type": "hasMany",
             "entity": "LeadCaptureLogRecord",
             "foreign": "leadCapture"
-        },
-        "pipeline": {
-            "type": "belongsTo",
-            "entity": "Pipeline"
         }
     },
     "collection": {

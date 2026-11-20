@@ -14,15 +14,13 @@
     "campaign": "Kampania",
     "targetLists": "Listy docelowe",
     "targetList": "Lista docelowa",
-    "portalUser": "Użytkownik portalu",
     "originalLead": "Źródłowy lead",
     "acceptanceStatus": "Status akceptacji",
     "accountIsInactive": "Konto nieaktywne",
     "acceptanceStatusMeetings": "Status akceptacji (Spotkania)",
     "acceptanceStatusCalls": "Stan akceptacji (Połączenia)",
     "title": "Tytuł konta",
-    "hasPortalUser": "Ma użytkowników portalu",
-    "originalEmail": "Oryginalny e-mail"
+    "hasPortalUser": "Ma użytkowników portalu"
   },
   "links": {
     "opportunities": "Szanse sprzedaży",
@@ -32,8 +30,6 @@
     "campaign": "Kampania",
     "account": "Konto (podstawowe)",
     "accounts": "Klienci",
-    "casesPrimary": "Sprawy (główne)",
-    "portalUser": "Użytkownik portalu",
     "originalLead": "Źródłowy lead",
     "documents": "Dokumenty",
     "tasksPrimary": "Zadania (rozwinięte)",
@@ -50,8 +46,6 @@
     }
   },
   "presetFilters": {
-    "portalUsers": "Użytkownicy portalu",
-    "notPortalUsers": "Niebędący użytkownikami portalu",
-    "accountActive": "Aktywna relacja"
+    "accountActive": "Aktywne"
   }
 }

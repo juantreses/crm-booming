@@ -1,6 +1,5 @@
 {
   "fields": {
-    "name": "Name",
     "roles": "Rollen",
     "assignmentPermission": "Berechtigung: Zuweisung",
     "userPermission": "Berechtigung: Benutzer",
@@ -15,19 +14,16 @@
     "messagePermission": "Berechtigung: Nachrichten",
     "auditPermission": "Berechtigung: Audit",
     "mentionPermission": "Berechtigung: Erwähnungen",
-    "userCalendarPermission": "Berechtigung: Benutzerkalender",
-    "lockPermission": "Berechtigung: Sperren"
+    "userCalendarPermission": "Berechtigung: Benutzerkalender"
   },
   "links": {
-    "users": "Benutzer",
-    "teams": "Teams"
+    "users": "Benutzer"
   },
   "labels": {
     "Access": "Berechtigungen",
     "Create Role": "Rolle erstellen",
     "Scope Level": "Berechtigungsumfang",
-    "Field Level": "Feldebene",
-    "Baseline": "Baseline"
+    "Field Level": "Feldebene"
   },
   "options": {
     "accessList": {
@@ -68,7 +64,6 @@
     "auditPermission": "Gewährt die Ansicht des Audit-Protokolls.",
     "mentionPermission": "Ermöglicht die Erwähnung anderer Benutzer in Ereignissen.\n\n* Alle - kann alle erwähnen\n* Team - kann nur Teammitglieder erwähnen\n* Nein - kann nicht erwähnen",
     "userPermission": "Ermöglicht die Ansicht der Ereignisse anderer Benutzer. Ermöglicht es Benutzern, die Zugriffsberechtigungen anderer Benutzer für bestimmte Datensätze zu sehen.",
-    "userCalendarPermission": "Ermöglicht die Anzeige der Kalender anderer Benutzer.",
-    "lockPermission": "Ermöglicht das Sperren und Entsperren von Datensätzen."
+    "userCalendarPermission": "Ermöglicht die Anzeige der Kalender anderer Benutzer."
   }
 }

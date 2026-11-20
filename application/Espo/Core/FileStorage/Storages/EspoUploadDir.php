@@ -115,8 +115,7 @@ class EspoUploadDir implements Storage, Local
     protected function getFilePath(Attachment $attachment)
     {
         $sourceId = $attachment->getSourceId();
-        $file = basename($sourceId);
 
-        return 'data/upload/' . $file;
+        return 'data/upload/' . $sourceId;
     }
 }

@@ -36,7 +36,6 @@ use Espo\Core\Notification\EmailNotificationHandler;
 use Espo\Core\Mail\SenderParams;
 use Espo\Core\Utils\Config\ApplicationConfig;
 use Espo\Core\Utils\DateTime as DateTimeUtil;
-use Espo\Core\Utils\Markdown\Markdown;
 use Espo\Entities\Note;
 use Espo\ORM\Collection;
 use Espo\Repositories\Portal as PortalRepository;
@@ -58,6 +57,8 @@ use Espo\Core\Utils\Metadata;
 use Espo\Core\Utils\TemplateFileManager;
 use Espo\Core\Utils\Util;
 use Espo\Tools\Stream\NoteAccessControl;
+
+use Michelf\Markdown;
 
 use Exception;
 use DateTime;
@@ -324,18 +325,19 @@ class Processor
 
         $data['userName'] = $note->get('createdByName');
 
-        $post = $note->getPost() ?? '';
+        $post = Markdown::defaultTransform(
+            $note->get('post') ?? ''
+        );
 
-
-        $data['post'] = Markdown::transform($post);
+        $data['post'] = $post;
 
         $subjectTpl = $this->templateFileManager->getTemplate('mention', 'subject');
         $bodyTpl = $this->templateFileManager->getTemplate('mention', 'body');
 
         $subjectTpl = str_replace(["\n", "\r"], '', $subjectTpl);
 
-        $subject = $this->getHtmlizer()->render($note, $subjectTpl, $data, true);
-        $body = $this->getHtmlizer()->render($note, $bodyTpl, $data, true);
+        $subject = $this->getHtmlizer()->render($note, $subjectTpl, 'mention-email-subject', $data, true);
+        $body = $this->getHtmlizer()->render($note, $bodyTpl, 'mention-email-body', $data, true);
 
         $email = $this->entityManager->getRDBRepositoryByClass(Email::class)->getNew();
 
@@ -484,7 +486,9 @@ class Processor
 
         $data['userName'] = $note->get('createdByName');
 
-        $data['post'] = Markdown::transform($note->getPost() ?? '');
+        $post = Markdown::defaultTransform($note->getPost() ?? '');
+
+        $data['post'] = $post;
 
         $parent = null;
 
@@ -513,6 +517,7 @@ class Processor
             $subject = $this->getHtmlizer()->render(
                 $note,
                 $subjectTpl,
+                'note-post-email-subject-' . $parentType,
                 $data,
                 true
             );
@@ -520,6 +525,7 @@ class Processor
             $body = $this->getHtmlizer()->render(
                 $note,
                 $bodyTpl,
+                'note-post-email-body-' . $parentType,
                 $data,
                 true
             );
@@ -531,8 +537,8 @@ class Processor
 
             $subjectTpl = str_replace(["\n", "\r"], '', $subjectTpl);
 
-            $subject = $this->getHtmlizer()->render($note, $subjectTpl, $data, true);
-            $body = $this->getHtmlizer()->render($note, $bodyTpl, $data, true);
+            $subject = $this->getHtmlizer()->render($note, $subjectTpl, 'note-post-email-subject', $data, true);
+            $body = $this->getHtmlizer()->render($note, $bodyTpl, 'note-post-email-body', $data, true);
         }
 
         /** @var Email $email */
@@ -678,6 +684,7 @@ class Processor
         $subject = $this->getHtmlizer()->render(
             entity: $note,
             template: $subjectTpl,
+            cacheId: 'note-status-email-subject',
             additionalData: $data,
             skipLinks: true,
         );
@@ -685,6 +692,7 @@ class Processor
         $body = $this->getHtmlizer()->render(
             entity: $note,
             template: $bodyTpl,
+            cacheId: 'note-status-email-body',
             additionalData: $data,
             skipLinks: true,
         );
@@ -780,7 +788,7 @@ class Processor
             $data['subject'] = $noteData->emailName;
         }
 
-        $data['post'] = Markdown::transform($note->getPost() ?? '');
+        $data['post'] = nl2br($note->get('post'));
 
         if (!$parentId || !$parentType) {
             return;
@@ -810,6 +818,7 @@ class Processor
         $subject = $this->getHtmlizer()->render(
             $note,
             $subjectTpl,
+            'note-email-received-email-subject-' . $parentType,
             $data,
             true
         );
@@ -817,6 +826,7 @@ class Processor
         $body = $this->getHtmlizer()->render(
             $note,
             $bodyTpl,
+            'note-email-received-email-body-' . $parentType,
             $data,
             true
         );

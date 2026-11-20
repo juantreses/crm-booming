@@ -33,19 +33,9 @@ use Espo\Core\Authentication\Logins\ApiKey;
 use Espo\Core\Authentication\Logins\Hmac;
 use Espo\ORM\EntityManager;
 use Espo\Entities\User;
-use Espo\ORM\Name\Attribute;
 
-/**
- * @internal
- */
 class UserFinder
 {
-    /** @var string[] */
-    private const array FORBIDDEN_USER_TYPE_LIST = [
-        User::TYPE_API,
-        User::TYPE_SYSTEM,
-    ];
-
     public function __construct(private EntityManager $entityManager)
     {}
 
@@ -54,22 +44,22 @@ class UserFinder
         return $this->entityManager
             ->getRDBRepositoryByClass(User::class)
             ->where([
-                User::FIELD_USER_NAME => $username,
-                User::FIELD_TYPE . '!=' => self::FORBIDDEN_USER_TYPE_LIST,
+                'userName' => $username,
+                'type!=' => [User::TYPE_API, User::TYPE_SYSTEM],
             ])
             ->findOne();
     }
 
-    public function findByAuthTokenData(string $username, string $id, ?int $passwordVersion): ?User
+    public function findByIdAndHash(string $username, string $id, ?string $hash): ?User
     {
         $where = [
-            User::FIELD_USER_NAME => $username,
-            Attribute::ID => $id,
-            User::FIELD_TYPE . '!=' => self::FORBIDDEN_USER_TYPE_LIST,
+            'userName' => $username,
+            'id' => $id,
+            'type!=' => [User::TYPE_API, User::TYPE_SYSTEM],
         ];
 
-        if ($passwordVersion !== null) {
-            $where[User::FIELD_PASSWORD_VERSION] = $passwordVersion;
+        if ($hash) {
+            $where['password'] = $hash;
         }
 
         return $this->entityManager
@@ -83,9 +73,9 @@ class UserFinder
         return $this->entityManager
             ->getRDBRepositoryByClass(User::class)
             ->where([
-                User::FIELD_TYPE => User::TYPE_API,
-                User::FIELD_API_KEY => $apiKey,
-                User::FIELD_AUTH_METHOD => Hmac::NAME,
+                'type' => User::TYPE_API,
+                'apiKey' => $apiKey,
+                'authMethod' => Hmac::NAME,
             ])
             ->findOne();
     }
@@ -95,9 +85,9 @@ class UserFinder
         return $this->entityManager
             ->getRDBRepositoryByClass(User::class)
             ->where([
-                User::FIELD_TYPE => User::TYPE_API,
-                User::FIELD_API_KEY => $apiKey,
-                User::FIELD_AUTH_METHOD => ApiKey::NAME,
+                'type' => User::TYPE_API,
+                'apiKey' => $apiKey,
+                'authMethod' => ApiKey::NAME,
             ])
             ->findOne();
     }

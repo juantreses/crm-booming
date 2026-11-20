@@ -21,8 +21,7 @@
     "acceptanceStatusMeetings": "Статус принятия (Встречи)",
     "acceptanceStatusCalls": "Статус принятия (Звонки)",
     "title": "Название счета",
-    "hasPortalUser": "Есть пользователь портала",
-    "originalEmail": "Оригинальное электронное письмо"
+    "hasPortalUser": "Есть пользователь портала"
   },
   "links": {
     "opportunities": "Сделки",
@@ -52,6 +51,6 @@
   "presetFilters": {
     "portalUsers": "Пользователи порталов",
     "notPortalUsers": "Не пользователи порталов",
-    "accountActive": "Активные отношения"
+    "accountActive": "Активный"
   }
 }

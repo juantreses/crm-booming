@@ -66,6 +66,6 @@ class ValueAccessor
     {
         $attributeValueMap = $this->extractor->extract($this->entity->getEntityType(), $field, $value);
 
-        $this->entity->setMultiple($attributeValueMap);
+        $this->entity->set($attributeValueMap);
     }
 }

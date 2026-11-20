@@ -54,7 +54,7 @@ class MassUnfollow implements MassAction
 
         $passedUserId = $data->get('userId');
 
-        if ($passedUserId && !$this->user->isEffectiveAdmin()) {
+        if ($passedUserId && !$this->user->isAdmin()) {
             throw new Forbidden();
         }
 
@@ -75,6 +75,7 @@ class MassUnfollow implements MassAction
         foreach ($collection as $entity) {
             $this->streamService->unfollowEntity($entity, $userId);
 
+            /** @var string $id */
             $id = $entity->getId();
 
             $ids[] = $id;

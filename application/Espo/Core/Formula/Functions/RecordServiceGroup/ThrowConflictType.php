@@ -29,18 +29,22 @@
 
 namespace Espo\Core\Formula\Functions\RecordServiceGroup;
 
+use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\ConflictSilent;
 use Espo\Core\Exceptions\Error\Body;
 use Espo\Core\Formula\ArgumentList;
-use Espo\Core\Formula\Exceptions\WrapperException;
+use Espo\Core\Formula\Exceptions\Error;
+use Espo\Core\Formula\Exceptions\ExecutionException;
 use Espo\Core\Formula\Functions\BaseFunction;
 use Espo\Core\Utils\Json;
 
-/**
- * @noinspection PhpUnused
- */
 class ThrowConflictType extends BaseFunction
 {
+    /**
+     * @throws Error
+     * @throws ExecutionException
+     * @throws Conflict
+     */
     public function process(ArgumentList $args)
     {
         if (empty($this->getVariables()->__isRecordService)) {
@@ -51,13 +55,9 @@ class ThrowConflictType extends BaseFunction
         $body = isset($args[1]) ? $this->evaluate($args[1]) : null;
 
         if ($body !== null) {
-            throw WrapperException::create(
-                ConflictSilent::createWithBody($message, Json::encode($body))
-            );
+            throw ConflictSilent::createWithBody($message, Json::encode($body));
         }
 
-        throw WrapperException::create(
-            ConflictSilent::createWithBody($message, Body::create()->withMessage($message))
-        );
+        throw ConflictSilent::createWithBody($message, Body::create()->withMessage($message));
     }
 }

@@ -48,7 +48,7 @@ class EntityDuplicator
         private Defs $defs,
         private FieldDuplicatorFactory $fieldDuplicatorFactory,
         private FieldUtil $fieldUtil,
-        private Metadata $metadata,
+        private Metadata $metadata
     ) {}
 
     public function duplicate(Entity $entity): stdClass
@@ -61,10 +61,6 @@ class EntityDuplicator
         $entityDefs = $this->defs->getEntity($entityType);
 
         foreach ($entityDefs->getFieldList() as $fieldDefs) {
-            $this->processIgnoreField($entity, $fieldDefs, $valueMap);
-        }
-
-        foreach ($entityDefs->getFieldList() as $fieldDefs) {
             $this->processField($entity, $fieldDefs, $valueMap);
         }
 
@@ -75,7 +71,7 @@ class EntityDuplicator
         return $valueMap;
     }
 
-    private function processIgnoreField(Entity $entity, FieldDefs $fieldDefs, stdClass $valueMap): void
+    private function processField(Entity $entity, FieldDefs $fieldDefs, stdClass $valueMap): void
     {
         $entityType = $entity->getEntityType();
         $field = $fieldDefs->getName();
@@ -86,15 +82,7 @@ class EntityDuplicator
             foreach ($attributeList as $attribute) {
                 unset($valueMap->$attribute);
             }
-        }
-    }
 
-    private function processField(Entity $entity, FieldDefs $fieldDefs, stdClass $valueMap): void
-    {
-        $entityType = $entity->getEntityType();
-        $field = $fieldDefs->getName();
-
-        if ($this->toIgnoreField($entityType, $fieldDefs)) {
             return;
         }
 
@@ -146,15 +134,7 @@ class EntityDuplicator
     {
         $type = $fieldDefs->getType();
 
-        if (
-            in_array($type, [
-                FieldType::AUTOINCREMENT,
-                FieldType::NUMBER,
-                FieldType::LINK_ONE,
-                // Additional measure. It's not fetched.
-                FieldType::PASSWORD,
-            ])
-        ) {
+        if (in_array($type, [FieldType::AUTOINCREMENT, FieldType::NUMBER])) {
             return true;
         }
 

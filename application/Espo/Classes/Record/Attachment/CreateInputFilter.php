@@ -140,17 +140,16 @@ class CreateInputFilter implements Filter
 
         $dummy = $this->entityManager->getRepositoryByClass(Attachment::class)->getNew();
 
-        $dummy
-            ->setTargetField($field)
-            ->setRole($role)
-            ->setMultiple([
-                'parentType' => $data->get('parentType'),
-                'relatedType' => $data->get('relatedType'),
-            ]);
+        $dummy->set([
+            'parentType' => $data->get('parentType'),
+            'relatedType' => $data->get('relatedType'),
+            'field' => $field,
+            'role' => $role,
+        ]);
 
         $maxSize = $this->detailsObtainer->getUploadMaxSize($dummy);
 
-        if ($maxSize && $size > $maxSize) {
+        if ($maxSize && $size > $maxSize * 1024 * 1024) {
             throw new BadRequest("File size should not exceed $maxSize Mb.");
         }
     }

@@ -33,11 +33,9 @@ use Espo\Core\Authentication\Jwt\Exceptions\Invalid;
 use Espo\Core\Authentication\Oidc\ConfigDataProvider;
 use Espo\Core\Authentication\Oidc\Login as OidcLogin;
 use Espo\Core\Authentication\Oidc\BackchannelLogout;
-use Espo\Core\Authentication\Oidc\PkceUtil;
 use Espo\Core\Authentication\Util\MethodProvider;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Exceptions\Forbidden;
-use Espo\Core\Session\Session;
 use Espo\Core\Utils\Json;
 
 class Service
@@ -45,8 +43,7 @@ class Service
     public function __construct(
         private BackchannelLogout $backchannelLogout,
         private MethodProvider $methodProvider,
-        private ConfigDataProvider $configDataProvider,
-        private Session $session,
+        private ConfigDataProvider $configDataProvider
     ) {}
 
     /**
@@ -58,8 +55,6 @@ class Service
      *     claims: ?string,
      *     prompt: 'none'|'login'|'consent'|'select_account',
      *     maxAge: ?int,
-     *     codeChallenge: ?string,
-     *     codeChallengeMethod: ?string,
      * }
      * @throws Forbidden
      * @throws Error
@@ -75,7 +70,6 @@ class Service
         $scopes = $this->configDataProvider->getScopes();
         $groupClaim = $this->configDataProvider->getGroupClaim();
         $redirectUri = $this->configDataProvider->getRedirectUri();
-        $codeChallenge = $this->configDataProvider->useAuthorizationPkce() ? $this->prepareCodeChallenge() : null;
 
         if (!$clientId) {
             throw new Error("No client ID.");
@@ -111,8 +105,6 @@ class Service
             'claims' => $claims,
             'prompt' => $prompt,
             'maxAge' => $maxAge,
-            'codeChallenge' => $codeChallenge,
-            'codeChallengeMethod' => $codeChallenge ? 'S256' : null,
         ];
     }
 
@@ -130,14 +122,5 @@ class Service
         } catch (Invalid $e) {
             throw new Forbidden("OIDC logout: Invalid JWT. " . $e->getMessage());
         }
-    }
-
-    private function prepareCodeChallenge(): string
-    {
-        $codeVerifier = PkceUtil::generateCodeVerifier();
-
-        $this->session->set(OidcLogin::SESSION_KEY_CODE_VERIFIER, $codeVerifier);
-
-        return PkceUtil::hashAndEncodeCodeVerifier($codeVerifier);
     }
 }

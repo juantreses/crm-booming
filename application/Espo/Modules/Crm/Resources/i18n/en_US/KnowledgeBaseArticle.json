@@ -20,8 +20,7 @@
         "categories": "Categories",
         "language": "Language",
         "portals": "Portals",
-        "bodyPlain": "Body Plain",
-        "isHtml": "HTML"
+        "bodyPlain": "Body Plain"
     },
     "links": {
         "cases": "Cases",

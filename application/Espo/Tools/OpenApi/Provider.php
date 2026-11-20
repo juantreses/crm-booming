@@ -44,7 +44,6 @@ use Espo\ORM\Defs;
 use Espo\ORM\Defs\Params\FieldParam;
 use Espo\ORM\Name\Attribute;
 use Espo\ORM\Type\RelationType;
-use Espo\Tools\EntityManager\EntityManager;
 use Espo\Tools\OpenApi\Provider\Params;
 use ReflectionClass;
 use RuntimeException;
@@ -91,13 +90,11 @@ class Provider
         if ($this->dataCache->has($cacheKey)) {
             $data = $this->dataCache->get($cacheKey);
 
-            if ($data !== null && !$data instanceof stdClass) {
+            if (!$data instanceof stdClass) {
                 throw new RuntimeException("Corrupted OpenAPI spec cache file.");
             }
 
-            if ($data !== null) {
-                return $data;
-            }
+            return $data;
         }
 
         $data = $this->buildData($params);
@@ -226,7 +223,7 @@ class Provider
                 continue;
             }
 
-            if ($params->skipCustom && $module === EntityManager::MODULE_CUSTOM) {
+            if ($params->skipCustom && $module === 'Custom') {
                 continue;
             }
 

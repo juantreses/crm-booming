@@ -160,15 +160,6 @@
         "campaign": {
             "type": "link"
         },
-        "isLocked": {
-            "type": "bool",
-            "readOnly": true,
-            "audited": true,
-            "layoutAvailabilityList": [
-                "filters",
-                "list"
-            ]
-        },
         "createdAt": {
             "type": "datetime",
             "readOnly": true,
@@ -197,13 +188,11 @@
         },
         "assignedUser": {
             "type": "link",
-            "view": "views/fields/assigned-user",
-            "notLockable": true
+            "view": "views/fields/assigned-user"
         },
         "teams": {
             "type": "linkMultiple",
-            "view": "views/fields/teams",
-            "notLockable": true
+            "view": "views/fields/teams"
         },
         "targetLists": {
             "type": "linkMultiple",
@@ -370,11 +359,7 @@
     "collection": {
         "orderBy": "createdAt",
         "order": "desc",
-        "textFilterFields": [
-            "name",
-            "emailAddress",
-            "phoneNumber"
-        ]
+        "textFilterFields": ["name", "emailAddress"]
     },
     "indexes": {
         "createdAt": {

@@ -38,12 +38,7 @@ use Espo\Core\Authentication\Result\FailReason;
 
 class ApiKey implements Login
 {
-    public const string NAME = 'ApiKey';
-
-    /**
-     * @since 10.1.0
-     */
-    public const string HEADER_API_KEY = 'X-Api-Key';
+    public const NAME = 'ApiKey';
 
     private UserFinder $userFinder;
 
@@ -54,7 +49,7 @@ class ApiKey implements Login
 
     public function login(Data $data, Request $request): Result
     {
-        $apiKey = $request->getHeader(self::HEADER_API_KEY);
+        $apiKey = $request->getHeader('X-Api-Key');
 
         if (!$apiKey) {
             return Result::fail(FailReason::WRONG_CREDENTIALS);

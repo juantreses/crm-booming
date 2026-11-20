@@ -30,13 +30,10 @@
 namespace Espo\Core\Htmlizer;
 
 use Closure;
-use DevTheorem\Handlebars\Handlebars;
-use DevTheorem\Handlebars\HelperOptions;
 use DOMDocument;
 use DOMElement;
 use DOMException;
 use DOMXPath;
-use Espo\Core\AclManager;
 use Espo\Core\Currency\PrecisionProvider;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Forbidden;
@@ -51,6 +48,7 @@ use Espo\Repositories\Attachment as AttachmentRepository;
 use Espo\Core\Utils\Json;
 use Espo\Core\Acl;
 use Espo\Core\InjectableFactory;
+use Espo\Core\ServiceFactory;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\DateTime;
 use Espo\Core\Utils\Language;
@@ -60,6 +58,9 @@ use Espo\Core\Utils\NumberUtil;
 use Espo\ORM\Collection;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
+
+use LightnCandy\Flags;
+use LightnCandy\LightnCandy as LightnCandy;
 
 use LogicException;
 use RuntimeException;
@@ -79,7 +80,8 @@ class Htmlizer
     public function __construct(
         private DateTime $dateTime,
         private NumberUtil $number,
-        private ?User $user,
+        private SelectBuilderFactory $selectBuilderFactory,
+        private User $user,
         private EntityManager $entityManager,
         private Metadata $metadata,
         private Language $language,
@@ -87,41 +89,110 @@ class Htmlizer
         private Log $log,
         private InjectableFactory $injectableFactory,
         private PrecisionProvider $precisionProvider,
-        private AclManager $aclManager,
         private ?Acl $acl = null,
+        private ?ServiceFactory $serviceFactory = null,
     ) {}
 
     /**
      * Generate an HTML for entity by a given template.
      *
+     * @param ?string $cacheId @deprecated To be skipped.
      * @param ?array<string, mixed> $additionalData Data will be passed to the template.
      * @param bool $skipLinks Do not process related records.
-     * @internal
      */
     public function render(
         ?Entity $entity,
         string $template,
+        ?string $cacheId = null,
         ?array $additionalData = null,
         bool $skipLinks = false,
-        bool $skipInlineAttachmentHandling = false,
+        bool $skipInlineAttachmentHandling = false
     ): string {
 
         $helpers = $this->getHelpers();
 
         $template = $this->prepare($template, array_keys($helpers));
 
-        $renderer = Handlebars::compile($template);
+        $code = LightnCandy::compile($template, [
+            'flags' => Flags::FLAG_HANDLEBARSJS | Flags::FLAG_ERROR_EXCEPTION,
+            'helpers' => $helpers,
+        ]);
 
-        $data = $this->prepareRendererData(
-            additionalData: $additionalData,
-            entity: $entity,
-            skipLinks: $skipLinks,
-            template: $template,
-        );
+        if ($code === false) {
+            throw new RuntimeException("Template compile error.");
+        }
 
-        $html = $renderer($data, ['helpers' => $helpers]);
+        /**
+         * @var Closure|false $renderer
+         */
+        $renderer = LightnCandy::prepare($code);
 
-        return $this->postProcessHtml($skipInlineAttachmentHandling, $html);
+        if ($renderer === false) {
+            throw new RuntimeException("Template compile error.");
+        }
+
+        if ($additionalData === null) {
+            $additionalData = [];
+        }
+
+        $data = $entity ?
+            $this->getDataFromEntity($entity, $skipLinks, 0, $template, $additionalData) :
+            $additionalData;
+
+        if (!array_key_exists('today', $data)) {
+            $data['today'] = $this->dateTime->getTodayString();
+            $data['today_RAW'] = $this->dateTime->getTodayString(null, DateTime::SYSTEM_DATE_FORMAT);
+        }
+
+        if (!array_key_exists('now', $data)) {
+            $data['now'] = $this->dateTime->getNowString();
+            $data['now_RAW'] = date(DateTime::SYSTEM_DATE_TIME_FORMAT);
+        }
+
+        $data['__injectableFactory'] = $this->injectableFactory;
+        $data['__config'] = $this->config;
+        $data['__dateTime'] = $this->dateTime;
+        $data['__metadata'] = $this->metadata;
+        $data['__entityManager'] = $this->entityManager;
+        $data['__language'] = $this->language;
+        $data['__serviceFactory'] = $this->serviceFactory;
+        $data['__log'] = $this->log;
+        $data['__entityType'] = $entity?->getEntityType();
+
+        $html = $renderer($data);
+
+        if (!$skipInlineAttachmentHandling) {
+            $html = str_replace('?entryPoint=attachment&amp;', '?entryPoint=attachment&', $html);
+        }
+
+        if (!$skipInlineAttachmentHandling) {
+            /** @var string $html */
+            $html = preg_replace_callback(
+                '/\?entryPoint=attachment&id=([A-Za-z0-9\-]*)/',
+                function ($matches) {
+                    $id = $matches[1];
+
+                    if (!$id) {
+                        return '';
+                    }
+
+                    /** @var Attachment $attachment */
+                    $attachment = $this->entityManager->getEntityById(Attachment::ENTITY_TYPE, $id);
+
+                    if (!$attachment) {
+                        return '';
+                    }
+
+                    /** @var AttachmentRepository $repository */
+                    $repository = $this->entityManager->getRepository(Attachment::ENTITY_TYPE);
+
+                    return $repository->getFilePath($attachment);
+                },
+                $html
+            );
+        }
+
+        return $html;
     }
 
     private function format(mixed $value): mixed
@@ -238,17 +309,11 @@ class Htmlizer
                 ->getRelation($relation)
                 ->getForeignEntityType();
 
-            // Using lazy loading as the factory depends on the 'user' service.
-            $selectBuilderFactory = $this->injectableFactory->create(SelectBuilderFactory::class);
+            $selectBuilder = $this->selectBuilderFactory->create();
 
-            $selectBuilder = $selectBuilderFactory->create()
-                ->from($foreignEntityType);
+            $selectBuilder->from($foreignEntityType);
 
             if ($this->acl) {
-                if (!$this->user) {
-                    throw new RuntimeException("No 'user' passed.");
-                }
-
                 $selectBuilder
                     ->forUser($this->user)
                     ->withAccessControlFilter();
@@ -273,7 +338,7 @@ class Htmlizer
     }
 
     /**
-     * @return array<string, Closure>
+     * @return array<string, callable>
      */
     private function getHelpers(): array
     {
@@ -344,29 +409,28 @@ class Htmlizer
                     return '';
                 }
 
-                /** @noinspection PhpFullyQualifiedNameUsageInspection */
-                return new \DevTheorem\Handlebars\SafeString("?entryPoint=attachment&id=" . $id);
+                /** @noinspection PhpUndefinedClassInspection */
+                /** @noinspection PhpUndefinedNamespaceInspection */
+                /** @phpstan-ignore-next-line */
+                return new LightnCandy\SafeString("?entryPoint=attachment&id=" . $id);
             },
             'pagebreak' => function () {
-                /** @noinspection PhpFullyQualifiedNameUsageInspection */
-                /** @noinspection HtmlUnknownAttribute */
-                return new \DevTheorem\Handlebars\SafeString('<br pagebreak="true">');
+                /** @noinspection PhpUndefinedClassInspection, HtmlUnknownAttribute */
+                /** @noinspection PhpUndefinedNamespaceInspection */
+                /** @phpstan-ignore-next-line */
+                return new LightnCandy\SafeString('<br pagebreak="true">');
             },
             'imageTag' => function () {
                 $args = func_get_args();
 
                 $context = $args[count($args) - 1];
 
-                if (!$context instanceof HelperOptions) {
-                    throw new RuntimeException();
-                }
-
-                $field = $context->hash['field'] ?? null;
+                $field = $context['hash']['field'] ?? null;
 
                 $id = null;
 
                 if ($field) {
-                    $id = $context->scope[$field . 'Id'] ?? null;
+                    $id = $context['_this'][$field . 'Id'] ?? null;
                 } else if (count($args) > 1) {
                     $id = $args[0];
                 }
@@ -375,8 +439,8 @@ class Htmlizer
                     return null;
                 }
 
-                $width = $context->hash['width'] ?? null;
-                $height = $context->hash['height'] ?? null;
+                $width = $context['hash']['width'] ?? null;
+                $height = $context['hash']['height'] ?? null;
 
                 $attributesPart = "";
 
@@ -391,20 +455,22 @@ class Htmlizer
                 /** @noinspection HtmlRequiredAltAttribute */
                 $html = "<img src=\"?entryPoint=attachment&id=$id\"$attributesPart>";
 
-                /** @noinspection PhpFullyQualifiedNameUsageInspection */
-                return new \DevTheorem\Handlebars\SafeString($html);
+                /** @noinspection PhpUndefinedNamespaceInspection */
+                /** @noinspection PhpUndefinedClassInspection */
+                /** @phpstan-ignore-next-line */
+                return new LightnCandy\SafeString($html);
             },
             'var' => function () {
                 $args = func_get_args();
 
-                $object = $args[1] ?? [];
+                $c = $args[1] ?? [];
                 $key = $args[0] ?? null;
 
                 if (is_null($key)) {
                     return null;
                 }
 
-                return $object[$key] ?? null;
+                return $c[$key] ?? null;
             },
             'numberFormat' => function () {
                 $args = func_get_args();
@@ -416,17 +482,13 @@ class Htmlizer
                 $context = $args[count($args) - 1];
                 $number = $args[0] ?? null;
 
-                if (!$context instanceof HelperOptions) {
-                    throw new RuntimeException();
-                }
-
                 if (is_null($number)) {
                     return '';
                 }
 
-                $decimals = $context->hash['decimals'] ?? 0;
-                $decimalPoint = $context->hash['decimalPoint'] ?? '.';
-                $thousandsSeparator = $context->hash['thousandsSeparator'] ?? ',';
+                $decimals = $context['hash']['decimals'] ?? 0;
+                $decimalPoint = $context['hash']['decimalPoint'] ?? '.';
+                $thousandsSeparator = $context['hash']['thousandsSeparator'] ?? ',';
 
                 return number_format((float) $number, $decimals, $decimalPoint, $thousandsSeparator);
             },
@@ -440,15 +502,10 @@ class Htmlizer
                 $context = $args[count($args) - 1];
                 $dateValue = $args[0];
 
-                if (!$context instanceof HelperOptions) {
-                    throw new RuntimeException();
-                }
-
-                $format = $context->hash['format'] ?? null;
-                $timezone = $context->hash['timezone'] ?? null;
-                $language = $context->hash['language'] ?? null;
-
-                $dateTime = $this->dateTime;
+                $format = $context['hash']['format'] ?? null;
+                $timezone = $context['hash']['timezone'] ?? null;
+                $language = $context['hash']['language'] ?? null;
+                $dateTime = $context['data']['root']['__dateTime'];
 
                 if (strlen($dateValue) > 11) {
                     return $dateTime->convertSystemDateTime($dateValue, $timezone, $format, $language);
@@ -466,94 +523,74 @@ class Htmlizer
                 $context = $args[count($args) - 1];
                 $value = $args[0];
 
-                if (!$context instanceof HelperOptions) {
-                    throw new RuntimeException();
-                }
-
-                $params = $context->hash;
+                $params = $context['hash'];
                 $params['value'] = $value;
 
                 /** @phpstan-ignore-next-line */
                 $paramsString = urlencode(json_encode($params));
 
-                /** @noinspection PhpFullyQualifiedNameUsageInspection */
-                return new \DevTheorem\Handlebars\SafeString("<barcodeimage data=\"$paramsString\"/>");
+                /** @noinspection PhpUndefinedNamespaceInspection */
+                /** @noinspection PhpUndefinedClassInspection */
+                /** @phpstan-ignore-next-line */
+                return new LightnCandy\SafeString("<barcodeimage data=\"$paramsString\"/>");
             },
             'ifEqual' => function () {
                 $args = func_get_args();
                 $context = $args[count($args) - 1];
 
-                if (!$context instanceof HelperOptions) {
-                    throw new RuntimeException();
-                }
-
                 if ($args[0] === $args[1]) {
-                    return $context->fn();
+                    return $context['fn']();
                 }
 
-                return $context->inverse();
+                return $context['inverse'] ? $context['inverse']() : '';
             },
             'ifNotEqual' => function () {
                 $args = func_get_args();
 
                 $context = $args[count($args) - 1];
 
-                if (!$context instanceof HelperOptions) {
-                    throw new RuntimeException();
-                }
-
                 if ($args[0] !== $args[1]) {
-                    return $context->fn();
+                    return $context['fn']();
                 }
 
-                return $context->inverse();
+                return $context['inverse'] ? $context['inverse']() : '';
             },
             'ifInArray' => function () {
                 $args = func_get_args();
 
                 $context = $args[count($args) - 1];
+
                 $array = $args[1] ?? [];
 
-                if (!$context instanceof HelperOptions) {
-                    throw new RuntimeException();
-                }
-
                 if (in_array($args[0], $array)) {
-                    return $context->fn();
+                    return $context['fn']();
                 }
 
-                return $context->inverse();
+                return $context['inverse'] ? $context['inverse']() : '';
             },
             'ifMultipleOf' => function () {
                 $args = func_get_args();
 
                 $context = $args[count($args) - 1];
 
-                if (!$context instanceof HelperOptions) {
-                    throw new RuntimeException();
-                }
-
                 if ($args[0] % $args[1] === 0) {
-                    return $context->fn();
+                    return $context['fn']();
                 }
 
-                return $context->inverse();
+                return $context['inverse'] ? $context['inverse']() : '';
             },
             'checkboxTag' => function () {
                 $args = func_get_args();
 
                 $context = $args[count($args) - 1];
 
-                if (!$context instanceof HelperOptions) {
-                    throw new RuntimeException();
-                }
-
                 if (count($args) < 2) {
                     return null;
                 }
 
-                $color = $context->hash['color'] ?? '#000';
-                $option = $context->hash['option'] ?? null;
+                $color = $context['hash']['color'] ?? '#000';
+
+                $option = $context['hash']['option'] ?? null;
 
                 if (is_null($option)) {
                     return null;
@@ -577,8 +614,10 @@ class Htmlizer
                     $html = '<input type="checkbox" name="1" readonly="true" value="1" style="color: '.$css.'">';
                 }
 
-                /** @noinspection PhpFullyQualifiedNameUsageInspection */
-                return new \DevTheorem\Handlebars\SafeString($html);
+                /** @noinspection PhpUndefinedNamespaceInspection */
+                /** @noinspection PhpUndefinedClassInspection */
+                /** @phpstan-ignore-next-line */
+                return new LightnCandy\SafeString($html);
             },
         ];
 
@@ -587,31 +626,26 @@ class Htmlizer
             $argumentList = array_slice($args, 0, -1);
             $context = $args[count($args) - 1];
 
-            if (!$context instanceof HelperOptions) {
-                throw new RuntimeException();
-            }
+            $options = $context['hash'];
+            $rootData = $context['data']['root'];
 
-            $hash = $context->hash;
-            $rootData = $context->data['root'];
+            $injectableFactory = $rootData['__injectableFactory'];
+            $metadata = $rootData['__metadata'];
 
-            $injectableFactory = $this->injectableFactory;
-            $metadata = $this->metadata;
+            $name = $context['name'];
 
-            $name = $context->name;
-
-            /** @var class-string<Helper> $className */
-            $className = $metadata->get("app.templateHelpers.$name");
+            $className = $metadata->get(['app', 'templateHelpers', $name]);
 
             // Not using FQN deliberately.
             /** @noinspection PhpFullyQualifiedNameUsageInspection */
             $data = new \Espo\Core\Htmlizer\Helper\Data(
-                name: $name,
-                argumentList: $argumentList,
-                options: (object) $hash,
-                context: $context->scope,
-                rootContext: $rootData,
-                func: fn () => $context->fn(),
-                inverseFunc: fn () => $context->inverse(),
+                $name,
+                $argumentList,
+                (object) $options,
+                $context['_this'],
+                $rootData,
+                $context['fn'] ?? null,
+                $context['inverse'] ?? null,
             );
 
             $helper = $injectableFactory->create($className);
@@ -622,7 +656,7 @@ class Htmlizer
 
             /** @noinspection PhpFullyQualifiedNameUsageInspection */
             if ($value instanceof \Espo\Core\Htmlizer\Helper\SafeString) {
-                return $value->getInternal();
+                return $value->getWrappee();
             }
 
             return $value;
@@ -837,19 +871,20 @@ class Htmlizer
      */
     private function getForbiddenAttributes(string $entityType): array
     {
-        $restrictedList = $this->aclManager->getScopeRestrictedAttributeList($entityType, [
-            Acl\GlobalRestriction::TYPE_FORBIDDEN,
-            Acl\GlobalRestriction::TYPE_INTERNAL,
-            Acl\GlobalRestriction::TYPE_ONLY_ADMIN,
-        ]);
-
         if (!$this->acl) {
-            return $restrictedList;
+            return [];
         }
 
         return array_merge(
-            $restrictedList,
             $this->acl->getScopeForbiddenAttributeList($entityType),
+            $this->acl->getScopeRestrictedAttributeList(
+                $entityType,
+                [
+                    Acl\GlobalRestriction::TYPE_FORBIDDEN,
+                    Acl\GlobalRestriction::TYPE_INTERNAL,
+                    Acl\GlobalRestriction::TYPE_ONLY_ADMIN,
+                ]
+            )
         );
     }
 
@@ -858,7 +893,11 @@ class Htmlizer
      */
     private function getRestrictedLinks(Entity $entity): array
     {
-        return $this->aclManager->getScopeRestrictedLinkList(
+        if (!$this->acl) {
+            return [];
+        }
+
+        return $this->acl->getScopeRestrictedLinkList(
             $entity->getEntityType(),
             [
                 Acl\GlobalRestriction::TYPE_FORBIDDEN,
@@ -916,11 +955,6 @@ class Htmlizer
         $forbiddenAttributeList = $this->getForbiddenAttributes($entity->getEntityType());
 
         foreach ($entity->getAttributeList() as $attribute) {
-            // Should be before unsetting. Additional data is already applied to the data.
-            if ($additionalData && array_key_exists($attribute, $additionalData)) {
-                continue;
-            }
-
             if (in_array($attribute, $forbiddenAttributeList)) {
                 unset($data[$attribute]);
 
@@ -928,6 +962,10 @@ class Htmlizer
             }
 
             if (in_array($attribute, $skipAttributeList)) {
+                continue;
+            }
+
+            if ($additionalData && array_key_exists($attribute, $additionalData)) {
                 continue;
             }
 
@@ -968,8 +1006,7 @@ class Htmlizer
                         if (is_array($v)) {
                             foreach ($v as $k => $w) {
                                 $keyRaw = $k . '_RAW';
-
-                                $v[$keyRaw] = $w;
+                                $v[$keyRaw] = $v[$k];
                                 $v[$k] = $this->format($v[$k]);
                             }
                         }
@@ -1110,75 +1147,5 @@ class Htmlizer
         $precision = $this->precisionProvider->get($code);
 
         return $this->number->format($value, $precision);
-    }
-
-    /**
-     * @param ?array<string, mixed> $additionalData
-     * @return array<string, mixed>
-     */
-    private function prepareRendererData(
-        ?array $additionalData,
-        ?Entity $entity,
-        bool $skipLinks,
-        string $template,
-    ): array {
-
-        if ($additionalData === null) {
-            $additionalData = [];
-        }
-
-        $data = $entity ?
-            $this->getDataFromEntity($entity, $skipLinks, 0, $template, $additionalData) :
-            $additionalData;
-
-        if (!array_key_exists('today', $data)) {
-            $data['today'] = $this->dateTime->getTodayString();
-            $data['today_RAW'] = $this->dateTime->getTodayString(null, DateTime::SYSTEM_DATE_FORMAT);
-        }
-
-        if (!array_key_exists('now', $data)) {
-            $data['now'] = $this->dateTime->getNowString();
-            $data['now_RAW'] = date(DateTime::SYSTEM_DATE_TIME_FORMAT);
-        }
-
-        $data['__entityType'] = $entity?->getEntityType();
-
-        return $data;
-    }
-
-    private function postProcessHtml(bool $skipInlineAttachmentHandling, string $html): string
-    {
-        if (!$skipInlineAttachmentHandling) {
-            $html = str_replace('?entryPoint=attachment&amp;', '?entryPoint=attachment&', $html);
-        }
-
-        if (!$skipInlineAttachmentHandling) {
-            /** @var string $html */
-            $html = preg_replace_callback(
-                '/\?entryPoint=attachment&id=([A-Za-z0-9\-]*)/',
-                function ($matches) {
-                    $id = $matches[1];
-
-                    if (!$id) {
-                        return '';
-                    }
-
-                    /** @var Attachment $attachment */
-                    $attachment = $this->entityManager->getEntityById(Attachment::ENTITY_TYPE, $id);
-
-                    if (!$attachment) {
-                        return '';
-                    }
-
-                    /** @var AttachmentRepository $repository */
-                    $repository = $this->entityManager->getRepository(Attachment::ENTITY_TYPE);
-
-                    return $repository->getFilePath($attachment);
-                },
-                $html
-            );
-        }
-
-        return $html;
     }
 }

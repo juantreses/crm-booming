@@ -29,7 +29,6 @@
 
 namespace Espo\ORM;
 
-use Espo\ORM\Exceptions\DeadlockException;
 use Espo\ORM\QueryComposer\QueryComposer;
 
 use PDO;
@@ -41,8 +40,6 @@ use Closure;
 class TransactionManager
 {
     private int $level = 0;
-
-    private const int MAX_ATTEMPT_COUNT = 4;
 
     public function __construct(private PDO $pdo, private QueryComposer $queryComposer)
     {}
@@ -68,48 +65,20 @@ class TransactionManager
      *
      * @return mixed A function result.
      */
-    public function run(Closure $function): mixed
+    public function run(Closure $function)
     {
-        return $this->runInternal($function);
-    }
-
-    /**
-     * @throws PDOException
-     */
-    private function runInternal(Closure $function, ?int $counter = null): mixed
-    {
-        $counter ??= self::MAX_ATTEMPT_COUNT;
-
-        $isOutermost = $this->level === 0;
-
         $this->start();
 
         try {
             $result = $function();
 
             $this->commit();
-        } catch (DeadlockException $e) {
-            // The entire transaction is aborted, including save points.
-
-            $this->level --;
-
-            if (!$isOutermost) {
-                throw $e;
-            }
-
-            $this->forceRollback();
-
-            $counter --;
-
-            if ($counter === 0) {
-                throw $e;
-            }
-
-            return $this->runInternal($function, $counter);
         } catch (Throwable $e) {
             $this->rollback();
 
-            /** @var PDOException $e */
+            /**
+             * @var PDOException $e
+             */
             throw $e;
         }
 
@@ -176,7 +145,7 @@ class TransactionManager
 
     private function getCurrentSavepoint(): string
     {
-        return 'POINT_' . $this->level;
+        return 'POINT_' . (string) $this->level;
     }
 
     private function createSavepoint(): void
@@ -198,14 +167,5 @@ class TransactionManager
         $sql = $this->queryComposer->composeRollbackToSavepoint($this->getCurrentSavepoint());
 
         $this->pdo->exec($sql);
-    }
-
-    private function forceRollback(): void
-    {
-        try {
-            if ($this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
-        } catch (PDOException) {}
     }
 }

@@ -2,7 +2,6 @@
   "fields": {
     "name": "Naam",
     "parent": "Behorende bij",
-    "status": "Status",
     "dateStart": "Start Datum",
     "dateEnd": "Eind Datum",
     "direction": "Richting",
@@ -10,11 +9,9 @@
     "description": "Beschrijving",
     "users": "Gebruikers",
     "contacts": "Contacten",
-    "leads": "Leads",
     "reminders": "Herinneringen",
     "account": "Relatie",
-    "acceptanceStatus": "Acceptatiestatus",
-    "uid": "UID"
+    "acceptanceStatus": "Acceptatiestatus"
   },
   "options": {
     "status": {

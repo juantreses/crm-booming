@@ -129,13 +129,6 @@ class ResponseWrapper implements ApiResponse
         return $this->psr7Response->getBody();
     }
 
-    public function applyPsr7(Psr7Response $psr7Response): self
-    {
-        $this->psr7Response = $psr7Response;
-
-        return $this;
-    }
-
     public function toPsr7(): Psr7Response
     {
         return $this->psr7Response;

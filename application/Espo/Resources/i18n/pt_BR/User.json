@@ -36,8 +36,7 @@
     "dashboardTemplate": "Modelo de Dashboard",
     "auth2FAEnable": "Ativar Autenticação de 2 Fatores",
     "auth2FAMethod": "Método 2FA",
-    "auth2FATotpSecret": "Segredo 2FA TOTP",
-    "workingTimeCalendar": "Calendário de Horário de Trabalho"
+    "auth2FATotpSecret": "Segredo 2FA TOTP"
   },
   "links": {
     "teams": "Times",
@@ -51,8 +50,7 @@
     "tasks": "Tarefas",
     "defaultTeam": "Time Padrão",
     "dashboardTemplate": "Modelo de Dashboard",
-    "userData": "Dados do Usuário",
-    "workingTimeCalendar": "Calendário de Horário de Trabalho"
+    "userData": "Dados do Usuário"
   },
   "labels": {
     "Create User": "Criar Usuário",
@@ -77,19 +75,17 @@
     "Reset 2FA": "Reiniciar 2FA",
     "Secret": "Segredo",
     "Send Password Change Link": "Enviar link de alteração de senha",
-    "Send Code": "Enviar código",
-    "Login Link": "Link de login"
+    "Send Code": "Enviar código"
   },
   "tooltips": {
     "defaultTeam": "Todos os registros criados por este usuário serão relacionados e este time por padrão.",
+    "userName": "Letras a-z, números 0-9 e underscores são permitidos.",
     "isAdmin": "Usuário Admin pode acessar tudo.",
+    "isActive": "Se desmarcado, o usuário não conseguirá logar.",
     "teams": "Times aos quais este usuário pertence. O controle de acesso é herdado das regras do time.",
     "roles": "Regras de acesso adicionais. Use se o usuário não pertence a nenhum time ou se for necessário extender o controle de acesso deste usuário.",
     "portalRoles": "Regras adicionais do portal. Use-o para estender o nível de controle de acesso exclusivamente para este usuário.",
-    "portals": "Portais aos quais este usuário tem acesso.",
-    "userName": "Caracteres permitidos: `a-z`, `0-9`, `-_@.`.",
-    "isActive": "Se essa opção não estiver marcada, o usuário não poderá fazer login.",
-    "layoutSet": "Os layouts do conjunto de layouts especificado serão aplicados ao usuário. Os layouts padrão serão substituídos."
+    "portals": "Portais aos quais este usuário tem acesso."
   },
   "messages": {
     "passwordWillBeSent": "A senha será enviada para o email do usuário.",
@@ -123,10 +119,7 @@
     "choose2FaEmailAddress": "Selecione um endereço de e-mail que será usado para 2FA. É altamente recomendável usar um endereço de e-mail não principal.",
     "enterCodeSentInEmail": "Digite o código enviado para o seu endereço de e-mail.",
     "enterCodeSentBySms": "Digite o código enviado por SMS para o seu número de telefone.",
-    "passwordChangeRequestNotFound": "A solicitação de alteração de senha não foi encontrada. Pode estar expirada. Tente iniciar uma nova recuperação de senha a partir do [login page]({url}).",
-    "loginAs": "Abra o link de login em uma janela anônima para preservar sua sessão atual. Use suas credenciais de administrador para fazer login.",
-    "failedToLogIn": "Falha ao fazer login",
-    "2faMethodNotConfigured": "O método de autenticação de dois fatores não está totalmente configurado no sistema."
+    "passwordChangeRequestNotFound": "A solicitação de alteração de senha não foi encontrada. Pode estar expirada. Tente iniciar uma nova recuperação de senha a partir do [login page]({url})."
   },
   "boolFilters": {
     "onlyMyTeam": "Apenas meu time"

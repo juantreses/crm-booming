@@ -53,23 +53,33 @@ class AccessChecker implements AccessEntityCREDChecker
 {
     use DefaultAccessCheckerDependency;
 
-    private const string EDIT_PERIOD = '7 days';
-    private const string DELETE_PERIOD = '1 month';
+    private const EDIT_PERIOD = '7 days';
+    private const DELETE_PERIOD = '1 month';
+
+    private DefaultAccessChecker $defaultAccessChecker;
+    private AclManager $aclManager;
+    private EntityManager $entityManager;
+    private Config $config;
 
     public function __construct(
-        private DefaultAccessChecker $defaultAccessChecker,
-        private AclManager $aclManager,
-        private EntityManager $entityManager,
-        private Config $config,
-    ) {}
+        DefaultAccessChecker $defaultAccessChecker,
+        AclManager $aclManager,
+        EntityManager $entityManager,
+        Config $config
+    ) {
+        $this->defaultAccessChecker = $defaultAccessChecker;
+        $this->aclManager = $aclManager;
+        $this->entityManager = $entityManager;
+        $this->config = $config;
+    }
 
     /**
      * @param Note $entity
      */
     public function checkEntityCreate(User $user, Entity $entity, ScopeData $data): bool
     {
-        $parentId = $entity->getParentId();
-        $parentType = $entity->getParentType();
+        $parentId = $entity->get('parentId');
+        $parentType = $entity->get('parentType');
 
         if (!$parentId || !$parentType) {
             return true;
@@ -89,20 +99,21 @@ class AccessChecker implements AccessEntityCREDChecker
      */
     public function checkEntityRead(User $user, Entity $entity, ScopeData $data): bool
     {
-        if ($user->isEffectiveAdmin()) {
+        if ($user->isAdmin()) {
             return true;
         }
 
-        if ($entity->getRelated() && !$this->aclManager->tryCheck($user, $entity->getRelated())) {
-            return false;
-        }
+        $parentId = $entity->getParentId();
+        $parentType = $entity->getParentType();
 
-        if ($entity->getParentId() && $entity->getParentType()) {
-            if (!$entity->getParent()) {
+        if ($parentId && $parentType) {
+            $parent = $this->entityManager->getEntityById($parentType, $parentId);
+
+            if (!$parent) {
                 return false;
             }
 
-            return $this->aclManager->checkEntityStream($user, $entity->getParent());
+            return $this->aclManager->checkEntityStream($user, $parent);
         }
 
         if ($entity->getType() !== Note::TYPE_POST) {
@@ -145,7 +156,7 @@ class AccessChecker implements AccessEntityCREDChecker
      */
     public function checkEntityEdit(User $user, Entity $entity, ScopeData $data): bool
     {
-        if ($user->isEffectiveAdmin()) {
+        if ($user->isAdmin()) {
             return true;
         }
 
@@ -174,7 +185,7 @@ class AccessChecker implements AccessEntityCREDChecker
             if ($dt->format('U') > (new DateTime($createdAt))->format('U')) {
                 return false;
             }
-        } catch (Exception) {
+        } catch (Exception $e) {
             return false;
         }
 
@@ -186,7 +197,7 @@ class AccessChecker implements AccessEntityCREDChecker
      */
     public function checkEntityDelete(User $user, Entity $entity, ScopeData $data): bool
     {
-        if ($user->isEffectiveAdmin()) {
+        if ($user->isAdmin()) {
             return true;
         }
 
@@ -215,7 +226,7 @@ class AccessChecker implements AccessEntityCREDChecker
             if ($dt->format('U') > (new DateTime($createdAt))->format('U')) {
                 return false;
             }
-        } catch (Exception) {
+        } catch (Exception $e) {
             return false;
         }
 

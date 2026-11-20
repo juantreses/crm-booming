@@ -1146,7 +1146,7 @@ class Service
                 'id' => $id,
             ]);
 
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             $builder->where([
                 'userId' => $this->user->getId(),
             ]);

@@ -29,9 +29,10 @@
 
 namespace Espo\Core\Formula\Functions\ArrayGroup;
 
-use Espo\Core\Formula\ArgumentList;
-use Espo\Core\Formula\Exceptions\FunctionRuntimeError;
-use Espo\Core\Formula\Functions\BaseFunction;
+use Espo\Core\Formula\{
+    Functions\BaseFunction,
+    ArgumentList,
+};
 
 class AtType extends BaseFunction
 {
@@ -55,7 +56,8 @@ class AtType extends BaseFunction
         }
 
         if (!array_key_exists($index, $array)) {
-            throw new FunctionRuntimeError("Cannot access array value by non-existing index $index.");
+            $this->log("index doesn't exist");
+            return null;
         }
 
         return $array[$index];

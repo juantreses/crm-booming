@@ -41,7 +41,6 @@ use Espo\Core\Utils\Config\ApplicationConfig;
 use Espo\Core\Utils\Config\SystemConfig;
 use Espo\Core\Utils\File\Manager as FileManager;
 
-use Espo\Core\Utils\Theme\Direction;
 use Espo\Core\Utils\Theme\MetadataProvider as ThemeMetadataProvider;
 use Slim\Psr7\Response as Psr7Response;
 use Slim\ResponseEmitter;
@@ -61,10 +60,7 @@ class ClientManager
 
     private string $nonce;
 
-    private const string APP_DESCRIPTION = "EspoCRM – Open Source CRM application.";
-    private const string APP_NAME = 'EspoCRM';
-
-    private const int AJAX_TIMEOUT = 60000;
+    private const APP_DESCRIPTION = "EspoCRM – Open Source CRM application.";
 
     public function __construct(
         private Config $config,
@@ -79,7 +75,7 @@ class ClientManager
         private ApplicationConfig $applicationConfig,
         private ThemeMetadataProvider $themeMetadataProvider,
     ) {
-        $this->nonce = Util::generateCryptId();
+        $this->nonce = Util::generateKey();
     }
 
     public function setBasePath(string $basePath): void
@@ -124,16 +120,7 @@ class ClientManager
             $string .= ' ' . $src;
         }
 
-        if ($params->formAction !== null) {
-            if ($params->formAction !== []) {
-                $string .= '; form-action';
-
-                foreach ($params->formAction as $item) {
-                    $string .= ' ' . $item;
-                }
-            }
-
-        } else if (!$this->config->get('clientCspFormActionDisabled')) {
+        if (!$this->config->get('clientCspFormActionDisabled')) {
             $string .= "; form-action 'self'";
         }
 
@@ -190,8 +177,6 @@ class ClientManager
             additionalScripts: $params->scripts,
             pageTitle: $params->pageTitle,
             theme: $params->theme,
-            direction: $params->direction,
-            useRouter: $params->useRouter,
         );
     }
 
@@ -206,8 +191,6 @@ class ClientManager
         array $additionalScripts = [],
         ?string $pageTitle = null,
         ?string $theme = null,
-        ?Direction $direction = null,
-        bool $useRouter = true,
     ): string {
 
         $runScript ??= $this->runScript;
@@ -227,7 +210,6 @@ class ClientManager
 
         $cssFileList = $this->metadata->get(['app', 'client', 'cssList'], []);
         $linkList = $this->metadata->get(['app', 'client', 'linkList'], []);
-
         $faviconAlternate = $this->metadata->get('app.client.faviconAlternate') ?? $this->faviconAlternate;
         [$favicon, $faviconType] = $this->getFaviconData();
 
@@ -264,21 +246,18 @@ class ClientManager
             $this->themeMetadataProvider->getStylesheet($theme) :
             $this->themeManager->getStylesheet();
 
-        $direction ??= $this->themeManager->getDirection();
-
         $data = [
             'applicationId' => $this->applicationId,
             'apiUrl' => $this->apiUrl,
-            'applicationName' => $this->getApplicationName($pageTitle),
+            'applicationName' => $pageTitle ?? $this->config->get('applicationName', 'EspoCRM'),
             'cacheTimestamp' => $cacheTimestamp,
             'appTimestamp' => $appTimestamp,
             'loaderCacheTimestamp' => Json::encode($loaderCacheTimestamp),
             'stylesheet' => $stylesheet,
-            'direction' => $direction->value,
             'theme' => Json::encode($theme),
             'runScript' => $runScript,
             'basePath' => $this->basePath,
-            'useCache' => self::boolToString($useCache),
+            'useCache' => $useCache ? 'true' : 'false',
             'appClientClassName' => 'app',
             'scriptsHtml' => $scriptsHtml,
             'additionalStyleSheetsHtml' => $additionalStyleSheetsHtml,
@@ -286,12 +265,11 @@ class ClientManager
             'faviconAlternate' => $faviconAlternate,
             'favicon' => $favicon,
             'faviconType' => $faviconType,
-            'ajaxTimeout' => $this->getAjaxTimeout(),
+            'ajaxTimeout' => $this->config->get('ajaxTimeout') ?? 60000,
             'internalModuleList' => Json::encode($internalModuleList),
             'bundledModuleList' => Json::encode($this->getBundledModuleList()),
-            'applicationDescription' => $this->getApplicationDescription(),
+            'applicationDescription' => $this->config->get('applicationDescription') ?? self::APP_DESCRIPTION,
             'nonce' => $this->nonce,
-            'useRouter' => self::boolToString($useRouter),
             'loaderParams' => Json::encode([
                 'basePath' => $this->basePath,
                 'cacheTimestamp' => $loaderCacheTimestamp,
@@ -304,9 +282,19 @@ class ClientManager
 
         $html = $this->fileManager->getContents($htmlFilePath);
 
-        $replaceData = $this->prepareRelaceData($vars, $data);
+        foreach ($vars as $key => $value) {
+            $html = str_replace('{{' . $key . '}}', $value, $html);
+        }
 
-        return strtr($html, $replaceData);
+        foreach ($data as $key => $value) {
+            if (array_key_exists($key, $vars)) {
+                continue;
+            }
+
+            $html = str_replace('{{' . $key . '}}', $value, $html);
+        }
+
+        return $html;
     }
 
     /**
@@ -499,61 +487,5 @@ class ClientManager
         $faviconType = str_ends_with($faviconSvgPath, '.svg') ? 'image/svg+xml' : 'image/png';
 
         return [$faviconSvgPath, $faviconType];
-    }
-
-    private function escapeValue(string $value): string
-    {
-        $value = htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-
-        return str_replace(['{', '}'], ['&#123;', '&#125;'], $value);
-    }
-
-    /**
-     * @param array<string, mixed> $vars
-     * @param array<string, mixed> $data
-     * @return array<string, string>
-     */
-    private function prepareRelaceData(array $vars, array $data): array
-    {
-        $replaceData = [];
-
-        foreach ($vars as $key => $value) {
-            $replaceData['{{' . $key . '}}'] = (string) $value;
-        }
-
-        foreach ($data as $key => $value) {
-            if (array_key_exists($key, $vars)) {
-                continue;
-            }
-
-            $replaceData['{{' . $key . '}}'] = (string) $value;
-        }
-
-        return $replaceData;
-    }
-
-    private function getApplicationName(?string $pageTitle): string
-    {
-        $value = $pageTitle ?? $this->config->get('applicationName', self::APP_NAME);
-
-        return $this->escapeValue($value);
-    }
-
-    private function getApplicationDescription(): string
-    {
-        $value = $this->config->get('applicationDescription') ?? self::APP_DESCRIPTION;
-
-        return $this->escapeValue($value);
-    }
-
-
-    private static function boolToString(bool $useCache): string
-    {
-        return $useCache ? 'true' : 'false';
-    }
-
-    private function getAjaxTimeout(): int
-    {
-        return (int) ($this->config->get('ajaxTimeout') ?? self::AJAX_TIMEOUT);
     }
 }

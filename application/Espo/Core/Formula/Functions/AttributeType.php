@@ -29,10 +29,8 @@
 
 namespace Espo\Core\Formula\Functions;
 
+use Espo\Core\Exceptions\Error;
 use Espo\Core\Formula\AttributeFetcher;
-use Espo\Core\Formula\Exceptions\Error;
-use Espo\Core\Formula\Exceptions\NotAllowedUsage;
-use stdClass;
 
 class AttributeType extends Base
 {
@@ -51,10 +49,9 @@ class AttributeType extends Base
 
     /**
      * @return mixed
-     * @throws NotAllowedUsage
      * @throws Error
      */
-    public function process(stdClass $item)
+    public function process(\stdClass $item)
     {
         if (!property_exists($item, 'value')) {
             throw new Error();
@@ -66,7 +63,6 @@ class AttributeType extends Base
     /**
      * @param string $attribute
      * @return mixed
-     * @throws NotAllowedUsage
      * @throws Error
      */
     protected function getAttributeValue($attribute)

@@ -1,11 +1,10 @@
 {
   "fields": {
-    "status": "Status",
     "executeTime": "Uitgevoerd op",
     "attempts": "Pogingen over",
     "failedAttempts": "Mislukte pogingen",
     "scheduledJob": "Geplande Opdracht",
-    "data": "Data",
+    "method": "Method (verouderd)",
     "scheduledJobJob": "Naam geplande taak",
     "executedAt": "Uitgevoerd bij",
     "startedAt": "Begonnen bij",

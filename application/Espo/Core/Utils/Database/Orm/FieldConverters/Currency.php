@@ -98,7 +98,7 @@ class Currency implements FieldConverter
         }
 
         if (!$fieldDefs->isNotStorable()) {
-            [$amountDefs, $convertedDefs] = ($this->config->get('currencyNoJoinMode') !== false) ?
+            [$amountDefs, $convertedDefs] = $this->config->get('currencyNoJoinMode') ?
                 $this->applyNoJoinMode($fieldDefs, $amountDefs) :
                 $this->applyJoinMode($fieldDefs, $amountDefs, $entityType);
         }
@@ -124,8 +124,12 @@ class Currency implements FieldConverter
         $currencyAttribute = $name . 'Currency';
 
         $defaultCurrency = $this->configDataProvider->getDefaultCurrency();
+        $baseCurrency = $this->configDataProvider->getBaseCurrency();
+        $rates = $this->configDataProvider->getCurrencyRates()->toAssoc();
 
-        $rates = $this->configDataProvider->getCurrencyList();
+        if ($defaultCurrency !== $baseCurrency) {
+            $rates = $this->exchangeRates($baseCurrency, $defaultCurrency, $rates);
+        }
 
         $expr = Expr::multiply(
             Expr::column($name),
@@ -212,7 +216,28 @@ class Currency implements FieldConverter
     }
 
     /**
-     * @param string[] $rates
+     * @param array<string, float> $currencyRates
+     * @return array<string, float>
+     */
+    private function exchangeRates(string $baseCurrency, string $defaultCurrency, array $currencyRates): array
+    {
+        $precision = 5;
+        $defaultCurrencyRate = round(1 / $currencyRates[$defaultCurrency], $precision);
+
+        $exchangedRates = [];
+        $exchangedRates[$baseCurrency] = $defaultCurrencyRate;
+
+        unset($currencyRates[$baseCurrency], $currencyRates[$defaultCurrency]);
+
+        foreach ($currencyRates as $currencyName => $rate) {
+            $exchangedRates[$currencyName] = round($rate * $defaultCurrencyRate, $precision);
+        }
+
+        return $exchangedRates;
+    }
+
+    /**
+     * @param array<string, float> $rates
      */
     private function buildExpression(string $currencyAttribute, array $rates): Expr|float
     {
@@ -220,11 +245,13 @@ class Currency implements FieldConverter
             return 0.0;
         }
 
-        $currency = array_shift($rates);
+        $currency = array_key_first($rates);
+        $value = $rates[$currency];
+        unset($rates[$currency]);
 
         return Expr::if(
             Expr::equal(Expr::column($currencyAttribute), $currency),
-            Expr::create("CURRENCY_RATE:('$currency')"),
+            $value,
             $this->buildExpression($currencyAttribute, $rates)
         );
     }

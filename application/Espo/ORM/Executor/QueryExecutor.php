@@ -29,7 +29,6 @@
 
 namespace Espo\ORM\Executor;
 
-use Espo\ORM\Exceptions\DeadlockException;
 use Espo\ORM\Query\Query;
 
 use PDOStatement;
@@ -41,8 +40,6 @@ interface QueryExecutor
 {
     /**
      * Execute a query.
-     *
-     * @throws DeadlockException
      */
     public function execute(Query $query): PDOStatement;
 }

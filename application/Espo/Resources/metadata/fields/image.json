@@ -33,16 +33,6 @@
             "min": 0
         },
         {
-            "name": "capture",
-            "type": "enum",
-            "options": [
-                "",
-                "user",
-                "environment"
-            ],
-            "tooltip": "imageCapture"
-        },
-        {
             "name": "readOnly",
             "type": "bool"
         },

@@ -4,7 +4,6 @@
     "contacts": "Kontakte",
     "opportunities": "Verkaufschancen",
     "leads": "Interessenten",
-    "meetings": "Meetings",
     "calls": "Anrufe",
     "tasks": "Aufgaben",
     "emails": "E-Mails",
@@ -13,9 +12,7 @@
     "documents": "Dokumente",
     "account": "Firma",
     "opportunity": "Verkaufschance",
-    "contact": "Kontakt",
-    "meetingsChildren": "Meetings - Kinder",
-    "callsChildren": "Anrufe - Kinder"
+    "contact": "Kontakt"
   },
   "scopeNames": {
     "Account": "Firma",
@@ -23,7 +20,6 @@
     "Lead": "Interessent",
     "Target": "Ziel",
     "Opportunity": "Verkaufschance",
-    "Meeting": "Meeting",
     "Calendar": "Kalender",
     "Call": "Anruf",
     "Task": "Aufgabe",
@@ -34,7 +30,6 @@
     "TargetList": "Kontaktliste",
     "MassEmail": "Massen E-Mails",
     "EmailQueueItem": "E-Mail Warteschlangeneintrag",
-    "CampaignTrackingUrl": "Tracking URL",
     "Activities": "Aktivitäten",
     "KnowledgeBaseArticle": "Wissensbasis Artikel",
     "KnowledgeBaseCategory": "Wissensbasis Kategorie",
@@ -47,7 +42,6 @@
     "Lead": "Interessenten",
     "Target": "Zielkontakte",
     "Opportunity": "Verkaufschancen",
-    "Meeting": "Meetings",
     "Calendar": "Kalender",
     "Call": "Anrufe",
     "Task": "Aufgaben",
@@ -58,7 +52,6 @@
     "TargetList": "Kontaktlisten",
     "MassEmail": "Massen E-Mails",
     "EmailQueueItem": "E-Mail Warteschlangeneinträge",
-    "CampaignTrackingUrl": "Tracking URLs",
     "Activities": "Aktivitäten",
     "KnowledgeBaseArticle": "Wissensbasis",
     "KnowledgeBaseCategory": "Wissensbasis Kategorien",
@@ -92,9 +85,7 @@
     "Archive Email": "E-Mail archivieren",
     "Create Task": "Neue Aufgabe",
     "Tasks": "Aufgaben",
-    "Scheduler": "Scheduler",
-    "Schedule": "Planen",
-    "Log": "Log"
+    "Schedule": "Zeitplan"
   },
   "fields": {
     "billingAddressCity": "Ort",

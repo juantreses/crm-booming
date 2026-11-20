@@ -51,6 +51,7 @@
   },
   "presetFilters": {
     "portalUsers": "پورٹل صارفین",
-    "notPortalUsers": "پورٹل صارفین نہیں"
+    "notPortalUsers": "پورٹل صارفین نہیں",
+    "accountActive": "متحرک"
   }
 }

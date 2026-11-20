@@ -23,10 +23,6 @@
             "view": "views/admin/field-manager/fields/options/default-multi"
         },
         {
-            "name": "isSorted",
-            "type": "bool"
-        },
-        {
             "name": "translation",
             "type": "varchar",
             "hidden": true

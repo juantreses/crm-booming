@@ -4,16 +4,14 @@
             "queryComposerClassName": "Espo\\ORM\\QueryComposer\\MysqlQueryComposer",
             "pdoFactoryClassName": "Espo\\ORM\\PDO\\MysqlPDOFactory",
             "functionConverterClassNameMap": {
-                "ABS": "Espo\\Core\\ORM\\QueryComposer\\Part\\FunctionConverters\\Abs",
-                "CURRENCY_RATE": "Espo\\Core\\ORM\\QueryComposer\\Part\\FunctionConverters\\CurrencyRate"
+                "ABS": "Espo\\Core\\ORM\\QueryComposer\\Part\\FunctionConverters\\Abs"
             }
         },
         "Postgresql": {
             "queryComposerClassName": "Espo\\ORM\\QueryComposer\\PostgresqlQueryComposer",
             "pdoFactoryClassName": "Espo\\ORM\\PDO\\PostgresqlPDOFactory",
             "functionConverterClassNameMap": {
-                "ABS": "Espo\\Core\\ORM\\QueryComposer\\Part\\FunctionConverters\\Abs",
-                "CURRENCY_RATE": "Espo\\Core\\ORM\\QueryComposer\\Part\\FunctionConverters\\CurrencyRate"
+                "ABS": "Espo\\Core\\ORM\\QueryComposer\\Part\\FunctionConverters\\Abs"
             }
         }
     }

@@ -105,10 +105,7 @@ class Application
         return $this->container;
     }
 
-    /**
-     * @since 10.0.0
-     */
-    public function getInjectableFactory(): InjectableFactory
+    protected function getInjectableFactory(): InjectableFactory
     {
         return $this->container->getByClass(InjectableFactory::class);
     }

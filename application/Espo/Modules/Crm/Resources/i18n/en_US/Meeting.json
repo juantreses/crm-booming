@@ -18,8 +18,7 @@
         "isAllDay": "Is All-Day",
         "sourceEmail": "Source Email",
         "uid": "UID",
-        "joinUrl": "Join URL",
-        "externalService": "Online Location"
+        "joinUrl": "Join URL"
     },
     "links": {},
     "options": {
@@ -59,7 +58,6 @@
         "sendInvitationsToSelectedAttendees": "Invitation emails will be sent to the selected attendees.",
         "sendCancellationsToSelectedAttendees": "Cancellation emails will be sent to the selected attendees.",
         "selectAcceptanceStatus": "Set your acceptance status.",
-        "nothingHasBeenSent": "Nothing were sent",
-        "invitationsSentTo": "Invitation emails has been sent to: {recipients}.\n\nCould not sent to: {failedRecipients}."
+        "nothingHasBeenSent": "Nothing were sent"
     }
 }

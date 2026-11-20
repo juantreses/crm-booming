@@ -29,8 +29,6 @@
 
 namespace Espo\Tools\ExportCustom;
 
-use RuntimeException;
-
 class Data
 {
     /**
@@ -40,12 +38,7 @@ class Data
         public string $folder,
         public array $customEntityTypeList,
         private string $module
-    ) {
-
-        if (!preg_match('/^[A-Za-z0-9.\-]+$/', $folder)) {
-            throw new RuntimeException("Bad folder.");
-        }
-    }
+    ) {}
 
     public function getDir(): string
     {
@@ -54,6 +47,6 @@ class Data
 
     public function getDestDir(): string
     {
-        return $this->getDir() . '/files/custom/Espo/Modules/' . basename($this->module);
+        return $this->getDir() . '/files/custom/Espo/Modules/' . $this->module;
     }
 }

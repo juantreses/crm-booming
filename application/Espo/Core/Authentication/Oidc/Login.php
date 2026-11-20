@@ -41,7 +41,6 @@ use Espo\Core\Authentication\Jwt\Validator;
 use Espo\Core\Authentication\Oidc\UserProvider\UserInfo;
 use Espo\Core\Authentication\Result;
 use Espo\Core\Authentication\Result\FailReason;
-use Espo\Core\Session\Session;
 use Espo\Core\Utils\Json;
 use Espo\Core\Utils\Log;
 use JsonException;
@@ -58,8 +57,6 @@ class Login implements LoginInterface
     private const REQUEST_TIMEOUT = 10;
     private const NONCE_HEADER = 'X-Oidc-Authorization-Nonce';
 
-    public const string SESSION_KEY_CODE_VERIFIER = 'oidcCodeVerifier';
-
     public function __construct(
         private Espo $espoLogin,
         private Log $log,
@@ -69,7 +66,6 @@ class Login implements LoginInterface
         private UserProvider $userProvider,
         private ApplicationState $applicationState,
         private UserInfoDataProvider $userInfoDataProvider,
-        private Session $session,
     ) {}
 
     public function login(Data $data, Request $request): Result
@@ -157,8 +153,6 @@ class Login implements LoginInterface
         $user = $this->userProvider->get($userInfo);
 
         if (!$user) {
-            $this->log->debug("OIDC: User not found.");
-
             return Result::fail(FailReason::USER_NOT_FOUND);
         }
 
@@ -220,7 +214,6 @@ class Login implements LoginInterface
         string $redirectUri,
         string $clientSecret
     ): array {
-
         $params = [
             'grant_type' => 'authorization_code',
             'client_id' => $clientId,
@@ -228,12 +221,6 @@ class Login implements LoginInterface
             'code' => $code,
             'redirect_uri' => $redirectUri,
         ];
-
-        if ($this->configDataProvider->useAuthorizationPkce()) {
-            $codeVerifier = $this->session->get(self::SESSION_KEY_CODE_VERIFIER);
-
-            $params['code_verifier'] = $codeVerifier;
-        }
 
         $curl = curl_init();
 
@@ -254,6 +241,8 @@ class Login implements LoginInterface
         $response = curl_exec($curl);
         $error = curl_error($curl);
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        curl_close($curl);
 
         if ($response === false) {
             $response = '';

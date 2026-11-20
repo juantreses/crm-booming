@@ -30,18 +30,16 @@
 namespace Espo\Core\Authentication\Logins;
 
 use Espo\Core\Api\Request;
-use Espo\Core\Authentication\AuthToken\AuthToken;
 use Espo\Core\Authentication\Helper\UserFinder;
 use Espo\Core\Authentication\Login;
 use Espo\Core\Authentication\Login\Data;
 use Espo\Core\Authentication\Result;
 use Espo\Core\Authentication\Result\FailReason;
 use Espo\Core\Utils\PasswordHash;
-use Espo\Entities\User;
 
 class Espo implements Login
 {
-    public const string NAME = 'Espo';
+    public const NAME = 'Espo';
 
     public function __construct(
         private UserFinder $userFinder,
@@ -63,7 +61,7 @@ class Espo implements Login
         }
 
         if ($authToken) {
-            $user = $this->findUserByAuthTokenData($username, $authToken);
+            $user = $this->userFinder->findByIdAndHash($username, $authToken->getUserId(), $authToken->getHash());
         } else {
             $user = $this->userFinder->find($username);
 
@@ -81,12 +79,5 @@ class Espo implements Login
         }
 
         return Result::success($user);
-    }
-
-
-    private function findUserByAuthTokenData(string $username, AuthToken $authToken): ?User
-    {
-        return $this->userFinder
-            ->findByAuthTokenData($username, $authToken->getUserId(), $authToken->getPasswordVersion());
     }
 }

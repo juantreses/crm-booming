@@ -108,10 +108,12 @@ class BeforeCreate implements SaveHook
             return;
         }
 
-        $entity->setApiKey(Util::generateApiKey());
+        $entity->set('apiKey', Util::generateApiKey());
 
         if ($entity->getAuthMethod() === Hmac::NAME) {
-            $entity->setSecretKey(Util::generateSecretKey());
+            $secretKey = Util::generateSecretKey();
+
+            $entity->set('secretKey', $secretKey);
         }
     }
 
@@ -121,7 +123,8 @@ class BeforeCreate implements SaveHook
     private function processTypeChecking(User $entity): void
     {
         if (
-            !$entity->isAttributeChanged(User::ATTR_TYPE) ||
+            $entity->isSuperAdmin() ||
+            !$entity->getType() ||
             in_array($entity->getType(), $this->util->getAllowedUserTypeList())
         ) {
             return;

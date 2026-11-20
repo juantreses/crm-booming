@@ -157,8 +157,5 @@
     "ZAR": "Dienvidāfrikas rands",
     "ZMW": "Zambijas kvaša",
     "ZWL": "Zimbabves dolārs"
-  },
-  "messages": {
-    "rateOnDateAlreadyExists": "Šajā datumā kurss jau ir noteikts."
   }
 }

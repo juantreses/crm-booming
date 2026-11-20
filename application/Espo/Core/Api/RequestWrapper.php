@@ -29,7 +29,6 @@
 
 namespace Espo\Core\Api;
 
-use Espo\Core\Api\Route\ContentType;
 use Espo\Core\Utils\Json;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Api\Request as ApiRequest;
@@ -197,7 +196,7 @@ class RequestWrapper implements ApiRequest
 
         $contentType = $this->getContentType();
 
-        if ($contentType === ContentType::APPLICATION_JSON && $contents) {
+        if ($contentType === 'application/json' && $contents) {
             $parsedBody = Json::decode($contents);
 
             if (is_array($parsedBody)) {
@@ -216,10 +215,7 @@ class RequestWrapper implements ApiRequest
         }
 
         if (
-            in_array($contentType, [
-                ContentType::APPLICATION_X_WWW_FORM_URLENCODED,
-                ContentType::MULTIPART_FORM_DATA,
-            ]) &&
+            in_array($contentType, ['application/x-www-form-urlencoded', 'multipart/form-data']) &&
             $contents
         ) {
             $parsedBody = $this->psr7Request->getParsedBody();
@@ -292,10 +288,5 @@ class RequestWrapper implements ApiRequest
     public function isDelete(): bool
     {
         return $this->getMethod() === Method::DELETE;
-    }
-
-    public function toPsr7(): Psr7Request
-    {
-        return $this->psr7Request;
     }
 }

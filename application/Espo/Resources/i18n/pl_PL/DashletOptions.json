@@ -12,15 +12,11 @@
     "entityType": "Typ modułu",
     "primaryFilter": "Główny filter",
     "boolFilterList": "Dodatkowe filtry",
+    "sortBy": "Zamówienie (pole)",
+    "sortDirection": "Zamówienie (kierunek)",
     "expandedLayout": "Układ",
     "dateFilter": "Filtr daty",
-    "skipOwn": "Nie pokazuj własnych rekordów",
-    "url": "URL",
-    "text": "Tekst",
-    "folder": "Folder",
-    "includeShared": "Uwzględnij udostępnione",
-    "sortBy": "Sortuj według",
-    "sortDirection": "Kierunek sortowania"
+    "skipOwn": "Nie pokazuj własnych rekordów"
   },
   "options": {
     "mode": {
@@ -30,10 +26,6 @@
       "basicDay": "Dzień",
       "agendaDay": "Dzień (agenda)",
       "timeline": "Oś czasu"
-    },
-    "sortDirection": {
-      "asc": "Rosnąco",
-      "desc": "Malejąco"
     }
   },
   "messages": {
@@ -41,9 +33,5 @@
   },
   "tooltips": {
     "skipOwn": "Działania wykonane przez Twoje konto użytkownika nie będą wyświetlane."
-  },
-  "otherFields": {
-    "soft": "Stonowany kolor",
-    "small": "Mała czcionka"
   }
 }

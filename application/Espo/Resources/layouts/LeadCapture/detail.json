@@ -5,8 +5,7 @@
             [{"name": "subscribeToTargetList", "inlineEditDisabled": true}, {"name": "campaign"}],
             [{"name": "subscribeContactToTargetList"}, {"name": "targetList"}],
             [{"name": "targetTeam"}, {"name": "leadSource"}],
-            [{"name": "duplicateCheck"}, {"name": "phoneNumberCountry"}],
-            [{"name": "pipeline"}, false]
+            [{"name": "duplicateCheck"}, {"name": "phoneNumberCountry"}]
         ]
     },
     {

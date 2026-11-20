@@ -29,96 +29,82 @@
 
 namespace Espo\Core\Formula\Functions\EntityGroup;
 
-use Espo\Core\Acl\SystemRestriction;
 use Espo\Core\Exceptions\BadRequest;
-use Espo\Core\Formula\EvaluatedArgumentList;
-use Espo\Core\Formula\Exceptions\BadArgumentType;
 use Espo\Core\Formula\Exceptions\Error;
+use Espo\Core\Di;
 use Espo\Core\Exceptions\Forbidden;
-use Espo\Core\Formula\Exceptions\NotAllowedUsage;
-use Espo\Core\Formula\Exceptions\NotPassedEntity;
-use Espo\Core\Formula\Exceptions\TooFewArguments;
-use Espo\Core\Formula\Func;
+use Espo\Core\Formula\Functions\Base;
 use Espo\Core\Formula\Functions\RecordGroup\Util\FindQueryUtil;
-use Espo\Core\ORM\Entity as CoreEntity;
 use Espo\Core\Select\SelectBuilderFactory;
 use Espo\ORM\Defs\Params\RelationParam;
-use Espo\ORM\Entity;
-use Espo\ORM\EntityManager;
 use Espo\ORM\Name\Attribute;
+use stdClass;
 use PDO;
 
 /**
  * @noinspection PhpUnused
  */
-class SumRelatedType implements Func
+class SumRelatedType extends Base implements
+    Di\EntityManagerAware,
+    Di\InjectableFactoryAware,
+    Di\UserAware
 {
-    public function __construct(
-        private SystemRestriction $systemRestriction,
-        private EntityManager $entityManager,
-        private SelectBuilderFactory $selectBuilderFactory,
-        private FindQueryUtil $findQueryUtil,
-        private ?Entity $entity = null,
-    ) {}
+    use Di\EntityManagerSetter;
+    use Di\InjectableFactorySetter;
+    use Di\UserSetter;
 
-    public function process(EvaluatedArgumentList $arguments): int|float
+    /**
+     * @return float
+     * @throws Error
+     */
+    public function process(stdClass $item)
     {
-        $entity = $this->entity ?? throw new NotPassedEntity();
-
-        if (!$entity instanceof CoreEntity) {
-            throw new Error("Non-core entity.");
+        if (count($item->value) < 2) {
+            throw new Error("sumRelated: Too few arguments.");
         }
 
-        if (count($arguments) < 2) {
-            throw TooFewArguments::create(1);
+        $link = $this->evaluate($item->value[0]);
+
+        if (empty($link)) {
+            throw new Error("No link passed to sumRelated function.");
         }
 
-        $link = $arguments[0];
-        $field = $arguments[1];
+        $field = $this->evaluate($item->value[1]);
 
-        if (!is_string($link)) {
-            throw BadArgumentType::create(1, 'string');
-        }
-
-        if (!is_string($field)) {
-            throw BadArgumentType::create(2, 'string');
+        if (empty($field)) {
+            throw new Error("No field passed to sumRelated function.");
         }
 
         $filter = null;
 
-        if (count($arguments) > 2) {
-            $filter = $arguments[2];
+        if (count($item->value) > 2) {
+            $filter = $this->evaluate($item->value[2]);
         }
 
-        $entityType = $entity->getEntityType();
+        $entity = $this->getEntity();
 
-        if (!$this->systemRestriction->checkLinkRead($entityType, $link)) {
-            throw new NotAllowedUsage("Cannot read restricted field $entityType.$link.");
-        }
+        $entityManager = $this->entityManager;
 
         $foreignEntityType = $entity->getRelationParam($link, RelationParam::ENTITY);
 
-        if (!$foreignEntityType) {
-            throw new Error("Not supported link '$link'.");
-        }
-
-        if (!$this->systemRestriction->checkLinkRead($foreignEntityType, $field)) {
-            throw new NotAllowedUsage("Cannot read restricted field $foreignEntityType.$field.");
+        if (empty($foreignEntityType)) {
+            throw new Error();
         }
 
         $foreignLink = $entity->getRelationParam($link, RelationParam::FOREIGN);
         $foreignLinkAlias = $foreignLink . 'SumRelated';
 
         if (empty($foreignLink)) {
-            throw new Error("No foreign link for link $link.");
+            throw new Error("No foreign link for link {$link}.");
         }
 
-        $builder = $this->selectBuilderFactory
+        $builder = $this->injectableFactory->create(SelectBuilderFactory::class)
             ->create()
+            ->forUser($this->user)
             ->from($foreignEntityType);
 
         if ($filter) {
-            $this->findQueryUtil->applyFilter($builder, $filter, 3);
+            (new FindQueryUtil())->applyFilter($builder, $filter, 3);
         }
 
         try {
@@ -170,7 +156,7 @@ class SumRelatedType implements Func
 
         $queryBuilder->group($foreignLinkAlias . '.id');
 
-        $sth = $this->entityManager->getQueryExecutor()->execute($queryBuilder->build());
+        $sth = $entityManager->getQueryExecutor()->execute($queryBuilder->build());
 
         $rowList = $sth->fetchAll(PDO::FETCH_ASSOC);
 

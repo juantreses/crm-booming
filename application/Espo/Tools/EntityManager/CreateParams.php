@@ -29,16 +29,26 @@
 
 namespace Espo\Tools\EntityManager;
 
-readonly class CreateParams
+class CreateParams
 {
     /**
      * @param array<string, string> $replaceData
      */
     public function __construct(
-        public bool $forceCreate = false,
-        public array $replaceData = [],
-        public bool $skipCustomPrefix = false,
-        public bool $isNotRemovable = false,
-        public bool $addTab = true,
+        private bool $forceCreate = false,
+        private array $replaceData = []
     ) {}
+
+    public function forceCreate(): bool
+    {
+        return $this->forceCreate;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getReplaceData(): array
+    {
+        return $this->replaceData;
+    }
 }

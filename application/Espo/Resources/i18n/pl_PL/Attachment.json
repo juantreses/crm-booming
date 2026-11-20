@@ -10,8 +10,7 @@
     "field": "Pole",
     "sourceId": "ID źródła",
     "storage": "Pamięć",
-    "size": "Rozmiar (bajty)",
-    "isBeingUploaded": "Jest przesyłany"
+    "size": "Rozmiar (bajty)"
   },
   "options": {
     "role": {

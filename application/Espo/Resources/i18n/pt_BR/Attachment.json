@@ -8,8 +8,7 @@
     "type": "Tipo",
     "field": "Campo",
     "storage": "Armazenamento",
-    "size": "Tam. (bytes)",
-    "isBeingUploaded": "Está sendo carregado"
+    "size": "Tam. (bytes)"
   },
   "options": {
     "role": {

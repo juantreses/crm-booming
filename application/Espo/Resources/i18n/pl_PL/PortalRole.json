@@ -3,15 +3,10 @@
     "users": "Użytkownicy"
   },
   "labels": {
-    "Access": "Dostęp",
-    "Create PortalRole": "Utwórz rolę portalu",
-    "Scope Level": "Poziom modułów",
-    "Field Level": "Poziom pól"
+    "Access": "Dostęp"
   },
   "fields": {
     "exportPermission": "Eksportuj uprawnienia",
-    "massUpdatePermission": "Uprawnienie do masowej aktualizacji",
-    "data": "Dane",
-    "fieldData": "Dane pól"
+    "massUpdatePermission": "Uprawnienie do masowej aktualizacji"
   }
 }

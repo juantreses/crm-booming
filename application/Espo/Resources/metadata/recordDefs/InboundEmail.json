@@ -18,11 +18,5 @@
     ],
     "listLoaderClassNameList": [
         "Espo\\Classes\\FieldProcessing\\InboundEmail\\IsSystemLoader"
-    ],
-    "beforeCreateHookClassNameList": [
-        "Espo\\Classes\\RecordHooks\\EmailAccount\\BeforeSaveValidateHosts"
-    ],
-    "beforeUpdateHookClassNameList": [
-        "Espo\\Classes\\RecordHooks\\EmailAccount\\BeforeSaveValidateHosts"
     ]
 }

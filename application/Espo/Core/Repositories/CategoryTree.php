@@ -40,57 +40,8 @@ use Espo\ORM\Query\Part\Order;
  */
 class CategoryTree extends Database
 {
-    private const string ATTR_ORDER = 'order';
-    private const string ATTR_PARENT_ID = 'parentId';
-
-    private const string PATH_ATTR_ASCENDOR_ID = 'ascendorId';
-    private const string PATH_ATTR_DESCENDOR_ID = 'descendorId';
-
-    /**
-     * @inheritDoc
-     */
-    public function save(Entity $entity, array $options = []): void
-    {
-        $this->entityManager
-            ->getTransactionManager()
-            ->run(function () use ($entity, $options) {
-                if (!$entity->isNew() && $entity->isAttributeChanged(self::ATTR_PARENT_ID)) {
-                    $this->lockPathEntries($entity);
-                }
-
-                parent::save($entity, $options);
-            });
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function remove(Entity $entity, array $options = []): void
-    {
-        $this->entityManager
-            ->getTransactionManager()
-            ->run(function () use ($entity, $options) {
-                $this->lockPathEntries($entity);
-
-                parent::remove($entity, $options);
-            });
-    }
-
-    private function lockPathEntries(Entity $entity): void
-    {
-        $this->entityManager
-            ->getRDBRepository($this->getPathEntityType())
-            ->sth()
-            ->select(Attribute::ID)
-            ->where([
-                'OR' => [
-                    self::PATH_ATTR_ASCENDOR_ID => $entity->getId(),
-                    self::PATH_ATTR_DESCENDOR_ID => $entity->getId(),
-                ]
-            ])
-            ->forUpdate()
-            ->find();
-    }
+    private const ATTR_ORDER = 'order';
+    private const ATTR_PARENT_ID = 'parentId';
 
     protected function beforeSave(Entity $entity, array $options = [])
     {
@@ -113,7 +64,7 @@ class CategoryTree extends Database
 
         $em = $this->entityManager;
 
-        $pathEntityType = $this->getPathEntityType();
+        $pathEntityType = $entity->getEntityType() . 'Path';
 
         if ($entity->isNew()) {
             if ($parentId) {
@@ -222,7 +173,7 @@ class CategoryTree extends Database
     {
         parent::afterRemove($entity, $options);
 
-        $pathEntityType = $this->getPathEntityType();
+        $pathEntityType = $entity->getEntityType() . 'Path';
 
         $em = $this->entityManager;
 
@@ -263,10 +214,5 @@ class CategoryTree extends Database
         $order = $last ? ($last->get(self::ATTR_ORDER) + 1) : 1;
 
         $entity->set(self::ATTR_ORDER, $order);
-    }
-
-    private function getPathEntityType(): string
-    {
-        return $this->entityType . 'Path';
     }
 }

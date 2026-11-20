@@ -53,7 +53,6 @@ class Applier
         private OrdererFactory $ordererFactory,
         private AclManager $aclManager,
         private User $user,
-        private Acl\SystemRestriction $systemRestriction,
     ) {}
 
     /**
@@ -91,13 +90,6 @@ class Applier
                 !$this->aclManager->checkField($this->user, $this->entityType, $orderBy)
             ) {
                 throw new Forbidden("Not access to order by field '$orderBy'.");
-            }
-
-            if (
-                !$params->applyPermissionCheck() &&
-                !$this->systemRestriction->checkFieldRead($this->entityType, $orderBy)
-            ) {
-                throw new Forbidden("Cannot order by restricted field '$orderBy'.");
             }
         }
 

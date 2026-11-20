@@ -33,7 +33,6 @@ use Espo\Core\Api\Response;
 use Espo\Core\Utils\Client\ActionRenderer\Params;
 use Espo\Core\Utils\Json;
 use Espo\Core\Utils\ClientManager;
-use Espo\Core\Utils\Theme\Direction;
 
 /**
  * Renders a front-end page that executes a controller action. Utilized by entry points.
@@ -57,21 +56,13 @@ class ActionRenderer
             scripts: $params->getScripts(),
             pageTitle: $params->getPageTitle(),
             theme: $params->getTheme(),
-            direction: $params->getDirection(),
-            login: $params->login(),
-            useRouter: $params->useRouter(),
         );
 
-        $securityParams = $params->getSecurityParams();
-
-        if (!$securityParams && $params->getFrameAncestors()) {
-            $securityParams = new SecurityParams(
-                frameAncestors: $params->getFrameAncestors(),
-            );
-        }
+        $securityParams = new SecurityParams(
+            frameAncestors: $params->getFrameAncestors(),
+        );
 
         $this->clientManager->writeHeaders($response, $securityParams);
-
         $response->writeBody($body);
     }
 
@@ -87,44 +78,27 @@ class ActionRenderer
         array $scripts,
         ?string $pageTitle,
         ?string $theme,
-        ?Direction $direction,
-        bool $login,
-        bool $useRouter,
     ): string {
 
         $encodedData = Json::encode($data);
 
-        $doActionPart = <<<EOF
-                        app.doAction({
-                            controllerClassName: '$controller',
-                            action: '$action',
-                            options: $encodedData,
-                        });
-        EOF;
+        $initAuthPart = $initAuth ? "app.initAuth();" : '';
 
-        if ($login) {
-            $script = <<<EOF
-            app.start({
-                            onAuth: () => {
-            $doActionPart
-                                },
-                            });
-            EOF;
-        } else {
-            $initAuthPart = $initAuth ? "app.initAuth();\n" : '';
-
-            $script = <<<EOF
-            {$initAuthPart}
-            EOF . "\n" . $doActionPart;
-        }
+        $script =
+            "
+                {$initAuthPart}
+                app.doAction({
+                    controllerClassName: '$controller',
+                    action: '$action',
+                    options: $encodedData,
+                });
+            ";
 
         $params = new RenderParams(
             runScript: $script,
             scripts: $scripts,
             pageTitle: $pageTitle,
             theme: $theme,
-            direction: $direction,
-            useRouter: $useRouter,
         );
 
         return $this->clientManager->render($params);

@@ -29,13 +29,9 @@
 
 namespace Espo\Tools\EntityManager\Hook;
 
-use Espo\Core\Exceptions\Error;
 use Espo\Tools\EntityManager\Params;
 
 interface DeleteHook
 {
-    /**
-     * @throws Error
-     */
     public function process(Params $params): void;
 }

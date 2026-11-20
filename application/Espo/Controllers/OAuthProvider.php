@@ -38,7 +38,7 @@ class OAuthProvider extends Record
 {
     protected function checkAccess(): bool
     {
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             return false;
         }
 

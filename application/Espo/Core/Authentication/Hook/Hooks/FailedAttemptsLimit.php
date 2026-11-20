@@ -38,8 +38,9 @@ use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Authentication\ConfigDataProvider;
 use Espo\ORM\EntityManager;
 use Espo\Entities\AuthLogRecord;
-use Espo\ORM\Name\Attribute;
+
 use DateTime;
+use Espo\ORM\Name\Attribute;
 use Exception;
 use RuntimeException;
 
@@ -70,9 +71,9 @@ class FailedAttemptsLimit implements BeforeLogin
         $ipAddress = $this->util->obtainIpFromRequest($request);
 
         $where = [
-            AuthLogRecord::FIELD_REQUEST_TIME . '>' => $this->getTimeFrom($request, $failedAttemptsPeriod)->format('U'),
-            AuthLogRecord::FIELD_IS_DENIED => true,
-            AuthLogRecord::FIELD_IP_ADDRESS => $ipAddress,
+            'requestTime>' => $this->getTimeFrom($request, $failedAttemptsPeriod)->format('U'),
+            'isDenied' => true,
+            'ipAddress' => $ipAddress,
         ];
 
         $wasFailed = (bool) $this->entityManager

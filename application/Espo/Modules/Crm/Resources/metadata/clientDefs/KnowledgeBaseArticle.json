@@ -22,14 +22,12 @@
         "moveUp": {
             "label": "Move Up",
             "handler": "crm:handlers/knowledge-base-article/move",
-            "acl": "edit",
-            "iconClass": "fas fa-arrow-up"
+            "acl": "edit"
         },
         "moveDown": {
             "label": "Move Down",
             "handler": "crm:handlers/knowledge-base-article/move",
-            "acl": "edit",
-            "iconClass": "fas fa-arrow-down"
+            "acl": "edit"
         },
         "moveToBottom": {
             "labelTranslation": "KnowledgeBaseArticle.labels.Move to Bottom",
@@ -38,8 +36,7 @@
         },
         "sendInEmail": {
             "label": "Send in Email",
-            "handler": "crm:handlers/knowledge-base-article/send-in-email",
-            "iconClass": "far fa-paper-plane"
+            "handler": "crm:handlers/knowledge-base-article/send-in-email"
         }
     },
     "rowActionList": [

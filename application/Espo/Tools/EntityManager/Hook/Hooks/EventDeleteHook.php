@@ -29,7 +29,6 @@
 
 namespace Espo\Tools\EntityManager\Hook\Hooks;
 
-use Espo\Core\Binding\Attributes\Qualify;
 use Espo\Core\Templates\Entities\Event;
 use Espo\Core\Utils\Language;
 use Espo\Tools\EntityManager\Hook\DeleteHook;
@@ -38,7 +37,6 @@ use Espo\Tools\EntityManager\Params;
 class EventDeleteHook implements DeleteHook
 {
     public function __construct(
-        #[Qualify(Language::QUALIFIER_BASE)]
         private Language $baseLanguage,
         private Language $language
     ) {}

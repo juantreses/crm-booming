@@ -48,6 +48,7 @@ use Espo\Core\Utils\Metadata;
 use Espo\Entities\Attachment;
 
 use GdImage;
+use RuntimeException;
 use Throwable;
 
 class Image implements EntryPoint
@@ -56,15 +57,6 @@ class Image implements EntryPoint
     protected $allowedRelatedTypeList = null;
     /** @var ?string[] */
     protected $allowedFieldList = null;
-
-    private const string TYPE_SVG = 'image/svg+xml';
-
-    /**
-     * @var string[]
-     */
-    private array $noInlineTypeList = [
-        self::TYPE_SVG,
-    ];
 
     public function __construct(
         private FileStorageManager $fileStorageManager,
@@ -84,7 +76,7 @@ class Image implements EntryPoint
             throw new BadRequest("No id.");
         }
 
-        $this->show($request, $response, $id, $size);
+        $this->show($response, $id, $size);
     }
 
     /**
@@ -94,7 +86,6 @@ class Image implements EntryPoint
      * @throws ForbiddenSilent
      */
     protected function show(
-        Request $request,
         Response $response,
         string $id,
         ?string $size,
@@ -159,18 +150,10 @@ class Image implements EntryPoint
             $response->setHeader('Content-Type', $fileType);
         }
 
-        $fileName = self::sanitizeFileName($fileName);
-
-        $csp =
-            "default-src 'none'; script-src 'none'; object-src 'none'; form-action 'none'; " .
-            "style-src 'unsafe-inline'; sandbox;";
-
-        $disposition = $this->chooseDisposition($fileType, $request);
-
         $response
-            ->setHeader('Content-Disposition', "$disposition;filename=\"$fileName\"")
+            ->setHeader('Content-Disposition', 'inline;filename="' . $fileName . '"')
             ->setHeader('Content-Length', (string) $fileSize)
-            ->setHeader('Content-Security-Policy', $csp);
+            ->setHeader('Content-Security-Policy', "default-src 'self'");
 
         if (!$noCacheHeaders) {
             $response->setHeader('Cache-Control', 'private, max-age=864000, immutable');
@@ -191,9 +174,7 @@ class Image implements EntryPoint
 
         $sourceId = $attachment->getSourceId();
 
-        $file = basename("{$sourceId}_$size");
-
-        $cacheFilePath = "data/upload/thumbs/$file";
+        $cacheFilePath = "data/upload/thumbs/{$sourceId}_$size";
 
         if ($useCache && $this->fileManager->isFile($cacheFilePath)) {
             return $this->fileManager->getContents($cacheFilePath);
@@ -286,12 +267,8 @@ class Image implements EntryPoint
             }
         }
 
-        if ($targetWidth < 1) {
-            $targetWidth = 1;
-        }
-
-        if ($targetHeight < 1) {
-            $targetHeight = 1;
+        if ($targetWidth < 1 || $targetHeight < 1) {
+            throw new RuntimeException("No width or height.");
         }
 
         $targetImage = imagecreatetruecolor($targetWidth, $targetHeight);
@@ -475,27 +452,5 @@ class Image implements EntryPoint
             0, 0, 0, 0,
             $targetWidth, $targetHeight, $originalWidth, $originalHeight
         );
-    }
-
-    private function chooseDisposition(?string $fileType, Request $request): string
-    {
-        $disposition = 'inline';
-
-        if (
-            in_array($fileType, $this->noInlineTypeList) &&
-            in_array($request->getHeader('Sec-Fetch-Dest'), [
-                'document',
-                'iframe',
-            ])
-        ) {
-            $disposition = 'attachment';
-        }
-
-        return $disposition;
-    }
-
-    private static function sanitizeFileName(?string $fileName): string
-    {
-        return str_replace("\"", "\\\"", $fileName ?? '');
     }
 }

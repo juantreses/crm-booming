@@ -7,8 +7,7 @@
     "apiKey": "API raktas",
     "siteKey": "Svetainės raktas",
     "secretKey": "Slaptasis raktas",
-    "scoreThreshold": "Vertinimo riba",
-    "mapId": "Žemėlapio ID"
+    "scoreThreshold": "Vertinimo riba"
   },
   "messages": {
     "selectIntegration": "Pasirinkite integraciją iš meniu.",

@@ -262,10 +262,7 @@
             "type": "enum",
             "default": "en_US",
             "view": "views/settings/fields/language",
-            "isSorted": true,
-            "validatorClassNameList": [
-                "Espo\\Classes\\FieldValidators\\Settings\\Language\\Valid"
-            ]
+            "isSorted": true
         },
         "globalSearchEntityList": {
             "type": "multiEnum",
@@ -624,8 +621,7 @@
             "disabled": true
         },
         "siteUrl": {
-            "type": "url",
-            "protocolRequired": true,
+            "type": "varchar",
             "tooltip": true
         },
         "applicationName": {
@@ -662,6 +658,9 @@
             "tooltip": true,
             "min": 0,
             "max": 20
+        },
+        "notificationSoundsDisabled": {
+            "type": "bool"
         },
         "calendarEntityList": {
             "type": "multiEnum",
@@ -912,10 +911,6 @@
                 "login",
                 "select_account"
             ]
-        },
-        "oidcAuthorizationPkce": {
-            "type": "bool",
-            "default": true
         },
         "pdfEngine": {
             "type": "enum",

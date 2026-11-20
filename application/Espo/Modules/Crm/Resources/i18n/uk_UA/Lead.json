@@ -64,7 +64,7 @@
   },
   "presetFilters": {
     "active": "Активний",
-    "converted": "Конвертований",
-    "actual": "Відкриті"
+    "actual": "Актуальний",
+    "converted": "Конвертований"
   }
 }

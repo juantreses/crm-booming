@@ -1,6 +1,5 @@
 {
   "fields": {
-    "url": "URL",
     "urlToUse": "Code om in te voegen in plaats van URL",
     "campaign": "Campagne",
     "action": "Actie",

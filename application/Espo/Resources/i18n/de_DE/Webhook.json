@@ -4,7 +4,6 @@
   },
   "fields": {
     "event": "Ereignis",
-    "url": "URL",
     "isActive": "ist aktiv\n",
     "user": "API-Benutzer",
     "entityType": "Entitätstyp",

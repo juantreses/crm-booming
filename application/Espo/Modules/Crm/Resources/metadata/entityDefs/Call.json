@@ -29,8 +29,7 @@
             "type": "datetime",
             "required": true,
             "after": "dateStart",
-            "afterOrEqual": true,
-            "suppressValidationList": ["required"]
+            "afterOrEqual": true
         },
         "duration": {
             "type": "duration",

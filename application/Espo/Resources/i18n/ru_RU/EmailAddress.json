@@ -6,8 +6,7 @@
   },
   "fields": {
     "optOut": "Отписан",
-    "invalid": "Неверный адрес",
-    "lower": "Имя в нижнем регистре"
+    "invalid": "Неверный адрес"
   },
   "presetFilters": {
     "orphan": "Сирота"

@@ -30,7 +30,6 @@
 namespace Espo\Core\Action;
 
 use Espo\Core\Exceptions\BadRequest;
-use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Exceptions\NotFound;
 
@@ -40,7 +39,6 @@ interface Action
      * @throws Forbidden
      * @throws BadRequest
      * @throws NotFound
-     * @throws Conflict
      */
     public function process(Params $params, Data $data): void;
 }

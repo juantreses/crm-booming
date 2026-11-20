@@ -37,9 +37,6 @@ use Espo\Core\Job\Preparator\CollectionHelper;
 
 use DateTimeImmutable;
 
-/**
- * @noinspection PhpUnused
- */
 class CheckInboundEmails implements Preparator
 {
     /**
@@ -47,7 +44,7 @@ class CheckInboundEmails implements Preparator
      */
     public function __construct(
         private EntityManager $entityManager,
-        private CollectionHelper $helper,
+        private CollectionHelper $helper
     ) {}
 
     public function prepare(Data $data, DateTimeImmutable $executeTime): void

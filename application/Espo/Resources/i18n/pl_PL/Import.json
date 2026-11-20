@@ -1,7 +1,6 @@
 {
   "labels": {
     "Revert Import": "Cofnij import",
-    "Return to Import": "Powrót do importu",
     "Run Import": "Uruchom import",
     "Back": "Wróć",
     "Field Mapping": "Mapowanie pól",
@@ -19,7 +18,6 @@
     "Create and Update": "Utwórz i aktualizuj",
     "Update Only": "Tylko aktualizuj",
     "Update by": "Zaktualizowane przez",
-    "Set as Not Duplicate": "Oznacz jako niebędący duplikatem",
     "File (CSV)": "Plik (CSV)",
     "First Row Value": "Wartość pierwszego rzędu",
     "Skip": "Pomiń",
@@ -28,11 +26,8 @@
     "What to Import?": "Co importować?",
     "Entity Type": "Typ jednostki",
     "What to do?": "Co do zrobienia?",
+    "Properties": "Właściwości",
     "Header Row": "Wiersz nagłówka",
-    "Person Name Format": "Format imienia i nazwiska",
-    "John Smith": "Jan Kowalski",
-    "Smith John": "Kowalski Jan",
-    "Smith, John": "Kowalski, Jan",
     "Field Delimiter": "Rozgranicznik pól",
     "Date Format": "Format daty",
     "Decimal Mark": "Znak rozdzielenia",
@@ -43,9 +38,6 @@
     "Next": "Następny",
     "Step 1": "Krok 1",
     "Step 2": "Krok 2",
-    "Double Quote": "Cudzysłów",
-    "Single Quote": "Apostrof",
-    "Imported": "Zaimportowane",
     "Duplicates": "Duplikaty",
     "Skip searching for duplicates": "Pomiń duplikaty w wyszukiwaniu",
     "Timezone": "Strefa czasowa",
@@ -54,12 +46,9 @@
     "Import Results": "Wyniki importu",
     "Silent Mode": "Tryb cichy",
     "New import with same params": "Nowy import z tymi samymi parametrami",
-    "Run Manually": "Uruchom ręcznie",
-    "Export": "Eksportuj",
-    "Parameters": "Parametry"
+    "Run Manually": "Uruchom ręcznie"
   },
   "messages": {
-    "utf8": "Plik powinien być zakodowany w UTF-8",
     "duplicatesRemoved": "Duplikaty usunięte",
     "inIdle": "Wykonaj w trybie bezczynności (w przypadku dużych danych; przez cron)",
     "revert": "To usunie wszystkie zaimportowane rekordy permanentnie.",
@@ -67,17 +56,14 @@
     "confirmRevert": "Zamierzasz permanentnie usunąć wszystkie zaimportowane rekordy. Jesteś pewien?",
     "confirmRemoveDuplicates": "Spowoduje to trwałe usunięcie wszystkich zaimportowanych rekordów, które zostały rozpoznane jako duplikaty. Jesteś pewny?",
     "removeImportLog": "Spowoduje to usunięcie dziennika importu. Wszystkie zaimportowane rekordy zostaną zachowane. Użyj go, jeśli masz pewność, że import jest w porządku.",
-    "confirmRemoveImportLog": "Spowoduje to usunięcie dziennika importu. Wszystkie zaimportowane rekordy zostaną zachowane. Nie będzie można przywrócić wyników importu. Jesteś pewny?",
-    "importRunning": "Trwa import...",
-    "noErrors": "Brak błędów"
+    "confirmRemoveImportLog": "Spowoduje to usunięcie dziennika importu. Wszystkie zaimportowane rekordy zostaną zachowane. Nie będzie można przywrócić wyników importu. Jesteś pewny?"
   },
   "fields": {
     "file": "Plik",
     "entityType": "Typ jednostki",
     "imported": "Zaimportowane rekordy",
     "duplicates": "Zdublowane rekordy",
-    "updated": "Zaktualizowane rekordy",
-    "status": "Status"
+    "updated": "Zaktualizowane rekordy"
   },
   "options": {
     "status": {
@@ -102,11 +88,5 @@
   "tooltips": {
     "manualMode": "Jeśli zaznaczone, będziesz musiał ręcznie uruchomić import z CLI. Polecenie zostanie wyświetlone po skonfigurowaniu importu.",
     "silentMode": "Większość skryptów po zapisaniu zostanie pominiętych, a notatki ze strumienia nie zostaną utworzone. Import będzie działał szybciej."
-  },
-  "links": {
-    "errors": "Błędy"
-  },
-  "params": {
-    "phoneNumberCountry": "Numer kierunkowy kraju"
   }
 }

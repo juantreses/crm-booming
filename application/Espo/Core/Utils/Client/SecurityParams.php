@@ -29,14 +29,12 @@
 
 namespace Espo\Core\Utils\Client;
 
-readonly class SecurityParams
+class SecurityParams
 {
     /**
      * @param string[] $frameAncestors
-     * @param ?string[] $formAction
      */
     public function __construct(
-        public array $frameAncestors = [],
-        public ?array $formAction = null,
+        readonly public array $frameAncestors = [],
     ) {}
 }

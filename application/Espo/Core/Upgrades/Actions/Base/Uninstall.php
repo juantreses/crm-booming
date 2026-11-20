@@ -57,8 +57,6 @@ class Uninstall extends Base
             $this->setParentProcessId($data['parentProcessId']);
         }
 
-        $this->scriptParams['isUpgrade'] = $data['isUpgrade'] ?? false;
-
         $this->initialize();
         $this->checkIsWritable();
         $this->enableMaintenanceMode();
@@ -114,6 +112,7 @@ class Uninstall extends Base
      */
     protected function restoreFiles(): bool
     {
+        /** @noinspection PhpRedundantOptionalArgumentInspection */
         $packagePath = $this->getPath('packagePath');
 
         $manifestPath = Util::concatPath($packagePath, $this->manifestName);

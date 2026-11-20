@@ -16,9 +16,6 @@
             "internal": true,
             "nonAdminReadOnly": true
         },
-        "passwordVersion": {
-            "forbidden": true
-        },
         "authLogRecordId": {
             "forbidden": true
         },

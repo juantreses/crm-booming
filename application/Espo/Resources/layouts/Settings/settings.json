@@ -8,13 +8,8 @@
     },
     {
         "rows": [
-            [{"name": "useCache"}, {"name": "maintenanceMode"}],
-            [false, {"name": "cronDisabled"}]
-        ]
-    },
-    {
-        "rows": [
-            [{"name": "useWebSocket"}, false]
+            [{"name": "useCache"}, {"name": "useWebSocket"}],
+            [{"name": "maintenanceMode"}, {"name": "cronDisabled"}]
         ]
     },
     {

@@ -62,13 +62,13 @@ class RouteProcessor
         private ApplicationUser $applicationUser,
         private ControllerActionProcessor $actionProcessor,
         private MiddlewareProvider $middlewareProvider,
-        private InjectableFactory $injectableFactory,
+        private InjectableFactory $injectableFactory
     ) {}
 
     public function process(
         ProcessData $processData,
         Psr7Request $request,
-        Psr7Response $response,
+        Psr7Response $response
     ): Psr7Response {
 
         $requestWrapped = new RequestWrapper($request, $processData->getBasePath(), $processData->getRouteParams());
@@ -76,17 +76,17 @@ class RouteProcessor
 
         try {
             return $this->processInternal(
-                processData: $processData,
-                psrRequest: $request,
-                request: $requestWrapped,
-                response: $responseWrapped,
+                $processData,
+                $request,
+                $requestWrapped,
+                $responseWrapped
             );
         } catch (Exception $exception) {
             $this->handleException(
-                exception: $exception,
-                request: $requestWrapped,
-                response: $responseWrapped,
-                route: $processData->getRoute()->getAdjustedRoute(),
+                $exception,
+                $requestWrapped,
+                $responseWrapped,
+                $processData->getRoute()->getAdjustedRoute()
             );
 
             return $responseWrapped->toPsr7();
@@ -100,19 +100,15 @@ class RouteProcessor
         ProcessData $processData,
         Psr7Request $psrRequest,
         RequestWrapper $request,
-        ResponseWrapper $response,
+        ResponseWrapper $response
     ): Psr7Response {
 
-        $this->assertContentTypeAllowed($processData, $request);
-
         $authRequired = !$processData->getRoute()->noAuth();
-        $apiAuthForbidden = $processData->getRoute()->apiAuthForbidden();
 
         $apiAuth = $this->authBuilderFactory
             ->create()
             ->setAuthentication($this->authenticationFactory->create())
             ->setAuthRequired($authRequired)
-            ->setApiAuthForbidden($apiAuthForbidden)
             ->build();
 
         $authResult = $apiAuth->process($request, $response);
@@ -140,18 +136,13 @@ class RouteProcessor
     private function processAfterAuth(
         ProcessData $processData,
         Psr7Request $request,
-        ResponseWrapper $responseWrapped,
+        ResponseWrapper $responseWrapped
     ): Psr7Response {
 
         $actionClassName = $processData->getRoute()->getActionClassName();
 
         if ($actionClassName) {
-            return $this->processAction(
-                actionClassName: $actionClassName,
-                processData: $processData,
-                request: $request,
-                responseWrapped: $responseWrapped,
-            );
+            return $this->processAction($actionClassName, $processData, $request, $responseWrapped);
         }
 
         return $this->processControllerAction($processData, $request, $responseWrapped);
@@ -164,9 +155,10 @@ class RouteProcessor
         string $actionClassName,
         ProcessData $processData,
         Psr7Request $request,
-        ResponseWrapper $responseWrapped,
+        ResponseWrapper $responseWrapped
     ): Psr7Response {
 
+        /** @var Action $action */
         $action = $this->injectableFactory->create($actionClassName);
 
         $handler = new ActionHandler(
@@ -197,7 +189,7 @@ class RouteProcessor
     private function processControllerAction(
         ProcessData $processData,
         Psr7Request $request,
-        ResponseWrapper $responseWrapped,
+        ResponseWrapper $responseWrapped
     ): Psr7Response {
 
         $controller = $this->getControllerName($processData);
@@ -244,16 +236,11 @@ class RouteProcessor
         Exception $exception,
         Request $request,
         Response $response,
-        string $route,
+        string $route
     ): void {
 
         try {
-            $this->errorOutput->process(
-                request: $request,
-                response: $response,
-                exception: $exception,
-                route: $route,
-            );
+            $this->errorOutput->process($request, $response, $exception, $route);
         } catch (Throwable $exceptionAnother) {
             $this->log->error($exceptionAnother->getMessage());
 
@@ -268,35 +255,21 @@ class RouteProcessor
         MiddlewareDispatcher $dispatcher,
         string $method,
         string $controller,
-        string $action,
+        string $action
     ): void {
 
-        $controllerActionMiddlewareList = $this->middlewareProvider->getControllerActionMiddlewareList(
-            method: $method,
-            controller: $controller,
-            action: $action,
-        );
+        $controllerActionMiddlewareList = $this->middlewareProvider
+            ->getControllerActionMiddlewareList($method, $controller, $action);
 
         foreach ($controllerActionMiddlewareList as $middleware) {
             $dispatcher->addMiddleware($middleware);
         }
 
-        $controllerMiddlewareList = $this->middlewareProvider->getControllerMiddlewareList($controller);
+        $controllerMiddlewareList = $this->middlewareProvider
+            ->getControllerMiddlewareList($controller);
 
         foreach ($controllerMiddlewareList as $middleware) {
             $dispatcher->addMiddleware($middleware);
-        }
-    }
-
-    /**
-     * @throws BadRequest
-     */
-    private function assertContentTypeAllowed(ProcessData $processData, RequestWrapper $request): void
-    {
-        $consumes = $processData->getRoute()->getConsumes();
-
-        if ($consumes !== null && !in_array($request->getContentType(), $consumes)) {
-            throw new BadRequest("Not allowed Content-Type.");
         }
     }
 }

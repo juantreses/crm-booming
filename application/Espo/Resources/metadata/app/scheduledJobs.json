@@ -47,47 +47,27 @@
         "scheduling": "2 0 * * *",
         "isSystem": true
     },
-    "OAuthServerControl": {
-        "name": "OAuth Server Control",
-        "jobClassName": "Espo\\Tools\\OAuthServer\\Jobs\\OAuthServerControl",
-        "scheduling": "3 0 * * *",
-        "isSystem": true
-    },
     "Cleanup": {
-        "jobClassName": "Espo\\Classes\\Jobs\\Cleanup",
-        "scheduling": "1 1 * * 0",
-        "isDefault": true
+        "jobClassName": "Espo\\Classes\\Jobs\\Cleanup"
     },
     "AuthTokenControl": {
-        "jobClassName": "Espo\\Classes\\Jobs\\AuthTokenControl",
-        "scheduling": "*/6 * * * *",
-        "isDefault": true
+        "jobClassName": "Espo\\Classes\\Jobs\\AuthTokenControl"
     },
     "SendEmailNotifications": {
-        "jobClassName": "Espo\\Classes\\Jobs\\SendEmailNotifications",
-        "scheduling": "*/2 * * * *",
-        "isDefault": true
+        "jobClassName": "Espo\\Classes\\Jobs\\SendEmailNotifications"
     },
     "ProcessWebhookQueue": {
-        "jobClassName": "Espo\\Classes\\Jobs\\ProcessWebhookQueue",
-        "scheduling": "*/2 * * * *",
-        "isDefault": true
+        "jobClassName": "Espo\\Classes\\Jobs\\ProcessWebhookQueue"
     },
     "CheckEmailAccounts": {
         "preparatorClassName": "Espo\\Classes\\JobPreparators\\CheckEmailAccounts",
-        "jobClassName": "Espo\\Classes\\Jobs\\CheckEmailAccounts",
-        "scheduling": "*/1 * * * *",
-        "isDefault": true
+        "jobClassName": "Espo\\Classes\\Jobs\\CheckEmailAccounts"
     },
     "CheckInboundEmails": {
         "preparatorClassName": "Espo\\Classes\\JobPreparators\\CheckInboundEmails",
-        "jobClassName": "Espo\\Classes\\Jobs\\CheckInboundEmails",
-        "scheduling": "*/1 * * * *",
-        "isDefault": true
+        "jobClassName": "Espo\\Classes\\Jobs\\CheckInboundEmails"
     },
     "SendScheduledEmails": {
-        "jobClassName": "Espo\\Classes\\Jobs\\SendScheduledEmails",
-        "scheduling": "*/10 * * * *",
-        "isDefault": true
+        "jobClassName": "Espo\\Classes\\Jobs\\SendScheduledEmails"
     }
 }

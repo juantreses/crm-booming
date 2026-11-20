@@ -1,7 +1,6 @@
 {
     "mandatory": {
         "scopeLevel": {
-            "Admin": false,
             "Note": {
                 "read": "own",
                 "edit": "own",
@@ -66,9 +65,7 @@
             "WorkingTimeRange": "WorkingTimeCalendar",
             "Stream": true,
             "CurrencyRecord": "boolean:Currency",
-            "CurrencyRecordRate": "Currency",
-            "Pipeline": true,
-            "PipelineStage": true
+            "CurrencyRecordRate": "Currency"
         },
         "fieldLevel": {
         },
@@ -135,7 +132,6 @@
     },
     "adminMandatory": {
         "scopeLevel": {
-            "Admin": true,
             "User": {
                 "create": "yes",
                 "read": "all",
@@ -165,9 +161,7 @@
             "CurrencyRecordRate": {
                 "read": "yes",
                 "edit": "yes"
-            },
-            "Pipeline": true,
-            "PipelineStage": true
+            }
         }
     },
     "valuePermissionList": [
@@ -182,8 +176,7 @@
         "portalPermission",
         "groupEmailAccountPermission",
         "followerManagementPermission",
-        "dataPrivacyPermission",
-        "lockPermission"
+        "dataPrivacyPermission"
     ],
     "valuePermissionHighestLevels": {
         "assignmentPermission": "all",
@@ -197,8 +190,7 @@
         "dataPrivacyPermission": "yes",
         "auditPermission": "yes",
         "mentionPermission": "yes",
-        "userCalendarPermission": "all",
-        "lockPermission": "yes"
+        "userCalendarPermission": "all"
     },
     "permissionsStrictDefaults": {
         "assignmentPermission": "no",
@@ -212,7 +204,6 @@
         "dataPrivacyPermission": "no",
         "auditPermission": "no",
         "mentionPermission": "no",
-        "userCalendarPermission": "no",
-        "lockPermission": "no"
+        "userCalendarPermission": "no"
     }
 }

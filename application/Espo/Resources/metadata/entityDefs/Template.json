@@ -7,23 +7,16 @@
         },
         "body": {
             "type": "wysiwyg",
-            "view": "views/template/fields/body",
-            "tooltip": true,
-            "useIframe": true,
-            "massUpdateDisabled": true
+            "view": "views/template/fields/body"
         },
         "header": {
             "type": "wysiwyg",
-            "view": "views/template/fields/body",
-            "useIframe": true,
-            "massUpdateDisabled": true
+            "view": "views/template/fields/body"
         },
         "footer": {
             "type": "wysiwyg",
             "view": "views/template/fields/body",
-            "tooltip": true,
-            "useIframe": true,
-            "massUpdateDisabled": true
+            "tooltip": true
         },
         "entityType": {
             "type": "enum",
@@ -126,8 +119,7 @@
         },
         "fontFace": {
             "type": "enum",
-            "view": "views/template/fields/font-face",
-            "isSorted": true
+            "view": "views/template/fields/font-face"
         },
         "title": {
             "type": "varchar"

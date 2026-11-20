@@ -1,13 +1,10 @@
 {
   "labels": {
-    "Create Document": "Creëer Document",
-    "Details": "Details"
+    "Create Document": "Creëer Document"
   },
   "fields": {
     "name": "Naam",
-    "status": "Status",
     "file": "Bestand",
-    "type": "Type",
     "publishDate": "Publicatiedatum",
     "expirationDate": "Vervaldatum",
     "description": "Beschrijving",
@@ -18,7 +15,6 @@
     "accounts": "Relaties",
     "opportunities": "Kansen",
     "folder": "Map",
-    "leads": "Leads",
     "contacts": "Contacten"
   },
   "options": {
@@ -30,9 +26,6 @@
     },
     "type": {
       "": "Geen",
-      "Contract": "Contract",
-      "NDA": "NDA",
-      "EULA": "EULA",
       "License Agreement": "Licentie Overeenkomst"
     }
   },

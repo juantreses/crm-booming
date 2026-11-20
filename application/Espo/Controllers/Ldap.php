@@ -58,7 +58,7 @@ class Ldap
      */
     public function postActionTestConnection(Request $request): bool
     {
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             throw new Forbidden();
         }
 

@@ -33,6 +33,6 @@ class DelayUtil
 {
     public function delay(int $milliseconds): void
     {
-        usleep($milliseconds * 1000);
+        sleep($milliseconds * 1000);
     }
 }

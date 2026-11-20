@@ -28,11 +28,10 @@
     "industry": "Pramonės šaka",
     "acceptanceStatus": "Priėmimo statusas",
     "opportunityAmountCurrency": "Galimybių suma Valiuta",
-    "acceptanceStatusMeetings": "Priėmimo statusas (susitikimai)",
+    "acceptanceStatusMeetings": "Priėmimo statusas (susirinkimai)",
     "acceptanceStatusCalls": "Priėmimo statusas (skambučiai)",
     "convertedAt": "Konvertuota į",
-    "originalEmail": "Originalus el. paštas",
-    "pipeline": "Dujotiekis"
+    "originalEmail": "Originalus el. paštas"
   },
   "links": {
     "targetLists": "Adresatų sarašai",
@@ -42,8 +41,7 @@
     "createdContact": "Kontaktas",
     "createdOpportunity": "Galimybė",
     "cases": "Atvejai",
-    "documents": "Dokumentai",
-    "pipeline": "Dujotiekis"
+    "documents": "Dokumentai"
   },
   "options": {
     "status": {
@@ -68,6 +66,6 @@
   "presetFilters": {
     "active": "Aktyvus",
     "converted": "Konvertuota",
-    "actual": "Atviri"
+    "actual": "Atviras"
   }
 }

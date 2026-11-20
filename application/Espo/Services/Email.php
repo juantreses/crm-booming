@@ -29,8 +29,8 @@
 
 namespace Espo\Services;
 
-use Espo\Core\Record\CreateResult;
 use Espo\Tools\Email\SendService;
+use Espo\ORM\Entity;
 use Espo\Entities\Email as EmailEntity;
 use Espo\Core\Exceptions\Error;
 use Espo\Core\Exceptions\Conflict;
@@ -68,14 +68,15 @@ class Email extends Record
      * @throws BadRequest
      * @throws SendingError
      */
-    public function create(stdClass $data, CreateParams $params = new CreateParams()): CreateResult
+    public function create(stdClass $data, CreateParams $params): Entity
     {
-        $result = parent::create($data, $params);
+        /** @var EmailEntity $entity */
+        $entity = parent::create($data, $params);
 
-        if ($result->getEntity()->getStatus() === EmailEntity::STATUS_SENDING) {
-            $this->getSendService()->send($result->getEntity(), $this->user);
+        if ($entity->getStatus() === EmailEntity::STATUS_SENDING) {
+            $this->getSendService()->send($entity, $this->user);
         }
 
-        return $result;
+        return $entity;
     }
 }

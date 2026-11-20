@@ -29,7 +29,6 @@
 
 namespace Espo\Core\Utils\Metadata;
 
-use Espo\Core\Binding\Attributes\Qualify;
 use Espo\Core\InjectableFactory;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\Database\Orm\Converter;
@@ -45,7 +44,6 @@ class OrmMetadataData
     private ?Converter $converter = null;
 
     public function __construct(
-        #[Qualify(DataCache::QUALIFIER_SYSTEM)]
         private DataCache $dataCache,
         private InjectableFactory $injectableFactory,
         Config\SystemConfig $systemConfig,
@@ -90,14 +88,12 @@ class OrmMetadataData
         }
 
         if ($this->useCache && $this->dataCache->has($this->cacheKey) && !$reload) {
-            /** @var ?array<string, array<string, mixed>> $data */
+            /** @var array<string, array<string, mixed>> $data */
             $data = $this->dataCache->get($this->cacheKey);
 
-            if ($data !== null) {
-                $this->data = $data;
+            $this->data = $data;
 
-                return $this->data;
-            }
+            return $this->data;
         }
 
         $this->data = $this->getConverter()->process();

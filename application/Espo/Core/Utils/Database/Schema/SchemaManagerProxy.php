@@ -29,7 +29,6 @@
 
 namespace Espo\Core\Utils\Database\Schema;
 
-use Doctrine\DBAL\Exception;
 use Espo\Core\InjectableFactory;
 use Espo\Core\Utils\Database\Helper;
 
@@ -52,7 +51,6 @@ class SchemaManagerProxy
      * @param ?string[] $entityTypeList
      * @param RebuildMode::* $mode
      * @throws SchemaException
-     * @throws Exception
      */
     public function rebuild(?array $entityTypeList = null, string $mode = RebuildMode::SOFT): bool
     {

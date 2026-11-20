@@ -30,7 +30,6 @@
 namespace Espo\Core\Authentication\Ldap;
 
 use Espo\Core\Api\Util;
-use Espo\Core\Binding\Attributes\Qualify;
 use Espo\Core\FieldProcessing\Relation\LinkMultipleSaver;
 use Espo\Core\FieldProcessing\EmailAddress\Saver as EmailAddressSaver;
 use Espo\Core\FieldProcessing\PhoneNumber\Saver as PhoneNumberSaver;
@@ -74,7 +73,6 @@ class LdapLogin implements Login
         private Config $config,
         private EntityManager $entityManager,
         private PasswordHash $passwordHash,
-        #[Qualify(Language::QUALIFIER_DEFAULT)]
         Language $defaultLanguage,
         private Log $log,
         private Espo $baseLogin,
@@ -162,9 +160,9 @@ class LdapLogin implements Login
         } catch (Exception $e) {
             $options = $this->utils->getLdapClientOptions();
 
-            $this->log->error("LDAP: Could not connect to LDAP server host.", [
+            $this->log->error("LDAP: Could not connect to LDAP server host. {message}", [
                 'host' => $options['host'],
-                'exception' => $e,
+                'message' => $e->getMessage()
             ]);
 
             /** @var string $username */
@@ -188,9 +186,9 @@ class LdapLogin implements Login
             try {
                 $userDn = $this->findLdapUserDnByUsername($username);
             } catch (Exception $e) {
-                $this->log->error("Error while finding DN for '{username}'.", [
+                $this->log->error("Error while finding DN for '{username}'. {message}", [
                     'username' => $username,
-                    'exception' => $e,
+                    'message' => $e->getMessage(),
                 ]);
             }
 
@@ -218,9 +216,9 @@ class LdapLogin implements Login
             try {
                 $ldapClient->bind($userDn, $password);
             } catch (Exception $e) {
-                $this->log->error("LDAP: Authentication failed for '{username}'.", [
+                $this->log->error("LDAP: Authentication failed for '{username}'. {message}", [
                     'username' => $username,
-                    'exception' => $e,
+                    'message' => $e->getMessage(),
                 ]);
 
                 return Result::fail();
@@ -270,7 +268,7 @@ class LdapLogin implements Login
             try {
                 $this->client = $this->clientFactory->create($options);
             } catch (Exception $e) {
-                $this->log->error("LDAP error.", ['exception' => $e]);
+                $this->log->error("LDAP error. {message}", ['message' => $e->getMessage()]);
             }
         }
 

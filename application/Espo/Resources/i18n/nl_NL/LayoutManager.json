@@ -1,6 +1,5 @@
 {
   "fields": {
-    "link": "Link",
     "notSortable": "Niet sorteerbaar",
     "align": "Uitlijnen",
     "panelName": "Paneel naam",
@@ -10,8 +9,6 @@
     "hidden": "Verborgen",
     "dynamicLogicStyled": "Voorwaarden voor toegepaste stijl",
     "noLabel": "Geen label",
-    "tabLabel": "Tab Label",
-    "tabBreak": "Tab-Break",
     "width": "Breedte",
     "noteText": "Noot tekst",
     "noteStyle": "Noot stijl",
@@ -27,7 +24,6 @@
       "default": "Standaard",
       "success": "Succesvol",
       "danger": "Gevaar",
-      "info": "Info",
       "warning": "Waarschuwing",
       "primary": "Primair"
     }

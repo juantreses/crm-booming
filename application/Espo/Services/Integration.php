@@ -58,7 +58,7 @@ class Integration
      */
     protected function processAccessCheck()
     {
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             throw new Forbidden();
         }
     }

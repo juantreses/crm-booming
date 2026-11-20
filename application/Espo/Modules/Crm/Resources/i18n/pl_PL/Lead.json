@@ -14,7 +14,6 @@
     "accountName": "Nazwa Konta",
     "doNotCall": "Nie Dzwoń",
     "address": "Adres",
-    "status": "Status",
     "source": "Źródło",
     "opportunityAmount": "Wartość szansy sprzedaży",
     "opportunityAmountConverted": "Wartość szansy sprzedaży (konwertowana)",
@@ -30,9 +29,7 @@
     "opportunityAmountCurrency": "Waluta kwoty Okazji",
     "acceptanceStatusMeetings": "Status akceptacji (Spotkania)",
     "acceptanceStatusCalls": "Stan akceptacji (połączenia)",
-    "convertedAt": "Przekonwertowano na",
-    "originalEmail": "Oryginalny e-mail",
-    "pipeline": "Lejek"
+    "convertedAt": "Przekonwertowano na"
   },
   "links": {
     "targetLists": "Listy docelowe",
@@ -42,8 +39,7 @@
     "createdContact": "Kontakt",
     "createdOpportunity": "Szansa sprzedaży",
     "cases": "Zadania",
-    "documents": "Dokumenty",
-    "pipeline": "Lejek"
+    "documents": "Dokumenty"
   },
   "options": {
     "status": {
@@ -58,7 +54,6 @@
       "Call": "Rozmowa",
       "Email": "E-mail",
       "Existing Customer": "Istniejący klient",
-      "Partner": "Partner",
       "Public Relations": "Relacje",
       "Web Site": "Strona Internetowa",
       "Campaign": "Kampania",
@@ -67,7 +62,7 @@
   },
   "presetFilters": {
     "active": "Aktywny",
-    "converted": "Przekształcony",
-    "actual": "Otwarty"
+    "actual": "Bieżący",
+    "converted": "Przekształcony"
   }
 }

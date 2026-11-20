@@ -83,7 +83,7 @@ class NotificationService
         $notification
             ->setType(Notification::TYPE_USER_REACTION)
             ->setUserId($recipientId)
-            ->setRelated(LinkParent::fromEntity($note));
+            ->setRelated(LinkParent::createFromEntity($note));
 
         if ($parent instanceof Entity) {
             $notification->setRelatedParent($parent);

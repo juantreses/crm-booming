@@ -27,10 +27,5 @@
   },
   "labels": {
     "Field": "Поле"
-  },
-  "fields": {
-    "localField": "Локално поле",
-    "foreignField": "Външно поле",
-    "matchRequired": "Изисква се съвпадение"
   }
 }

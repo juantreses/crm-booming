@@ -88,9 +88,7 @@
     "Archive Email": "Архівувати лист",
     "Create Task": "Створити завдання",
     "Tasks": "Завдання",
-    "Scheduler": "Планувальник",
-    "Schedule": "Розклад",
-    "Log": "Журнал"
+    "Scheduler": "Планувальник"
   },
   "fields": {
     "billingAddressCity": "Місто",

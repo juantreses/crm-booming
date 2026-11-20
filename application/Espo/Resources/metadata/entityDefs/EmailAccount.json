@@ -21,16 +21,14 @@
             "default": "Active"
         },
         "host": {
-            "type": "varchar",
-            "massUpdateDisabled": true
+            "type": "varchar"
         },
         "port": {
             "type": "int",
             "min": 0,
             "max": 65535,
             "default": 993,
-            "disableFormatting": true,
-            "massUpdateDisabled": true
+            "disableFormatting": true
         },
         "security": {
             "type": "enum",
@@ -70,11 +68,6 @@
         },
         "keepFetchedEmailsUnread": {
             "type": "bool"
-        },
-        "fetchValidityNumber": {
-            "type": "int",
-            "readOnly": true,
-            "default": 0
         },
         "fetchSince": {
             "type": "date",
@@ -119,16 +112,14 @@
             "tooltip": true
         },
         "smtpHost": {
-            "type": "varchar",
-            "massUpdateDisabled": true
+            "type": "varchar"
         },
         "smtpPort": {
             "type": "int",
             "min": 0,
             "max": 65535,
             "default": 587,
-            "disableFormatting": true,
-            "massUpdateDisabled": true
+            "disableFormatting": true
         },
         "smtpAuth": {
             "type": "bool",

@@ -12,11 +12,9 @@
                 "inlineEditDisabled"
             ],
             "index": true,
-            "duplicateIgnore": true,
             "validatorClassNameList": [
                 "Espo\\Classes\\FieldValidators\\User\\UserName\\Valid"
-            ],
-            "audited": true
+            ]
         },
         "name": {
             "type": "personName",
@@ -24,8 +22,7 @@
             "dependeeAttributeList": [
                 "userName"
             ],
-            "dynamicLogicVisibleDisabled": true,
-            "audited": true
+            "dynamicLogicVisibleDisabled": true
         },
         "type": {
             "type": "enum",
@@ -42,24 +39,20 @@
             "index": true,
             "inlineEditDisabled": true,
             "layoutDetailDisabled": true,
-            "massUpdateDisabled": true,
+            "layoutMassUpdateDisabled": true,
             "fieldManagerParamList": [
                 "tooltipText"
-            ],
-            "audited": true,
-            "customizationDisabled": true
+            ]
         },
         "password": {
             "type": "password",
             "maxLength": 150,
             "internal": true,
             "utility": true,
-            "massUpdateDisabled": true,
             "directAccessDisabled": true,
             "fieldManagerParamList": [
                 "tooltipText"
             ],
-            "duplicateIgnore": true,
             "orderDisabled": true
         },
         "passwordConfirm": {
@@ -70,15 +63,7 @@
             "notStorable": true,
             "orderDisabled": true,
             "directAccessDisabled": true,
-            "duplicateIgnore": true,
             "fieldManagerParamList": []
-        },
-        "passwordVersion": {
-            "type": "int",
-            "default": 0,
-            "notNull": true,
-            "readOnly": true,
-            "utility": true
         },
         "authMethod": {
             "type": "enum",
@@ -90,8 +75,7 @@
             "layoutListDisabled": true,
             "fieldManagerParamList": [
                 "tooltipText"
-            ],
-            "customizationDisabled": true
+            ]
         },
         "apiKey": {
             "type": "varchar",
@@ -106,9 +90,7 @@
             ],
             "copyToClipboard": true,
             "dynamicLogicVisibleDisabled": true,
-            "duplicateIgnore": true,
-            "orderDisabled": true,
-            "customizationDisabled": true
+            "orderDisabled": true
         },
         "secretKey": {
             "type": "varchar",
@@ -124,9 +106,7 @@
                 "tooltipText"
             ],
             "copyToClipboard": true,
-            "duplicateIgnore": true,
-            "dynamicLogicVisibleDisabled": true,
-            "customizationDisabled": true
+            "dynamicLogicVisibleDisabled": true
         },
         "salutationName": {
             "type": "enum",
@@ -156,8 +136,7 @@
             "maxLength": 100,
             "pattern": "$noBadCharacters",
             "customizationAuditedDisabled": true,
-            "dynamicLogicVisibleDisabled": true,
-            "audited": true
+            "dynamicLogicVisibleDisabled": true
         },
         "position": {
             "type": "varchar",
@@ -273,15 +252,13 @@
             "type": "email",
             "required": false,
             "layoutMassUpdateDisabled": true,
-            "dynamicLogicVisibleDisabled": true,
-            "audited": true
+            "dynamicLogicVisibleDisabled": true
         },
         "phoneNumber": {
             "type": "phone",
             "typeList": ["Mobile", "Office", "Home", "Fax", "Other"],
             "defaultType": "Mobile",
-            "dynamicLogicVisibleDisabled": true,
-            "audited": true
+            "dynamicLogicVisibleDisabled": true
         },
         "token": {
             "type": "varchar",
@@ -325,8 +302,7 @@
                 "tooltipText",
                 "readOnly",
                 "autocompleteOnEmpty"
-            ],
-            "audited": true
+            ]
         },
         "acceptanceStatus": {
             "type": "varchar",
@@ -400,14 +376,7 @@
             "layoutListDisabled": true,
             "tooltip": true,
             "audited": true,
-            "dynamicLogicVisibleDisabled": true,
-            "fieldManagerParamList": [
-                "audited",
-                "tooltipText",
-                "readOnly",
-                "autocompleteOnEmpty",
-                "maxCount"
-            ]
+            "dynamicLogicVisibleDisabled": true
         },
         "portalRoles": {
             "type": "linkMultiple",
@@ -425,7 +394,6 @@
                 "tooltipText"
             ],
             "audited": true,
-            "duplicateIgnore": true,
             "dynamicLogicVisibleDisabled": true
         },
         "accounts": {
@@ -448,25 +416,13 @@
             "layoutDetailDisabled": true,
             "layoutListDisabled": true,
             "readOnly": true,
-            "audited": true,
-            "fieldManagerParamList": [
-                "audited",
-                "tooltipText"
-            ]
+            "audited": true
         },
         "portal": {
             "type": "link",
             "notStorable": true,
             "orderDisabled": true,
             "readOnly": true,
-            "customizationDisabled": true,
-            "utility": true
-        },
-        "scopes": {
-            "type": "array",
-            "notStorable": true,
-            "readOnly": true,
-            "orderDisabled": true,
             "customizationDisabled": true,
             "utility": true
         },
@@ -479,7 +435,6 @@
             "defaultAttributes": {
                 "avatarId": null
             },
-            "duplicateIgnore": true,
             "layoutAvailabilityList": []
         },
         "avatarColor": {
@@ -528,29 +483,26 @@
             "type": "link",
             "layoutDetailDisabled": true,
             "layoutListDisabled": true,
-            "customizationAuditedDisabled": true,
-            "audited": true
+            "customizationAuditedDisabled": true
         },
         "layoutSet": {
             "type": "link",
             "layoutDetailDisabled": true,
             "layoutListDisabled": true,
             "customizationAuditedDisabled": true,
-            "tooltip": true,
-            "audited": true
+            "tooltip": true
         },
         "auth2FA": {
             "type": "foreign",
             "link": "userData",
             "field": "auth2FA",
             "readOnly": true,
-            "view": "views/fields/foreign-bool",
-            "customizationDisabled": true
+            "view": "views/fields/foreign-bool"
         },
         "userData": {
             "type": "linkOne",
             "utility": true,
-            "duplicateIgnore": true
+            "customizationDisabled": true
         },
         "lastAccess": {
             "type": "datetime",
@@ -562,8 +514,7 @@
             "layoutMassUpdateDisabled": true,
             "layoutDetailDisabled": true,
             "directAccessDisabled": true,
-            "exportDisabled": true,
-            "customizationDisabled": true
+            "exportDisabled": true
         },
         "emailAddressList": {
             "type": "array",

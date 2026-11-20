@@ -3,17 +3,12 @@
 namespace Espo\Modules\Downlines\Controllers;
 
 use Espo\Core\Api\Request;
+use Espo\Core\Controllers\Base;
 use Espo\Core\Exceptions\BadRequest;
-use Espo\Modules\Downlines\Services\DownlinesApi as DownlinesService;
 
-readonly class DownlinesApi
+class DownlinesApi extends Base
 {
-    public function __construct(
-        private DownlinesService $downlinesService,
-    ) {
-    }
-
-    public function getActionDownlines(Request $request): array
+    public function getActionDownlines(Request $request)
     {
         try {
             $id = $request->getQueryParam('id');
@@ -23,7 +18,8 @@ readonly class DownlinesApi
                 throw new BadRequest("Missing required param id");
             }
 
-            return $this->downlinesService->getDownlines($id, $maxDepth);
+            $service = $this->getServiceFactory()->create('DownlinesApi');
+            return $service->getDownlines($id, $maxDepth);
         } catch (BadRequest $e) {
                 // Return proper error response
                 http_response_code(400);

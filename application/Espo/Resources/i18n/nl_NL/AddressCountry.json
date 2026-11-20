@@ -4,7 +4,6 @@
     "Populate": "Invullen"
   },
   "fields": {
-    "code": "Code",
     "isPreferred": "Heeft voorkeur"
   },
   "tooltips": {

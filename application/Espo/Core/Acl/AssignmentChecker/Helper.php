@@ -38,7 +38,6 @@ use Espo\Core\ORM\Type\FieldType;
 use Espo\Core\Utils\Metadata;
 use Espo\Entities\User;
 use Espo\ORM\Defs;
-use Espo\ORM\Defs\Params\FieldParam;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 use Espo\ORM\Name\Attribute;
@@ -210,11 +209,7 @@ class Helper
         $userIds = $entity->getLinkMultipleIdList($field);
 
         if ($userIds === []) {
-            if (
-                $assignmentPermission === Table::LEVEL_NO &&
-                !$user->isApi() &&
-                $field !== Field::COLLABORATORS
-            ) {
+            if ($assignmentPermission === Table::LEVEL_NO && !$user->isApi()) {
                 return false;
             }
 
@@ -284,7 +279,7 @@ class Helper
     private function getAddedLinkMultipleIds(CoreEntity $entity, string $field): array
     {
         /** @var string[] $previousIds */
-        $previousIds = $entity->getFetched($field . 'Ids') ?? [];
+        $previousIds = $entity->getFetched(self::FIELD_COLLABORATORS . 'Ids') ?? [];
 
         return array_values(array_diff($entity->getLinkMultipleIdList($field), $previousIds));
     }
@@ -334,7 +329,6 @@ class Helper
         }
 
         return $fieldDefs->getType() === FieldType::LINK &&
-            !$fieldDefs->getParam(FieldParam::DISABLED) &&
             $entityDefs->hasRelation(Field::ASSIGNED_USER) &&
             $entityDefs->getRelation(Field::ASSIGNED_USER)->getForeignEntityType() === User::ENTITY_TYPE;
     }

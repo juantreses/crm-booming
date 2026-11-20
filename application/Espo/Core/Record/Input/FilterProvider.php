@@ -95,10 +95,7 @@ class FilterProvider
     private function getCreateClassNameList(string $entityType): array
     {
         /** @var class-string<Filter>[] */
-        return [
-            ...$this->metadata->get("app.record.createInputFilterClassNameList", []),
-            ...$this->metadata->get("recordDefs.$entityType.createInputFilterClassNameList", [])
-        ];
+        return $this->metadata->get("recordDefs.$entityType.createInputFilterClassNameList") ?? [];
     }
 
     /**
@@ -107,9 +104,6 @@ class FilterProvider
     private function getUpdateClassNameList(string $entityType): array
     {
         /** @var class-string<Filter>[] */
-        return [
-            ...$this->metadata->get("app.record.updateInputFilterClassNameList", []),
-            ...$this->metadata->get("recordDefs.$entityType.updateInputFilterClassNameList", [])
-        ];
+        return $this->metadata->get("recordDefs.$entityType.updateInputFilterClassNameList") ?? [];
     }
 }

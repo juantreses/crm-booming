@@ -29,50 +29,26 @@
 
 namespace Espo\Core\Formula\Functions\EntityGroup;
 
-use Espo\Core\Acl\SystemRestriction;
-use Espo\Core\Formula\EvaluatedArgumentList;
-use Espo\Core\Formula\Exceptions\BadArgumentType;
-use Espo\Core\Formula\Exceptions\Error;
-use Espo\Core\Formula\Exceptions\NotAllowedUsage;
-use Espo\Core\Formula\Exceptions\NotPassedEntity;
-use Espo\Core\Formula\Exceptions\TooFewArguments;
-use Espo\Core\Formula\Func;
-use Espo\Core\ORM\Entity as CoreEntity;
-use Espo\ORM\Entity;
+use Espo\Core\Exceptions\Error;
 
-/**
- * @noinspection PhpUnused
- */
-class AddLinkMultipleIdType implements Func
+class AddLinkMultipleIdType extends \Espo\Core\Formula\Functions\Base
 {
-    public function __construct(
-        private SystemRestriction $systemRestriction,
-        private ?Entity $entity = null,
-    ) {}
-
-    public function process(EvaluatedArgumentList $arguments): null
+    /**
+     * @return void
+     * @throws Error
+     * @throws \Espo\Core\Formula\Exceptions\Error
+     */
+    public function process(\stdClass $item)
     {
-        $entity = $this->entity ?? throw new NotPassedEntity();
-
-        if (!$entity instanceof CoreEntity) {
-            throw new Error("Non-core entity.");
+        if (count($item->value) < 2) {
+            throw new Error("addLinkMultipleId function: Too few arguments.");
         }
 
-        if (count($arguments) < 2) {
-            throw TooFewArguments::create(2);
-        }
-
-        $link = $arguments[0];
-        $id = $arguments[1];
+        $link = $this->evaluate($item->value[0]);
+        $id = $this->evaluate($item->value[1]);
 
         if (!is_string($link)) {
-            throw BadArgumentType::create(1, 'string');
-        }
-
-        $entityType = $entity->getEntityType();
-
-        if (!$this->systemRestriction->checkFieldWrite($entityType, $link)) {
-            throw new NotAllowedUsage("Cannot write restricted field $entityType.$link.");
+            throw new Error();
         }
 
         if (is_array($id)) {
@@ -80,21 +56,17 @@ class AddLinkMultipleIdType implements Func
 
             foreach ($idList as $id) {
                 if (!is_string($id)) {
-                    throw BadArgumentType::create(2, 'string[]');
+                    throw new Error();
                 }
 
-                $entity->addLinkMultipleId($link, $id);
+                $this->getEntity()->addLinkMultipleId($link, $id);
+            }
+        } else {
+            if (!is_string($id)) {
+                return;
             }
 
-            return null;
+            $this->getEntity()->addLinkMultipleId($link, $id);
         }
-
-        if (!is_string($id)) {
-            return null;
-        }
-
-        $entity->addLinkMultipleId($link, $id);
-
-        return null;
     }
 }

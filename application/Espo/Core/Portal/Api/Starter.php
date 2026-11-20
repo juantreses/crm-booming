@@ -49,9 +49,7 @@ class Starter extends StarterBase
         SystemConfig $systemConfig,
         ApplicationState $applicationState
     ) {
-        $part = basename($applicationState->getPortalId());
-
-        $routeCacheFile = 'data/cache/application/slim-routes-portal-' . $part . '.php';
+        $routeCacheFile = 'data/cache/application/slim-routes-portal-' . $applicationState->getPortalId() . '.php';
 
         parent::__construct(
             $requestProcessor,

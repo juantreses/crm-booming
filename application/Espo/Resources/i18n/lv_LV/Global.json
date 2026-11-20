@@ -64,12 +64,7 @@
     "AppSecret": "Lietotņu noslēpums",
     "OAuthProvider": "OAuth nodrošinātājs",
     "OAuthAccount": "OAuth konts",
-    "WebhookEventQueueItem": "Webhook notikumu rindas elements",
-    "Template": "Veidne",
-    "CurrencyRecord": "Valūtas dati",
-    "CurrencyRecordRate": "Valūtas kurss",
-    "Pipeline": "Caurule",
-    "PipelineStage": "Cauruļvada posms"
+    "Template": "Veidne"
   },
   "scopeNamesPlural": {
     "Email": "E-pasti",
@@ -125,12 +120,7 @@
     "AppSecret": "Lietotņu noslēpumi",
     "OAuthProvider": "OAuth nodrošinātāji",
     "OAuthAccount": "OAuth konti",
-    "WebhookEventQueueItem": "Webhook notikumu rindas elementi",
-    "Template": "Veidnes",
-    "CurrencyRecord": "Valūtas",
-    "CurrencyRecordRate": "Valūtas kursi",
-    "Pipeline": "Cauruļvadi",
-    "PipelineStage": "Cauruļvada posmi"
+    "Template": "Veidnes"
   },
   "labels": {
     "Misc": "Dažādi",
@@ -328,17 +318,7 @@
     "View User Access": "Pārskatīt lietotāja piekļuvi",
     "Reacted": "Reaģēja",
     "Reaction Removed": "Noņemta reakcija",
-    "Reactions": "Reakcijas",
-    "Network error": "Tīkla kļūda",
-    "Edit Item": "Rediģēt vienumu",
-    "Bad request": "Nepareizs pieprasījums",
-    "Conflict": "Konflikts",
-    "Internal server error": "Iekšēja servera kļūda",
-    "Mark read": "Marks lasīja",
-    "Lock": "Slēgums",
-    "Unlock": "Atbloķēt",
-    "Assigned": "Piešķirts",
-    "Notification": "Paziņojums"
+    "Reactions": "Reakcijas"
   },
   "messages": {
     "pleaseWait": "Lūdzu, uzgaidiet...",
@@ -454,19 +434,7 @@
     "cannotRemoveNotEmptyCategory": "Nevar noņemt kategoriju, kas nav tukša.",
     "arrayInputNotEmpty": "Vienība ir ievadīta, bet nav pievienota",
     "error403": "Jums nav piekļuves šai zonai.",
-    "sameRecordIsAlreadyBeingEdited": "Ieraksts jau tiek rediģēts.",
-    "changesLossConfirmation": "Nesaglabātās izmaiņas tiks zaudētas. Vai esat pārliecināts?",
-    "cannotRemoveUsed": "Ierakstu nevar dzēst, jo tas tiek izmantots.",
-    "checkLogsForDetails": "Sīkāku informāciju skatiet žurnālos.",
-    "confirmMassLock": "Vai esat pārliecināts, ka vēlaties bloķēt atlasītos ierakstus?",
-    "confirmMassUnlock": "Vai esat pārliecināts, ka vēlaties atbloķēt atlasītos ierakstus?",
-    "locked": "Ieraksts ir bloķēts",
-    "unlocked": "Ieraksts ir atbloķēts",
-    "massLockDone": "{count} bloķēts",
-    "massUnlockDone": "{count} atbloķēti",
-    "cannotModifyLockedRecord": "Lauku *{field}* nevar mainīt. Ieraksts ir bloķēts.",
-    "cannotRemoveLockedRecord": "Nav iespējams dzēst bloķētu ierakstu.",
-    "noPipeline": "Nav cauruļvada."
+    "sameRecordIsAlreadyBeingEdited": "Ieraksts jau tiek rediģēts."
   },
   "boolFilters": {
     "onlyMy": "Tikai manējie",
@@ -477,8 +445,7 @@
   "presetFilters": {
     "followed": "Kuriem sekoju",
     "all": "Visus",
-    "starred": "Ar zvaigznīti",
-    "active": "Aktīvais"
+    "starred": "Ar zvaigznīti"
   },
   "massActions": {
     "remove": "Dzēst",
@@ -492,9 +459,7 @@
     "unlink": "Atvienojiet saiti",
     "recalculateFormula": "Pārrēķināt formulu",
     "update": "Atjaunināt",
-    "delete": "Dzēst",
-    "lock": "Slēgums",
-    "unlock": "Atbloķēt"
+    "delete": "Dzēst"
   },
   "fields": {
     "name": "Nosaukums/vārds",
@@ -536,11 +501,7 @@
     "users": "Lietotāji",
     "childList": "Bērnu saraksts",
     "collaborators": "Sadarbības partneri",
-    "streamUpdatedAt": "Stream atjaunināts pie",
-    "category": "Kategorija",
-    "isLocked": "Bloķēts",
-    "pipeline": "Caurule",
-    "pipelineStage": "Cauruļvada posms"
+    "streamUpdatedAt": "Stream atjaunināts pie"
   },
   "links": {
     "assignedUser": "Piešķirtais lietotājs",
@@ -553,10 +514,7 @@
     "parent": "Primārais",
     "children": "Sekundārais",
     "assignedUsers": "Piešķirtie lietotāji",
-    "collaborators": "Sadarbības partneri",
-    "category": "Kategorija",
-    "pipeline": "Caurule",
-    "pipelineStage": "Cauruļvada posms"
+    "collaborators": "Sadarbības partneri"
   },
   "dashlets": {
     "Stream": "Straumēšana",
@@ -569,12 +527,7 @@
     "entityRemoved": "{user} izdzēsa {entityType} {entity}",
     "emailInbox": "{lietotājs} pievienoja e-pastu {entity} savā pastkastītē",
     "userPostReaction": "{lietotājs} reaģēja uz jūsu {post}",
-    "userPostInParentReaction": "{lietotājs} reaģēja uz jūsu {post} jo {entityType} {entitāte}",
-    "addedToCollaborators": "{lietotājs} pievienoja jūs kā sadarbības partneri {entityType} {entitāte}",
-    "groupUpdatesMultiple": "{entityType} {entity} – {number} jaunas aktivitātes",
-    "groupUpdatesOne": "{entityType} {entity} – jauna darbība",
-    "groupEmailsReceivedNew": "Saņemtās e-pasta vēstules – {skaits} jaunas",
-    "groupEmailsReceived": "Saņemtās e-pasta vēstules"
+    "userPostInParentReaction": "{lietotājs} reaģēja uz jūsu {post} jo {entityType} {entitāte}"
   },
   "streamMessages": {
     "post": "{user} publicēja {entityType} {entity}",

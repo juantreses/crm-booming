@@ -18,11 +18,9 @@
     "originalLead": "Lead Original",
     "acceptanceStatus": "Status de Aceitação",
     "accountIsInactive": "Conta Inativa",
-    "acceptanceStatusMeetings": "Status de Aceitação (Reuniões)",
     "acceptanceStatusCalls": "Status de Aceitação (Ligações)",
     "title": "Titulo da Conta",
-    "hasPortalUser": "Tem Usuário do Portal",
-    "originalEmail": "Email Original"
+    "hasPortalUser": "Tem Usuário do Portal"
   },
   "links": {
     "opportunities": "Oportunidades",
@@ -51,6 +49,7 @@
   },
   "presetFilters": {
     "portalUsers": "Usuários do Portal",
-    "notPortalUsers": "Não Usuários do Portal"
+    "notPortalUsers": "Não Usuários do Portal",
+    "accountActive": "Ativo"
   }
 }

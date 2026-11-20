@@ -4,11 +4,5 @@
     },
     "merge": {
         "implementationClassName": "Espo\\Core\\Action\\Actions\\Merge"
-    },
-    "lock": {
-        "implementationClassName": "Espo\\Core\\Action\\Actions\\Lock"
-    },
-    "unlock": {
-        "implementationClassName": "Espo\\Core\\Action\\Actions\\Unlock"
     }
 }

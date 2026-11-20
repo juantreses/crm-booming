@@ -38,6 +38,7 @@
     "overdue": "atrasado"
   },
   "presetFilters": {
+    "actual": "Atual",
     "completed": "Completa",
     "todays": "Hoje",
     "overdue": "Atrasada",

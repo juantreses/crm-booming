@@ -59,12 +59,13 @@ class ApiService
      */
     public function generateNewApiKey(string $id): User
     {
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             throw new Forbidden();
         }
 
-        $service = $this->serviceContainer->getByClass(User::class);
+        $service = $this->serviceContainer->get(User::ENTITY_TYPE);
 
+        /** @var ?User $entity */
         $entity = $service->getEntity($id);
 
         if (!$entity) {
@@ -75,10 +76,14 @@ class ApiService
             throw new Forbidden();
         }
 
-        $entity->setApiKey(Util::generateApiKey());
+        $apiKey = Util::generateApiKey();
+
+        $entity->set('apiKey', $apiKey);
 
         if ($entity->getAuthMethod() === Hmac::NAME) {
-            $entity->setSecretKey(Util::generateSecretKey());
+            $secretKey = Util::generateSecretKey();
+
+            $entity->set('secretKey', $secretKey);
         }
 
         $this->entityManager->saveEntity($entity);

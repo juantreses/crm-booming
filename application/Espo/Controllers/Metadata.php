@@ -71,7 +71,7 @@ class Metadata
      */
     public function getActionGet(Request $request, Response $response): void
     {
-        if (!$this->user->isEffectiveAdmin()) {
+        if (!$this->user->isAdmin()) {
             throw new Forbidden();
         }
 

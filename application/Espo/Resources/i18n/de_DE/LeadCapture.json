@@ -1,6 +1,5 @@
 {
   "fields": {
-    "name": "Name",
     "campaign": "Kampagne",
     "isActive": "Ist aktiv",
     "subscribeToTargetList": "Zielliste abonnieren",
@@ -15,7 +14,6 @@
     "apiKey": "API-Schlüssel",
     "targetTeam": "Zielteam",
     "exampleRequestMethod": "Methode",
-    "exampleRequestUrl": "URL",
     "exampleRequestPayload": "Nutzlast",
     "createLeadBeforeOptInConfirmation": "Lead vor Bestätigung erstellen",
     "duplicateCheck": "Dublettenprüfung",

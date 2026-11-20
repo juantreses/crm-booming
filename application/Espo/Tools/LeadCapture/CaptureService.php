@@ -29,7 +29,6 @@
 
 namespace Espo\Tools\LeadCapture;
 
-use Espo\Core\Binding\Attributes\Qualify;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Field\Link;
 use Espo\Core\FieldValidation\Exceptions\ValidationError;
@@ -62,7 +61,6 @@ use Espo\Modules\Crm\Entities\Contact;
 use Espo\Modules\Crm\Entities\Lead;
 use Espo\Tools\LeadCapture\Jobs\OptInConfirmation;
 use Espo\Tools\Captcha\Checker as CaptchaChecker;
-use Espo\Tools\Pipeline\MetadataProvider as PipelineMetadataProvider;
 use stdClass;
 use DateTime;
 
@@ -71,7 +69,6 @@ class CaptureService
     public function __construct(
         private EntityManager $entityManager,
         private FieldUtil $fieldUtil,
-        #[Qualify(Language::QUALIFIER_DEFAULT)]
         private Language $defaultLanguage,
         private HookManager $hookManager,
         private Log $log,
@@ -81,7 +78,6 @@ class CaptureService
         private PhoneNumberSanitizer $phoneNumberSanitizer,
         private ServiceContainer $serviceContainer,
         private CaptchaChecker $captchaChecker,
-        private PipelineMetadataProvider $pipelineMetadataProvider,
     ) {}
 
     /**
@@ -128,8 +124,6 @@ class CaptureService
     public function capture(string $apiKey, stdClass $data): void
     {
         $leadCapture = $this->getLeadCapture($apiKey);
-
-        $this->filterData($leadCapture, $data);
 
         if (!$leadCapture->optInConfirmation()) {
             $this->proceed($leadCapture, $data);
@@ -510,8 +504,6 @@ class CaptureService
             $lead->setSource($leadCapture->getLeadSource());
         }
 
-        $this->setPipeline($leadCapture, $lead);
-
         if ($leadCapture->getCampaignId()) {
             $lead->setCampaign(Link::create($leadCapture->getCampaignId()));
         }
@@ -777,48 +769,5 @@ class CaptureService
         }
 
         return $leadCapture;
-    }
-
-    private function setPipeline(LeadCapture $leadCapture, Lead $lead): void
-    {
-        if (
-            !$this->pipelineMetadataProvider->isEnabled(Lead::ENTITY_TYPE) ||
-            !$leadCapture->getPipeline()
-        ) {
-            return;
-        }
-
-        $pipeline = $leadCapture->getPipeline();
-
-        $lead->set(Field::PIPELINE . 'Id', $pipeline->getId());
-        $lead->set(Field::PIPELINE . 'Name', $pipeline->getName());
-
-        $firstStage = $pipeline->getStages()[0] ?? null;
-
-        if (!$firstStage) {
-            return;
-        }
-
-        $lead->set(Field::PIPELINE_STAGE . 'Id', $firstStage->getId());
-        $lead->set(Field::PIPELINE_STAGE . 'Name', $firstStage->getName());
-    }
-
-    private function filterData(LeadCapture $leadCapture, stdClass $data): void
-    {
-        $fieldList = $leadCapture->getFieldList();
-
-        $attributeList = [];
-
-        foreach ($fieldList as $field) {
-            $fieldAttributeList = $this->fieldUtil->getActualAttributeList(Lead::ENTITY_TYPE, $field);
-
-            $attributeList = array_merge($attributeList, $fieldAttributeList);
-        }
-
-        foreach (array_keys(get_object_vars($data)) as $k) {
-            if (!in_array($k, $attributeList)) {
-                unset($data->$k);
-            }
-        }
     }
 }

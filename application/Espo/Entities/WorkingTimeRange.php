@@ -128,13 +128,4 @@ class WorkingTimeRange extends Entity
         /** @var LinkMultiple */
         return $this->getValueObject('users');
     }
-
-    /**
-     * @since 9.3.1
-     */
-    public function getCalendars(): LinkMultiple
-    {
-        /** @var LinkMultiple */
-        return $this->getValueObject('calendars');
-    }
 }

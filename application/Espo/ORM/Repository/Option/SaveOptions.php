@@ -29,9 +29,7 @@
 
 namespace Espo\ORM\Repository\Option;
 
-use Espo\ORM\Repository\Option\SaveContext;
 use Espo\ORM\Repository\Option\Traits\Options;
-use UnexpectedValueException;
 
 /**
  * Save options.
@@ -41,18 +39,4 @@ use UnexpectedValueException;
 class SaveOptions
 {
     use Options;
-
-    /**
-     * @since 10.0.0
-     */
-    public function getContext(): SaveContext
-    {
-        $context = $this->get(SaveContext::NAME);
-
-        if (!$context instanceof SaveContext) {
-            throw new UnexpectedValueException("No or bad 'context'.");
-        }
-
-        return $context;
-    }
 }

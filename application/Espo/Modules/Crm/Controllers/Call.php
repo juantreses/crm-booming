@@ -53,7 +53,7 @@ class Call extends Record
      * @throws SendingError
      * @throws NotFound
      */
-    public function postActionSendInvitations(Request $request): stdClass
+    public function postActionSendInvitations(Request $request): bool
     {
         $id = $request->getParsedBody()->id ?? null;
 
@@ -63,13 +63,11 @@ class Call extends Record
 
         $invitees = $this->fetchInvitees($request);
 
-        $sentToList = $this->injectableFactory
+        $resultList = $this->injectableFactory
             ->create(InvitationService::class)
             ->send(CallEntity::ENTITY_TYPE, $id, $invitees);
 
-        return (object) [
-            'idList' => array_map(fn ($it) => $it->getId() , $sentToList),
-        ];
+        return $resultList !== 0;
     }
 
     /**
@@ -79,7 +77,7 @@ class Call extends Record
      * @throws SendingError
      * @throws NotFound
      */
-    public function postActionSendCancellation(Request $request): stdClass
+    public function postActionSendCancellation(Request $request): bool
     {
         $id = $request->getParsedBody()->id ?? null;
 
@@ -89,13 +87,11 @@ class Call extends Record
 
         $invitees = $this->fetchInvitees($request);
 
-        $sentToList = $this->injectableFactory
+        $resultList = $this->injectableFactory
             ->create(InvitationService::class)
             ->sendCancellation(CallEntity::ENTITY_TYPE, $id, $invitees);
 
-        return (object) [
-            'idList' => array_map(fn ($it) => $it->getId() , $sentToList),
-        ];
+        return $resultList !== 0;
     }
 
     /**

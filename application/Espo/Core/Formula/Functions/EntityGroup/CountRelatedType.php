@@ -29,78 +29,67 @@
 
 namespace Espo\Core\Formula\Functions\EntityGroup;
 
-use Espo\Core\Acl\SystemRestriction;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Core\Exceptions\Forbidden;
-use Espo\Core\Formula\EvaluatedArgumentList;
-use Espo\Core\Formula\Exceptions\BadArgumentType;
 use Espo\Core\Formula\Exceptions\Error;
-use Espo\Core\Formula\Exceptions\NotAllowedUsage;
-use Espo\Core\Formula\Exceptions\NotPassedEntity;
-use Espo\Core\Formula\Exceptions\TooFewArguments;
-use Espo\Core\Formula\Func;
+use Espo\Core\Formula\Functions\Base;
 use Espo\Core\Formula\Functions\RecordGroup\Util\FindQueryUtil;
-use Espo\Core\ORM\Entity as CoreEntity;
 use Espo\Core\Select\SelectBuilderFactory;
 use Espo\ORM\Defs\Params\RelationParam;
-use Espo\ORM\Entity;
-use Espo\ORM\EntityManager;
+use Espo\Core\Di;
+use stdClass;
 
 /**
  * @noinspection PhpUnused
  */
-class CountRelatedType implements Func
+class CountRelatedType extends Base implements
+    Di\EntityManagerAware,
+    Di\InjectableFactoryAware,
+    Di\UserAware
 {
-    public function __construct(
-        private SystemRestriction $systemRestriction,
-        private EntityManager $entityManager,
-        private SelectBuilderFactory $selectBuilderFactory,
-        private FindQueryUtil $findQueryUtil,
-        private ?Entity $entity = null,
-    ) {}
+    use Di\EntityManagerSetter;
+    use Di\InjectableFactorySetter;
+    use Di\UserSetter;
 
-    public function process(EvaluatedArgumentList $arguments): int
+    /**
+     * @return int
+     * @throws Error
+     */
+    public function process(stdClass $item)
     {
-        $entity = $this->entity ?? throw new NotPassedEntity();
-
-        if (!$entity instanceof CoreEntity) {
-            throw new Error("Non-core entity.");
+        if (count($item->value) < 1) {
+            throw new Error("countRelated: roo few arguments.");
         }
 
-        if (count($arguments) < 1) {
-            throw TooFewArguments::create(1);
-        }
+        $link = $this->evaluate($item->value[0]);
 
-        $link = $arguments[0];
-
-        if (!is_string($link)) {
-            throw BadArgumentType::create(1, 'string');
-        }
-
-        $entityType = $entity->getEntityType();
-
-        if (!$this->systemRestriction->checkLinkRead($entityType, $link)) {
-            throw new NotAllowedUsage("Cannot read restricted field $entityType.$link.");
+        if (empty($link)) {
+            throw new Error("countRelated: no link passed.");
         }
 
         $filter = null;
 
-        if (count($arguments) > 1) {
-            $filter = $arguments[1];
+        if (count($item->value) > 1) {
+            $filter = $this->evaluate($item->value[1]);
         }
+
+        $entity = $this->getEntity();
+
+        $entityManager = $this->entityManager;
 
         $foreignEntityType = $entity->getRelationParam($link, RelationParam::ENTITY);
 
         if (empty($foreignEntityType)) {
-            throw new Error("Not supported link $link.");
+            throw new Error();
         }
 
-        $builder = $this->selectBuilderFactory
+        $builder = $this->injectableFactory->create(SelectBuilderFactory::class)
             ->create()
+            ->forUser($this->user)
             ->from($foreignEntityType);
 
         if ($filter) {
-            $this->findQueryUtil->applyFilter($builder, $filter, 2);
+            (new FindQueryUtil())->applyFilter($builder, $filter, 2);
         }
 
         try {
@@ -109,8 +98,7 @@ class CountRelatedType implements Func
             throw new Error($e->getMessage());
         }
 
-        return $this->entityManager
-            ->getRDBRepository($entity->getEntityType())
+        return $entityManager->getRDBRepository($entity->getEntityType())
             ->getRelation($entity, $link)
             ->clone($query)
             ->count();

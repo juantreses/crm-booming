@@ -87,14 +87,12 @@ class Module
             $this->dataCache &&
             $this->dataCache->has($this->cacheKey)
         ) {
-            /** @var ?array<string, array<string, mixed>> $data */
+            /** @var array<string, array<string, mixed>> $data */
             $data = $this->dataCache->get($this->cacheKey);
 
-            if ($data !== null) {
-                $this->data = $data;
+            $this->data = $data;
 
-                return;
-            }
+            return;
         }
 
         $this->data = $this->loadData();
@@ -175,6 +173,7 @@ class Module
 
     /**
      * @todo Use event-dispatcher class (passed via constructor).
+     * `$this->clearCacheEventDispatcher->subscribe(...);`
      */
     public function clearCache(): void
     {

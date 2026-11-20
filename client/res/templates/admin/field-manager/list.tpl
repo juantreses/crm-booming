@@ -30,7 +30,7 @@
     </thead>
     <tbody>
     {{#each fieldDefsArray}}
-    <tr data-name="{{name}}" class="field-row {{#if accented}} accented {{/if}} ">
+    <tr data-name="{{name}}" class="field-row">
         <td>
             {{#if isEditable}}
                 <a

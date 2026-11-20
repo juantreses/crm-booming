@@ -340,7 +340,7 @@ class Service
         $attachment = $this->entityManager->getRDBRepositoryByClass(Attachment::class)->getNew();
 
         $attachment->setType('text/csv');
-        $attachment->setRole(Import::FILE_ROLE);
+        $attachment->setRole('Import File');
         $attachment->setName('import-file.csv');
         $attachment->setContents($contents);
 
@@ -438,8 +438,6 @@ class Service
             throw new NotFound();
         }
 
-        $this->getImport($importId);
-
         $entity->set('isDuplicate', false);
 
         $this->entityManager->saveEntity($entity);
@@ -449,11 +447,16 @@ class Service
      * @param string $importId An import ID.
      * @return ?string An attachment ID.
      * @throws NotFound
-     * @throws Forbidden
      */
     public function exportErrors(string $importId): ?string
     {
-        $import = $this->getImport($importId);
+        $import = $this->entityManager
+            ->getRepositoryByClass(ImportEntity::class)
+            ->getById($importId);
+
+        if (!$import) {
+            throw new NotFound();
+        }
 
         $count = $this->entityManager
             ->getRDBRepositoryByClass(ImportEntity::class)
@@ -541,24 +544,5 @@ class Service
         fclose($resource);
 
         return $attachment->getId();
-    }
-
-    /**
-     * @throws Forbidden
-     * @throws NotFound
-     */
-    private function getImport(string $importId): ImportEntity
-    {
-        $import = $this->entityManager->getRepositoryByClass(ImportEntity::class)->getById($importId);
-
-        if (!$import) {
-            throw new NotFound();
-        }
-
-        if (!$this->acl->checkEntityRead($import)) {
-            throw new Forbidden("No access to the import record.");
-        }
-
-        return $import;
     }
 }

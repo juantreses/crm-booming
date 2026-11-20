@@ -3,8 +3,7 @@
     "layouts": true,
     "tab": true,
     "acl": true,
-    "aclPortal": true,
-    "aclPortalLevelList": ["all", "account", "contact", "own", "no"],
+    "aclPortal": "recordAllAccountContactOwnNo",
     "module": "Crm",
     "customizable": true,
     "stream": true,
@@ -12,7 +11,6 @@
     "notifications": true,
     "object": true,
     "statusField": "stage",
-    "statusFieldLocked": true,
     "kanbanStatusIgnoreList": ["Closed Lost"],
     "currencyConversionAccessRequiredFieldList": ["amount"]
 }

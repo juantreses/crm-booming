@@ -64,6 +64,8 @@ class LatestReleaseDataRequester
 
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
+        curl_close($ch);
+
         if ($result === false) {
             return null;
         }

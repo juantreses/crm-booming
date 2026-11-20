@@ -2,7 +2,6 @@
   "fields": {
     "name": "Nazwa",
     "parent": "Rodzic",
-    "status": "Status",
     "dateStart": "Data rozpoczęcia",
     "dateEnd": "Data zakończenia",
     "direction": "Kierunek",
@@ -13,8 +12,7 @@
     "leads": "Potencjalne Kontakty",
     "reminders": "Przypomnienia",
     "account": "Klient",
-    "acceptanceStatus": "Status akceptacji",
-    "uid": "UID"
+    "acceptanceStatus": "Status akceptacji"
   },
   "options": {
     "status": {

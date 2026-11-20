@@ -50,6 +50,7 @@
   },
   "presetFilters": {
     "portalUsers": "Uživatelé portálu",
-    "notPortalUsers": "Není uživatel portálu"
+    "notPortalUsers": "Není uživatel portálu",
+    "accountActive": "Aktivní"
   }
 }
