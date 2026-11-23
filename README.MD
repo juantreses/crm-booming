@@ -249,3 +249,39 @@ Rector resolves Espo's classes through `vendor/autoload.php`, so it needs the ma
 After an Espo upgrade, `bin/qa stan` is the quickest way to find our code that uses Espo classes or methods that
 were removed or changed (`class.notFound`, `method.notFound`, wrong argument types). It only sees what is typed, so
 still read the Espo release notes and test the app.
+
+***
+
+## Testing on PHP 8.5 locally
+
+Espo 10.1.4 supports PHP `>=8.3.0 <8.6.0`. The official `espocrm/espocrm` image uses PHP 8.4, so for PHP 8.5
+there is an image of our own in `docker/php85/Dockerfile`: Apache + PHP 8.5 with the extensions Espo needs, and
+without Espo's install script (the repo is mounted).
+
+In the `docker-compose.yml` next to `app/`, replace the `image:` of the `espocrm` service (keep the rest,
+including `container_name: espocrm`, which `bin/qa` uses):
+
+```yaml
+  espocrm:
+    container_name: espocrm
+    build: ./app/docker/php85
+    image: crm-booming-php85
+    # ... ports, volumes, depends_on as before
+```
+
+Then:
+
+```bash
+docker compose build espocrm
+docker compose up -d espocrm
+docker exec espocrm php -v
+bin/qa all
+docker exec -u www-data espocrm tools/vendor/bin/phpunit --display-deprecations
+```
+
+Also check Administration > System Requirements and click through the app (widget booking, calendar, logging a
+lead, Google calendar sync, mails). To go back to the official image, restore the `image:` line and run
+`docker compose up -d espocrm`.
+
+Only after production runs PHP 8.5: set `withPhpSets(php85: true)` in `rector.php`, run `bin/qa rector-fix`,
+`bin/qa test` and `bin/qa cs-fix`, and commit that separately.
