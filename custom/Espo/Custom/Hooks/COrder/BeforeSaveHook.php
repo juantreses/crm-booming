@@ -21,7 +21,7 @@ class BeforeSaveHook implements BeforeSave
         $dateOrdered = $entity->get('dateOrdered');
 
         if ($dateOrdered) {
-            $programEnd = (new \DateTime($dateOrdered))
+            $programEnd = new \DateTime($dateOrdered)
                 ->modify('+21 days')
                 ->format('Y-m-d');
 

@@ -141,7 +141,7 @@ readonly class SavingsCardService
      */
     private function cardEnd(string $cardStart): string
     {
-        return (new DateTimeImmutable($cardStart))
+        return new DateTimeImmutable($cardStart)
             ->modify(self::CARD_VALIDITY)
             ->modify('-1 day')
             ->format('Y-m-d');

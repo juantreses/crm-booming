@@ -188,7 +188,7 @@ readonly class CalendarService
         }
 
         $availableDates = [];
-        $daysInMonth = (int) (new DateTime("$year-$month-01"))->format('t');
+        $daysInMonth = (int) new DateTime("$year-$month-01")->format('t');
 
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dateString = sprintf('%04d-%02d-%02d', $year, $month, $day);

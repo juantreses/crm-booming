@@ -209,8 +209,8 @@ readonly class CalendarRepository
         $result = [];
 
         foreach ($meetings as $meeting) {
-            $startTime = (new \DateTime($meeting->get('dateStart')))->setTimezone(new DateTimeZone('Europe/Brussels'));
-            $endTime = (new \DateTime($meeting->get('dateEnd')))->setTimezone(new DateTimeZone('Europe/Brussels'));
+            $startTime = new \DateTime($meeting->get('dateStart'))->setTimezone(new DateTimeZone('Europe/Brussels'));
+            $endTime = new \DateTime($meeting->get('dateEnd'))->setTimezone(new DateTimeZone('Europe/Brussels'));
 
             $blockingCalId = $meeting->get('cCalendarId');
             $bufferTime = 0;
@@ -251,7 +251,7 @@ readonly class CalendarRepository
         $counts = [];
 
         foreach ($bookingList as $booking) {
-            $startTime = (new \DateTime($booking->get('dateStart')))->setTimezone(new DateTimeZone('Europe/Brussels'));
+            $startTime = new \DateTime($booking->get('dateStart'))->setTimezone(new DateTimeZone('Europe/Brussels'));
             $timeKey = $startTime->format('H:i');
             $locationKey = (string) $booking->get('cLocationId');
 

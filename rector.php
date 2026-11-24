@@ -30,10 +30,7 @@ return RectorConfig::configure()
         // isset() is false for null values, property_exists() is not; also breaks on Espo's magic entity props.
         IssetOnPropertyObjectToPropertyExistsRector::class,
     ])
-    // Target = the PHP version production runs today (Espo 9.3 requires >= 8.3).
-    // Bump to php84/php85 only once production actually runs that version,
-    // otherwise Rector introduces syntax the server can't parse.
-    ->withPhpSets(php83: true)
+    ->withPhpSets(php85: true)
     ->withPreparedSets(
         deadCode: true,
         codeQuality: true,

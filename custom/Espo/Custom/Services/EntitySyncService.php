@@ -59,12 +59,7 @@ class EntitySyncService
 
     private function hasFieldsChanged(Entity $entity): bool
     {
-        foreach (self::BASE_FIELDS_TO_WATCH as $field) {
-            if ($this->hasFieldChanged($entity, $field)) {
-                return true;
-            }
-        }
-        return false;
+        return array_any(self::BASE_FIELDS_TO_WATCH, fn(string $field): bool => $this->hasFieldChanged($entity, $field));
     }
 
     private function hasFieldChanged(Entity $entity, string $field): bool
