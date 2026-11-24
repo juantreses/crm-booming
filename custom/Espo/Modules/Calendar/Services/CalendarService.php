@@ -324,8 +324,10 @@ readonly class CalendarService
         $minLeadTime = $calendar->get('minLeadTime') ?? 0;
 
         $blockedByCalendarIds = $this->calendarRepository->getBlockedByCalendarIds($calendar);
-        $relationshipBlockingAvailabilities = $this->calendarRepository->getBlockingCalendarAvailabilities($blockedByCalendarIds, $dateString);
-        $relationshipBlockingMeetings = $this->calendarRepository->getBlockingCalendarMeetings($blockedByCalendarIds, $dateString);
+        $relationshipBlockingAvailabilities = $this->calendarRepository
+            ->getBlockingCalendarAvailabilities($blockedByCalendarIds, $dateString);
+        $relationshipBlockingMeetings = $this->calendarRepository
+            ->getBlockingCalendarMeetings($blockedByCalendarIds, $dateString);
 
         $allBlockingPeriods = array_merge(
             $relationshipBlockingAvailabilities,
@@ -381,14 +383,21 @@ readonly class CalendarService
             $isBlocked = $this->isSlotBlocked($slotStart, $slotEnd, $blockingPeriods);
             if (!$isBlocked) {
                 $isTooSoon = $this->isSlotTooSoon($slotTime, $dateString, $firstBookableMoment);
-                $availableSeats = $this->getAvailableSeats($slotStart, $maxSeats, $bookings, $availability->get('locationId'));
+                $availableSeats = $this->getAvailableSeats(
+                    $slotStart,
+                    $maxSeats,
+                    $bookings,
+                    $availability->get('locationId'),
+                );
 
                 $isBookable = !$isTooSoon && $availableSeats > 0;
                 $reason = $this->getUnavailabilityReason($isBlocked, $isTooSoon, $availableSeats);
 
                 $slot = [
                     // Only used to deduplicate, removed before returning.
-                    '_key' => $slotStart . '|' . $availability->get('locationId') . '|' . $availability->get('publicSlug'),
+                    '_key' => $slotStart . '|'
+                        . $availability->get('locationId') . '|'
+                        . $availability->get('publicSlug'),
                     'availabilityId' => $availability->getId(),
                     'start' => $slotStart,
                     'end' => $slotEnd,

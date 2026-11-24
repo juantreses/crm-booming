@@ -117,8 +117,12 @@ class InvitedHandler extends AbstractOutcomeHandler
         return $result;
     }
 
-    private function handleIntroBooking(Entity $lead, array $context, OutcomeResult $result, string $calendarType): OutcomeResult
-    {
+    private function handleIntroBooking(
+        Entity $lead,
+        array $context,
+        OutcomeResult $result,
+        string $calendarType,
+    ): OutcomeResult {
         $meetingType = IntroMeetingType::fromCalendarType($calendarType);
 
         if (!$meetingType instanceof IntroMeetingType) {
@@ -162,8 +166,12 @@ class InvitedHandler extends AbstractOutcomeHandler
         return $result;
     }
 
-    private function handleKickstartBooking(Entity $lead, OutcomeResult $result, string $calendarType, ?string $eventDate = null): OutcomeResult
-    {
+    private function handleKickstartBooking(
+        Entity $lead,
+        OutcomeResult $result,
+        string $calendarType,
+        ?string $eventDate = null,
+    ): OutcomeResult {
         $eventId = $this->eventLogService->logEvent(
             $lead->getId(),
             LeadEventType::KICKSTART_BOOKED,

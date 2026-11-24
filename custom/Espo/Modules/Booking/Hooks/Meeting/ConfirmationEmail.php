@@ -35,7 +35,10 @@ class ConfirmationEmail implements AfterSave
 
             $templateId = $this->emailService->getTemplateIdForMeeting($entity, 'confirmation');
             if (!$templateId) {
-                $entity->set('cMailError', "Bevestiging fout: Geen bevestiging email gelinkt aan beschikbaarheid of kalender");
+                $entity->set(
+                    'cMailError',
+                    "Bevestiging fout: Geen bevestiging email gelinkt aan beschikbaarheid of kalender",
+                );
                 return;
             }
 

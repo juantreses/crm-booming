@@ -32,7 +32,10 @@ class CancellationEmail implements AfterSave
 
             $templateId = $this->emailService->getTemplateIdForMeeting($entity, 'cancellation');
             if (!$templateId) {
-                $entity->set('cMailError', "Annulering fout: Geen annulerings email gelinkt aan beschikbaarheid of kalender");
+                $entity->set(
+                    'cMailError',
+                    "Annulering fout: Geen annulerings email gelinkt aan beschikbaarheid of kalender",
+                );
                 return;
             }
 

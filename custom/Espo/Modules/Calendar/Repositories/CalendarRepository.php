@@ -491,7 +491,10 @@ readonly class CalendarRepository
 
         $result = array_values($locationRows);
 
-        usort($result, static fn(array $a, array $b): int => strcmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? '')));
+        usort(
+            $result,
+            static fn(array $a, array $b): int => strcmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? '')),
+        );
 
         foreach ($result as &$row) {
             usort($row['variants'], static fn(array $a, array $b): int => strcmp($a['label'], $b['label']));

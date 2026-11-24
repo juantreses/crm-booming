@@ -59,7 +59,11 @@ class CTeamStatisticsService
         $eventCounts = $this->getEventTypeBreakdown($team, $dateFilter);
         $calledLeads = $this->getUniqueLeadsCalled($team, $dateFilter);
         $invitedLeads = $this->getUniqueLeadsWithEventType(LeadEventType::KICKSTART_BOOKED, $team, $dateFilter);
-        $appointmentBookedLeads = $this->getUniqueLeadsWithEventType(LeadEventType::KICKSTART_BOOKED, $team, $dateFilter);
+        $appointmentBookedLeads = $this->getUniqueLeadsWithEventType(
+            LeadEventType::KICKSTART_BOOKED,
+            $team,
+            $dateFilter,
+        );
         $attendedLeads = $this->getUniqueLeadsWithEventType(LeadEventType::ATTENDED, $team, $dateFilter);
         $noShowLeads = $this->getUniqueLeadsWithEventType(LeadEventType::NO_SHOW, $team, $dateFilter);
         $convertedLeads = $this->getUniqueLeadsWithEventType(LeadEventType::BECAME_CLIENT, $team, $dateFilter);
