@@ -129,8 +129,12 @@ class CancelledHandler extends AbstractOutcomeHandler
         return $result;
     }
 
-    private function handleRescheduleLater(Entity $lead, array $context, OutcomeResult $result, IntroMeetingType $meetingType): OutcomeResult
-    {
+    private function handleRescheduleLater(
+        Entity $lead,
+        array $context,
+        OutcomeResult $result,
+        IntroMeetingType $meetingType,
+    ): OutcomeResult {
         $eventId = $this->eventLogService->logEvent(
             $lead->getId(),
             LeadEventType::CALL_AGAIN,

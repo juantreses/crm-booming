@@ -25,8 +25,11 @@ readonly class IntroMeetingService
         return true;
     }
 
-    public function recordAttendance(Entity $lead, IntroMeetingType $meetingType, ?HomRating $homRating = null): LeadStage
-    {
+    public function recordAttendance(
+        Entity $lead,
+        IntroMeetingType $meetingType,
+        ?HomRating $homRating = null,
+    ): LeadStage {
         if ($meetingType === IntroMeetingType::SPARK) {
             $this->incrementSparkUsage($lead);
         }

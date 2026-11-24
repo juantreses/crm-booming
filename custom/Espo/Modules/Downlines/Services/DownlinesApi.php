@@ -16,7 +16,7 @@ readonly class DownlinesApi
     public function getDownlines(string $teamId, int $maxDepth = 6): array
     {
         $entity = $this->entityManager->getEntityById('CTeam', $teamId);
-        if (!$entity) {
+        if (!$entity instanceof Entity) {
             throw new NotFound("CTeam $teamId not found");
         }
 

@@ -128,7 +128,9 @@ class AttendanceHandler extends AbstractOutcomeHandler
             : ['spark' => 'SPARK', 'kickstart' => 'Kickstart', 'online' => 'Online Kickstart'];
 
         if (!array_key_exists($nextCalendarType, $allowed)) {
-            throw new BadRequest("Na een HOM met uitkomst {$homRating->value} kan je enkel " . implode(' of ', $allowed) . ' boeken.');
+            throw new BadRequest(
+                "Na een HOM met uitkomst {$homRating->value} kan je enkel " . implode(' of ', $allowed) . ' boeken.',
+            );
         }
     }
 
@@ -136,8 +138,11 @@ class AttendanceHandler extends AbstractOutcomeHandler
      * The next calendar must be a kickstart, royalty or intro meeting the lead can still book
      * once this attendance is recorded (attending a SPARK uses up one SPARK session).
      */
-    private function assertNextBookingPossible(Entity $lead, IntroMeetingType $attendedType, string $nextCalendarType): void
-    {
+    private function assertNextBookingPossible(
+        Entity $lead,
+        IntroMeetingType $attendedType,
+        string $nextCalendarType,
+    ): void {
         if (KickstartCalendarType::isKickstart($nextCalendarType) || $nextCalendarType === 'royalty') {
             return;
         }
@@ -175,8 +180,12 @@ class AttendanceHandler extends AbstractOutcomeHandler
     /**
      * Handle when lead books next meeting immediately after attendance
      */
-    private function handleImmediateBooking(Entity $lead, array $context, IntroMeetingType $attendedType, ?HomRating $homRating): OutcomeResult
-    {
+    private function handleImmediateBooking(
+        Entity $lead,
+        array $context,
+        IntroMeetingType $attendedType,
+        ?HomRating $homRating,
+    ): OutcomeResult {
         $leadId = $lead->getId();
 
         $nextCalendarType = $this->getNextBookingCalendar($context)->get('type');
@@ -270,8 +279,13 @@ class AttendanceHandler extends AbstractOutcomeHandler
         return $result;
     }
 
-    private function handleStandardAttendance(Entity $lead, array $context, IntroMeetingType $meetingType, LeadStage $nextStage, ?HomRating $homRating): OutcomeResult
-    {
+    private function handleStandardAttendance(
+        Entity $lead,
+        array $context,
+        IntroMeetingType $meetingType,
+        LeadStage $nextStage,
+        ?HomRating $homRating,
+    ): OutcomeResult {
         $leadId = $lead->getId();
 
         $result = $this->logEvents($leadId, $context['eventDate'] ?? null);

@@ -35,7 +35,11 @@ class TelegramNotification implements AfterSave
         switch ($status) {
             case 'Tentative':
             case 'Planned':
-                if ($isNew && $calendar instanceof Entity && KickstartCalendarType::isKickstart($calendar->get('type'))) {
+                if (
+                    $isNew
+                    && $calendar instanceof Entity
+                    && KickstartCalendarType::isKickstart($calendar->get('type'))
+                ) {
                     $this->sendKickstartAlert($meeting, $parent, $calendar);
                 }
                 break;
@@ -87,7 +91,8 @@ class TelegramNotification implements AfterSave
 
         $calendarType = $calendar?->get('type');
         $type = match (true) {
-            KickstartCalendarType::isKickstart($calendarType) => KickstartCalendarType::from(strtolower($calendarType))->getLabel(),
+            KickstartCalendarType::isKickstart($calendarType) => KickstartCalendarType::from(strtolower($calendarType))
+                ->getLabel(),
             (bool) $calendarType => ucfirst($calendarType),
             default => 'Afspraak',
         };

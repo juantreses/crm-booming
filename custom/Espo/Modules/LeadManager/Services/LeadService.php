@@ -127,8 +127,12 @@ readonly class LeadService
         $this->entityManager->saveEntity($person);
     }
 
-    private function performAssignment(Entity $person, string $newCoachId, ?string $oldCoachId, string $newCoachName): void
-    {
+    private function performAssignment(
+        Entity $person,
+        string $newCoachId,
+        ?string $oldCoachId,
+        string $newCoachName,
+    ): void {
         $oldCoachName = $oldCoachId
             ? ($this->entityManager->getEntityById('CTeam', $oldCoachId)?->get('name') ?? 'Onbekend')
             : 'null';

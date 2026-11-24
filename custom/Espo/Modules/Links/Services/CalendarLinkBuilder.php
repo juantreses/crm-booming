@@ -45,8 +45,11 @@ readonly class CalendarLinkBuilder
      *
      * @return CalendarLink[]
      */
-    private function buildLinksFromCalendars(EntityCollection $calendars, ?string $teamId, ?string $coachIdentifier): array
-    {
+    private function buildLinksFromCalendars(
+        EntityCollection $calendars,
+        ?string $teamId,
+        ?string $coachIdentifier,
+    ): array {
         $links = [];
         $baseUrl = rtrim($this->config->get('siteUrl'), '/');
         $baseWidgetUrl = "$baseUrl/?entryPoint=widget";

@@ -55,8 +55,14 @@ readonly class BookingService
     /**
      * Maakt direct een meeting aan vanuit interne logica (bvb Lead logCall)
      */
-    public function createInternalMeeting(string $calendarIdentifier, Entity $person, string $date, string $time, ?string $notes = null, bool $isSparkCup = false): Entity
-    {
+    public function createInternalMeeting(
+        string $calendarIdentifier,
+        Entity $person,
+        string $date,
+        string $time,
+        ?string $notes = null,
+        bool $isSparkCup = false,
+    ): Entity {
         $calendarId = $this->slug->resolve('CCalendar', $calendarIdentifier);
         $calendar = $calendarId ? $this->entityManager->getEntityById('CCalendar', $calendarId) : null;
 
@@ -182,8 +188,14 @@ readonly class BookingService
         return $targetSlot;
     }
 
-    private function createMeeting(Entity $calendar, Entity $person, string $dateStartString, array $targetSlot, ?string $notes = null, bool $isSparkCup = false): Entity
-    {
+    private function createMeeting(
+        Entity $calendar,
+        Entity $person,
+        string $dateStartString,
+        array $targetSlot,
+        ?string $notes = null,
+        bool $isSparkCup = false,
+    ): Entity {
         $duration = $calendar->get('duration') ?? 60;
 
         $dateStart = new DateTime($dateStartString, new DateTimeZone('Europe/Brussels'));
@@ -193,7 +205,8 @@ readonly class BookingService
         $typeLabel = match (true) {
             $isSparkCup => 'SPARK cup',
             $calendar->get('type') === 'followup' => 'FU',
-            $calendar->get('type') === KickstartCalendarType::ONLINE->value => KickstartCalendarType::ONLINE->getLabel(),
+            $calendar->get('type') === KickstartCalendarType::ONLINE->value
+                => KickstartCalendarType::ONLINE->getLabel(),
             default => ucfirst($calendar->get('type')),
         };
 

@@ -57,7 +57,7 @@ readonly class ContactHomService
             );
         }
 
-        $booking = $this->getBooking($data->calendarId ?? null, $data->selectedDate ?? null, $data->selectedTime ?? null);
+        $booking = $this->getBookingFromData($data);
         $this->assertCalendarType($booking['calendarId'], 'hom');
 
         $this->bookingService->createInternalMeeting(
@@ -115,7 +115,9 @@ readonly class ContactHomService
                 || (int) $contact->get('cSavingsPointsBalance') < SavingsCardService::HOM_POINTS
             )
         ) {
-            throw new BadRequest('Onvoldoende geldige spaarkaartpunten (minimum ' . SavingsCardService::HOM_POINTS . ').');
+            throw new BadRequest(
+                'Onvoldoende geldige spaarkaartpunten (minimum ' . SavingsCardService::HOM_POINTS . ').',
+            );
         }
 
         if ($rating === HomRating::B) {
@@ -177,7 +179,7 @@ readonly class ContactHomService
         $action = $data->cancellationAction ?? null;
 
         if ($action === 'reschedule_now') {
-            $booking = $this->getBooking($data->calendarId ?? null, $data->selectedDate ?? null, $data->selectedTime ?? null);
+            $booking = $this->getBookingFromData($data);
             $this->assertCalendarType($booking['calendarId'], 'hom');
 
             $this->markPlannedMeeting($contact, 'hom', 'Cancelled');
@@ -265,7 +267,7 @@ readonly class ContactHomService
         $action = $data->cancellationAction ?? null;
 
         if ($action === 'reschedule_now') {
-            $booking = $this->getBooking($data->calendarId ?? null, $data->selectedDate ?? null, $data->selectedTime ?? null);
+            $booking = $this->getBookingFromData($data);
             $this->assertCalendarType($booking['calendarId'], 'royalty');
 
             $this->markPlannedMeeting($contact, 'royalty', $outcome === 'no_show' ? 'Not Held' : 'Cancelled');
@@ -370,10 +372,24 @@ readonly class ContactHomService
     }
 
     /**
+     * The calendar and slot of a (re)booking, from the request.
+     *
      * @throws BadRequest
      */
-    private function getBooking(?string $calendarId, ?string $date, ?string $time, string $error = 'Kies een agenda en tijdstip.'): array
+    private function getBookingFromData(\StdClass $data): array
     {
+        return $this->getBooking($data->calendarId ?? null, $data->selectedDate ?? null, $data->selectedTime ?? null);
+    }
+
+    /**
+     * @throws BadRequest
+     */
+    private function getBooking(
+        ?string $calendarId,
+        ?string $date,
+        ?string $time,
+        string $error = 'Kies een agenda en tijdstip.',
+    ): array {
         if (empty($calendarId) || empty($date) || empty($time)) {
             throw new BadRequest($error);
         }
