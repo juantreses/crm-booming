@@ -65,11 +65,11 @@
         "dynamicLogicVisible": null,
         "style": "default",
         "tabBreak": true,
-        "tabLabel": "Spaarkaart & RI",
+        "tabLabel": "Spaarkaart",
         "hidden": false,
         "noteText": null,
         "noteStyle": "info",
-        "customLabel": "Spaarkaart & RI"
+        "customLabel": "Spaarkaart"
     },
     {
         "rows": [
