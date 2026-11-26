@@ -47,50 +47,14 @@ define([
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {{#each overviewRows}}
                                     <tr>
-                                        <td><strong>Gewicht</strong></td>
-                                        <td>{{firstWeight}} kg</td>
-                                        <td>{{lastWeight}} kg</td>
-                                        <td style="color: {{evolutionColor}}; font-weight: bold;">{{weightEvolution}} kg</td>
+                                        <td><strong>{{label}}</strong></td>
+                                        <td>{{first}}</td>
+                                        <td>{{last}}</td>
+                                        <td style="color: {{color}}; font-weight: bold;">{{evolution}}</td>
                                     </tr>
-                                    <tr>
-                                        <td><strong>Spieren</strong></td>
-                                        <td>{{firstMuscle}} kg</td>
-                                        <td>{{lastMuscle}} kg</td>
-                                        <td style="color: {{muscleEvolutionColor}}; font-weight: bold;">{{muscleEvolution}} kg</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Vet (%)</strong></td>
-                                        <td>{{firstFatPercentage}}%</td>
-                                        <td>{{lastFatPercentage}}%</td>
-                                        <td style="color: {{fatPercentageEvolutionColor}}; font-weight: bold;">{{fatPercentageEvolution}}%</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Visceraal vet</strong></td>
-                                        <td>{{firstVisceralFat}}</td>
-                                        <td>{{lastVisceralFat}}</td>
-                                        <td style="color: {{visceralFatEvolutionColor}}; font-weight: bold;">{{visceralFatEvolution}}</td>
-                                    </tr>
-                                    {{#if showAllResults}}
-                                    <tr>
-                                        <td><strong>Vocht (%)</strong></td>
-                                        <td>{{firstVochtPercentage}}%</td>
-                                        <td>{{lastVochtPercentage}}%</td>
-                                        <td style="color: {{vochtEvolutionColor}}; font-weight: bold;">{{vochtEvolution}}%</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>BMR</strong></td>
-                                        <td>{{firstBmr}}</td>
-                                        <td>{{lastBmr}}</td>
-                                        <td style="color: {{bmrEvolutionColor}}; font-weight: bold;">{{bmrEvolution}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Metabolische Lft.</strong></td>
-                                        <td>{{firstMetabolicAge}}</td>
-                                        <td>{{lastMetabolicAge}}</td>
-                                        <td style="color: {{metabolicAgeEvolutionColor}}; font-weight: bold;">{{metabolicAgeEvolution}}</td>
-                                    </tr>
-                                    {{/if}}
+                                    {{/each}}
                                     <tr>
                                         <td colspan="3" style="font-size: 0.85em; color: #666;">
                                             Periode: {{daysDiff}} dagen
@@ -223,55 +187,44 @@ define([
             
             this.firstDate = this.formatDate(first.datum);
             this.lastDate = this.formatDate(last.datum);
-            this.firstWeight = parseFloat(first.gewicht).toFixed(1);
-            this.lastWeight = parseFloat(last.gewicht).toFixed(1);
+            // Overview rows. betterWhen: 'lower' / 'higher' decides the colour
+            // of the evolution; null keeps it neutral. Rows marked extended are
+            // only shown after clicking "Toon alle resultaten".
+            const rowDefs = [
+                {label: 'Gewicht', field: 'gewicht', unit: ' kg', decimals: 1, betterWhen: 'lower'},
+                {label: 'Spieren (%)', field: 'spierpercentage', unit: '%', decimals: 1, betterWhen: 'higher'},
+                {label: 'Vet (%)', field: 'vetPercentage', unit: '%', decimals: 1, betterWhen: 'lower'},
+                {label: 'Vocht (%)', field: 'vochtpercentage', unit: '%', decimals: 1, betterWhen: 'higher'},
+                {label: 'Visceraal vet', field: 'visceraalvet', unit: '', decimals: 1, betterWhen: 'lower'},
+                {label: 'Spieren (kg)', field: 'spiermassa', unit: ' kg', decimals: 1, betterWhen: 'higher', extended: true},
+                {label: 'Vet (kg)', field: 'vetmassa', unit: ' kg', decimals: 1, betterWhen: 'lower', extended: true},
+                {label: 'Botmassa', field: 'botmassa', unit: ' kg', decimals: 1, betterWhen: 'higher', extended: true},
+                {label: 'BMR', field: 'bmr', unit: '', decimals: 0, betterWhen: 'higher', extended: true},
+                {label: 'Metabolische Lft.', field: 'metabolischeleeftijd', unit: '', decimals: 0, betterWhen: 'lower', extended: true},
+                {label: 'Lichaamstype', field: 'lichaamstype', unit: '', decimals: 0, betterWhen: null, extended: true},
+            ];
 
-            const weightChange = parseFloat(first.gewicht) - parseFloat(last.gewicht);
-            this.weightEvolution = (weightChange >= 0 ? '-' : '+') + ' ' + Math.abs(weightChange).toFixed(1);
-            this.evolutionColor = weightChange >= 0 ? 'green' : 'red';
-            
-            // Muscle mass evolution
-            this.firstMuscle = parseFloat(first.spiermassa || 0).toFixed(1);
-            this.lastMuscle = parseFloat(last.spiermassa || 0).toFixed(1);
-            const muscleChange = parseFloat(first.spiermassa || 0) - parseFloat(last.spiermassa || 0);
-            this.muscleEvolution = (muscleChange >= 0 ? '-' : '+') + ' ' + Math.abs(muscleChange).toFixed(1);
-            this.muscleEvolutionColor = muscleChange >= 0 ? 'red' : 'green';
-            
-            // Body fat percentage evolution
-            this.firstFatPercentage = parseFloat(first.vetPercentage || 0).toFixed(1);
-            this.lastFatPercentage = parseFloat(last.vetPercentage || 0).toFixed(1);
-            const fatPercentageChange = parseFloat(first.vetPercentage || 0) - parseFloat(last.vetPercentage || 0);
-            this.fatPercentageEvolution = (fatPercentageChange >= 0 ? '-' : '+') + ' ' + Math.abs(fatPercentageChange).toFixed(1);
-            this.fatPercentageEvolutionColor = fatPercentageChange >= 0 ? 'green' : 'red';
-            
-            // Visceral fat evolution
-            this.firstVisceralFat = parseFloat(first.visceraalvet || 0).toFixed(1);
-            this.lastVisceralFat = parseFloat(last.visceraalvet || 0).toFixed(1);
-            const visceralFatChange = parseFloat(first.visceraalvet || 0) - parseFloat(last.visceraalvet || 0);
-            this.visceralFatEvolution = (visceralFatChange >= 0 ? '-' : '+') + ' ' + Math.abs(visceralFatChange).toFixed(1);
-            this.visceralFatEvolutionColor = visceralFatChange >= 0 ? 'green' : 'red';
+            this.allOverviewRows = rowDefs.map(def => {
+                const firstValue = parseFloat(first[def.field] || 0);
+                const lastValue = parseFloat(last[def.field] || 0);
+                const change = lastValue - firstValue;
 
-            // BMR evolution
-            this.firstBmr = parseFloat(first.bmr || 0).toFixed(0);
-            this.lastBmr = parseFloat(last.bmr || 0).toFixed(0);
-            const bmrChange = parseFloat(last.bmr || 0) - parseFloat(first.bmr || 0);
-            this.bmrEvolution = (bmrChange >= 0 ? '+' : '-') + ' ' + Math.abs(bmrChange).toFixed(0);
-            this.bmrEvolutionColor = bmrChange >= 0 ? 'green' : 'red';
+                let color = 'inherit';
+                if (def.betterWhen && change !== 0) {
+                    const improved = def.betterWhen === 'higher' ? change > 0 : change < 0;
+                    color = improved ? 'green' : 'red';
+                }
 
-            // Water/Vocht Percentage evolution
-            this.firstVochtPercentage = parseFloat(first.vochtpercentage || 0).toFixed(1);
-            this.lastVochtPercentage = parseFloat(last.vochtpercentage || 0).toFixed(1);
-            const vochtChange = parseFloat(last.vochtpercentage || 0) - parseFloat(first.vochtpercentage || 0);
-            this.vochtEvolution = (vochtChange >= 0 ? '+' : '-') + ' ' + Math.abs(vochtChange).toFixed(1);
-            this.vochtEvolutionColor = vochtChange >= 0 ? 'green' : 'red';
+                return {
+                    label: def.label,
+                    extended: !!def.extended,
+                    first: firstValue.toFixed(def.decimals) + def.unit,
+                    last: lastValue.toFixed(def.decimals) + def.unit,
+                    evolution: (change >= 0 ? '+' : '-') + ' ' + Math.abs(change).toFixed(def.decimals) + def.unit,
+                    color: color,
+                };
+            });
 
-            // Metabolic Age (Metabolische Leeftijd) evolution
-            this.firstMetabolicAge = parseFloat(first.metabolischeleeftijd || 0).toFixed(0);
-            this.lastMetabolicAge = parseFloat(last.metabolischeleeftijd || 0).toFixed(0);
-            const metabolicAgeChange = parseFloat(first.metabolischeleeftijd || 0) - parseFloat(last.metabolischeleeftijd || 0); // Lower metabolic age is positive
-            this.metabolicAgeEvolution = (metabolicAgeChange >= 0 ? '-' : '+') + ' ' + Math.abs(metabolicAgeChange).toFixed(0);
-            this.metabolicAgeEvolutionColor = metabolicAgeChange >= 0 ? 'green' : 'red';
-            
             // Calculate days difference
             const firstDate = new Date(first.datum);
             const lastDate = new Date(last.datum);
@@ -813,36 +766,10 @@ define([
                 endDate: this.endDate,
                 firstDate: this.firstDate,
                 lastDate: this.lastDate,
-                firstWeight: this.firstWeight,
-                lastWeight: this.lastWeight,
-                weightEvolution: this.weightEvolution,
-                evolutionColor: this.evolutionColor,
                 daysDiff: this.daysDiff,
-                firstMuscle: this.firstMuscle,
-                lastMuscle: this.lastMuscle,
-                muscleEvolution: this.muscleEvolution,
-                muscleEvolutionColor: this.muscleEvolutionColor,
-                firstFatPercentage: this.firstFatPercentage,
-                lastFatPercentage: this.lastFatPercentage,
-                fatPercentageEvolution: this.fatPercentageEvolution,
-                fatPercentageEvolutionColor: this.fatPercentageEvolutionColor,
-                firstVisceralFat: this.firstVisceralFat,
-                lastVisceralFat: this.lastVisceralFat,
-                visceralFatEvolution: this.visceralFatEvolution,
-                visceralFatEvolutionColor: this.visceralFatEvolutionColor,
                 showAllResults: this.showAllResults,
-                firstBmr: this.firstBmr,
-                lastBmr: this.lastBmr,
-                bmrEvolution: this.bmrEvolution,
-                bmrEvolutionColor: this.bmrEvolutionColor,
-                firstMetabolicAge: this.firstMetabolicAge,
-                lastMetabolicAge: this.lastMetabolicAge,
-                metabolicAgeEvolution: this.metabolicAgeEvolution,
-                metabolicAgeEvolutionColor: this.metabolicAgeEvolutionColor,
-                firstVochtPercentage: this.firstVochtPercentage,
-                lastVochtPercentage: this.lastVochtPercentage,
-                vochtEvolution: this.vochtEvolution,
-                vochtEvolutionColor: this.vochtEvolutionColor,
+                overviewRows: (this.allOverviewRows || [])
+                    .filter(row => this.showAllResults || !row.extended),
             };
         }
 
