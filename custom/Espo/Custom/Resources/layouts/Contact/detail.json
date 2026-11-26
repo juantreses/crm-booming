@@ -32,7 +32,13 @@
                 {
                     "name": "cHeight"
                 }
-            ],
+            ]
+        ],
+        "style": "default",
+        "label": ""
+    },
+    {
+        "rows": [
             [
                 {
                     "name": "cSavingsPointsBalance"
@@ -56,8 +62,14 @@
                 false
             ]
         ],
+        "dynamicLogicVisible": null,
         "style": "default",
-        "label": ""
+        "tabBreak": true,
+        "tabLabel": "Spaarkaart & RI",
+        "hidden": false,
+        "noteText": null,
+        "noteStyle": "info",
+        "customLabel": "Spaarkaart & RI"
     },
     {
         "rows": [
